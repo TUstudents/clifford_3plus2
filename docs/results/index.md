@@ -1,6 +1,6 @@
 # Results
 
-## 2026-05-13
+## 2026-05-14
 
 Commands:
 
@@ -17,6 +17,7 @@ uv run python scripts/gate_classification_check.py --check
 uv run python scripts/qca_update_check.py --check
 uv run python scripts/qca_update_check.py --include-rank-one-color-shift --expect-verdict falsified
 uv run python scripts/qca_update_check.py --include-rank-one-weak-shift --expect-verdict falsified
+uv run python scripts/spinor16_check.py --check
 uv run python scripts/branching_check.py --check
 uv run python scripts/qca_split_audit.py --check --expect-verdict notation_only
 uv run python scripts/qca_split_audit.py --json --expect-verdict notation_only
@@ -26,7 +27,7 @@ Verification:
 
 ```text
 ruff: passed
-pytest: 125 passed
+pytest: 140 passed
 ```
 
 Real carrier check:
@@ -168,6 +169,23 @@ finite_depth_qca_verdict: falsified
 load_bearing_qca_bridge: false
 ```
 
+Spinor 16 check:
+
+```text
+This verifies guarded Spin(10) spinor reconstruction only.
+It does not prove QCA rule data force J or the 3+2 split.
+spinor16_dimension: 16
+degree_dimensions: {'0': 1, '2': 10, '4': 5}
+hypercharge_check_passed: true
+branching_table_check_passed: true
+uses_existing_j_and_split: true
+introduces_new_complex_structure: false
+introduces_new_3plus2_split: false
+spinor16_verdict: candidate_only
+spinor16_check_passed: true
+load_bearing_qca_bridge: false
+```
+
 Branching check:
 
 ```text
@@ -234,6 +252,8 @@ Phase 4 proves the SM commutant classifier oracle on canonical safe and unsafe
 gates, but no actual QCA gate set has been certified safe.
 Phase 5 certifies a declared finite-depth period-four update candidate and
 no-locking falsifiers, but the update is still not QCA-forced.
+Phase 6 reconstructs the guarded 16-dimensional spinor table from prior
+candidate data, but it does not make the QCA bridge load-bearing.
 ```
 
 ## Active Roadmap Update

@@ -137,6 +137,12 @@ update certificate. The check is documented in
 candidate identities `U(T/4)=J`, `U(T/2)=-I`, and `U(T)=I`, but it does not
 prove that microscopic QCA rule data force the update.
 
+Phase 6 reconstructs `Lambda^even(C^5)` using the prior `J` and `P_3/P_2`
+candidates. The check is documented in
+[Spinor 16 Report](literature/spinor16_report.md). It verifies the exact
+16-state table and hypercharges, but it does not introduce a new complex
+structure or a new `3+2` split.
+
 ## Load-Bearing Conditions
 
 The bridge becomes nontrivial only if QCA data supplies all of the following:

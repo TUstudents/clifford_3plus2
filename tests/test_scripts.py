@@ -397,3 +397,60 @@ def test_qca_update_check_expect_verdict_fails_on_mismatch() -> None:
     )
 
     assert result.returncode == 1
+
+
+def test_spinor16_check_script_reports_candidate_only_result() -> None:
+    result = subprocess.run(
+        [sys.executable, "scripts/spinor16_check.py", "--check"],
+        cwd=ROOT,
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+
+    assert "This verifies guarded Spin(10) spinor reconstruction only." in result.stdout
+    assert "It does not prove QCA rule data force J or the 3+2 split." in result.stdout
+    assert "spinor16_dimension: 16" in result.stdout
+    assert "hypercharge_check_passed: true" in result.stdout
+    assert "branching_table_check_passed: true" in result.stdout
+    assert "uses_existing_j_and_split: true" in result.stdout
+    assert "introduces_new_complex_structure: false" in result.stdout
+    assert "introduces_new_3plus2_split: false" in result.stdout
+    assert "spinor16_verdict: candidate_only" in result.stdout
+    assert "spinor16_check_passed: true" in result.stdout
+    assert "load_bearing_qca_bridge: false" in result.stdout
+
+
+def test_spinor16_check_script_can_emit_json() -> None:
+    result = subprocess.run(
+        [sys.executable, "scripts/spinor16_check.py", "--json"],
+        cwd=ROOT,
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+
+    payload = json.loads(result.stdout)
+    assert payload["spinor16_dimension"] == 16
+    assert payload["degree_dimensions"] == {"0": 1, "2": 10, "4": 5}
+    assert payload["hypercharge_check_passed"] is True
+    assert payload["branching_table_check_passed"] is True
+    assert payload["uses_existing_j_and_split"] is True
+    assert payload["spinor16_verdict"] == "candidate_only"
+    assert payload["load_bearing_qca_bridge"] is False
+
+
+def test_spinor16_check_expect_verdict_fails_on_mismatch() -> None:
+    result = subprocess.run(
+        [
+            sys.executable,
+            "scripts/spinor16_check.py",
+            "--expect-verdict",
+            "derived_from_qca",
+        ],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+    )
+
+    assert result.returncode == 1

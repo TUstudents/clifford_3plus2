@@ -26,6 +26,7 @@ forced_j_check: candidate_only
 structural_split_check: candidate_only
 gate_classification_check: oracle_passes
 qca_update_check: candidate_only
+spinor16_check: candidate_only
 Spin(10) branching check: passes
 QCA load-bearing bridge: notation_only
 ```
@@ -66,6 +67,7 @@ Spin(10), the project remains `notation_only`.
 - [Projector lattice report](docs/literature/projector_lattice_report.md)
 - [Gate classification report](docs/literature/gate_classification_report.md)
 - [QCA update certificate](docs/literature/qca_update_certificate.md)
+- [Spinor 16 report](docs/literature/spinor16_report.md)
 - [Theory summary](docs/theory.md)
 - [Falsifiers](docs/falsifiers.md)
 - [Phase 0 handover compliance](docs/handover_compliance.md)
@@ -172,6 +174,17 @@ finite_depth_qca_verdict: candidate_only
 load_bearing_qca_bridge: false
 ```
 
+`scripts/spinor16_check.py` verifies the guarded Phase 6 reconstruction of
+`Lambda^even(C^5)` from the prior `J` and `P_3/P_2` candidates:
+
+```text
+spinor16_dimension: 16
+hypercharge_check_passed: true
+branching_table_check_passed: true
+spinor16_verdict: candidate_only
+load_bearing_qca_bridge: false
+```
+
 ## QCA Input Contract
 
 The current audit reads nontrivial input only from `data/qca_data.json`.
@@ -197,6 +210,7 @@ uv run python scripts/gate_classification_check.py --check
 uv run python scripts/qca_update_check.py --check
 uv run python scripts/qca_update_check.py --include-rank-one-color-shift --expect-verdict falsified
 uv run python scripts/qca_update_check.py --include-rank-one-weak-shift --expect-verdict falsified
+uv run python scripts/spinor16_check.py --check
 uv run python scripts/branching_check.py --check
 uv run python scripts/qca_split_audit.py --check --expect-verdict notation_only
 uv run python scripts/qca_split_audit.py --json --expect-verdict notation_only

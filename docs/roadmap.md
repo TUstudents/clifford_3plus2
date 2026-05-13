@@ -34,6 +34,8 @@ cannot resolve individual color or weak axes.
   Phase 4 SM commutant oracle.
 - [QCA Update Certificate](literature/qca_update_certificate.md):
   Phase 5 finite-depth update candidate.
+- [Spinor 16 Report](literature/spinor16_report.md):
+  Phase 6 guarded spinor reconstruction.
 - [Handover Compliance](handover_compliance.md): Phase 0 closeout checklist.
 - [Side Project Plan](clifford_3plus2_to_d5_side_project_plan.md): original
   geometry-to-D5 project plan.
@@ -53,6 +55,8 @@ gate_classification_check_passed: true
 qca_geometric_gate_algebra_safe: false
 qca_update_check_passed: true
 finite_depth_qca_verdict: candidate_only
+spinor16_check_passed: true
+spinor16_verdict: candidate_only
 branching_check_passed: true
 qca_split_audit_verdict: notation_only
 load_bearing_qca_bridge: false
@@ -460,26 +464,34 @@ all internal geometric actions pass the SM commutant classifier.
 
 ## Phase 6: Spinor Reconstruction
 
-Status: branching table already implemented as notation; reconstruction from
-derived `J` and `P_3/P_2` not started.
+Status: complete as guarded candidate-only reconstruction.
 
 Purpose: only after `J` and the structural split pass, construct
 `Lambda^even(C^5)` from the derived real carrier.
 
-Existing implementation:
+Implementation:
 
 - [`src/clifford_3plus2_d5/exterior.py`](../src/clifford_3plus2_d5/exterior.py)
 - [`src/clifford_3plus2_d5/branching.py`](../src/clifford_3plus2_d5/branching.py)
+- [`src/clifford_3plus2_d5/sm/spinor16.py`](../src/clifford_3plus2_d5/sm/spinor16.py)
+- [`src/clifford_3plus2_d5/sm/hypercharge.py`](../src/clifford_3plus2_d5/sm/hypercharge.py)
 - [`tests/test_branching.py`](../tests/test_branching.py)
+- [`tests/test_spinor16.py`](../tests/test_spinor16.py)
+- [`tests/test_hypercharge.py`](../tests/test_hypercharge.py)
+- [`docs/literature/spinor16_report.md`](literature/spinor16_report.md)
 
-Future deliverables:
+Current outcome:
 
 ```text
-src/clifford_3plus2_d5/sm/spinor16.py
-src/clifford_3plus2_d5/sm/hypercharge.py
-tests/test_spinor16.py
-tests/test_hypercharge.py
-docs/literature/spinor16_report.md
+spinor16_dimension = 16
+degree_dimensions = {0: 1, 2: 10, 4: 5}
+hypercharge_check_passed = true
+branching_table_check_passed = true
+uses_existing_j_and_split = true
+introduces_new_complex_structure = false
+introduces_new_3plus2_split = false
+spinor16_verdict = candidate_only
+load_bearing_qca_bridge = false
 ```
 
 Acceptance:
@@ -596,8 +608,9 @@ one-generation internal carrier only.
    - Require real QCA rule data before marking the update forced.
 
 5. **Spinor Reconstruction**
-   - Reuse existing branching machinery only after `J` and `P_3/P_2` are
-     derived.
+   - Maintain guarded `Lambda^even(C^5)` reconstruction from prior candidates.
+   - Verify exact hypercharge and sector table.
+   - Require earlier QCA-forced data before treating the spinor as load-bearing.
 
 ## Non-Goals
 
