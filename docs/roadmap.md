@@ -1,26 +1,43 @@
 # Roadmap And Working Index
 
 This is the main working index for the `clifford-3plus2-d5` side project.
-It organizes the work needed to test whether QCA Clifford geometry can supply
-a structural `3+2` bridge to the one-generation Spin(10) spinor.
+The governing attack is now the enhanced J-first route:
+
+```text
+J first,
+then forced 3+2,
+then no-locking commutant,
+then finite-depth QCA,
+then Spin(10) spinor.
+```
+
+The bridge is not accepted by finding five complex anticommuting matrices.
+It is accepted only if microscopic real QCA data force a local complex
+structure `J`, a structural `3+2` split, and a geometric gate algebra that
+cannot resolve individual color or weak axes.
 
 ## Source Documents
 
 - [README](../README.md): project boundary, commands, and current status.
+- [Enhanced J-First Attack Plan](qca_3plus2_j_first_enhanced_attack_plan.md):
+  current main theorem and implementation plan.
+- [Original J-First Attack Plan](qca_3plus2_j_first_attack_plan.md): earlier
+  route ranking and motivation.
 - [Theory Summary](theory.md): current mathematical baseline and audit
   boundary.
 - [Falsifiers](falsifiers.md): conditions that force `notation_only` or
   `falsified`.
 - [Results Index](results/index.md): reproducible command outputs.
 - [Handover Compliance](handover_compliance.md): Phase 0 closeout checklist.
-- [Side Project Plan](clifford_3plus2_to_d5_side_project_plan.md): full
-  research roadmap and theorem target.
+- [Side Project Plan](clifford_3plus2_to_d5_side_project_plan.md): original
+  geometry-to-D5 project plan.
 - [Archived Agent Handover](archive/clifford_3plus2_empty_repo_agent_handover.md):
   completed bootstrap and first implementation contract.
 
 ## Current Verdict
 
 ```text
+phase_0_audit_contract: complete
 branching_check_passed: true
 qca_split_audit_verdict: notation_only
 load_bearing_qca_bridge: false
@@ -33,12 +50,72 @@ Meaning:
 - No `data/qca_data.json` is present.
 - The project must not claim a geometry-to-D5 theorem yet.
 
-## Phase 0: Audit Infrastructure And QCA Data Contract
+## Enhanced Theorem Target
+
+The target theorem is carrier-first.
+
+Input that must be derived before invoking Spin(10):
+
+```text
+K_x ~= R^10
+J in SO(K_x), J^2 = -I
+K_x = K_3 ⊕ K_2
+dim_R K_3 = 6
+dim_R K_2 = 4
+J K_3 = K_3
+J K_2 = K_2
+A_geom subset Comm(SU(3) x SU(2) x U(1))
+```
+
+Then:
+
+```text
+W := (K_x, J) ~= C^5 = C^3 ⊕ C^2
+S^+ := Lambda^even(W)
+Y = -1/3 N_3 + 1/2 N_2
+```
+
+The bridge survives only if `J`, `P_3/P_2`, and the safe gate algebra are
+produced by QCA rule data, not selected because they reproduce `Spin(10)`.
+
+## Central Falsifier
+
+The QCA may distinguish the whole `3` block from the whole `2` block. It may
+not distinguish individual axes inside either block.
+
+Allowed structural projectors:
+
+```text
+P_3
+P_2
+```
+
+Forbidden addressability:
+
+```text
+|color 1><color 1|
+|color 2><color 2|
+|color 3><color 3|
+|weak 1><weak 1|
+|weak 2><weak 2|
+Hom(C^3, C^2)
+Hom(C^2, C^3)
+```
+
+If the microscopic update contains direction-conditioned terms such as
+
+```text
+S_1 ⊗ |1><1| + S_2 ⊗ |2><2| + S_3 ⊗ |3><3|
+```
+
+then it breaks the would-be `SU(3)` unless all `S_i` are identical.
+
+## Phase 0: Audit Infrastructure And Contract
 
 Status: complete.
 
-Purpose: make the QCA split audit precise enough that future data can pass or
-fail without interpretation.
+Purpose: provide a reproducible exact-arithmetic audit contract that blocks
+false bridge claims.
 
 Completed:
 
@@ -55,13 +132,6 @@ Completed:
   - [`scripts/branching_check.py`](../scripts/branching_check.py)
   - [`scripts/qca_split_audit.py`](../scripts/qca_split_audit.py)
 
-Deferred beyond Phase 0:
-
-- Real `data/qca_data.json`.
-- Real QCA candidate Clifford matrices.
-- A synthetic `structural_bridge` fixture, because it could be misleading
-  before the representation-space convention is fixed.
-
 Acceptance:
 
 ```text
@@ -69,229 +139,364 @@ The audit interface is documented, tested, and impossible to pass by
 omission, floats, unknown origins, or hand-chosen J.
 ```
 
-## Phase 1: Real Load-Bearing QCA 3+2 Split Audit
+## Phase 1: Algebra Kernel And Real Carrier
+
+Status: next.
+
+Purpose: implement the exact real carrier model used by the enhanced attack.
+Do not introduce complex notation before `J` is constructed as a real matrix.
+
+Core ansatz:
+
+```text
+K_x = R^2_clock ⊗ (R^3 ⊕ R^2)
+basis = x_1,...,x_5,y_1,...,y_5
+J = epsilon ⊗ I_5
+P_3 = I_2 ⊗ diag(1,1,1,0,0)
+P_2 = I_2 ⊗ diag(0,0,0,1,1)
+```
+
+Implementation deliverables:
+
+```text
+src/clifford_3plus2_d5/algebra/real_carrier.py
+src/clifford_3plus2_d5/algebra/matrices.py
+tests/test_real_carrier.py
+docs/literature/real_carrier_report.md
+```
+
+Required exact checks:
+
+```text
+dim_R K_x = 10
+J^2 = -I_10
+J^T J = I_10
+P_3 + P_2 = I_10
+P_i^2 = P_i
+P_3 P_2 = 0
+rank_R(P_3) = 6
+rank_R(P_2) = 4
+[J,P_3] = [J,P_2] = 0
+```
+
+Acceptance:
+
+```text
+The real carrier and algebraic ansatz are exact, documented, and tested.
+No claim is made yet that QCA dynamics force J or P_3/P_2.
+```
+
+## Phase 2: Forced `J` Search
 
 Status: not started.
 
-Purpose: decide whether QCA supplies the `3+2` Clifford split structurally.
-This is the first scientific gate.
+Purpose: prove or falsify that microscopic QCA data generate `J`.
 
-Deliverable:
+Candidate routes:
+
+- Period-four micromotion:
+  ```text
+  J = U(T/4)
+  J^2 = U(T/2) = -I on K_x
+  J^4 = U(T) = I
+  ```
+- Gate-word generation:
+  ```text
+  J = G_q ... G_2 G_1
+  ```
+
+Implementation deliverables:
 
 ```text
-docs/literature/qca_clifford_3plus2_split_audit.md
+src/clifford_3plus2_d5/search/gate_words.py
+src/clifford_3plus2_d5/search/forced_j.py
+tests/test_j_structure.py
+tests/test_gate_word_search.py
+docs/literature/forced_j_report.md
 ```
-
-Questions:
-
-- What are the three spatial QCA Clifford directions?
-- What are the two candidate extra directions?
-- Are they wall/Floquet directions, Wick-rotated directions, coin matrices, or
-  arbitrary decorations?
-- What is the exact anticommutation table and signature?
-- What is the complex structure `J`, and is it QCA-forced?
-- Does `J^2 = -I` exactly?
-- Does `J` preserve `P3` and `P2`?
-- Is the allowed local gate algebra block-invariant and SM-safe?
 
 Acceptance:
 
 ```text
-qca_supplies_structural_3plus2_split = true
-complex_structure_origin in {qca_chirality, floquet_phase, wick_rotation}
-complex_structure_compatible_with_3plus2_split = true
-allowed_gate_algebra_block_mixing_absent = true
-allowed_gate_algebra_sm_commutant_safe = true
+J is produced by microscopic QCA data,
+J^2 = -I exactly,
+J is local/finite-depth,
+J is unique up to harmless equivalence,
+rank-one pair rotations J_a are not independently addressable.
 ```
 
-Failure status:
+Failure:
 
 ```text
-notation_only or falsified
+J is chosen after the fact,
+J is ambient scalar i,
+many inequivalent J choices are equally valid,
+or the rule set allows independently addressable J_a.
 ```
 
-## Phase 2: Written Theory Baseline
+## Phase 3: Structural `3+2` Split
 
-Status: partially started in [Theory Summary](theory.md).
+Status: not started.
 
-Purpose: separate textbook representation theory from QCA-specific claims.
+Purpose: prove or falsify that the QCA rule data force only the block
+projectors `P_3` and `P_2`, not rank-one projectors inside them.
 
-Deliverable:
+Implementation deliverables:
 
 ```text
-docs/literature/clifford_3plus2_to_d5_theory.md
+src/clifford_3plus2_d5/algebra/projectors.py
+src/clifford_3plus2_d5/search/addressability.py
+tests/test_projectors.py
+tests/test_no_rank_one_addressability.py
+docs/literature/projector_lattice_report.md
 ```
-
-Contents:
-
-- Define QCA Clifford data in matrix notation.
-- Define the abstract `V_3 ⊕ V_2` split.
-- Define `S_+ = Lambda^even(C^5)`.
-- Derive the branching table.
-- Quote Phase 1 status before any bridge claim.
-- State what the construction does and does not explain.
 
 Acceptance:
 
 ```text
-All representation claims are explicit and checkable.
-No BCC-to-Cartan projector appears.
-No three-family claim appears.
+P_3 and P_2 are QCA-structural,
+P_3 and P_2 commute with J,
+the split is unique up to block rotations,
+there are no rank-one projectors inside either block.
 ```
 
-## Phase 3: Branching Calculation / Notation Lemma
+Failure:
 
-Status: implemented.
+```text
+the 3+2 split is arbitrary,
+the QCA can resolve individual color axes,
+the QCA can resolve individual weak axes,
+or the split is introduced only after SM labels appear.
+```
 
-Purpose: verify the standard Spin(10) `16` branching for the fixed `3+2`
-split.
+## Phase 4: SM Commutant And Gate Classifier
 
-Implemented in:
+Status: partially started by Phase 0 one-particle gate tests.
+
+Purpose: build the permanent exact oracle for geometric gate safety.
+
+Expected theorem:
+
+```text
+Comm(SU(3) x SU(2) x U(1) on C^3 ⊕ C^2) = C P_3 ⊕ C P_2
+```
+
+Gate classes:
+
+```text
+safe_sm_commutant
+block_mixing_fail
+color_breaking_fail
+weak_breaking_fail
+antilinear_fail
+unknown_fail
+```
+
+Implementation deliverables:
+
+```text
+src/clifford_3plus2_d5/algebra/commutants.py
+src/clifford_3plus2_d5/sm/embedding.py
+src/clifford_3plus2_d5/sm/classification.py
+tests/test_commutant.py
+tests/test_gate_classification.py
+docs/literature/gate_classification_report.md
+```
+
+Acceptance:
+
+```text
+every geometric QCA gate generator lies in C P_3 ⊕ C P_2,
+all block mixers are rejected,
+all rank-one color projectors are rejected,
+all rank-one weak projectors are rejected,
+closure of the safe algebra is proven.
+```
+
+## Phase 5: Finite-Depth Microscopic QCA Candidate
+
+Status: not started.
+
+Purpose: construct and certify an actual local update.
+
+Candidate period-four structure:
+
+```text
+U(T/4) = J
+U(T/2) = -I on K_x
+U(T) = I on K_x
+```
+
+Layer certificate fields:
+
+```text
+finite_depth
+layer_count
+max_locality_radius
+all_layers_orthogonal
+quarter_period_operator
+half_period_operator
+J_certificate
+gate_classification_summary
+unsafe_gate_witnesses
+```
+
+Implementation deliverables:
+
+```text
+src/clifford_3plus2_d5/qca/gates.py
+src/clifford_3plus2_d5/qca/layers.py
+src/clifford_3plus2_d5/qca/locality.py
+src/clifford_3plus2_d5/qca/certificates.py
+tests/test_qca_layers.py
+tests/test_no_locking.py
+docs/literature/qca_update_certificate.md
+```
+
+Acceptance:
+
+```text
+the update is finite-depth,
+each layer is local,
+each layer is exactly real orthogonal/unitary,
+J appears as actual micromotion,
+spacetime coupling does not use within-block projectors,
+all internal geometric actions pass the SM commutant classifier.
+```
+
+## Phase 6: Spinor Reconstruction
+
+Status: branching table already implemented as notation; reconstruction from
+derived `J` and `P_3/P_2` not started.
+
+Purpose: only after `J` and the structural split pass, construct
+`Lambda^even(C^5)` from the derived real carrier.
+
+Existing implementation:
 
 - [`src/clifford_3plus2_d5/exterior.py`](../src/clifford_3plus2_d5/exterior.py)
 - [`src/clifford_3plus2_d5/branching.py`](../src/clifford_3plus2_d5/branching.py)
 - [`tests/test_branching.py`](../tests/test_branching.py)
 
-Check:
+Future deliverables:
 
-```bash
-uv run python scripts/branching_check.py --check
+```text
+src/clifford_3plus2_d5/sm/spinor16.py
+src/clifford_3plus2_d5/sm/hypercharge.py
+tests/test_spinor16.py
+tests/test_hypercharge.py
+docs/literature/spinor16_report.md
 ```
 
 Acceptance:
 
 ```text
-total multiplicity = 16
-Y = -1/3 N_3 + 1/2 N_2
-branching_check_passed: true
-load_bearing_qca_bridge: false
+the even Fock basis has dimension 16,
+the hypercharge table is exact,
+the branching uses the previously derived J and P_3/P_2,
+no new choice of C^5 appears in this phase.
 ```
 
-Interpretation:
-
-```text
-This is necessary bookkeeping, not QCA evidence.
-```
-
-## Phase 4: Intertwiner / No-Projector Lemma
-
-Status: partially implemented as gate algebra tests.
-
-Purpose: prove and test the distinction between safe block invariants and
-unsafe color-breaking projectors.
-
-Current implementation:
-
-- [`src/clifford_3plus2_d5/gate_algebra.py`](../src/clifford_3plus2_d5/gate_algebra.py)
-- [`tests/test_gate_algebra.py`](../tests/test_gate_algebra.py)
-
-Future deliverable:
-
-```text
-docs/literature/clifford_3plus2_intertwiner_theorem.md
-```
-
-Tasks:
-
-- Define `gl(3) ⊕ gl(2)` and the SM subgroup action.
-- Prove that functions of `N_3,N_2` commute with `SU(3) x SU(2)`.
-- Prove that individual basis projectors inside `C^3` break `SU(3)`.
-- Connect this to the old BCC-D5 Cartan-locking falsifier.
-- Extend tests if the Fock-space gate algebra grows beyond diagonal
-  `N_3,N_2` functions.
-
-Acceptance:
-
-```text
-The lemma distinguishes safe block invariants from unsafe Cartan projectors.
-```
-
-Interpretation:
-
-```text
-Still notation-only unless Phase 1 proves QCA gates are actually constrained
-to the safe algebra.
-```
-
-## Phase 5: QCA Clifford Match
+## Phase 7: Forcedness And Normalizer Analysis
 
 Status: not started.
 
-Purpose: refine the Phase 1 audit into a formal QCA proposition.
-
-Deliverable:
-
-```text
-docs/literature/qca_clifford_3plus2_match.md
-```
+Purpose: prove the construction is not one convenient coordinate choice among
+many.
 
 Tasks:
 
-- Prove or falsify structural origin of the two-plane.
-- Prove or falsify signature compatibility with the complex `C^5`
-  construction.
-- Prove or falsify block-invariance of the allowed QCA gate algebra.
-- State the symmetry group preserving the split.
+- Compute or approximate `Aut(Data)`, the real orthogonal transformations
+  preserving microscopic rules.
+- Study admissible `J'` with `(J')^2=-I`.
+- Study admissible rank-three `J`-invariant projectors.
+- Compute the addressability algebra generated by switchable controls.
+
+Implementation deliverables:
+
+```text
+src/clifford_3plus2_d5/search/normalizer.py
+tests/test_normalizer.py
+docs/literature/normalizer_report.md
+docs/literature/forcedness_certificate.md
+```
 
 Acceptance:
 
 ```text
-QCA supplies a genuine 3+2 Clifford split, not a post-hoc relabeling.
+J is unique or canonically forced,
+P_3/P_2 are unique structural central projectors,
+the microscopic controls do not generate smaller projectors,
+the normalizer does not erase the 3+2 split.
 ```
 
-## Phase 6: Combined Geometry / Spin(10) Operation
+## Phase 8: Route Branches If Minimal Ansatz Fails
 
-Status: not started.
+Status: fallback only.
 
-Purpose: classify QCA/geometric operations by how they act on the SM subgroup.
+Branch order:
 
-Deliverable:
+1. Stronger real-QCA first route.
+2. Floquet-Kahler micromotion.
+3. Defect/monodromy complex structure.
+4. Five-axis parent QCA.
+5. `D5` / `SU(5)` root-lattice QCA.
+6. Passive `Spin(10)` fiber fallback.
+
+Fallback interpretation:
 
 ```text
-docs/literature/combined_geometry_spin10_operation.md
+If no route derives J, QCA geometry may still supply topology and locality,
+but Spin(10) remains an independent internal fiber.
 ```
 
-Tasks:
+## Phase 9: Family Number Status
 
-- Define candidate operations: inversion, time reversal, chirality flip,
-  wall mass-plane rotation, BCC point-group rotation, defect monodromy.
-- Define induced internal action `Omega(g)`.
-- Classify each operation as gauge-commuting, gauge-automorphism, or
-  gauge-breaking.
-- Require the entire allowed gate algebra to be safe, not just examples.
+Status: out of scope for the bridge.
 
-Acceptance:
+Purpose: prevent hidden insertion of three generations.
+
+Rejected as derivations:
 
 ```text
-Every allowed QCA local gate is an SM intertwiner or a declared safe
-automorphism.
+choose winding n = 3
+stack three copies
+choose three defects
+repeat a unit pump three times
+choose a degree-three map
 ```
 
-## Phase 7: Theorem Status And Integration Decision
-
-Status: not started.
-
-Purpose: decide what this side project honestly proves.
-
-Deliverable:
+Acceptance for any future family claim:
 
 ```text
-docs/literature/clifford_3plus2_to_d5_theorem_status.md
+the microscopic rules forbid n = 1 and force n = 3,
+or a stable index canonically fixed by the geometry equals 3.
 ```
 
-Possible final statuses:
-
-- `closed_one_generation_bridge`
-- `conditional_bridge`
-- `notation_only`
-- `falsified`
-
-Acceptance:
+Until then:
 
 ```text
-The final status states the strongest proved theorem, all assumptions, all
-remaining gaps, and whether the result can enter the main BCC-QCA program.
+one-generation internal carrier only.
 ```
+
+## Immediate Work Packages
+
+1. **Minimal Real Period-Four Ansatz**
+   - Implement exact `J`, `P_3`, `P_2`.
+   - Verify all carrier/projector identities.
+   - Document that this is algebraic only until QCA rules force it.
+
+2. **Commutant Classifier**
+   - Compute exact SM commutant.
+   - Classify safe block scalars and unsafe rank-one/block-mixing gates.
+
+3. **Finite-Depth Candidate**
+   - Certify `U(T/4)=J`, `U(T/2)=-I`, `U(T)=I`.
+   - Reject any spacetime shift with rank-one internal projectors.
+
+4. **Spinor Reconstruction**
+   - Reuse existing branching machinery only after `J` and `P_3/P_2` are
+     derived.
 
 ## Non-Goals
 
@@ -310,5 +515,5 @@ with exact rational matrices and explicit gate restrictions.
 
 ## Working Rule
 
-Phase 3 and Phase 4 can clean up notation. Only Phase 1 and Phase 5 can make
-the bridge load-bearing.
+Derive `J`; derive only `P_3` and `P_2`; never derive or allow
+`|1><1|`, `|2><2|`, `|3><3|`, `|4><4|`, or `|5><5|`.

@@ -2,39 +2,64 @@
 
 Do not fool yourself.
 
-This repo tests a possible geometry-to-Spin(10) bridge. It does not derive the
-Standard Model, it does not derive three families, and it does not prove mirror
-decoupling.
+This repo tests whether QCA data can produce a real geometry-to-Spin(10)
+one-generation bridge. It does not derive the Standard Model, three families,
+mirror decoupling, continuum gauge dynamics, or phenomenology.
 
-The current honest status is:
+The active roadmap is the enhanced J-first attack:
 
 ```text
+real finite-depth QCA data
+  -> forced local J on R^10
+  -> structural J-invariant 6+4 real split
+  -> C^5 = C^3 ⊕ C^2
+  -> geometric gate algebra in the SM commutant
+  -> Lambda^even(C^5) = Spin(10) chiral 16
+```
+
+Current honest status:
+
+```text
+phase_0_audit_contract: complete
 Spin(10) branching check: passes
 QCA load-bearing bridge: notation_only
 ```
 
-The branching arithmetic is textbook representation theory. The load-bearing
-question is still whether QCA Clifford data structurally supplies the `3+2`
-split and a non-hand-chosen compatible complex structure `J`.
+## Active Theorem Target
 
-## Theorem Target
-
-Given QCA Clifford data that structurally supplies
+The bridge is accepted only if QCA rule data produce, before invoking
+Spin(10):
 
 ```text
-V = V_3 ⊕ V_2
+K_x ~= R^10
+J in SO(K_x), J^2 = -I
+K_x = K_3 ⊕ K_2
+dim_R K_3 = 6
+dim_R K_2 = 4
+J K_3 = K_3
+J K_2 = K_2
+A_geom subset Comm(SU(3) x SU(2) x U(1))
 ```
 
-plus a non-hand-chosen compatible complex structure `J`, the induced
-Spin(10)/SU(5) exterior-algebra construction gives one Standard Model
-generation:
+Then:
 
 ```text
-S_+ = Lambda^even(C^5)
+W := (K_x, J) ~= C^5 = C^3 ⊕ C^2
+S^+ := Lambda^even(W)
+Y = -1/3 N_3 + 1/2 N_2
 ```
 
-If the QCA two-plane or complex structure is chosen by hand, the project is
-`notation_only`.
+If `J`, `P_3/P_2`, or the gate commutant are chosen because they reproduce
+Spin(10), the project remains `notation_only`.
+
+## Main Working Docs
+
+- [Roadmap and working index](docs/roadmap.md)
+- [Enhanced J-first attack plan](docs/qca_3plus2_j_first_enhanced_attack_plan.md)
+- [Theory summary](docs/theory.md)
+- [Falsifiers](docs/falsifiers.md)
+- [Phase 0 handover compliance](docs/handover_compliance.md)
+- [Results](docs/results/index.md)
 
 ## Implemented Checks
 
@@ -52,61 +77,25 @@ branching_check_passed: true
 load_bearing_qca_bridge: false
 ```
 
-`scripts/qca_split_audit.py` audits the load-bearing bridge claim. Without
-valid exact input at `data/qca_data.json`, it must report:
+`scripts/qca_split_audit.py` audits the older exact-input bridge contract.
+Without valid exact input at `data/qca_data.json`, it must report:
 
 ```text
 qca_split_audit_verdict: notation_only
 load_bearing_qca_bridge: false
 ```
 
-`gate_algebra.py` checks that allowed one-particle gates are not merely
-block-diagonal, but lie in the `SU(3) x SU(2)` commutant for the audited
-one-particle split. Off-block mixing fails. Color-basis projectors inside the
-`V_3` block also fail.
-
 The Phase 0 audit contract is closed in
 [docs/handover_compliance.md](docs/handover_compliance.md).
 
 ## QCA Input Contract
 
-The QCA audit reads its nontrivial input only from `data/qca_data.json`.
+The current audit reads nontrivial input only from `data/qca_data.json`.
 The expected shape is documented in `data/qca_data.schema.json`.
 Exact matrix entries must be strings parseable as rational numbers, such as
 `"0"`, `"1"`, `"-1"`, or `"1/2"`. Floating-point matrix entries are rejected.
 
-Minimal shape, with placeholders that must be replaced by exact rational
-matrix entries before the audit can pass:
-
-```json
-{
-  "structural_origin": "unknown",
-  "candidate_generators": [
-    {"name": "e1", "matrix": [["..."]], "block": "V3"},
-    {"name": "e2", "matrix": [["..."]], "block": "V3"},
-    {"name": "e3", "matrix": [["..."]], "block": "V3"},
-    {"name": "m1", "matrix": [["..."]], "block": "V2"},
-    {"name": "m2", "matrix": [["..."]], "block": "V2"}
-  ],
-  "candidate_complex_structure": {
-    "name": "J",
-    "origin": "unknown",
-    "matrix": [["..."]]
-  },
-  "allowed_gate_generators": [
-    {"name": "G0", "matrix": [["..."]]}
-  ],
-  "split_projectors": {
-    "P3": [["..."]],
-    "P2": [["..."]]
-  }
-}
-```
-
-Passing the audit requires an explicit `J` with `J^2 = -I`, `J` preserving
-`P3` and `P2`, `J` included in the allowed gate algebra, structural `3+2`
-generator blocks, compatible signature, no `V_3 <-> V_2` gate mixing, and an
-SM-commutant-safe gate algebra.
+Do not add `data/qca_data.json` unless it contains real source-backed QCA data.
 
 ## Development
 
@@ -124,4 +113,4 @@ uv run python scripts/qca_split_audit.py --json --expect-verdict notation_only
 Do not call a representation identity a theorem about QCA geometry. Do not flip
 a boolean unless code computes it or a proof derives it. Do not treat "`n = 3`
 was chosen" as "`n = 3` was selected." Do not hide hand-chosen complex
-structures, SU(5) embeddings, or gate restrictions.
+structures, SU(5) embeddings, gate restrictions, or within-block projectors.

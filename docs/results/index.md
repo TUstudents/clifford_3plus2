@@ -78,3 +78,17 @@ The QCA bridge has not passed.
 Current bridge status: notation_only.
 Phase 0 audit contract is closed.
 ```
+
+## Active Roadmap Update
+
+The active plan is now the enhanced J-first attack:
+
+```text
+J first,
+then forced 3+2,
+then no-locking commutant,
+then finite-depth QCA,
+then Spin(10) spinor.
+```
+
+No new bridge result is claimed by this roadmap update.

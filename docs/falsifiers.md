@@ -1,21 +1,42 @@
 # Falsifiers
 
 The project should return `notation_only` or `falsified` when any load-bearing
-datum is missing or chosen independently of QCA geometry.
+datum is missing, arbitrary, or chosen independently of QCA geometry.
+
+## J-First Falsifiers
+
+1. The construction starts from `C^5` instead of deriving a real carrier and
+   `J`.
+2. `J` is copied from ambient scalar `i`.
+3. `J` is chosen by hand.
+4. `J` is selected because it gives `SU(5)`.
+5. `J^2 != -I`.
+6. `J` is not local, finite-depth generated, micromotion-derived, or forced by
+   monodromy/rule data.
+7. Many inequivalent `J` choices are equally valid.
+8. The carrier is not real ten-dimensional, or the real carrier is only
+   implicit notation.
+
+## Split And Gate Falsifiers
+
+1. The `3+2` split is arbitrary.
+2. `P_3` or `P_2` is chosen because the Standard Model needs ranks `3` and `2`.
+3. `P_3` or `P_2` fails to commute with `J`.
+4. The rule data generate rank-one projectors inside `C^3`.
+5. The rule data generate rank-one projectors inside `C^2`.
+6. Gate algebra allows `C^3 <-> C^2` block mixing.
+7. Gate algebra is block-diagonal but not in the `SU(3) x SU(2)` commutant.
+8. Spacetime shifts use individual internal directions as controls.
+
+## Legacy Audit Falsifiers
 
 1. QCA two-plane is arbitrary.
-2. Complex structure `J` is chosen by hand.
-3. SU(5) embedding is chosen independently of QCA.
-4. Gate algebra allows `V_3 <-> V_2` block mixing.
-5. Gate algebra is block-diagonal but not in the `SU(3) x SU(2)` commutant.
-6. Gate algebra resolves individual `C^3` basis states.
-7. Candidate `J` has no explicit operator matrix.
-8. Candidate `J` fails `J^2 = -I`.
-9. Candidate `J` fails to preserve `P3` and `P2`.
-10. Candidate `J` is not in the allowed QCA gate algebra.
-11. Candidate matrices use floating-point entries for exact Clifford or
-    projector checks.
-12. Project only reproduces Spin(10) branching.
+2. SU(5) embedding is chosen independently of QCA.
+3. Candidate `J` has no explicit operator matrix.
+4. Candidate `J` is not in the allowed QCA gate algebra.
+5. Candidate matrices use floating-point entries for exact Clifford or
+   projector checks.
+6. Project only reproduces Spin(10) branching.
 
 ## Implemented Guardrails
 
@@ -30,5 +51,5 @@ The current code enforces these boundaries:
 - Off-block one-particle gate generators fail.
 - Block-diagonal one-particle gates that resolve color-basis directions fail.
 
-The remaining future guardrail is stronger provenance checking: real QCA data
-must justify why the selected two-plane and `J` are structural, not convenient.
+The next guardrail is the enhanced J-first algebra kernel: exact tests for the
+real carrier, `J`, `P_3/P_2`, commutants, and rank-one addressability.
