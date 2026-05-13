@@ -10,6 +10,9 @@ uv run pytest -q
 uv run python scripts/real_carrier_check.py --check
 uv run python scripts/forced_j_check.py --check
 uv run python scripts/forced_j_check.py --include-addressable-rank-one --expect-verdict falsified
+uv run python scripts/structural_split_check.py --check
+uv run python scripts/structural_split_check.py --include-rank-one-color --expect-verdict falsified
+uv run python scripts/structural_split_check.py --include-rank-one-weak --expect-verdict falsified
 uv run python scripts/branching_check.py --check
 uv run python scripts/qca_split_audit.py --check --expect-verdict notation_only
 uv run python scripts/qca_split_audit.py --json --expect-verdict notation_only
@@ -19,7 +22,7 @@ Verification:
 
 ```text
 ruff: passed
-pytest: 63 passed
+pytest: 82 passed
 ```
 
 Real carrier check:
@@ -62,6 +65,42 @@ Forced J addressability falsifier:
 ```text
 rank_one_pair_rotations_addressable: true
 forced_j_verdict: falsified
+load_bearing_qca_bridge: false
+```
+
+Structural split check:
+
+```text
+This verifies the exact structural split candidate only.
+It does not prove QCA rule data force P_3/P_2.
+projector_identities_passed: true
+projectors_commute_with_J: true
+projector_3_rank: 6
+projector_2_rank: 4
+rank_one_color_projectors_addressable: false
+rank_one_weak_projectors_addressable: false
+addressability_algebra_safe: true
+qca_supplies_structural_3plus2_split: false
+structural_split_verdict: candidate_only
+structural_split_check_passed: true
+load_bearing_qca_bridge: false
+```
+
+Structural split rank-one color falsifier:
+
+```text
+rank_one_color_projectors_addressable: true
+addressability_algebra_safe: false
+structural_split_verdict: falsified
+load_bearing_qca_bridge: false
+```
+
+Structural split rank-one weak falsifier:
+
+```text
+rank_one_weak_projectors_addressable: true
+addressability_algebra_safe: false
+structural_split_verdict: falsified
 load_bearing_qca_bridge: false
 ```
 
@@ -125,6 +164,8 @@ Current bridge status: notation_only.
 Phase 0 audit contract is closed.
 Phase 1 real-carrier algebra is exact but not yet QCA-forced.
 Phase 2 can certify a declared J gate word, but J is still not QCA-forced.
+Phase 3 can certify a declared P_3/P_2 candidate and rank-one falsifiers, but
+the split is still not QCA-forced.
 ```
 
 ## Active Roadmap Update

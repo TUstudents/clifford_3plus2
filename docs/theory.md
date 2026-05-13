@@ -44,6 +44,12 @@ Phase 2 verifies that a declared exact gate word can produce this `J`. The
 check is documented in [Forced J Report](literature/forced_j_report.md). It
 does not yet prove that microscopic QCA rule data force the word.
 
+Phase 3 verifies that the declared `P_3/P_2` candidate is an exact
+`J`-compatible projector split and that rank-one color or weak addressability
+is falsifying. The check is documented in
+[Projector Lattice Report](literature/projector_lattice_report.md). It does
+not yet prove that microscopic QCA rule data force the split.
+
 ## Textbook Part
 
 For a fixed complex vector-space split

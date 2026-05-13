@@ -28,6 +28,8 @@ cannot resolve individual color or weak axes.
 - [Falsifiers](falsifiers.md): conditions that force `notation_only` or
   `falsified`.
 - [Results Index](results/index.md): reproducible command outputs.
+- [Projector Lattice Report](literature/projector_lattice_report.md):
+  Phase 3 projector and addressability checks.
 - [Handover Compliance](handover_compliance.md): Phase 0 closeout checklist.
 - [Side Project Plan](clifford_3plus2_to_d5_side_project_plan.md): original
   geometry-to-D5 project plan.
@@ -41,6 +43,8 @@ phase_0_audit_contract: complete
 phase_1_real_carrier_check_passed: true
 forced_j_check_passed: true
 forced_j_verdict: candidate_only
+structural_split_check_passed: true
+structural_split_verdict: candidate_only
 branching_check_passed: true
 qca_split_audit_verdict: notation_only
 load_bearing_qca_bridge: false
@@ -256,7 +260,7 @@ or the rule set allows independently addressable J_a.
 
 ## Phase 3: Structural `3+2` Split
 
-Status: not started.
+Status: complete as candidate-only checker; not yet QCA-forced.
 
 Purpose: prove or falsify that the QCA rule data force only the block
 projectors `P_3` and `P_2`, not rank-one projectors inside them.
@@ -269,6 +273,25 @@ src/clifford_3plus2_d5/search/addressability.py
 tests/test_projectors.py
 tests/test_no_rank_one_addressability.py
 docs/literature/projector_lattice_report.md
+```
+
+Current outcome:
+
+```text
+projector_identities_passed = true
+projectors_commute_with_j = true
+addressability_algebra_safe = true
+qca_supplies_structural_3plus2_split = false
+structural_split_verdict = candidate_only
+```
+
+Falsifiers implemented:
+
+```text
+rank-one color projectors -> falsified
+rank-one weak projectors -> falsified
+off-block mixers -> falsified
+non-scalar within-block controls -> falsified
 ```
 
 Acceptance:
@@ -506,15 +529,20 @@ one-generation internal carrier only.
    - Verify all carrier/projector identities.
    - Document that this is algebraic only until QCA rules force it.
 
-2. **Commutant Classifier**
+2. **Structural Split And Addressability**
+   - Keep `P_3/P_2` as exact candidate projectors.
+   - Reject rank-one color and weak addressability.
+   - Require real QCA data before marking the split structural.
+
+3. **Commutant Classifier**
    - Compute exact SM commutant.
    - Classify safe block scalars and unsafe rank-one/block-mixing gates.
 
-3. **Finite-Depth Candidate**
+4. **Finite-Depth Candidate**
    - Certify `U(T/4)=J`, `U(T/2)=-I`, `U(T)=I`.
    - Reject any spacetime shift with rank-one internal projectors.
 
-4. **Spinor Reconstruction**
+5. **Spinor Reconstruction**
    - Reuse existing branching machinery only after `J` and `P_3/P_2` are
      derived.
 

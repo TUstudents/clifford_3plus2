@@ -23,6 +23,7 @@ Current honest status:
 phase_0_audit_contract: complete
 phase_1_real_carrier_check: passes
 forced_j_check: candidate_only
+structural_split_check: candidate_only
 Spin(10) branching check: passes
 QCA load-bearing bridge: notation_only
 ```
@@ -60,6 +61,7 @@ Spin(10), the project remains `notation_only`.
 - [Enhanced J-first attack plan](docs/qca_3plus2_j_first_enhanced_attack_plan.md)
 - [Real carrier report](docs/literature/real_carrier_report.md)
 - [Forced J report](docs/literature/forced_j_report.md)
+- [Projector lattice report](docs/literature/projector_lattice_report.md)
 - [Theory summary](docs/theory.md)
 - [Falsifiers](docs/falsifiers.md)
 - [Phase 0 handover compliance](docs/handover_compliance.md)
@@ -119,6 +121,16 @@ forced_j_verdict: candidate_only
 load_bearing_qca_bridge: false
 ```
 
+`scripts/structural_split_check.py` verifies that the exact Phase 1
+projectors form a `J`-compatible `3+2` candidate and rejects rank-one
+addressability inside either block. By default this is still only a candidate:
+
+```text
+qca_supplies_structural_3plus2_split: false
+structural_split_verdict: candidate_only
+load_bearing_qca_bridge: false
+```
+
 ## QCA Input Contract
 
 The current audit reads nontrivial input only from `data/qca_data.json`.
@@ -137,6 +149,9 @@ uv run pytest -q
 uv run python scripts/real_carrier_check.py --check
 uv run python scripts/forced_j_check.py --check
 uv run python scripts/forced_j_check.py --include-addressable-rank-one --expect-verdict falsified
+uv run python scripts/structural_split_check.py --check
+uv run python scripts/structural_split_check.py --include-rank-one-color --expect-verdict falsified
+uv run python scripts/structural_split_check.py --include-rank-one-weak --expect-verdict falsified
 uv run python scripts/branching_check.py --check
 uv run python scripts/qca_split_audit.py --check --expect-verdict notation_only
 uv run python scripts/qca_split_audit.py --json --expect-verdict notation_only

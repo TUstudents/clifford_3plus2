@@ -174,3 +174,92 @@ def test_forced_j_check_expect_verdict_fails_on_mismatch() -> None:
     )
 
     assert result.returncode == 1
+
+
+def test_structural_split_check_script_reports_candidate_only_result() -> None:
+    result = subprocess.run(
+        [sys.executable, "scripts/structural_split_check.py", "--check"],
+        cwd=ROOT,
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+
+    assert "This verifies the exact structural split candidate only." in result.stdout
+    assert "It does not prove QCA rule data force P_3/P_2." in result.stdout
+    assert "projector_identities_passed: true" in result.stdout
+    assert "projectors_commute_with_J: true" in result.stdout
+    assert "addressability_algebra_safe: true" in result.stdout
+    assert "qca_supplies_structural_3plus2_split: false" in result.stdout
+    assert "structural_split_verdict: candidate_only" in result.stdout
+    assert "load_bearing_qca_bridge: false" in result.stdout
+
+
+def test_structural_split_check_script_can_emit_json() -> None:
+    result = subprocess.run(
+        [sys.executable, "scripts/structural_split_check.py", "--json"],
+        cwd=ROOT,
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+
+    payload = json.loads(result.stdout)
+    assert payload["projector_identities_passed"] is True
+    assert payload["projectors_commute_with_j"] is True
+    assert payload["structural_split_verdict"] == "candidate_only"
+    assert payload["qca_supplies_structural_3plus2_split"] is False
+
+
+def test_structural_split_check_script_can_report_color_falsifier() -> None:
+    result = subprocess.run(
+        [
+            sys.executable,
+            "scripts/structural_split_check.py",
+            "--include-rank-one-color",
+            "--expect-verdict",
+            "falsified",
+        ],
+        cwd=ROOT,
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+
+    assert "rank_one_color_projectors_addressable: true" in result.stdout
+    assert "structural_split_verdict: falsified" in result.stdout
+
+
+def test_structural_split_check_script_can_report_weak_falsifier() -> None:
+    result = subprocess.run(
+        [
+            sys.executable,
+            "scripts/structural_split_check.py",
+            "--include-rank-one-weak",
+            "--expect-verdict",
+            "falsified",
+        ],
+        cwd=ROOT,
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+
+    assert "rank_one_weak_projectors_addressable: true" in result.stdout
+    assert "structural_split_verdict: falsified" in result.stdout
+
+
+def test_structural_split_check_expect_verdict_fails_on_mismatch() -> None:
+    result = subprocess.run(
+        [
+            sys.executable,
+            "scripts/structural_split_check.py",
+            "--expect-verdict",
+            "structural_split",
+        ],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+    )
+
+    assert result.returncode == 1
