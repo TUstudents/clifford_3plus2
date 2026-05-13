@@ -24,6 +24,7 @@ The current code enforces these boundaries:
 - Missing `data/qca_data.json` returns `notation_only`.
 - Incomplete or invalid JSON returns `notation_only`.
 - Float matrix entries are rejected.
+- Schema contract requires rational strings for exact matrix entries.
 - `complex_structure_origin = "by_hand"` is falsifying.
 - `complex_structure_origin = "unknown"` cannot pass.
 - Off-block one-particle gate generators fail.

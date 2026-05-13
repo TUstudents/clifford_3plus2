@@ -12,10 +12,11 @@ a structural `3+2` bridge to the one-generation Spin(10) spinor.
 - [Falsifiers](falsifiers.md): conditions that force `notation_only` or
   `falsified`.
 - [Results Index](results/index.md): reproducible command outputs.
+- [Handover Compliance](handover_compliance.md): Phase 0 closeout checklist.
 - [Side Project Plan](clifford_3plus2_to_d5_side_project_plan.md): full
   research roadmap and theorem target.
-- [Agent Handover](clifford_3plus2_empty_repo_agent_handover.md): bootstrap
-  and first implementation contract.
+- [Archived Agent Handover](archive/clifford_3plus2_empty_repo_agent_handover.md):
+  completed bootstrap and first implementation contract.
 
 ## Current Verdict
 
@@ -34,7 +35,7 @@ Meaning:
 
 ## Phase 0: Audit Infrastructure And QCA Data Contract
 
-Status: in progress.
+Status: complete.
 
 Purpose: make the QCA split audit precise enough that future data can pass or
 fail without interpretation.
@@ -45,19 +46,21 @@ Completed:
 - Exact rational matrix parsing.
 - Default-failing QCA split audit.
 - One-particle gate algebra safety checks.
+- `data/qca_data.schema.json`.
+- Invalid fixtures for hand-chosen `J`, unknown `J`, off-block gates, color
+  projectors, and malformed data.
+- Machine-readable JSON output from `qca_split_audit.py`.
+- [Handover Compliance](handover_compliance.md) closeout checklist.
 - Reproducible scripts:
   - [`scripts/branching_check.py`](../scripts/branching_check.py)
   - [`scripts/qca_split_audit.py`](../scripts/qca_split_audit.py)
 
-Next deliverables:
+Deferred beyond Phase 0:
 
-- Add `data/qca_data.schema.json`.
-- Add invalid fixtures for hand-chosen `J`, off-block gates, and color
-  projectors.
-- Add a clearly labeled synthetic positive fixture, if useful, with no QCA
-  evidence claim.
-- Add machine-readable JSON output to `qca_split_audit.py`.
-- Keep missing or invalid QCA input at `notation_only`.
+- Real `data/qca_data.json`.
+- Real QCA candidate Clifford matrices.
+- A synthetic `structural_bridge` fixture, because it could be misleading
+  before the representation-space convention is fixed.
 
 Acceptance:
 

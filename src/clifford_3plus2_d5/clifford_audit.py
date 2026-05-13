@@ -59,6 +59,43 @@ def audit_qca_split(path: Path | str = DEFAULT_QCA_DATA_PATH) -> QCASplitAudit:
         return QCASplitAudit()
 
 
+def audit_to_dict(audit: QCASplitAudit) -> dict[str, object]:
+    """Serialize an audit result without losing exact rational values."""
+
+    return {
+        "candidate_generators": list(audit.candidate_generators),
+        "anticommutation_matrix": [list(row) for row in audit.anticommutation_matrix],
+        "signature": audit.signature,
+        "structural_origin": audit.structural_origin,
+        "complex_structure_operator": (
+            _matrix_to_json(audit.complex_structure_operator)
+            if audit.complex_structure_operator is not None
+            else None
+        ),
+        "complex_structure_origin": audit.complex_structure_origin,
+        "complex_structure_squares_to_minus_one": (
+            audit.complex_structure_squares_to_minus_one
+        ),
+        "complex_structure_preserves_3plus2_split": (
+            audit.complex_structure_preserves_3plus2_split
+        ),
+        "complex_structure_in_allowed_gate_algebra": (
+            audit.complex_structure_in_allowed_gate_algebra
+        ),
+        "complex_structure_compatible_with_3plus2_split": (
+            audit.complex_structure_compatible_with_3plus2_split
+        ),
+        "off_block_gate_generators_present": audit.off_block_gate_generators_present,
+        "block_diagonal_gate_algebra": audit.block_diagonal_gate_algebra,
+        "sm_commutant_gate_algebra": audit.sm_commutant_gate_algebra,
+        "qca_supplies_structural_3plus2_split": (
+            audit.qca_supplies_structural_3plus2_split
+        ),
+        "verdict": audit.verdict,
+        "load_bearing_qca_bridge": audit.verdict == "structural_bridge",
+    }
+
+
 def audit_qca_payload(payload: object) -> QCASplitAudit:
     if not isinstance(payload, Mapping):
         return QCASplitAudit()
@@ -141,6 +178,10 @@ def audit_qca_payload(payload: object) -> QCASplitAudit:
         qca_supplies_structural_3plus2_split=qca_supplies_split,
         verdict=verdict,
     )
+
+
+def _matrix_to_json(matrix: Matrix) -> list[list[str]]:
+    return [[str(value) for value in row] for row in matrix]
 
 
 def _as_mapping(value: object) -> Mapping[str, object]:

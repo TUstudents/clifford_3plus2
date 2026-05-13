@@ -65,9 +65,13 @@ block-diagonal, but lie in the `SU(3) x SU(2)` commutant for the audited
 one-particle split. Off-block mixing fails. Color-basis projectors inside the
 `V_3` block also fail.
 
+The Phase 0 audit contract is closed in
+[docs/handover_compliance.md](docs/handover_compliance.md).
+
 ## QCA Input Contract
 
 The QCA audit reads its nontrivial input only from `data/qca_data.json`.
+The expected shape is documented in `data/qca_data.schema.json`.
 Exact matrix entries must be strings parseable as rational numbers, such as
 `"0"`, `"1"`, `"-1"`, or `"1/2"`. Floating-point matrix entries are rejected.
 
@@ -111,7 +115,8 @@ uv sync --dev
 uv run ruff check .
 uv run pytest -q
 uv run python scripts/branching_check.py --check
-uv run python scripts/qca_split_audit.py --check
+uv run python scripts/qca_split_audit.py --check --expect-verdict notation_only
+uv run python scripts/qca_split_audit.py --json --expect-verdict notation_only
 ```
 
 ## Claim Boundary

@@ -8,14 +8,15 @@ Commands:
 uv run ruff check .
 uv run pytest -q
 uv run python scripts/branching_check.py --check
-uv run python scripts/qca_split_audit.py --check
+uv run python scripts/qca_split_audit.py --check --expect-verdict notation_only
+uv run python scripts/qca_split_audit.py --json --expect-verdict notation_only
 ```
 
 Verification:
 
 ```text
 ruff: passed
-pytest: 17 passed
+pytest: 34 passed
 ```
 
 Branching check:
@@ -46,10 +47,34 @@ complex_structure_compatible_with_3plus2_split: false
 load_bearing_qca_bridge: false
 ```
 
+QCA split audit JSON mode:
+
+```json
+{
+  "anticommutation_matrix": [],
+  "block_diagonal_gate_algebra": false,
+  "candidate_generators": [],
+  "complex_structure_compatible_with_3plus2_split": false,
+  "complex_structure_in_allowed_gate_algebra": false,
+  "complex_structure_operator": null,
+  "complex_structure_origin": "unknown",
+  "complex_structure_preserves_3plus2_split": false,
+  "complex_structure_squares_to_minus_one": false,
+  "load_bearing_qca_bridge": false,
+  "off_block_gate_generators_present": false,
+  "qca_supplies_structural_3plus2_split": false,
+  "signature": "unknown",
+  "sm_commutant_gate_algebra": false,
+  "structural_origin": "unknown",
+  "verdict": "notation_only"
+}
+```
+
 Interpretation:
 
 ```text
 The textbook branching arithmetic passes.
 The QCA bridge has not passed.
 Current bridge status: notation_only.
+Phase 0 audit contract is closed.
 ```

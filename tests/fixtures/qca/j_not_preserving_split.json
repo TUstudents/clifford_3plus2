@@ -1,0 +1,22 @@
+{
+  "structural_origin": "unknown",
+  "candidate_generators": [
+    {"name": "e1", "matrix": [["0", "0"], ["0", "0"]], "block": "V3"},
+    {"name": "e2", "matrix": [["0", "0"], ["0", "0"]], "block": "V3"},
+    {"name": "e3", "matrix": [["0", "0"], ["0", "0"]], "block": "V3"},
+    {"name": "m1", "matrix": [["0", "0"], ["0", "0"]], "block": "V2"},
+    {"name": "m2", "matrix": [["0", "0"], ["0", "0"]], "block": "V2"}
+  ],
+  "candidate_complex_structure": {
+    "name": "J",
+    "origin": "qca_chirality",
+    "matrix": [["0", "-1"], ["1", "0"]]
+  },
+  "allowed_gate_generators": [
+    {"name": "J", "matrix": [["0", "-1"], ["1", "0"]]}
+  ],
+  "split_projectors": {
+    "P3": [["1", "0"], ["0", "0"]],
+    "P2": [["0", "0"], ["0", "1"]]
+  }
+}
