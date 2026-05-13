@@ -265,6 +265,149 @@ def test_structural_split_check_expect_verdict_fails_on_mismatch() -> None:
     assert result.returncode == 1
 
 
+def test_normalizer_check_script_reports_candidate_only_result() -> None:
+    result = subprocess.run(
+        [
+            sys.executable,
+            "scripts/normalizer_check.py",
+            "--check",
+            "--expect-verdict",
+            "candidate_only",
+        ],
+        cwd=ROOT,
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+
+    assert "This checks forcedness and normalizer proxies for the candidate data." in result.stdout
+    assert "It does not prove microscopic QCA rule data force J or P_3/P_2." in result.stdout
+    assert "centralizer_dimension: 52" in result.stdout
+    assert "orthogonal_normalizer_dimension: 21" in result.stdout
+    assert "addressability_algebra_dimension: 2" in result.stdout
+    assert "candidate_j_preserved_by_normalizer: false" in result.stdout
+    assert "normalizer_preserves_declared_split: true" in result.stdout
+    assert "j_unique_or_forced: false" in result.stdout
+    assert "split_unique_or_forced: false" in result.stdout
+    assert "forcedness_verdict: candidate_only" in result.stdout
+    assert "normalizer_check_passed: true" in result.stdout
+    assert "load_bearing_qca_bridge: false" in result.stdout
+
+
+def test_normalizer_check_script_can_emit_json() -> None:
+    result = subprocess.run(
+        [sys.executable, "scripts/normalizer_check.py", "--json"],
+        cwd=ROOT,
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+
+    payload = json.loads(result.stdout)
+    assert payload["forcedness_verdict"] == "candidate_only"
+    assert payload["normalizer_check_passed"] is True
+    assert payload["j_unique_or_forced"] is False
+    assert payload["split_unique_or_forced"] is False
+    assert payload["load_bearing_qca_bridge"] is False
+
+
+def test_normalizer_check_script_can_report_color_falsifier() -> None:
+    result = subprocess.run(
+        [
+            sys.executable,
+            "scripts/normalizer_check.py",
+            "--include-rank-one-color",
+            "--expect-verdict",
+            "falsified",
+        ],
+        cwd=ROOT,
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+
+    assert "rank_one_color_projectors_addressable: true" in result.stdout
+    assert "addressability_algebra_safe: false" in result.stdout
+    assert "forcedness_verdict: falsified" in result.stdout
+
+
+def test_normalizer_check_script_can_report_weak_falsifier() -> None:
+    result = subprocess.run(
+        [
+            sys.executable,
+            "scripts/normalizer_check.py",
+            "--include-rank-one-weak",
+            "--expect-verdict",
+            "falsified",
+        ],
+        cwd=ROOT,
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+
+    assert "rank_one_weak_projectors_addressable: true" in result.stdout
+    assert "addressability_algebra_safe: false" in result.stdout
+    assert "forcedness_verdict: falsified" in result.stdout
+
+
+def test_normalizer_check_script_can_report_off_block_falsifier() -> None:
+    result = subprocess.run(
+        [
+            sys.executable,
+            "scripts/normalizer_check.py",
+            "--include-off-block",
+            "--expect-verdict",
+            "falsified",
+        ],
+        cwd=ROOT,
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+
+    assert "off_block_controls_addressable: true" in result.stdout
+    assert "addressability_algebra_safe: false" in result.stdout
+    assert "forcedness_verdict: falsified" in result.stdout
+
+
+def test_normalizer_check_script_can_report_full_u5_falsifier() -> None:
+    result = subprocess.run(
+        [
+            sys.executable,
+            "scripts/normalizer_check.py",
+            "--include-full-u5-controls",
+            "--expect-verdict",
+            "falsified",
+        ],
+        cwd=ROOT,
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+
+    assert "rank_one_color_projectors_addressable: true" in result.stdout
+    assert "rank_one_weak_projectors_addressable: true" in result.stdout
+    assert "off_block_controls_addressable: true" in result.stdout
+    assert "forcedness_verdict: falsified" in result.stdout
+
+
+def test_normalizer_check_expect_verdict_fails_on_mismatch() -> None:
+    result = subprocess.run(
+        [
+            sys.executable,
+            "scripts/normalizer_check.py",
+            "--expect-verdict",
+            "forced",
+        ],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+    )
+
+    assert result.returncode == 1
+
+
 def test_gate_classification_check_script_reports_oracle_result() -> None:
     result = subprocess.run(
         [sys.executable, "scripts/gate_classification_check.py", "--check"],

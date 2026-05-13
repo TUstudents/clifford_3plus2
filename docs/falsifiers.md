@@ -50,6 +50,16 @@ The current code enforces these boundaries:
 - `complex_structure_origin = "unknown"` cannot pass.
 - Off-block one-particle gate generators fail.
 - Block-diagonal one-particle gates that resolve color-basis directions fail.
+- The enhanced J-first algebra kernel checks the real carrier, `J`,
+  `P_3/P_2`, commutants, finite-depth update candidates, spinor reconstruction,
+  and rank-one addressability.
+- The Phase 7 normalizer checker rejects rank-one color controls, rank-one
+  weak controls, off-block controls, and full-`U(5)`-like mode-resolving
+  controls.
 
-The next guardrail is the enhanced J-first algebra kernel: exact tests for the
-real carrier, `J`, `P_3/P_2`, commutants, and rank-one addressability.
+Current forcedness status:
+
+```text
+forcedness_verdict: candidate_only
+load_bearing_qca_bridge: false
+```

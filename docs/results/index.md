@@ -18,6 +18,11 @@ uv run python scripts/qca_update_check.py --check
 uv run python scripts/qca_update_check.py --include-rank-one-color-shift --expect-verdict falsified
 uv run python scripts/qca_update_check.py --include-rank-one-weak-shift --expect-verdict falsified
 uv run python scripts/spinor16_check.py --check
+uv run python scripts/normalizer_check.py --check --expect-verdict candidate_only
+uv run python scripts/normalizer_check.py --include-rank-one-color --expect-verdict falsified
+uv run python scripts/normalizer_check.py --include-rank-one-weak --expect-verdict falsified
+uv run python scripts/normalizer_check.py --include-off-block --expect-verdict falsified
+uv run python scripts/normalizer_check.py --include-full-u5-controls --expect-verdict falsified
 uv run python scripts/branching_check.py --check
 uv run python scripts/qca_split_audit.py --check --expect-verdict notation_only
 uv run python scripts/qca_split_audit.py --json --expect-verdict notation_only
@@ -27,7 +32,7 @@ Verification:
 
 ```text
 ruff: passed
-pytest: 140 passed
+pytest: 156 passed
 ```
 
 Real carrier check:
@@ -186,6 +191,70 @@ spinor16_check_passed: true
 load_bearing_qca_bridge: false
 ```
 
+Normalizer forcedness check:
+
+```text
+This checks forcedness and normalizer proxies for the candidate data.
+It does not prove microscopic QCA rule data force J or P_3/P_2.
+rule_data_source: candidate_only
+centralizer_dimension: 52
+orthogonal_normalizer_dimension: 21
+addressability_algebra_dimension: 2
+candidate_j_valid: true
+candidate_split_valid: true
+candidate_j_preserved_by_normalizer: false
+normalizer_preserves_declared_split: true
+continuous_j_alternatives_not_excluded: true
+rank_three_projector_family_not_excluded: true
+rank_one_color_projectors_addressable: false
+rank_one_weak_projectors_addressable: false
+off_block_controls_addressable: false
+addressability_algebra_safe: true
+j_unique_or_forced: false
+split_unique_or_forced: false
+forcedness_verdict: candidate_only
+normalizer_check_passed: true
+load_bearing_qca_bridge: false
+```
+
+Normalizer rank-one color falsifier:
+
+```text
+rank_one_color_projectors_addressable: true
+addressability_algebra_safe: false
+forcedness_verdict: falsified
+load_bearing_qca_bridge: false
+```
+
+Normalizer rank-one weak falsifier:
+
+```text
+rank_one_weak_projectors_addressable: true
+addressability_algebra_safe: false
+forcedness_verdict: falsified
+load_bearing_qca_bridge: false
+```
+
+Normalizer off-block falsifier:
+
+```text
+off_block_controls_addressable: true
+addressability_algebra_safe: false
+forcedness_verdict: falsified
+load_bearing_qca_bridge: false
+```
+
+Normalizer full-U(5)-like controls falsifier:
+
+```text
+rank_one_color_projectors_addressable: true
+rank_one_weak_projectors_addressable: true
+off_block_controls_addressable: true
+addressability_algebra_safe: false
+forcedness_verdict: falsified
+load_bearing_qca_bridge: false
+```
+
 Branching check:
 
 ```text
@@ -254,6 +323,9 @@ Phase 5 certifies a declared finite-depth period-four update candidate and
 no-locking falsifiers, but the update is still not QCA-forced.
 Phase 6 reconstructs the guarded 16-dimensional spinor table from prior
 candidate data, but it does not make the QCA bridge load-bearing.
+Phase 7 computes normalizer and forcedness proxies. The declared split is
+preserved by the candidate data, but `J` and the rank-three projector are not
+forced by source-backed microscopic rule data.
 ```
 
 ## Active Roadmap Update

@@ -36,6 +36,10 @@ cannot resolve individual color or weak axes.
   Phase 5 finite-depth update candidate.
 - [Spinor 16 Report](literature/spinor16_report.md):
   Phase 6 guarded spinor reconstruction.
+- [Normalizer Report](literature/normalizer_report.md):
+  Phase 7 normalizer and addressability algebra oracle.
+- [Forcedness Certificate](literature/forcedness_certificate.md):
+  Phase 7 conservative forcedness verdict.
 - [Handover Compliance](handover_compliance.md): Phase 0 closeout checklist.
 - [Side Project Plan](clifford_3plus2_to_d5_side_project_plan.md): original
   geometry-to-D5 project plan.
@@ -57,6 +61,8 @@ qca_update_check_passed: true
 finite_depth_qca_verdict: candidate_only
 spinor16_check_passed: true
 spinor16_verdict: candidate_only
+normalizer_check_passed: true
+forcedness_verdict: candidate_only
 branching_check_passed: true
 qca_split_audit_verdict: notation_only
 load_bearing_qca_bridge: false
@@ -505,10 +511,11 @@ no new choice of C^5 appears in this phase.
 
 ## Phase 7: Forcedness And Normalizer Analysis
 
-Status: not started.
+Status: complete as candidate-only forcedness oracle.
 
 Purpose: prove the construction is not one convenient coordinate choice among
-many.
+many. The current implementation does not prove that yet; it provides the
+normalizer and falsifier machinery needed to test source-backed data.
 
 Tasks:
 
@@ -522,9 +529,38 @@ Implementation deliverables:
 
 ```text
 src/clifford_3plus2_d5/search/normalizer.py
+scripts/normalizer_check.py
 tests/test_normalizer.py
 docs/literature/normalizer_report.md
 docs/literature/forcedness_certificate.md
+```
+
+Current outcome:
+
+```text
+centralizer_dimension = 52
+orthogonal_normalizer_dimension = 21
+addressability_algebra_dimension = 2
+candidate_j_valid = true
+candidate_split_valid = true
+candidate_j_preserved_by_normalizer = false
+normalizer_preserves_declared_split = true
+continuous_j_alternatives_not_excluded = true
+rank_three_projector_family_not_excluded = true
+addressability_algebra_safe = true
+j_unique_or_forced = false
+split_unique_or_forced = false
+forcedness_verdict = candidate_only
+load_bearing_qca_bridge = false
+```
+
+Falsifiers implemented:
+
+```text
+rank-one color projectors -> falsified
+rank-one weak projectors -> falsified
+off-block controls -> falsified
+full-U(5)-like mode-resolving controls -> falsified
 ```
 
 Acceptance:
@@ -534,6 +570,14 @@ J is unique or canonically forced,
 P_3/P_2 are unique structural central projectors,
 the microscopic controls do not generate smaller projectors,
 the normalizer does not erase the 3+2 split.
+```
+
+Current acceptance status:
+
+```text
+not accepted as a QCA bridge proof.
+The normalizer preserves the declared split, but J uniqueness and projector
+forcedness are not derived from microscopic rule data.
 ```
 
 ## Phase 8: Route Branches If Minimal Ansatz Fails

@@ -143,6 +143,12 @@ candidates. The check is documented in
 16-state table and hypercharges, but it does not introduce a new complex
 structure or a new `3+2` split.
 
+Phase 7 computes normalizer and forcedness proxies for the candidate data. The
+checks are documented in [Normalizer Report](literature/normalizer_report.md)
+and [Forcedness Certificate](literature/forcedness_certificate.md). The current
+normalizer preserves the declared `P_3/P_2` split, but it does not force the
+candidate `J`, and no source-backed microscopic rule data are present.
+
 ## Load-Bearing Conditions
 
 The bridge becomes nontrivial only if QCA data supplies all of the following:
