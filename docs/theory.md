@@ -126,6 +126,11 @@ direction-conditioned internal projectors
 Block diagonal is not enough. A rank-one projector inside `C^3` is
 block-diagonal and still breaks `SU(3)`.
 
+Phase 4 implements this as an exact classifier. The check is documented in
+[Gate Classification Report](literature/gate_classification_report.md). It
+proves the oracle behavior on canonical safe and unsafe gates, but it does not
+prove that microscopic QCA rule data supply only safe geometric gates.
+
 ## Load-Bearing Conditions
 
 The bridge becomes nontrivial only if QCA data supplies all of the following:

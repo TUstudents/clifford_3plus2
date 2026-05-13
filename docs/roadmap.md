@@ -30,6 +30,8 @@ cannot resolve individual color or weak axes.
 - [Results Index](results/index.md): reproducible command outputs.
 - [Projector Lattice Report](literature/projector_lattice_report.md):
   Phase 3 projector and addressability checks.
+- [Gate Classification Report](literature/gate_classification_report.md):
+  Phase 4 SM commutant oracle.
 - [Handover Compliance](handover_compliance.md): Phase 0 closeout checklist.
 - [Side Project Plan](clifford_3plus2_to_d5_side_project_plan.md): original
   geometry-to-D5 project plan.
@@ -45,6 +47,8 @@ forced_j_check_passed: true
 forced_j_verdict: candidate_only
 structural_split_check_passed: true
 structural_split_verdict: candidate_only
+gate_classification_check_passed: true
+qca_geometric_gate_algebra_safe: false
 branching_check_passed: true
 qca_split_audit_verdict: notation_only
 load_bearing_qca_bridge: false
@@ -314,7 +318,7 @@ or the split is introduced only after SM labels appear.
 
 ## Phase 4: SM Commutant And Gate Classifier
 
-Status: partially started by Phase 0 one-particle gate tests.
+Status: complete as exact classifier oracle; not yet a safe QCA gate set.
 
 Purpose: build the permanent exact oracle for geometric gate safety.
 
@@ -344,6 +348,25 @@ src/clifford_3plus2_d5/sm/classification.py
 tests/test_commutant.py
 tests/test_gate_classification.py
 docs/literature/gate_classification_report.md
+```
+
+Current outcome:
+
+```text
+gate_classification_check_passed = true
+commutant_basis_matches_expected = true
+safe_algebra_closure_passed = true
+qca_geometric_gate_algebra_safe = false
+load_bearing_qca_bridge = false
+```
+
+Canonical unsafe witnesses:
+
+```text
+block_mixer -> block_mixing_fail
+rank_one_color_projector -> color_breaking_fail
+rank_one_weak_projector -> weak_breaking_fail
+real_conjugation -> antilinear_fail
 ```
 
 Acceptance:
@@ -535,8 +558,9 @@ one-generation internal carrier only.
    - Require real QCA data before marking the split structural.
 
 3. **Commutant Classifier**
-   - Compute exact SM commutant.
-   - Classify safe block scalars and unsafe rank-one/block-mixing gates.
+   - Maintain exact SM commutant basis check.
+   - Classify safe block scalars and unsafe rank-one/block-mixing/antilinear gates.
+   - Require an actual QCA gate set before marking geometric gates safe.
 
 4. **Finite-Depth Candidate**
    - Certify `U(T/4)=J`, `U(T/2)=-I`, `U(T)=I`.

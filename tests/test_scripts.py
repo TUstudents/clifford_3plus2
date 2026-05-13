@@ -263,3 +263,43 @@ def test_structural_split_check_expect_verdict_fails_on_mismatch() -> None:
     )
 
     assert result.returncode == 1
+
+
+def test_gate_classification_check_script_reports_oracle_result() -> None:
+    result = subprocess.run(
+        [sys.executable, "scripts/gate_classification_check.py", "--check"],
+        cwd=ROOT,
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+
+    assert "This verifies the exact SM commutant gate classifier only." in result.stdout
+    assert "It does not prove QCA rule data supply only safe geometric gates." in result.stdout
+    assert "P_3: safe_sm_commutant" in result.stdout
+    assert "block_mixer: block_mixing_fail" in result.stdout
+    assert "rank_one_color_projector: color_breaking_fail" in result.stdout
+    assert "rank_one_weak_projector: weak_breaking_fail" in result.stdout
+    assert "real_conjugation: antilinear_fail" in result.stdout
+    assert "commutant_basis_matches_expected: true" in result.stdout
+    assert "safe_algebra_closure_passed: true" in result.stdout
+    assert "gate_classification_check_passed: true" in result.stdout
+    assert "qca_geometric_gate_algebra_safe: false" in result.stdout
+    assert "load_bearing_qca_bridge: false" in result.stdout
+
+
+def test_gate_classification_check_script_can_emit_json() -> None:
+    result = subprocess.run(
+        [sys.executable, "scripts/gate_classification_check.py", "--json"],
+        cwd=ROOT,
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+
+    payload = json.loads(result.stdout)
+    assert payload["gate_classification_check_passed"] is True
+    assert payload["commutant_basis_matches_expected"] is True
+    assert payload["safe_algebra_closure_passed"] is True
+    assert payload["qca_geometric_gate_algebra_safe"] is False
+    assert payload["load_bearing_qca_bridge"] is False

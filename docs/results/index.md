@@ -13,6 +13,7 @@ uv run python scripts/forced_j_check.py --include-addressable-rank-one --expect-
 uv run python scripts/structural_split_check.py --check
 uv run python scripts/structural_split_check.py --include-rank-one-color --expect-verdict falsified
 uv run python scripts/structural_split_check.py --include-rank-one-weak --expect-verdict falsified
+uv run python scripts/gate_classification_check.py --check
 uv run python scripts/branching_check.py --check
 uv run python scripts/qca_split_audit.py --check --expect-verdict notation_only
 uv run python scripts/qca_split_audit.py --json --expect-verdict notation_only
@@ -22,7 +23,7 @@ Verification:
 
 ```text
 ruff: passed
-pytest: 82 passed
+pytest: 106 passed
 ```
 
 Real carrier check:
@@ -104,6 +105,26 @@ structural_split_verdict: falsified
 load_bearing_qca_bridge: false
 ```
 
+Gate classification check:
+
+```text
+This verifies the exact SM commutant gate classifier only.
+It does not prove QCA rule data supply only safe geometric gates.
+P_3: safe_sm_commutant
+P_2: safe_sm_commutant
+J_P_3: safe_sm_commutant
+J_P_2: safe_sm_commutant
+block_mixer: block_mixing_fail
+rank_one_color_projector: color_breaking_fail
+rank_one_weak_projector: weak_breaking_fail
+real_conjugation: antilinear_fail
+commutant_basis_matches_expected: true
+safe_algebra_closure_passed: true
+gate_classification_check_passed: true
+qca_geometric_gate_algebra_safe: false
+load_bearing_qca_bridge: false
+```
+
 Branching check:
 
 ```text
@@ -166,6 +187,8 @@ Phase 1 real-carrier algebra is exact but not yet QCA-forced.
 Phase 2 can certify a declared J gate word, but J is still not QCA-forced.
 Phase 3 can certify a declared P_3/P_2 candidate and rank-one falsifiers, but
 the split is still not QCA-forced.
+Phase 4 proves the SM commutant classifier oracle on canonical safe and unsafe
+gates, but no actual QCA gate set has been certified safe.
 ```
 
 ## Active Roadmap Update

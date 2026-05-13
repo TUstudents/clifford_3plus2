@@ -24,6 +24,7 @@ phase_0_audit_contract: complete
 phase_1_real_carrier_check: passes
 forced_j_check: candidate_only
 structural_split_check: candidate_only
+gate_classification_check: oracle_passes
 Spin(10) branching check: passes
 QCA load-bearing bridge: notation_only
 ```
@@ -62,6 +63,7 @@ Spin(10), the project remains `notation_only`.
 - [Real carrier report](docs/literature/real_carrier_report.md)
 - [Forced J report](docs/literature/forced_j_report.md)
 - [Projector lattice report](docs/literature/projector_lattice_report.md)
+- [Gate classification report](docs/literature/gate_classification_report.md)
 - [Theory summary](docs/theory.md)
 - [Falsifiers](docs/falsifiers.md)
 - [Phase 0 handover compliance](docs/handover_compliance.md)
@@ -131,6 +133,26 @@ structural_split_verdict: candidate_only
 load_bearing_qca_bridge: false
 ```
 
+`scripts/gate_classification_check.py` verifies the exact Phase 4 SM
+commutant classifier:
+
+```text
+safe_sm_commutant
+block_mixing_fail
+color_breaking_fail
+weak_breaking_fail
+antilinear_fail
+unknown_fail
+```
+
+It must also print:
+
+```text
+gate_classification_check_passed: true
+qca_geometric_gate_algebra_safe: false
+load_bearing_qca_bridge: false
+```
+
 ## QCA Input Contract
 
 The current audit reads nontrivial input only from `data/qca_data.json`.
@@ -152,6 +174,7 @@ uv run python scripts/forced_j_check.py --include-addressable-rank-one --expect-
 uv run python scripts/structural_split_check.py --check
 uv run python scripts/structural_split_check.py --include-rank-one-color --expect-verdict falsified
 uv run python scripts/structural_split_check.py --include-rank-one-weak --expect-verdict falsified
+uv run python scripts/gate_classification_check.py --check
 uv run python scripts/branching_check.py --check
 uv run python scripts/qca_split_audit.py --check --expect-verdict notation_only
 uv run python scripts/qca_split_audit.py --json --expect-verdict notation_only
