@@ -42,6 +42,8 @@ cannot resolve individual color or weak axes.
   Phase 7 conservative forcedness verdict.
 - [Real-QCA Branch Report](literature/real_qca_branch_report.md):
   Phase 8A stronger real-QCA-first branch checker.
+- [Rule-Space Exploration Report](literature/rule_space_exploration_report.md):
+  E1 bounded microscopic rule-space search.
 - [Handover Compliance](handover_compliance.md): Phase 0 closeout checklist.
 - [Side Project Plan](clifford_3plus2_to_d5_side_project_plan.md): original
   geometry-to-D5 project plan.
@@ -67,6 +69,9 @@ normalizer_check_passed: true
 forcedness_verdict: candidate_only
 real_qca_branch_check_passed: true
 real_qca_branch_verdict: candidate_only
+e1_exploration_check_passed: true
+e1_forced_candidate_hits: 0
+e1_surviving_candidates: 0
 branching_check_passed: true
 qca_split_audit_verdict: notation_only
 load_bearing_qca_bridge: false
@@ -637,6 +642,65 @@ Fallback interpretation:
 ```text
 If no route derives J, QCA geometry may still supply topology and locality,
 but Spin(10) remains an independent internal fiber.
+```
+
+## E1: Microscopic Rule-Space Exploration Sprint 1
+
+Status: complete; no forced survivors.
+
+Purpose: start real bounded exploration instead of adding another certificate
+wrapper.
+
+Implementation:
+
+```text
+src/clifford_3plus2_d5/explore/rule_space.py
+src/clifford_3plus2_d5/explore/primitives.py
+src/clifford_3plus2_d5/explore/projector_discovery.py
+src/clifford_3plus2_d5/explore/search_runner.py
+scripts/explore_rule_space.py
+tests/test_rule_space_exploration.py
+docs/literature/rule_space_exploration_report.md
+data/exploration/e1_summary.json
+data/exploration/e1_survivors.jsonl
+data/exploration/e1_rejections.jsonl
+```
+
+Current outcome:
+
+```text
+primitive_sets_scanned = 10
+words_scanned = 170
+j_hits = 73
+period_four_hits = 73
+split_candidates = 170
+addressability_safe_hits = 158
+normalizer_candidate_hits = 158
+forced_candidate_hits = 0
+surviving_candidates = 0
+load_bearing_qca_bridge = false
+```
+
+Top rejection reasons:
+
+```text
+normalizer_too_large = 158
+no_j = 97
+no_period_four = 97
+rank_one_addressability = 38
+unsafe_addressability = 12
+normalizer_falsified = 12
+off_block_addressability = 4
+```
+
+Acceptance:
+
+```text
+The sprint scanned more than one primitive set and more than 100 words,
+detected sanity J/period-four candidates,
+rejected forbidden rule families,
+wrote reproducible artifacts,
+and found zero forced bridge candidates.
 ```
 
 ## Phase 9: Family Number Status

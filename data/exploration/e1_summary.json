@@ -1,0 +1,245 @@
+{
+  "addressability_safe_hits": 158,
+  "bounds": {
+    "max_depth": 4,
+    "max_primitive_set_size": 4,
+    "max_primitive_sets": 200,
+    "max_rejections": 200,
+    "max_survivors": 50,
+    "max_words": 50000
+  },
+  "exploration_check_passed": true,
+  "forced_candidate_hits": 0,
+  "j_hits": 73,
+  "load_bearing_qca_bridge": false,
+  "normalizer_candidate_hits": 158,
+  "normalizer_too_large_rejections": 158,
+  "off_block_rejections": 4,
+  "period_four_hits": 73,
+  "primitive_family_count": 5,
+  "primitive_set_count": 10,
+  "primitive_sets": [
+    {
+      "addressable_operators": [
+        "P_3",
+        "P_2"
+      ],
+      "name": "identity_only",
+      "primitives": [
+        {
+          "independently_addressable_pair": false,
+          "name": "identity",
+          "primitive_class": "identity",
+          "source": "candidate"
+        }
+      ]
+    },
+    {
+      "addressable_operators": [
+        "P_3",
+        "P_2"
+      ],
+      "name": "clock_sanity",
+      "primitives": [
+        {
+          "independently_addressable_pair": false,
+          "name": "global_clock_tick",
+          "primitive_class": "global_clock",
+          "source": "candidate_period_four_clock"
+        }
+      ]
+    },
+    {
+      "addressable_operators": [
+        "P_3",
+        "P_2"
+      ],
+      "name": "clock_with_minus_identity",
+      "primitives": [
+        {
+          "independently_addressable_pair": false,
+          "name": "global_clock_tick",
+          "primitive_class": "global_clock",
+          "source": "candidate_period_four_clock"
+        },
+        {
+          "independently_addressable_pair": false,
+          "name": "minus_identity",
+          "primitive_class": "whole_block",
+          "source": "candidate"
+        }
+      ]
+    },
+    {
+      "addressable_operators": [
+        "P_3",
+        "P_2"
+      ],
+      "name": "clock_with_block_reflection",
+      "primitives": [
+        {
+          "independently_addressable_pair": false,
+          "name": "global_clock_tick",
+          "primitive_class": "global_clock",
+          "source": "candidate_period_four_clock"
+        },
+        {
+          "independently_addressable_pair": false,
+          "name": "block_reflection_3_minus_2",
+          "primitive_class": "whole_block",
+          "source": "candidate"
+        }
+      ]
+    },
+    {
+      "addressable_operators": [
+        "P_3",
+        "P_2"
+      ],
+      "name": "clock_with_color_swap",
+      "primitives": [
+        {
+          "independently_addressable_pair": false,
+          "name": "global_clock_tick",
+          "primitive_class": "global_clock",
+          "source": "candidate_period_four_clock"
+        },
+        {
+          "independently_addressable_pair": false,
+          "name": "mode_swap_1_2",
+          "primitive_class": "mode_permutation",
+          "source": "candidate"
+        }
+      ]
+    },
+    {
+      "addressable_operators": [
+        "P_3",
+        "P_2"
+      ],
+      "name": "clock_with_weak_swap",
+      "primitives": [
+        {
+          "independently_addressable_pair": false,
+          "name": "global_clock_tick",
+          "primitive_class": "global_clock",
+          "source": "candidate_period_four_clock"
+        },
+        {
+          "independently_addressable_pair": false,
+          "name": "mode_swap_4_5",
+          "primitive_class": "mode_permutation",
+          "source": "candidate"
+        }
+      ]
+    },
+    {
+      "addressable_operators": [
+        "P_3",
+        "P_2"
+      ],
+      "name": "rank_one_pair_falsifier",
+      "primitives": [
+        {
+          "independently_addressable_pair": false,
+          "name": "global_clock_tick",
+          "primitive_class": "global_clock",
+          "source": "candidate_period_four_clock"
+        },
+        {
+          "independently_addressable_pair": true,
+          "name": "rank_one_pair_rotation_1",
+          "primitive_class": "rank_one_pair",
+          "source": "falsifier"
+        }
+      ]
+    },
+    {
+      "addressable_operators": [
+        "P_3",
+        "P_2",
+        "color_axis_projector_1",
+        "color_axis_projector_2",
+        "color_axis_projector_3"
+      ],
+      "name": "rank_one_color_control_falsifier",
+      "primitives": [
+        {
+          "independently_addressable_pair": false,
+          "name": "global_clock_tick",
+          "primitive_class": "global_clock",
+          "source": "candidate_period_four_clock"
+        }
+      ]
+    },
+    {
+      "addressable_operators": [
+        "P_3",
+        "P_2",
+        "weak_axis_projector_1",
+        "weak_axis_projector_2"
+      ],
+      "name": "rank_one_weak_control_falsifier",
+      "primitives": [
+        {
+          "independently_addressable_pair": false,
+          "name": "global_clock_tick",
+          "primitive_class": "global_clock",
+          "source": "candidate_period_four_clock"
+        }
+      ]
+    },
+    {
+      "addressable_operators": [
+        "P_3",
+        "P_2",
+        "off_block_mixer"
+      ],
+      "name": "off_block_control_falsifier",
+      "primitives": [
+        {
+          "independently_addressable_pair": false,
+          "name": "global_clock_tick",
+          "primitive_class": "global_clock",
+          "source": "candidate_period_four_clock"
+        }
+      ]
+    }
+  ],
+  "primitive_sets_scanned": 10,
+  "rank_one_rejections": 38,
+  "rule_space_name": "e1_bounded_real_rule_space",
+  "split_candidates": 170,
+  "surviving_candidates": 0,
+  "top_rejection_reasons": [
+    {
+      "count": 158,
+      "reason": "normalizer_too_large"
+    },
+    {
+      "count": 97,
+      "reason": "no_j"
+    },
+    {
+      "count": 97,
+      "reason": "no_period_four"
+    },
+    {
+      "count": 38,
+      "reason": "rank_one_addressability"
+    },
+    {
+      "count": 12,
+      "reason": "unsafe_addressability"
+    },
+    {
+      "count": 12,
+      "reason": "normalizer_falsified"
+    },
+    {
+      "count": 4,
+      "reason": "off_block_addressability"
+    }
+  ],
+  "words_scanned": 170
+}

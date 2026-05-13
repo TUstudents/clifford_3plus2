@@ -59,11 +59,14 @@ The current code enforces these boundaries:
 - The Phase 8A real-QCA branch checker rejects rank-one color controls,
   rank-one weak controls, independently addressable rank-one pair rotations,
   and off-block controls.
+- The E1 exploration runner records rejection reasons for every scanned word
+  and currently finds no forced survivors in the bounded rule space.
 
 Current forcedness status:
 
 ```text
 forcedness_verdict: candidate_only
 real_qca_branch_verdict: candidate_only
+e1_surviving_candidates: 0
 load_bearing_qca_bridge: false
 ```

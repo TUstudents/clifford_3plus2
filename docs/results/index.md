@@ -28,6 +28,7 @@ uv run python scripts/real_qca_branch_check.py --include-rank-one-color --expect
 uv run python scripts/real_qca_branch_check.py --include-rank-one-weak --expect-verdict falsified
 uv run python scripts/real_qca_branch_check.py --include-rank-one-pair --expect-verdict falsified
 uv run python scripts/real_qca_branch_check.py --include-off-block --expect-verdict falsified
+uv run python scripts/explore_rule_space.py --check --output-dir data/exploration
 uv run python scripts/branching_check.py --check
 uv run python scripts/qca_split_audit.py --check --expect-verdict notation_only
 uv run python scripts/qca_split_audit.py --json --expect-verdict notation_only
@@ -37,7 +38,7 @@ Verification:
 
 ```text
 ruff: passed
-pytest: 171 passed
+pytest: 180 passed
 ```
 
 Real carrier check:
@@ -324,6 +325,31 @@ real_qca_branch_verdict: falsified
 load_bearing_qca_bridge: false
 ```
 
+E1 rule-space exploration:
+
+```text
+This runs bounded exact rule-space exploration sprint E1.
+It does not prove microscopic QCA rule data force J or P_3/P_2.
+rule_space_name: e1_bounded_real_rule_space
+primitive_family_count: 5
+primitive_set_count: 10
+primitive_sets_scanned: 10
+words_scanned: 170
+j_hits: 73
+period_four_hits: 73
+split_candidates: 170
+addressability_safe_hits: 158
+normalizer_candidate_hits: 158
+forced_candidate_hits: 0
+rank_one_rejections: 38
+off_block_rejections: 4
+normalizer_too_large_rejections: 158
+top_rejection_reasons: normalizer_too_large=158,no_j=97,no_period_four=97,rank_one_addressability=38,unsafe_addressability=12,normalizer_falsified=12,off_block_addressability=4
+surviving_candidates: 0
+exploration_check_passed: true
+load_bearing_qca_bridge: false
+```
+
 Branching check:
 
 ```text
@@ -398,6 +424,8 @@ forced by source-backed microscopic rule data.
 Phase 8A adds a stronger real-QCA-first branch checker. The declared
 period-four word still generates `J`, but the branch remains candidate-only
 because the rule space does not force `J` or the split.
+E1 performs bounded rule-space exploration. It scans 170 exact words, finds
+73 `J`/period-four hits, and finds zero forced surviving candidates.
 ```
 
 ## Active Roadmap Update

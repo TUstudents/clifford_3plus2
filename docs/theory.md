@@ -156,6 +156,11 @@ gate-word, structural split, and normalizer certificates for finite-depth real
 gate-word rule spaces. The current default branch still generates only a
 candidate `J` and split; it does not force them from microscopic data.
 
+E1 starts actual bounded rule-space exploration. The report is
+[Rule-Space Exploration Report](literature/rule_space_exploration_report.md).
+The first sprint scans 170 exact words across 10 primitive sets and finds 73
+`J`/period-four hits, but zero forced surviving bridge candidates.
+
 ## Load-Bearing Conditions
 
 The bridge becomes nontrivial only if QCA data supplies all of the following:
