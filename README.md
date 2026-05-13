@@ -13,7 +13,7 @@ It does not prove mirror decoupling.
 Given QCA Clifford data that structurally supplies
 
 ```text
-V = V_3 oplus V_2
+V = V_3 ⊕ V_2
 ```
 
 plus a non-hand-chosen compatible complex structure `J`, the induced
@@ -45,4 +45,6 @@ complex structures, SU(5) embeddings, or gate restrictions.
 ```bash
 uv run ruff check .
 uv run pytest -q
+uv run python scripts/branching_check.py --check
+uv run python scripts/qca_split_audit.py --check
 ```
