@@ -37,6 +37,13 @@ P_2 = I_2 ⊗ diag(0,0,0,1,1)
 This ansatz is not a bridge proof by itself. It becomes meaningful only if QCA
 rules force `J`, `P_3`, and `P_2`.
 
+Phase 1 now verifies the exact identities for this ansatz. The check is
+documented in [Real Carrier Report](literature/real_carrier_report.md).
+
+Phase 2 verifies that a declared exact gate word can produce this `J`. The
+check is documented in [Forced J Report](literature/forced_j_report.md). It
+does not yet prove that microscopic QCA rule data force the word.
+
 ## Textbook Part
 
 For a fixed complex vector-space split

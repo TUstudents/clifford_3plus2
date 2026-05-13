@@ -73,3 +73,104 @@ def test_qca_split_audit_script_expect_verdict_fails_on_mismatch() -> None:
     )
 
     assert result.returncode == 1
+
+
+def test_real_carrier_check_script_reports_non_load_bearing_result() -> None:
+    result = subprocess.run(
+        [sys.executable, "scripts/real_carrier_check.py", "--check"],
+        cwd=ROOT,
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+
+    assert "This verifies the exact real carrier ansatz only." in result.stdout
+    assert "It does not prove QCA dynamics force J." in result.stdout
+    assert "phase_1_real_carrier_check_passed: true" in result.stdout
+    assert "qca_forces_j: false" in result.stdout
+    assert "load_bearing_qca_bridge: false" in result.stdout
+
+
+def test_real_carrier_check_script_can_emit_json() -> None:
+    result = subprocess.run(
+        [sys.executable, "scripts/real_carrier_check.py", "--json"],
+        cwd=ROOT,
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+
+    payload = json.loads(result.stdout)
+    assert payload["phase_1_real_carrier_check_passed"] is True
+    assert payload["dimension"] == 10
+    assert payload["projector_3_rank"] == 6
+    assert payload["projector_2_rank"] == 4
+    assert payload["qca_forces_j"] is False
+
+
+def test_forced_j_check_script_reports_candidate_only_result() -> None:
+    result = subprocess.run(
+        [sys.executable, "scripts/forced_j_check.py", "--check"],
+        cwd=ROOT,
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+
+    assert "This checks whether declared exact gate words can produce J." in result.stdout
+    assert "It does not prove microscopic QCA rule data force J." in result.stdout
+    assert "generated_by_gate_word: true" in result.stdout
+    assert "forced_j_check_passed: true" in result.stdout
+    assert "qca_forces_j: false" in result.stdout
+    assert "forced_j_verdict: candidate_only" in result.stdout
+    assert "load_bearing_qca_bridge: false" in result.stdout
+
+
+def test_forced_j_check_script_can_emit_json() -> None:
+    result = subprocess.run(
+        [sys.executable, "scripts/forced_j_check.py", "--json"],
+        cwd=ROOT,
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+
+    payload = json.loads(result.stdout)
+    assert payload["generated_by_gate_word"] is True
+    assert payload["forced_j_verdict"] == "candidate_only"
+    assert payload["qca_forces_j"] is False
+
+
+def test_forced_j_check_script_can_report_addressability_falsifier() -> None:
+    result = subprocess.run(
+        [
+            sys.executable,
+            "scripts/forced_j_check.py",
+            "--include-addressable-rank-one",
+            "--expect-verdict",
+            "falsified",
+        ],
+        cwd=ROOT,
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+
+    assert "rank_one_pair_rotations_addressable: true" in result.stdout
+    assert "forced_j_verdict: falsified" in result.stdout
+
+
+def test_forced_j_check_expect_verdict_fails_on_mismatch() -> None:
+    result = subprocess.run(
+        [
+            sys.executable,
+            "scripts/forced_j_check.py",
+            "--expect-verdict",
+            "forced_j",
+        ],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+    )
+
+    assert result.returncode == 1

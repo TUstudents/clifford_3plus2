@@ -38,6 +38,9 @@ cannot resolve individual color or weak axes.
 
 ```text
 phase_0_audit_contract: complete
+phase_1_real_carrier_check_passed: true
+forced_j_check_passed: true
+forced_j_verdict: candidate_only
 branching_check_passed: true
 qca_split_audit_verdict: notation_only
 load_bearing_qca_bridge: false
@@ -141,7 +144,7 @@ omission, floats, unknown origins, or hand-chosen J.
 
 ## Phase 1: Algebra Kernel And Real Carrier
 
-Status: next.
+Status: complete.
 
 Purpose: implement the exact real carrier model used by the enhanced attack.
 Do not introduce complex notation before `J` is constructed as a real matrix.
@@ -161,6 +164,7 @@ Implementation deliverables:
 ```text
 src/clifford_3plus2_d5/algebra/real_carrier.py
 src/clifford_3plus2_d5/algebra/matrices.py
+scripts/real_carrier_check.py
 tests/test_real_carrier.py
 docs/literature/real_carrier_report.md
 ```
@@ -188,7 +192,7 @@ No claim is made yet that QCA dynamics force J or P_3/P_2.
 
 ## Phase 2: Forced `J` Search
 
-Status: not started.
+Status: complete as candidate-only checker; not yet QCA-forced.
 
 Purpose: prove or falsify that microscopic QCA data generate `J`.
 
@@ -210,6 +214,7 @@ Implementation deliverables:
 ```text
 src/clifford_3plus2_d5/search/gate_words.py
 src/clifford_3plus2_d5/search/forced_j.py
+scripts/forced_j_check.py
 tests/test_j_structure.py
 tests/test_gate_word_search.py
 docs/literature/forced_j_report.md
@@ -223,6 +228,21 @@ J^2 = -I exactly,
 J is local/finite-depth,
 J is unique up to harmless equivalence,
 rank-one pair rotations J_a are not independently addressable.
+```
+
+Current outcome:
+
+```text
+generated_by_gate_word = true
+qca_forces_j = false
+forced_j_verdict = candidate_only
+```
+
+Interpretation:
+
+```text
+The checker can certify a declared gate word. It does not prove microscopic
+QCA rule data force that word.
 ```
 
 Failure:

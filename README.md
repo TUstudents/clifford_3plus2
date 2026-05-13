@@ -21,6 +21,8 @@ Current honest status:
 
 ```text
 phase_0_audit_contract: complete
+phase_1_real_carrier_check: passes
+forced_j_check: candidate_only
 Spin(10) branching check: passes
 QCA load-bearing bridge: notation_only
 ```
@@ -56,6 +58,8 @@ Spin(10), the project remains `notation_only`.
 
 - [Roadmap and working index](docs/roadmap.md)
 - [Enhanced J-first attack plan](docs/qca_3plus2_j_first_enhanced_attack_plan.md)
+- [Real carrier report](docs/literature/real_carrier_report.md)
+- [Forced J report](docs/literature/forced_j_report.md)
 - [Theory summary](docs/theory.md)
 - [Falsifiers](docs/falsifiers.md)
 - [Phase 0 handover compliance](docs/handover_compliance.md)
@@ -88,6 +92,33 @@ load_bearing_qca_bridge: false
 The Phase 0 audit contract is closed in
 [docs/handover_compliance.md](docs/handover_compliance.md).
 
+`scripts/real_carrier_check.py` verifies the exact Phase 1 real-carrier
+ansatz:
+
+```text
+K_x = R^2_clock ⊗ (R^3 ⊕ R^2)
+J = epsilon ⊗ I_5
+P_3 = I_2 ⊗ diag(1,1,1,0,0)
+P_2 = I_2 ⊗ diag(0,0,0,1,1)
+```
+
+It must also print:
+
+```text
+qca_forces_j: false
+load_bearing_qca_bridge: false
+```
+
+`scripts/forced_j_check.py` verifies that a declared exact gate word can
+produce the Phase 1 `J`. By default this is still only a candidate:
+
+```text
+generated_by_gate_word: true
+qca_forces_j: false
+forced_j_verdict: candidate_only
+load_bearing_qca_bridge: false
+```
+
 ## QCA Input Contract
 
 The current audit reads nontrivial input only from `data/qca_data.json`.
@@ -103,6 +134,9 @@ Do not add `data/qca_data.json` unless it contains real source-backed QCA data.
 uv sync --dev
 uv run ruff check .
 uv run pytest -q
+uv run python scripts/real_carrier_check.py --check
+uv run python scripts/forced_j_check.py --check
+uv run python scripts/forced_j_check.py --include-addressable-rank-one --expect-verdict falsified
 uv run python scripts/branching_check.py --check
 uv run python scripts/qca_split_audit.py --check --expect-verdict notation_only
 uv run python scripts/qca_split_audit.py --json --expect-verdict notation_only
