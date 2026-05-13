@@ -149,6 +149,13 @@ and [Forcedness Certificate](literature/forcedness_certificate.md). The current
 normalizer preserves the declared `P_3/P_2` split, but it does not force the
 candidate `J`, and no source-backed microscopic rule data are present.
 
+Phase 8A starts the fallback route with a stronger real-QCA-first branch
+checker. The check is documented in
+[Real-QCA Branch Report](literature/real_qca_branch_report.md). It composes the
+gate-word, structural split, and normalizer certificates for finite-depth real
+gate-word rule spaces. The current default branch still generates only a
+candidate `J` and split; it does not force them from microscopic data.
+
 ## Load-Bearing Conditions
 
 The bridge becomes nontrivial only if QCA data supplies all of the following:

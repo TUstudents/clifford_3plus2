@@ -56,10 +56,14 @@ The current code enforces these boundaries:
 - The Phase 7 normalizer checker rejects rank-one color controls, rank-one
   weak controls, off-block controls, and full-`U(5)`-like mode-resolving
   controls.
+- The Phase 8A real-QCA branch checker rejects rank-one color controls,
+  rank-one weak controls, independently addressable rank-one pair rotations,
+  and off-block controls.
 
 Current forcedness status:
 
 ```text
 forcedness_verdict: candidate_only
+real_qca_branch_verdict: candidate_only
 load_bearing_qca_bridge: false
 ```

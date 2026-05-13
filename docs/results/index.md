@@ -23,6 +23,11 @@ uv run python scripts/normalizer_check.py --include-rank-one-color --expect-verd
 uv run python scripts/normalizer_check.py --include-rank-one-weak --expect-verdict falsified
 uv run python scripts/normalizer_check.py --include-off-block --expect-verdict falsified
 uv run python scripts/normalizer_check.py --include-full-u5-controls --expect-verdict falsified
+uv run python scripts/real_qca_branch_check.py --check --expect-verdict candidate_only
+uv run python scripts/real_qca_branch_check.py --include-rank-one-color --expect-verdict falsified
+uv run python scripts/real_qca_branch_check.py --include-rank-one-weak --expect-verdict falsified
+uv run python scripts/real_qca_branch_check.py --include-rank-one-pair --expect-verdict falsified
+uv run python scripts/real_qca_branch_check.py --include-off-block --expect-verdict falsified
 uv run python scripts/branching_check.py --check
 uv run python scripts/qca_split_audit.py --check --expect-verdict notation_only
 uv run python scripts/qca_split_audit.py --json --expect-verdict notation_only
@@ -32,7 +37,7 @@ Verification:
 
 ```text
 ruff: passed
-pytest: 156 passed
+pytest: 171 passed
 ```
 
 Real carrier check:
@@ -255,6 +260,70 @@ forcedness_verdict: falsified
 load_bearing_qca_bridge: false
 ```
 
+Real-QCA branch check:
+
+```text
+This checks the stronger real-QCA-first branch candidate.
+It does not prove microscopic QCA rule data force J or P_3/P_2.
+branch_name: phase_8a_stronger_real_qca_first
+candidate_word_found: true
+candidate_word: global_clock_tick
+word_depth: 1
+finite_depth: true
+translation_invariant: true
+generates_j: true
+generates_split: true
+j_forced_by_rule_space: false
+split_forced_by_rule_space: false
+forbidden_rank_one_controls_present: false
+forbidden_off_block_controls_present: false
+addressability_algebra_safe: true
+normalizer_verdict: candidate_only
+real_qca_branch_verdict: candidate_only
+real_qca_branch_check_passed: true
+load_bearing_qca_bridge: false
+```
+
+Real-QCA branch rank-one color falsifier:
+
+```text
+forbidden_rank_one_controls_present: true
+addressability_algebra_safe: false
+normalizer_verdict: falsified
+real_qca_branch_verdict: falsified
+load_bearing_qca_bridge: false
+```
+
+Real-QCA branch rank-one weak falsifier:
+
+```text
+forbidden_rank_one_controls_present: true
+addressability_algebra_safe: false
+normalizer_verdict: falsified
+real_qca_branch_verdict: falsified
+load_bearing_qca_bridge: false
+```
+
+Real-QCA branch rank-one pair falsifier:
+
+```text
+forbidden_rank_one_controls_present: true
+addressability_algebra_safe: true
+normalizer_verdict: candidate_only
+real_qca_branch_verdict: falsified
+load_bearing_qca_bridge: false
+```
+
+Real-QCA branch off-block falsifier:
+
+```text
+forbidden_off_block_controls_present: true
+addressability_algebra_safe: false
+normalizer_verdict: falsified
+real_qca_branch_verdict: falsified
+load_bearing_qca_bridge: false
+```
+
 Branching check:
 
 ```text
@@ -326,6 +395,9 @@ candidate data, but it does not make the QCA bridge load-bearing.
 Phase 7 computes normalizer and forcedness proxies. The declared split is
 preserved by the candidate data, but `J` and the rank-three projector are not
 forced by source-backed microscopic rule data.
+Phase 8A adds a stronger real-QCA-first branch checker. The declared
+period-four word still generates `J`, but the branch remains candidate-only
+because the rule space does not force `J` or the split.
 ```
 
 ## Active Roadmap Update

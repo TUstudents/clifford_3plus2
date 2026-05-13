@@ -408,6 +408,150 @@ def test_normalizer_check_expect_verdict_fails_on_mismatch() -> None:
     assert result.returncode == 1
 
 
+def test_real_qca_branch_check_script_reports_candidate_only_result() -> None:
+    result = subprocess.run(
+        [
+            sys.executable,
+            "scripts/real_qca_branch_check.py",
+            "--check",
+            "--expect-verdict",
+            "candidate_only",
+        ],
+        cwd=ROOT,
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+
+    assert "This checks the stronger real-QCA-first branch candidate." in result.stdout
+    assert "It does not prove microscopic QCA rule data force J or P_3/P_2." in result.stdout
+    assert "candidate_word_found: true" in result.stdout
+    assert "candidate_word: global_clock_tick" in result.stdout
+    assert "finite_depth: true" in result.stdout
+    assert "translation_invariant: true" in result.stdout
+    assert "generates_j: true" in result.stdout
+    assert "generates_split: true" in result.stdout
+    assert "j_forced_by_rule_space: false" in result.stdout
+    assert "split_forced_by_rule_space: false" in result.stdout
+    assert "normalizer_verdict: candidate_only" in result.stdout
+    assert "real_qca_branch_verdict: candidate_only" in result.stdout
+    assert "real_qca_branch_check_passed: true" in result.stdout
+    assert "load_bearing_qca_bridge: false" in result.stdout
+
+
+def test_real_qca_branch_check_script_can_emit_json() -> None:
+    result = subprocess.run(
+        [sys.executable, "scripts/real_qca_branch_check.py", "--json"],
+        cwd=ROOT,
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+
+    payload = json.loads(result.stdout)
+    assert payload["candidate_word_found"] is True
+    assert payload["candidate_word"] == ["global_clock_tick"]
+    assert payload["real_qca_branch_verdict"] == "candidate_only"
+    assert payload["normalizer_verdict"] == "candidate_only"
+    assert payload["real_qca_branch_check_passed"] is True
+    assert payload["load_bearing_qca_bridge"] is False
+
+
+def test_real_qca_branch_check_script_can_report_color_falsifier() -> None:
+    result = subprocess.run(
+        [
+            sys.executable,
+            "scripts/real_qca_branch_check.py",
+            "--include-rank-one-color",
+            "--expect-verdict",
+            "falsified",
+        ],
+        cwd=ROOT,
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+
+    assert "forbidden_rank_one_controls_present: true" in result.stdout
+    assert "addressability_algebra_safe: false" in result.stdout
+    assert "real_qca_branch_verdict: falsified" in result.stdout
+
+
+def test_real_qca_branch_check_script_can_report_weak_falsifier() -> None:
+    result = subprocess.run(
+        [
+            sys.executable,
+            "scripts/real_qca_branch_check.py",
+            "--include-rank-one-weak",
+            "--expect-verdict",
+            "falsified",
+        ],
+        cwd=ROOT,
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+
+    assert "forbidden_rank_one_controls_present: true" in result.stdout
+    assert "addressability_algebra_safe: false" in result.stdout
+    assert "real_qca_branch_verdict: falsified" in result.stdout
+
+
+def test_real_qca_branch_check_script_can_report_pair_falsifier() -> None:
+    result = subprocess.run(
+        [
+            sys.executable,
+            "scripts/real_qca_branch_check.py",
+            "--include-rank-one-pair",
+            "--expect-verdict",
+            "falsified",
+        ],
+        cwd=ROOT,
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+
+    assert "forbidden_rank_one_controls_present: true" in result.stdout
+    assert "real_qca_branch_verdict: falsified" in result.stdout
+
+
+def test_real_qca_branch_check_script_can_report_off_block_falsifier() -> None:
+    result = subprocess.run(
+        [
+            sys.executable,
+            "scripts/real_qca_branch_check.py",
+            "--include-off-block",
+            "--expect-verdict",
+            "falsified",
+        ],
+        cwd=ROOT,
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+
+    assert "forbidden_off_block_controls_present: true" in result.stdout
+    assert "addressability_algebra_safe: false" in result.stdout
+    assert "real_qca_branch_verdict: falsified" in result.stdout
+
+
+def test_real_qca_branch_check_expect_verdict_fails_on_mismatch() -> None:
+    result = subprocess.run(
+        [
+            sys.executable,
+            "scripts/real_qca_branch_check.py",
+            "--expect-verdict",
+            "forced_candidate",
+        ],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+    )
+
+    assert result.returncode == 1
+
+
 def test_gate_classification_check_script_reports_oracle_result() -> None:
     result = subprocess.run(
         [sys.executable, "scripts/gate_classification_check.py", "--check"],

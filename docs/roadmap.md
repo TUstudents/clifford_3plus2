@@ -40,6 +40,8 @@ cannot resolve individual color or weak axes.
   Phase 7 normalizer and addressability algebra oracle.
 - [Forcedness Certificate](literature/forcedness_certificate.md):
   Phase 7 conservative forcedness verdict.
+- [Real-QCA Branch Report](literature/real_qca_branch_report.md):
+  Phase 8A stronger real-QCA-first branch checker.
 - [Handover Compliance](handover_compliance.md): Phase 0 closeout checklist.
 - [Side Project Plan](clifford_3plus2_to_d5_side_project_plan.md): original
   geometry-to-D5 project plan.
@@ -63,6 +65,8 @@ spinor16_check_passed: true
 spinor16_verdict: candidate_only
 normalizer_check_passed: true
 forcedness_verdict: candidate_only
+real_qca_branch_check_passed: true
+real_qca_branch_verdict: candidate_only
 branching_check_passed: true
 qca_split_audit_verdict: notation_only
 load_bearing_qca_bridge: false
@@ -582,16 +586,51 @@ forcedness are not derived from microscopic rule data.
 
 ## Phase 8: Route Branches If Minimal Ansatz Fails
 
-Status: fallback only.
+Status: Branch A implemented as candidate-only checker; remaining branches are
+fallback only.
 
 Branch order:
 
-1. Stronger real-QCA first route.
+1. Stronger real-QCA first route. Implemented as Phase 8A.
 2. Floquet-Kahler micromotion.
 3. Defect/monodromy complex structure.
 4. Five-axis parent QCA.
 5. `D5` / `SU(5)` root-lattice QCA.
 6. Passive `Spin(10)` fiber fallback.
+
+Phase 8A implementation:
+
+```text
+src/clifford_3plus2_d5/search/real_qca_branch.py
+scripts/real_qca_branch_check.py
+tests/test_real_qca_branch.py
+docs/literature/real_qca_branch_report.md
+```
+
+Current outcome:
+
+```text
+candidate_word_found = true
+candidate_word = global_clock_tick
+finite_depth = true
+translation_invariant = true
+generates_j = true
+generates_split = true
+j_forced_by_rule_space = false
+split_forced_by_rule_space = false
+normalizer_verdict = candidate_only
+real_qca_branch_verdict = candidate_only
+load_bearing_qca_bridge = false
+```
+
+Falsifiers implemented:
+
+```text
+rank-one color projectors -> falsified
+rank-one weak projectors -> falsified
+rank-one pair rotations -> falsified
+off-block controls -> falsified
+```
 
 Fallback interpretation:
 

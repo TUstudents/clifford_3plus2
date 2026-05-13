@@ -28,6 +28,7 @@ gate_classification_check: oracle_passes
 qca_update_check: candidate_only
 spinor16_check: candidate_only
 normalizer_check: candidate_only
+real_qca_branch_check: candidate_only
 Spin(10) branching check: passes
 QCA load-bearing bridge: notation_only
 ```
@@ -71,6 +72,7 @@ Spin(10), the project remains `notation_only`.
 - [Spinor 16 report](docs/literature/spinor16_report.md)
 - [Normalizer report](docs/literature/normalizer_report.md)
 - [Forcedness certificate](docs/literature/forcedness_certificate.md)
+- [Real-QCA branch report](docs/literature/real_qca_branch_report.md)
 - [Theory summary](docs/theory.md)
 - [Falsifiers](docs/falsifiers.md)
 - [Phase 0 handover compliance](docs/handover_compliance.md)
@@ -203,6 +205,22 @@ forcedness_verdict: candidate_only
 load_bearing_qca_bridge: false
 ```
 
+`scripts/real_qca_branch_check.py` verifies the Phase 8A stronger
+real-QCA-first branch interface. It composes the gate-word, structural split,
+and normalizer checks for a finite-depth real gate-word search space. By
+default this is still only a candidate:
+
+```text
+candidate_word_found: true
+candidate_word: global_clock_tick
+generates_j: true
+generates_split: true
+j_forced_by_rule_space: false
+split_forced_by_rule_space: false
+real_qca_branch_verdict: candidate_only
+load_bearing_qca_bridge: false
+```
+
 ## QCA Input Contract
 
 The current audit reads nontrivial input only from `data/qca_data.json`.
@@ -234,6 +252,11 @@ uv run python scripts/normalizer_check.py --include-rank-one-color --expect-verd
 uv run python scripts/normalizer_check.py --include-rank-one-weak --expect-verdict falsified
 uv run python scripts/normalizer_check.py --include-off-block --expect-verdict falsified
 uv run python scripts/normalizer_check.py --include-full-u5-controls --expect-verdict falsified
+uv run python scripts/real_qca_branch_check.py --check --expect-verdict candidate_only
+uv run python scripts/real_qca_branch_check.py --include-rank-one-color --expect-verdict falsified
+uv run python scripts/real_qca_branch_check.py --include-rank-one-weak --expect-verdict falsified
+uv run python scripts/real_qca_branch_check.py --include-rank-one-pair --expect-verdict falsified
+uv run python scripts/real_qca_branch_check.py --include-off-block --expect-verdict falsified
 uv run python scripts/branching_check.py --check
 uv run python scripts/qca_split_audit.py --check --expect-verdict notation_only
 uv run python scripts/qca_split_audit.py --json --expect-verdict notation_only
