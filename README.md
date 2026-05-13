@@ -25,6 +25,7 @@ phase_1_real_carrier_check: passes
 forced_j_check: candidate_only
 structural_split_check: candidate_only
 gate_classification_check: oracle_passes
+qca_update_check: candidate_only
 Spin(10) branching check: passes
 QCA load-bearing bridge: notation_only
 ```
@@ -64,6 +65,7 @@ Spin(10), the project remains `notation_only`.
 - [Forced J report](docs/literature/forced_j_report.md)
 - [Projector lattice report](docs/literature/projector_lattice_report.md)
 - [Gate classification report](docs/literature/gate_classification_report.md)
+- [QCA update certificate](docs/literature/qca_update_certificate.md)
 - [Theory summary](docs/theory.md)
 - [Falsifiers](docs/falsifiers.md)
 - [Phase 0 handover compliance](docs/handover_compliance.md)
@@ -153,6 +155,23 @@ qca_geometric_gate_algebra_safe: false
 load_bearing_qca_bridge: false
 ```
 
+`scripts/qca_update_check.py` verifies the exact Phase 5 period-four
+finite-depth update candidate:
+
+```text
+U(T/4) = J
+U(T/2) = -I
+U(T) = I
+```
+
+It must also print:
+
+```text
+qca_rule_forces_update: false
+finite_depth_qca_verdict: candidate_only
+load_bearing_qca_bridge: false
+```
+
 ## QCA Input Contract
 
 The current audit reads nontrivial input only from `data/qca_data.json`.
@@ -175,6 +194,9 @@ uv run python scripts/structural_split_check.py --check
 uv run python scripts/structural_split_check.py --include-rank-one-color --expect-verdict falsified
 uv run python scripts/structural_split_check.py --include-rank-one-weak --expect-verdict falsified
 uv run python scripts/gate_classification_check.py --check
+uv run python scripts/qca_update_check.py --check
+uv run python scripts/qca_update_check.py --include-rank-one-color-shift --expect-verdict falsified
+uv run python scripts/qca_update_check.py --include-rank-one-weak-shift --expect-verdict falsified
 uv run python scripts/branching_check.py --check
 uv run python scripts/qca_split_audit.py --check --expect-verdict notation_only
 uv run python scripts/qca_split_audit.py --json --expect-verdict notation_only

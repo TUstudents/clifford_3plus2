@@ -303,3 +303,97 @@ def test_gate_classification_check_script_can_emit_json() -> None:
     assert payload["safe_algebra_closure_passed"] is True
     assert payload["qca_geometric_gate_algebra_safe"] is False
     assert payload["load_bearing_qca_bridge"] is False
+
+
+def test_qca_update_check_script_reports_candidate_only_result() -> None:
+    result = subprocess.run(
+        [sys.executable, "scripts/qca_update_check.py", "--check"],
+        cwd=ROOT,
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+
+    assert "This verifies the finite-depth QCA update candidate only." in result.stdout
+    assert "It does not prove microscopic QCA rule data force this update." in result.stdout
+    assert "finite_depth: true" in result.stdout
+    assert "period_four_check_passed: true" in result.stdout
+    assert "quarter_period_is_j: true" in result.stdout
+    assert "half_period_is_minus_identity: true" in result.stdout
+    assert "full_period_is_identity: true" in result.stdout
+    assert "all_internal_actions_safe: true" in result.stdout
+    assert "qca_rule_forces_update: false" in result.stdout
+    assert "finite_depth_qca_verdict: candidate_only" in result.stdout
+    assert "load_bearing_qca_bridge: false" in result.stdout
+
+
+def test_qca_update_check_script_can_emit_json() -> None:
+    result = subprocess.run(
+        [sys.executable, "scripts/qca_update_check.py", "--json"],
+        cwd=ROOT,
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+
+    payload = json.loads(result.stdout)
+    assert payload["finite_depth"] is True
+    assert payload["period_four_check_passed"] is True
+    assert payload["finite_depth_qca_verdict"] == "candidate_only"
+    assert payload["load_bearing_qca_bridge"] is False
+
+
+def test_qca_update_check_script_can_report_color_shift_falsifier() -> None:
+    result = subprocess.run(
+        [
+            sys.executable,
+            "scripts/qca_update_check.py",
+            "--include-rank-one-color-shift",
+            "--expect-verdict",
+            "falsified",
+        ],
+        cwd=ROOT,
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+
+    assert "all_internal_actions_safe: false" in result.stdout
+    assert "unsafe_gate_witnesses: rank_one_color_shift" in result.stdout
+    assert "finite_depth_qca_verdict: falsified" in result.stdout
+
+
+def test_qca_update_check_script_can_report_weak_shift_falsifier() -> None:
+    result = subprocess.run(
+        [
+            sys.executable,
+            "scripts/qca_update_check.py",
+            "--include-rank-one-weak-shift",
+            "--expect-verdict",
+            "falsified",
+        ],
+        cwd=ROOT,
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+
+    assert "all_internal_actions_safe: false" in result.stdout
+    assert "unsafe_gate_witnesses: rank_one_weak_shift" in result.stdout
+    assert "finite_depth_qca_verdict: falsified" in result.stdout
+
+
+def test_qca_update_check_expect_verdict_fails_on_mismatch() -> None:
+    result = subprocess.run(
+        [
+            sys.executable,
+            "scripts/qca_update_check.py",
+            "--expect-verdict",
+            "finite_depth_candidate",
+        ],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+    )
+
+    assert result.returncode == 1

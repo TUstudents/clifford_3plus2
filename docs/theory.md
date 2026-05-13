@@ -131,6 +131,12 @@ Phase 4 implements this as an exact classifier. The check is documented in
 proves the oracle behavior on canonical safe and unsafe gates, but it does not
 prove that microscopic QCA rule data supply only safe geometric gates.
 
+Phase 5 packages the period-four micromotion candidate as an exact finite-depth
+update certificate. The check is documented in
+[QCA Update Certificate](literature/qca_update_certificate.md). It verifies the
+candidate identities `U(T/4)=J`, `U(T/2)=-I`, and `U(T)=I`, but it does not
+prove that microscopic QCA rule data force the update.
+
 ## Load-Bearing Conditions
 
 The bridge becomes nontrivial only if QCA data supplies all of the following:

@@ -14,6 +14,9 @@ uv run python scripts/structural_split_check.py --check
 uv run python scripts/structural_split_check.py --include-rank-one-color --expect-verdict falsified
 uv run python scripts/structural_split_check.py --include-rank-one-weak --expect-verdict falsified
 uv run python scripts/gate_classification_check.py --check
+uv run python scripts/qca_update_check.py --check
+uv run python scripts/qca_update_check.py --include-rank-one-color-shift --expect-verdict falsified
+uv run python scripts/qca_update_check.py --include-rank-one-weak-shift --expect-verdict falsified
 uv run python scripts/branching_check.py --check
 uv run python scripts/qca_split_audit.py --check --expect-verdict notation_only
 uv run python scripts/qca_split_audit.py --json --expect-verdict notation_only
@@ -23,7 +26,7 @@ Verification:
 
 ```text
 ruff: passed
-pytest: 106 passed
+pytest: 125 passed
 ```
 
 Real carrier check:
@@ -125,6 +128,46 @@ qca_geometric_gate_algebra_safe: false
 load_bearing_qca_bridge: false
 ```
 
+QCA update check:
+
+```text
+This verifies the finite-depth QCA update candidate only.
+It does not prove microscopic QCA rule data force this update.
+finite_depth: true
+layer_count: 4
+max_locality_radius: 0
+all_layers_local: true
+all_layers_orthogonal: true
+period_four_check_passed: true
+quarter_period_is_j: true
+half_period_is_minus_identity: true
+full_period_is_identity: true
+all_internal_actions_safe: true
+unsafe_gate_witnesses:
+qca_rule_forces_update: false
+finite_depth_qca_verdict: candidate_only
+qca_update_check_passed: true
+load_bearing_qca_bridge: false
+```
+
+QCA update rank-one color shift falsifier:
+
+```text
+all_internal_actions_safe: false
+unsafe_gate_witnesses: rank_one_color_shift
+finite_depth_qca_verdict: falsified
+load_bearing_qca_bridge: false
+```
+
+QCA update rank-one weak shift falsifier:
+
+```text
+all_internal_actions_safe: false
+unsafe_gate_witnesses: rank_one_weak_shift
+finite_depth_qca_verdict: falsified
+load_bearing_qca_bridge: false
+```
+
 Branching check:
 
 ```text
@@ -189,6 +232,8 @@ Phase 3 can certify a declared P_3/P_2 candidate and rank-one falsifiers, but
 the split is still not QCA-forced.
 Phase 4 proves the SM commutant classifier oracle on canonical safe and unsafe
 gates, but no actual QCA gate set has been certified safe.
+Phase 5 certifies a declared finite-depth period-four update candidate and
+no-locking falsifiers, but the update is still not QCA-forced.
 ```
 
 ## Active Roadmap Update

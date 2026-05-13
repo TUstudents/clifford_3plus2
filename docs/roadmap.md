@@ -32,6 +32,8 @@ cannot resolve individual color or weak axes.
   Phase 3 projector and addressability checks.
 - [Gate Classification Report](literature/gate_classification_report.md):
   Phase 4 SM commutant oracle.
+- [QCA Update Certificate](literature/qca_update_certificate.md):
+  Phase 5 finite-depth update candidate.
 - [Handover Compliance](handover_compliance.md): Phase 0 closeout checklist.
 - [Side Project Plan](clifford_3plus2_to_d5_side_project_plan.md): original
   geometry-to-D5 project plan.
@@ -49,6 +51,8 @@ structural_split_check_passed: true
 structural_split_verdict: candidate_only
 gate_classification_check_passed: true
 qca_geometric_gate_algebra_safe: false
+qca_update_check_passed: true
+finite_depth_qca_verdict: candidate_only
 branching_check_passed: true
 qca_split_audit_verdict: notation_only
 load_bearing_qca_bridge: false
@@ -381,7 +385,7 @@ closure of the safe algebra is proven.
 
 ## Phase 5: Finite-Depth Microscopic QCA Candidate
 
-Status: not started.
+Status: complete as finite-depth candidate certificate; not yet QCA-forced.
 
 Purpose: construct and certify an actual local update.
 
@@ -415,8 +419,32 @@ src/clifford_3plus2_d5/qca/layers.py
 src/clifford_3plus2_d5/qca/locality.py
 src/clifford_3plus2_d5/qca/certificates.py
 tests/test_qca_layers.py
+tests/test_qca_update_certificate.py
 tests/test_no_locking.py
 docs/literature/qca_update_certificate.md
+```
+
+Current outcome:
+
+```text
+finite_depth = true
+period_four_check_passed = true
+quarter_period_is_j = true
+half_period_is_minus_identity = true
+full_period_is_identity = true
+all_internal_actions_safe = true
+qca_rule_forces_update = false
+finite_depth_qca_verdict = candidate_only
+load_bearing_qca_bridge = false
+```
+
+Falsifiers implemented:
+
+```text
+rank-one color spacetime shift -> falsified
+rank-one weak spacetime shift -> falsified
+block-mixing spacetime shift -> falsified
+effective-Hamiltonian-only update -> falsified
 ```
 
 Acceptance:
@@ -563,8 +591,9 @@ one-generation internal carrier only.
    - Require an actual QCA gate set before marking geometric gates safe.
 
 4. **Finite-Depth Candidate**
-   - Certify `U(T/4)=J`, `U(T/2)=-I`, `U(T)=I`.
-   - Reject any spacetime shift with rank-one internal projectors.
+   - Maintain exact period-four update certificate.
+   - Reject spacetime shifts with rank-one or block-mixing internal projectors.
+   - Require real QCA rule data before marking the update forced.
 
 5. **Spinor Reconstruction**
    - Reuse existing branching machinery only after `J` and `P_3/P_2` are
