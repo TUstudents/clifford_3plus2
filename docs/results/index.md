@@ -37,6 +37,7 @@ uv run python scripts/rule_to_verdict.py --case clock-block-reflection --expect-
 uv run python scripts/rule_to_verdict.py --case clock-rank-one-color-reflection --expect-verdict falsified_rank_one_center
 uv run python scripts/floquet_alpha_search.py --check
 uv run python scripts/floquet_alpha_plus_search.py --check
+uv run python scripts/defect_beta_search.py --check
 uv run python scripts/branching_check.py --check
 uv run python scripts/qca_split_audit.py --check --expect-verdict notation_only
 uv run python scripts/qca_split_audit.py --json --expect-verdict notation_only
@@ -46,7 +47,7 @@ Verification:
 
 ```text
 ruff: passed
-pytest: 204 passed
+pytest: 209 passed
 ```
 
 Real carrier check:
@@ -477,6 +478,19 @@ verdict_counts: {'polarization_j_produced_not_strictly_unique': 10}
 load_bearing_qca_bridge: false
 ```
 
+Defect-beta search:
+
+```text
+This searches the defect-beta monodromy primitive family.
+It computes round-trip monodromy from wall transition functions.
+candidate_count: 10
+monodromy_candidates: 10
+strict_compatible_j_forced_candidates: 0
+strict_bridge_candidates: 0
+verdict_counts: {'monodromy_j_produced_not_strictly_unique': 10}
+load_bearing_qca_bridge: false
+```
+
 Branching check:
 
 ```text
@@ -565,6 +579,9 @@ quantized resonance layer. It produces the coarse `6+4` center in all ten
 patterns, without rank-one centers. Alpha-plus extracts a canonical
 spectral-polarization `J` from the same rule operator in all ten patterns, but
 strict compatible-commutant uniqueness still fails.
+Defect-beta reaches the same result through computed wall-cycle monodromy:
+coarse center and canonical monodromy `J` are present, but strict compatible
+`J` uniqueness remains open.
 ```
 
 ## Active Roadmap Update

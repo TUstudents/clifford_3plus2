@@ -193,6 +193,17 @@ operator for all ten patterns. The strict compatible-commutant equations still
 do not force `J` uniquely because the central split permits block-sign
 alternatives.
 
+The theorem-standard decision is documented in
+[Floquet Alpha J Obstruction](literature/floquet_alpha_j_obstruction.md). The
+project must distinguish a canonical spectral/monodromy `J` from strict
+uniqueness of the full compatible-`J` variety.
+
+The second physical family is Defect-β, documented in
+[Defect Beta Report](literature/defect_beta_report.md). It computes
+round-trip monodromy from wall-cycle transition functions. All ten defect
+charge patterns produce the same coarse center and canonical monodromy `J`;
+the same strict compatible-commutant obstruction remains.
+
 ## Load-Bearing Conditions
 
 The bridge becomes nontrivial only if QCA data supplies all of the following:

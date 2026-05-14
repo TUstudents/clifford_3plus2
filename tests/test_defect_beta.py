@@ -1,0 +1,101 @@
+from __future__ import annotations
+
+import json
+import subprocess
+import sys
+from pathlib import Path
+
+import sympy as sp
+
+from clifford_3plus2_d5.algebra.matrices import identity
+from clifford_3plus2_d5.qca.defect_beta import (
+    defect_beta_candidates,
+    defect_beta_canonical_j,
+    defect_beta_certificate,
+    defect_beta_monodromy_operator,
+    defect_beta_spectral_projectors,
+    defect_beta_transition_functions,
+)
+
+
+ROOT = Path(__file__).resolve().parents[1]
+
+
+def test_defect_beta_enumerates_defect_charge_patterns() -> None:
+    candidates = defect_beta_candidates()
+
+    assert len(candidates) == 10
+    assert candidates[0].omega_modes == (0, 1, 2)
+    assert candidates[0].i_modes == (3, 4)
+    assert all(len(candidate.omega_modes) == 3 for candidate in candidates)
+    assert all(len(candidate.i_modes) == 2 for candidate in candidates)
+
+
+def test_defect_beta_monodromy_is_computed_from_transitions() -> None:
+    candidate = defect_beta_candidates()[0]
+    transitions = defect_beta_transition_functions(candidate)
+    monodromy = identity(10)
+    for transition in transitions:
+        monodromy = transition.matrix * monodromy
+
+    assert len(transitions) == 2
+    assert sp.simplify(monodromy) == defect_beta_monodromy_operator(candidate)
+    assert monodromy.T * monodromy == identity(10)
+
+
+def test_defect_beta_spectral_projectors_and_j() -> None:
+    candidate = defect_beta_candidates()[0]
+    omega_projector, i_projector = defect_beta_spectral_projectors(candidate)
+    canonical_j = defect_beta_canonical_j(candidate)
+
+    assert omega_projector.rank() == 6
+    assert i_projector.rank() == 4
+    assert omega_projector * omega_projector == omega_projector
+    assert i_projector * i_projector == i_projector
+    assert omega_projector + i_projector == identity(10)
+    assert canonical_j * canonical_j == -identity(10)
+    assert canonical_j.T * canonical_j == identity(10)
+
+
+def test_defect_beta_reports_monodromy_j_and_strict_obstruction() -> None:
+    certificate = defect_beta_certificate(defect_beta_candidates()[0])
+
+    assert certificate.transition_count == 2
+    assert certificate.monodromy_computed_from_transitions
+    assert certificate.omega_projector_rank == 6
+    assert certificate.i_projector_rank == 4
+    assert certificate.beta_monodromy_passed
+    assert certificate.canonical_j_generated_by_monodromy
+    assert certificate.canonical_j_squared_minus_identity
+    assert certificate.canonical_j_orthogonal
+    assert not certificate.strict_compatible_j_forced
+    assert not certificate.pass_strict_rule_to_bridge
+    assert certificate.verdict == "monodromy_j_produced_not_strictly_unique"
+    assert not certificate.load_bearing_qca_bridge
+
+
+def test_defect_beta_cli_single_pattern() -> None:
+    result = subprocess.run(
+        [
+            sys.executable,
+            "scripts/defect_beta_search.py",
+            "--json",
+            "--check",
+            "--pattern-index",
+            "0",
+        ],
+        cwd=ROOT,
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    payload = json.loads(result.stdout)
+
+    assert payload["candidate_count"] == 1
+    assert payload["monodromy_candidates"] == 1
+    assert payload["strict_compatible_j_forced_candidates"] == 0
+    assert payload["strict_bridge_candidates"] == 0
+    assert payload["verdict_counts"] == {
+        "monodromy_j_produced_not_strictly_unique": 1
+    }
+    assert payload["load_bearing_qca_bridge"] is False

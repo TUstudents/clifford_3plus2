@@ -33,6 +33,7 @@ rule_space_exploration: no forced survivors
 unseeded_projector_discovery: no complementary 6+4 pair
 rule_to_verdict_check: unified negative interface
 floquet_alpha_search: coarse 6+4 center, polarization J produced
+defect_beta_search: monodromy 6+4 center, monodromy J produced
 Spin(10) branching check: passes
 QCA load-bearing bridge: notation_only
 ```
@@ -81,6 +82,8 @@ Spin(10), the project remains `notation_only`.
 - [Unseeded projector discovery report](docs/literature/unseeded_projector_discovery_report.md)
 - [Rule-to-verdict report](docs/literature/rule_to_verdict_report.md)
 - [Floquet alpha report](docs/literature/floquet_alpha_report.md)
+- [Floquet alpha J obstruction](docs/literature/floquet_alpha_j_obstruction.md)
+- [Defect beta report](docs/literature/defect_beta_report.md)
 - [Theory summary](docs/theory.md)
 - [Falsifiers](docs/falsifiers.md)
 - [Phase 0 handover compliance](docs/handover_compliance.md)
@@ -298,6 +301,18 @@ verdict_counts: {'polarization_j_produced_not_strictly_unique': 10}
 load_bearing_qca_bridge: false
 ```
 
+`scripts/defect_beta_search.py` computes round-trip monodromy from wall
+transition functions. It reproduces the same obstruction through a different
+physical route:
+
+```text
+monodromy_candidates: 10
+strict_compatible_j_forced_candidates: 0
+strict_bridge_candidates: 0
+verdict_counts: {'monodromy_j_produced_not_strictly_unique': 10}
+load_bearing_qca_bridge: false
+```
+
 ## QCA Input Contract
 
 The current audit reads nontrivial input only from `data/qca_data.json`.
@@ -343,6 +358,7 @@ uv run python scripts/rule_to_verdict.py --case clock-block-reflection --expect-
 uv run python scripts/rule_to_verdict.py --case clock-rank-one-color-reflection --expect-verdict falsified_rank_one_center
 uv run python scripts/floquet_alpha_search.py --check
 uv run python scripts/floquet_alpha_plus_search.py --check
+uv run python scripts/defect_beta_search.py --check
 uv run python scripts/branching_check.py --check
 uv run python scripts/qca_split_audit.py --check --expect-verdict notation_only
 uv run python scripts/qca_split_audit.py --json --expect-verdict notation_only

@@ -51,6 +51,10 @@ cannot resolve individual color or weak axes.
   collapsed finite-depth rule checker for the actual bridge criterion.
 - [Floquet Alpha Report](literature/floquet_alpha_report.md):
   first physical primitive family replacing abstract depth escalation.
+- [Floquet Alpha J Obstruction](literature/floquet_alpha_j_obstruction.md):
+  theorem-standard decision between spectral and strict forced `J`.
+- [Defect Beta Report](literature/defect_beta_report.md):
+  second physical primitive family using computed wall-cycle monodromy.
 - [Handover Compliance](handover_compliance.md): Phase 0 closeout checklist.
 - [Side Project Plan](clifford_3plus2_to_d5_side_project_plan.md): original
   geometry-to-D5 project plan.
@@ -89,6 +93,8 @@ floquet_alpha_rank_6_4_pair_candidates: 10
 floquet_alpha_plus_polarization_j_candidates: 10
 floquet_alpha_plus_strict_bridge_candidates: 0
 floquet_alpha_bridge_candidates: 0
+defect_beta_monodromy_candidates: 10
+defect_beta_strict_bridge_candidates: 0
 branching_check_passed: true
 qca_split_audit_verdict: notation_only
 load_bearing_qca_bridge: false
@@ -895,6 +901,48 @@ lattice without rank-one centers. Alpha-plus also produces a canonical `J` as
 a polynomial in the oriented Floquet operator. It still does not pass the
 strict rule-to-verdict bridge criterion because the compatible-commutant
 equations retain block-sign alternatives.
+```
+
+## Defect-Beta Monodromy Family
+
+Status: implemented; monodromy center and canonical `J` found, but strict
+compatible-commutant uniqueness still fails.
+
+Implementation:
+
+```text
+src/clifford_3plus2_d5/qca/defect_beta.py
+scripts/defect_beta_search.py
+tests/test_defect_beta.py
+docs/literature/defect_beta_report.md
+```
+
+Family:
+
+```text
+two mandatory wall-cycle transition functions
+round-trip monodromy computed as their product
+three mode pairs with omega = exp(2 pi i / 3)
+two mode pairs with i
+ten defect-charge patterns enumerated
+```
+
+Current outcome:
+
+```text
+monodromy_candidates = 10
+strict_compatible_j_forced_candidates = 0
+strict_bridge_candidates = 0
+verdict_counts = {'monodromy_j_produced_not_strictly_unique': 10}
+load_bearing_qca_bridge = false
+```
+
+Interpretation:
+
+```text
+Defect-beta confirms the same obstruction as Floquet-alpha-plus through a
+different physical mechanism: the spectral/monodromy data produce the coarse
+center and a canonical J, but strict compatible-J uniqueness is not proven.
 ```
 
 ## Phase 9: Family Number Status
