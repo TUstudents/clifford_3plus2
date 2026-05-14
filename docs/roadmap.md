@@ -86,6 +86,8 @@ rule_to_verdict_interface: implemented
 rule_to_verdict_bridge_candidate: false
 floquet_alpha_candidate_count: 10
 floquet_alpha_rank_6_4_pair_candidates: 10
+floquet_alpha_plus_polarization_j_candidates: 10
+floquet_alpha_plus_strict_bridge_candidates: 0
 floquet_alpha_bridge_candidates: 0
 branching_check_passed: true
 qca_split_audit_verdict: notation_only
@@ -839,7 +841,8 @@ defect-monodromy candidates.
 
 ## Floquet-Alpha Physical Primitive Family
 
-Status: implemented; coarse center found, `J` not forced.
+Status: implemented; coarse center found and polarization `J` produced, but
+strict compatible-commutant uniqueness still fails.
 
 Purpose: replace depth escalation over abstract primitive classes with one
 physical resonance mechanism.
@@ -849,6 +852,7 @@ Implementation:
 ```text
 src/clifford_3plus2_d5/qca/floquet_alpha.py
 scripts/floquet_alpha_search.py
+scripts/floquet_alpha_plus_search.py
 tests/test_floquet_alpha.py
 docs/literature/floquet_alpha_report.md
 ```
@@ -873,12 +877,24 @@ verdict_counts = {'candidate_only_j_not_forced': 10}
 load_bearing_qca_bridge = false
 ```
 
+Alpha-plus outcome:
+
+```text
+polarization_j_candidates = 10
+strict_compatible_j_forced_candidates = 0
+strict_bridge_candidates = 0
+verdict_counts = {'polarization_j_produced_not_strictly_unique': 10}
+load_bearing_qca_bridge = false
+```
+
 Interpretation:
 
 ```text
 Floquet-alpha produces the desired coarse [0,4,6,10] central idempotent
-lattice without rank-one centers. It still fails the bridge criterion because
-the compatible complex structure is not forced.
+lattice without rank-one centers. Alpha-plus also produces a canonical `J` as
+a polynomial in the oriented Floquet operator. It still does not pass the
+strict rule-to-verdict bridge criterion because the compatible-commutant
+equations retain block-sign alternatives.
 ```
 
 ## Phase 9: Family Number Status

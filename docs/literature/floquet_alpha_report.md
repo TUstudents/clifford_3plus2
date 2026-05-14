@@ -46,6 +46,7 @@ five mode pairs carry the alpha phase.
 
 ```bash
 uv run python scripts/floquet_alpha_search.py --check
+uv run python scripts/floquet_alpha_plus_search.py --check
 ```
 
 Current output:
@@ -68,6 +69,36 @@ forced_j = false
 verdict = candidate_only_j_not_forced
 ```
 
+The alpha-plus polarization extraction computes spectral projectors from the
+real minimal polynomials:
+
+```text
+f_alpha(x) = x^2 + x + 1
+f_eta(x) = x^2 + 1
+-x f_alpha + (x + 1) f_eta = 1
+```
+
+so:
+
+```text
+P_alpha = (U + I)(U^2 + I)
+P_eta = I - P_alpha
+J_alpha = (2 / sqrt(3)) (U + I/2) P_alpha
+J_eta = U P_eta
+J = J_alpha + J_eta
+```
+
+Current alpha-plus output:
+
+```text
+candidate_count: 10
+polarization_j_candidates: 10
+strict_compatible_j_forced_candidates: 0
+strict_bridge_candidates: 0
+verdict_counts: {'polarization_j_produced_not_strictly_unique': 10}
+load_bearing_qca_bridge: false
+```
+
 ## Interpretation
 
 Floquet-α is progress relative to E1/E2 because the coarse `6+4` central
@@ -77,10 +108,17 @@ by seeding `P_3/P_2` directly.
 It still does not solve the bridge:
 
 ```text
-forced_j_found = false
+canonical_j_generated_by_floquet = true
+strict_compatible_j_forced = false
 load_bearing_qca_bridge = false
 ```
 
-The next pressure is to add a microscopic constraint that makes the quantized
-resonance layer itself unavoidable and selects a unique compatible complex
-structure, rather than merely producing the coarse center.
+The important obstruction is now explicit. The oriented Floquet branch produces
+a canonical `J` as a polynomial in the mandatory rule operator, but the full
+compatible-commutant equations still admit block-sign alternatives once the
+central `P_alpha/P_eta` split exists. Alpha-plus is therefore progress on
+rule-produced `J`, but not a strict uniqueness proof.
+
+The next pressure is to decide whether the physical theorem accepts this
+spectral-polarization `J` as forced by the rule, or whether a stricter
+microscopic constraint must eliminate the block-sign ambiguity.

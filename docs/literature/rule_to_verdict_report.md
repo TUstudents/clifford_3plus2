@@ -105,4 +105,6 @@ single rule-to-verdict checker first.
 The first active replacement family is
 [Floquet Alpha](floquet_alpha_report.md). It is no longer a search over the
 abstract E1 primitives; it exposes one mandatory quantized resonance layer per
-candidate.
+candidate. Alpha-plus also extracts a canonical spectral-polarization `J` from
+that layer, while the strict rule-to-verdict checker continues to report that
+compatible `J` is not unique in the full commutant.

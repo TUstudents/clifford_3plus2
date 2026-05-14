@@ -12,8 +12,11 @@ from clifford_3plus2_d5.qca.floquet_alpha import (
     ALPHA_PHASE,
     ETA_PHASE,
     floquet_alpha_candidates,
+    floquet_alpha_canonical_j,
     floquet_alpha_operator,
+    floquet_alpha_polarization_certificate,
     floquet_alpha_rule_to_verdict,
+    floquet_alpha_spectral_projectors,
     pair_rotation,
 )
 
@@ -62,6 +65,35 @@ def test_floquet_alpha_generates_coarse_center_without_rank_one() -> None:
     assert result.verdict == "candidate_only_j_not_forced"
 
 
+def test_floquet_alpha_spectral_projectors_produce_canonical_j() -> None:
+    candidate = floquet_alpha_candidates()[0]
+    alpha_projector, eta_projector = floquet_alpha_spectral_projectors(candidate)
+    canonical_j = floquet_alpha_canonical_j(candidate)
+
+    assert alpha_projector.rank() == 6
+    assert eta_projector.rank() == 4
+    assert alpha_projector * alpha_projector == alpha_projector
+    assert eta_projector * eta_projector == eta_projector
+    assert alpha_projector + eta_projector == identity(10)
+    assert canonical_j * canonical_j == -identity(10)
+    assert canonical_j.T * canonical_j == identity(10)
+
+
+def test_floquet_alpha_plus_reports_polarization_j_and_strict_obstruction() -> None:
+    certificate = floquet_alpha_polarization_certificate(floquet_alpha_candidates()[0])
+
+    assert certificate.alpha_projector_rank == 6
+    assert certificate.eta_projector_rank == 4
+    assert certificate.alpha_plus_polarization_passed
+    assert certificate.canonical_j_generated_by_floquet
+    assert certificate.canonical_j_squared_minus_identity
+    assert certificate.canonical_j_orthogonal
+    assert not certificate.strict_compatible_j_forced
+    assert not certificate.pass_strict_rule_to_bridge
+    assert certificate.verdict == "polarization_j_produced_not_strictly_unique"
+    assert not certificate.load_bearing_qca_bridge
+
+
 def test_floquet_alpha_cli_searches_all_patterns() -> None:
     result = subprocess.run(
         [
@@ -82,4 +114,29 @@ def test_floquet_alpha_cli_searches_all_patterns() -> None:
     assert payload["rank_one_falsified_candidates"] == 0
     assert payload["bridge_candidates"] == 0
     assert payload["verdict_counts"] == {"candidate_only_j_not_forced": 10}
+    assert payload["load_bearing_qca_bridge"] is False
+
+
+def test_floquet_alpha_plus_cli_searches_all_patterns() -> None:
+    result = subprocess.run(
+        [
+            sys.executable,
+            "scripts/floquet_alpha_plus_search.py",
+            "--json",
+            "--check",
+        ],
+        cwd=ROOT,
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    payload = json.loads(result.stdout)
+
+    assert payload["candidate_count"] == 10
+    assert payload["polarization_j_candidates"] == 10
+    assert payload["strict_compatible_j_forced_candidates"] == 0
+    assert payload["strict_bridge_candidates"] == 0
+    assert payload["verdict_counts"] == {
+        "polarization_j_produced_not_strictly_unique": 10
+    }
     assert payload["load_bearing_qca_bridge"] is False

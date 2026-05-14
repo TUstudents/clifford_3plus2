@@ -36,6 +36,7 @@ uv run python scripts/rule_to_verdict.py --case minimal-period-four --expect-ver
 uv run python scripts/rule_to_verdict.py --case clock-block-reflection --expect-verdict candidate_only_j_not_forced
 uv run python scripts/rule_to_verdict.py --case clock-rank-one-color-reflection --expect-verdict falsified_rank_one_center
 uv run python scripts/floquet_alpha_search.py --check
+uv run python scripts/floquet_alpha_plus_search.py --check
 uv run python scripts/branching_check.py --check
 uv run python scripts/qca_split_audit.py --check --expect-verdict notation_only
 uv run python scripts/qca_split_audit.py --json --expect-verdict notation_only
@@ -45,7 +46,7 @@ Verification:
 
 ```text
 ruff: passed
-pytest: 201 passed
+pytest: 204 passed
 ```
 
 Real carrier check:
@@ -463,6 +464,19 @@ verdict_counts: {'candidate_only_j_not_forced': 10}
 load_bearing_qca_bridge: false
 ```
 
+Floquet-alpha-plus search:
+
+```text
+This searches Floquet-alpha plus canonical polarization J extraction.
+It reports the strict compatible-J obstruction separately.
+candidate_count: 10
+polarization_j_candidates: 10
+strict_compatible_j_forced_candidates: 0
+strict_bridge_candidates: 0
+verdict_counts: {'polarization_j_produced_not_strictly_unique': 10}
+load_bearing_qca_bridge: false
+```
+
 Branching check:
 
 ```text
@@ -548,7 +562,9 @@ into one interface. Current controls are negative: minimal clock has no
 rank-one reflection is falsified by a lower central idempotent.
 Floquet-alpha replaces the abstract primitive-family direction with a physical
 quantized resonance layer. It produces the coarse `6+4` center in all ten
-patterns, without rank-one centers, but still does not force `J`.
+patterns, without rank-one centers. Alpha-plus extracts a canonical
+spectral-polarization `J` from the same rule operator in all ten patterns, but
+strict compatible-commutant uniqueness still fails.
 ```
 
 ## Active Roadmap Update

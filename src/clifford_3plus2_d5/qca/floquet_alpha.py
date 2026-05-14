@@ -8,6 +8,7 @@ from itertools import combinations
 
 import sympy as sp
 
+from clifford_3plus2_d5.algebra.matrices import commutator, is_zero_matrix
 from clifford_3plus2_d5.algebra.matrices import identity
 from clifford_3plus2_d5.qca.rule_verdict import RuleLayerInput, RuleToVerdictResult, rule_to_verdict
 
@@ -26,6 +27,32 @@ class FloquetAlphaCandidate:
     def name(self) -> str:
         alpha = "_".join(str(mode + 1) for mode in self.alpha_modes)
         return f"floquet_alpha_pattern_{self.pattern_index}_alpha_{alpha}"
+
+
+@dataclass(frozen=True)
+class FloquetAlphaPolarizationCertificate:
+    candidate_name: str
+    alpha_projector_rank: int
+    eta_projector_rank: int
+    spectral_projectors_are_idempotent: bool
+    spectral_projectors_are_complementary: bool
+    canonical_j_generated_by_floquet: bool
+    canonical_j_squared_minus_identity: bool
+    canonical_j_orthogonal: bool
+    canonical_j_commutes_with_projectors: bool
+    central_idempotent_ranks: tuple[int, ...]
+    complementary_rank_6_4_pairs: int
+    lower_rank_central_idempotents: int
+    strict_compatible_j_forced: bool
+    compatible_j_solved: bool
+    alpha_plus_polarization_passed: bool
+    pass_strict_rule_to_bridge: bool
+    verdict: str
+    load_bearing_qca_bridge: bool = False
+
+
+def _simplify_matrix(matrix: sp.Matrix) -> sp.Matrix:
+    return matrix.applyfunc(sp.simplify)
 
 
 def pair_rotation(mode: int, phase: sp.Expr, *, dimension: int = 10) -> sp.Matrix:
@@ -51,6 +78,40 @@ def floquet_alpha_operator(candidate: FloquetAlphaCandidate) -> sp.Matrix:
     for mode in candidate.eta_modes:
         operator = pair_rotation(mode, ETA_PHASE) * operator
     return sp.simplify(operator)
+
+
+def floquet_alpha_spectral_projectors(
+    candidate: FloquetAlphaCandidate,
+) -> tuple[sp.Matrix, sp.Matrix]:
+    """Return projectors onto the order-3 and order-4 resonance sectors.
+
+    The real minimal polynomials are:
+
+    f_alpha(x) = x^2 + x + 1
+    f_eta(x) = x^2 + 1
+
+    Bezout gives ``-x f_alpha + (x + 1) f_eta = 1``, so
+    ``P_alpha = (U + I)(U^2 + I)``.
+    """
+
+    operator = floquet_alpha_operator(candidate)
+    one = identity(10)
+    alpha_projector = _simplify_matrix((operator + one) * (operator * operator + one))
+    eta_projector = _simplify_matrix(one - alpha_projector)
+    return alpha_projector, eta_projector
+
+
+def floquet_alpha_canonical_j(candidate: FloquetAlphaCandidate) -> sp.Matrix:
+    """Return the oriented complex structure selected by the Floquet branch."""
+
+    operator = floquet_alpha_operator(candidate)
+    one = identity(10)
+    alpha_projector, eta_projector = floquet_alpha_spectral_projectors(candidate)
+    alpha_j = (sp.Rational(2) / sp.sqrt(3)) * (
+        operator + sp.Rational(1, 2) * one
+    ) * alpha_projector
+    eta_j = operator * eta_projector
+    return _simplify_matrix(alpha_j + eta_j)
 
 
 def floquet_alpha_layer(candidate: FloquetAlphaCandidate) -> RuleLayerInput:
@@ -89,6 +150,64 @@ def floquet_alpha_rule_to_verdict(
         rule_name=candidate.name,
         max_center_solve_dimension=max_center_solve_dimension,
         max_j_solve_dimension=max_j_solve_dimension,
+    )
+
+
+def floquet_alpha_polarization_certificate(
+    candidate: FloquetAlphaCandidate,
+) -> FloquetAlphaPolarizationCertificate:
+    verdict = floquet_alpha_rule_to_verdict(candidate)
+    alpha_projector, eta_projector = floquet_alpha_spectral_projectors(candidate)
+    canonical_j = floquet_alpha_canonical_j(candidate)
+    one = identity(10)
+    zero = sp.zeros(10)
+    spectral_projectors_are_idempotent = (
+        _simplify_matrix(alpha_projector * alpha_projector - alpha_projector) == zero
+        and _simplify_matrix(eta_projector * eta_projector - eta_projector) == zero
+    )
+    spectral_projectors_are_complementary = (
+        _simplify_matrix(alpha_projector + eta_projector - one) == zero
+        and _simplify_matrix(alpha_projector * eta_projector) == zero
+        and _simplify_matrix(eta_projector * alpha_projector) == zero
+    )
+    canonical_j_squared = _simplify_matrix(canonical_j * canonical_j + one) == zero
+    canonical_j_orthogonal = _simplify_matrix(canonical_j.T * canonical_j - one) == zero
+    canonical_j_commutes = is_zero_matrix(commutator(canonical_j, alpha_projector)) and is_zero_matrix(
+        commutator(canonical_j, eta_projector)
+    )
+    alpha_plus_polarization_passed = (
+        spectral_projectors_are_idempotent
+        and spectral_projectors_are_complementary
+        and alpha_projector.rank() == 6
+        and eta_projector.rank() == 4
+        and canonical_j_squared
+        and canonical_j_orthogonal
+        and canonical_j_commutes
+        and verdict.complementary_rank_6_4_pairs > 0
+        and not verdict.lower_rank_central_idempotents
+    )
+    return FloquetAlphaPolarizationCertificate(
+        candidate_name=candidate.name,
+        alpha_projector_rank=alpha_projector.rank(),
+        eta_projector_rank=eta_projector.rank(),
+        spectral_projectors_are_idempotent=spectral_projectors_are_idempotent,
+        spectral_projectors_are_complementary=spectral_projectors_are_complementary,
+        canonical_j_generated_by_floquet=True,
+        canonical_j_squared_minus_identity=canonical_j_squared,
+        canonical_j_orthogonal=canonical_j_orthogonal,
+        canonical_j_commutes_with_projectors=canonical_j_commutes,
+        central_idempotent_ranks=tuple(item.rank for item in verdict.central_idempotents),
+        complementary_rank_6_4_pairs=verdict.complementary_rank_6_4_pairs,
+        lower_rank_central_idempotents=len(verdict.lower_rank_central_idempotents),
+        strict_compatible_j_forced=verdict.forced_j_found,
+        compatible_j_solved=verdict.compatible_j_solved,
+        alpha_plus_polarization_passed=alpha_plus_polarization_passed,
+        pass_strict_rule_to_bridge=verdict.pass_rule_to_bridge,
+        verdict=(
+            "polarization_j_produced_not_strictly_unique"
+            if alpha_plus_polarization_passed and not verdict.pass_rule_to_bridge
+            else verdict.verdict
+        ),
     )
 
 
