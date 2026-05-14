@@ -133,6 +133,12 @@ spatial_1d_alpha_local_hopping_shifts: [3, 4]
 spatial_1d_alpha_local_hopping_mode_windings: [4, 4, 4, 3, 3]
 spatial_1d_alpha_local_hopping_reconstructs_transfer: true
 spatial_1d_alpha_local_hopping_route_label: spatial_local_hopping_signs_coupled
+spatial_1d_alpha_local_qca_term_count: 2
+spatial_1d_alpha_local_qca_shifts: [3, 4]
+spatial_1d_alpha_local_qca_laurent_orthogonal: true
+spatial_1d_alpha_local_qca_central_idempotent_ranks: [0, 4, 6, 10]
+spatial_1d_alpha_local_qca_lower_rank_central_idempotents: 0
+spatial_1d_alpha_local_qca_route_label: spatial_local_qca_signs_coupled_not_load_bearing
 spatial_1d_alpha_strict_bridge_candidates: 0
 floquet_alpha_noncommuting_forced_j_candidates: 0
 floquet_alpha_noncommuting_strict_bridge_candidates: 0
@@ -1075,7 +1081,7 @@ only a global ±J remains.
 
 ## Spatial 1D Sidecar Route
 
-Status: finite-hop sidecar diagnostic implemented; not load-bearing.
+Status: finite-radius local-QCA sidecar implemented; not load-bearing.
 
 Implementation:
 
@@ -1095,6 +1101,7 @@ eta_winding = 3
 gcd(4,3) = 1
 lcm(4,3) = 12
 local_hopping_shifts = [3,4]
+local_qca_shifts = [3,4]
 mode_windings = [4,4,4,3,3]
 ```
 
@@ -1109,9 +1116,15 @@ orientation_choices_after_transport = 2
 sign_coupled_to_global_pm = true
 local_hopping_reconstructs_transfer_on_samples = true
 local_hopping_orientation_choices_after_transport = 2
+local_qca_laurent_orthogonal = true
+local_qca_symbol_reconstructs_transfer_on_samples = true
+local_qca_central_idempotent_ranks = [0,4,6,10]
+local_qca_lower_rank_central_idempotents = 0
+local_qca_orientation_choices_after_transport = 2
 strict_bridge_candidates = 0
 route_label = spatial_signs_coupled_to_global_pm
 local_hopping_route_label = spatial_local_hopping_signs_coupled
+local_qca_route_label = spatial_local_qca_signs_coupled_not_load_bearing
 load_bearing_qca_bridge = false
 ```
 
@@ -1119,13 +1132,15 @@ Interpretation:
 
 ```text
 This tests the Route-2 idea in the smallest exact setting. The sidecar now
-uses two finite hopping terms, at shifts `4` on the three alpha mode-pairs and
-`3` on the two eta mode-pairs, whose Laurent transfer reconstructs the
-period-12 root-of-unity symbol on all samples. The resulting spatial cycle has
-the right sign-coupling shape: independent alpha/eta orientations reduce to
-global ±J. It does not yet prove a finite-depth real QCA generates this
-transfer rule. The next Route-2 task is to promote the finite-radius hopping
-diagnostic into a genuine unitary local QCA layer model.
+uses a real finite-radius 1D local QCA layer with Laurent coefficients
+`T(z) = P_alpha z^4 + P_eta z^3`. Exact Laurent orthogonality proves the layer
+is unitary as a locality-preserving QCA, and the coefficient algebra has only
+the coarse central idempotent ranks `[0,4,6,10]`. The resulting spatial cycle
+has the right sign-coupling shape: independent alpha/eta orientations reduce
+to global ±J. It still is not a load-bearing bridge because `P_alpha/P_eta`
+enter as the layer coefficients rather than being derived from more primitive
+microscopic gates. The next Route-2 task is to factor or replace this
+projector-shift layer with microscopic local gates that do not seed the answer.
 ```
 
 ## Defect-Beta Transition-Pair Family

@@ -268,14 +268,15 @@ that reduces those four choices to global `±J`.
 
 Route 2 is now represented by a spatial 1D sidecar. It does not alter the
 finite-depth on-site verdict checker. Instead it tests the remaining sign
-obstruction directly with finite-hop transfer data: shift `4` on the three
-alpha mode-pairs, shift `3` on the two eta mode-pairs, alpha winding `4`, eta
-winding `3`, `gcd(4,3)=1`, and `lcm(4,3)=12`. The reconstructed transfer
-matches the period-12 root-of-unity symbol on all samples. Under the sidecar's
-shared spatial-orientation transport constraint, the four alpha/eta block-sign
-choices reduce to the two global choices `(+,+)` and `(-,-)`. This has the
-right theorem shape for the missing topological mechanism, but it is not yet a
-microscopic QCA construction.
+obstruction with a finite-radius local QCA layer whose Laurent symbol is
+`T(z) = P_alpha z^4 + P_eta z^3`. The exact Laurent coefficient identities
+prove unitarity as a locality-preserving real QCA, and the coefficient algebra
+has central idempotent ranks `[0,4,6,10]` with no lower central locking. Under
+the sidecar's shared spatial-orientation transport constraint, the four
+alpha/eta block-sign choices reduce to the two global choices `(+,+)` and
+`(-,-)`. This has the right theorem shape for the missing topological
+mechanism, but it is not yet load-bearing because the coarse projectors appear
+as input coefficients rather than being generated microscopically.
 
 The second physical family is Defect-β, documented in
 [Defect Beta Report](literature/defect_beta_report.md). It computes

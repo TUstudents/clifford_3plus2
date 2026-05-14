@@ -36,7 +36,7 @@ floquet_alpha_search: coarse 6+4 center, scaled polarization J certificate
 floquet_alpha_second_layer: cycle/swap lock fails no-locking guardrail
 floquet_alpha_noncommuting: block-preserving signed twist under exploration
 floquet_alpha_noncommuting_completion: no lower center, still four J signs
-spatial_1d_alpha: finite-hop sidecar couples four J signs to global ±
+spatial_1d_alpha: local-QCA sidecar couples four J signs to global ±
 defect_beta_search: monodromy equals alpha; transition-pair rule still negative
 Spin(10) branching check: passes
 QCA load-bearing bridge: notation_only
@@ -405,10 +405,10 @@ load_bearing_qca_bridge: false
 ```
 
 `scripts/spatial_1d_alpha_search.py` is a Route-2 sidecar prototype. It does
-not replace `rule_to_verdict`; it checks exact finite-hop spatial transfer
-data that reconstructs a period-12 root-of-unity symbol, then asks whether
-coprime alpha/eta windings couple the remaining four block-sign choices to
-global `±J`:
+not replace `rule_to_verdict`; it checks an exact finite-radius 1D local QCA
+layer whose Laurent symbol reconstructs a period-12 root-of-unity transfer,
+then asks whether coprime alpha/eta windings couple the remaining four
+block-sign choices to global `±J`:
 
 ```text
 candidate_count: 1
@@ -430,6 +430,20 @@ local_hopping_mode_windings: [4, 4, 4, 3, 3]
 local_hopping_reconstructs_transfer_on_samples: true
 local_hopping_orientation_choices_after_transport: 2
 local_hopping_route_label: spatial_local_hopping_signs_coupled
+local_qca_layer_name: spatial_1d_alpha_projector_shift_qca
+local_qca_term_count: 2
+local_qca_shifts: [3, 4]
+local_qca_locality_radius: 4
+local_qca_finite_radius: true
+local_qca_laurent_orthogonal: true
+local_qca_symbol_reconstructs_transfer_on_samples: true
+local_qca_symbol_unitary_on_samples: true
+local_qca_coefficient_algebra_dimension: 2
+local_qca_coefficient_center_dimension: 2
+local_qca_central_idempotent_ranks: [0, 4, 6, 10]
+local_qca_lower_rank_central_idempotents: 0
+local_qca_orientation_choices_after_transport: 2
+local_qca_route_label: spatial_local_qca_signs_coupled_not_load_bearing
 load_bearing_qca_bridge: false
 ```
 

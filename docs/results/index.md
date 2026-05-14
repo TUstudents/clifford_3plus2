@@ -52,7 +52,7 @@ Verification:
 
 ```text
 ruff: passed
-pytest: 225 passed
+pytest: 227 passed
 ```
 
 Real carrier check:
@@ -542,6 +542,20 @@ local_hopping_mode_windings: [4, 4, 4, 3, 3]
 local_hopping_reconstructs_transfer_on_samples: true
 local_hopping_orientation_choices_after_transport: 2
 local_hopping_route_label: spatial_local_hopping_signs_coupled
+local_qca_layer_name: spatial_1d_alpha_projector_shift_qca
+local_qca_term_count: 2
+local_qca_shifts: [3, 4]
+local_qca_locality_radius: 4
+local_qca_finite_radius: true
+local_qca_laurent_orthogonal: true
+local_qca_symbol_reconstructs_transfer_on_samples: true
+local_qca_symbol_unitary_on_samples: true
+local_qca_coefficient_algebra_dimension: 2
+local_qca_coefficient_center_dimension: 2
+local_qca_central_idempotent_ranks: [0, 4, 6, 10]
+local_qca_lower_rank_central_idempotents: 0
+local_qca_orientation_choices_after_transport: 2
+local_qca_route_label: spatial_local_qca_signs_coupled_not_load_bearing
 load_bearing_qca_bridge: false
 ```
 
@@ -668,9 +682,10 @@ no-locking guardrail rejects it.
 The noncommuting Floquet-alpha signed twist keeps the coarse center and removes
 the continuous compatible-`J` family, but the finite compatible `J` choices
 are not rule-generated/local. The spatial 1D sidecar is the current Route-2
-follow-up: two explicit finite hopping terms reconstruct the period-12
-transfer and couple the independent alpha/eta block signs down to global
-`±J`, while remaining non-load-bearing.
+follow-up: an explicit finite-radius local QCA layer satisfies exact Laurent
+orthogonality, reconstructs the period-12 transfer, and couples independent
+alpha/eta block signs down to global `±J`, while remaining non-load-bearing
+because the coarse projectors are still supplied as coefficients.
 Defect-beta is retained as a regression target but parked as a load-bearing
 route until rebuilt as a genuine higher-dimensional defect calculation. Its
 round-trip monodromy is exactly the matching Floquet-alpha operator. The

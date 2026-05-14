@@ -1,8 +1,8 @@
 # Spatial 1D Sidecar Report
 
-Status: sidecar Route-2 prototype implemented.
+Status: sidecar Route-2 local-QCA prototype implemented.
 
-This report records the exact 1D transfer diagnostic implemented in
+This report records the exact 1D local-QCA sidecar implemented in
 [`src/clifford_3plus2_d5/qca/spatial_1d.py`](../../src/clifford_3plus2_d5/qca/spatial_1d.py)
 and exposed by
 [`scripts/spatial_1d_alpha_search.py`](../../scripts/spatial_1d_alpha_search.py).
@@ -28,18 +28,20 @@ gcd(4,3) = 1
 lcm(4,3) = 12
 ```
 
-The sidecar now includes explicit finite-hop Laurent data. The transfer is
-reconstructed from two local hopping terms:
+The sidecar now includes an explicit finite-radius local QCA layer. Its
+Laurent symbol is reconstructed from two local hopping terms:
 
 ```text
 hop shift 4 on the three alpha mode-pairs
 hop shift 3 on the two eta mode-pairs
 mode_windings = [4,4,4,3,3]
+T(z) = P_alpha z^4 + P_eta z^3
 ```
 
-At each root `zeta_12^n`, the reconstructed transfer matrix agrees exactly
-with the root-of-unity transfer. The alpha sector has rank `6`; the eta sector
-has rank `4`.
+The layer is checked as a real locality-preserving QCA by exact Laurent
+coefficient identities, not only by sampled roots. At each root `zeta_12^n`,
+the reconstructed transfer matrix agrees exactly with the root-of-unity
+transfer. The alpha sector has rank `6`; the eta sector has rank `4`.
 
 The sidecar then applies the tested transport hypothesis: coprime alpha/eta
 windings around one shared spatial cycle allow only sign choices with the same
@@ -78,6 +80,20 @@ local_hopping_mode_windings: [4, 4, 4, 3, 3]
 local_hopping_reconstructs_transfer_on_samples: true
 local_hopping_orientation_choices_after_transport: 2
 local_hopping_route_label: spatial_local_hopping_signs_coupled
+local_qca_layer_name: spatial_1d_alpha_projector_shift_qca
+local_qca_term_count: 2
+local_qca_shifts: [3, 4]
+local_qca_locality_radius: 4
+local_qca_finite_radius: true
+local_qca_laurent_orthogonal: true
+local_qca_symbol_reconstructs_transfer_on_samples: true
+local_qca_symbol_unitary_on_samples: true
+local_qca_coefficient_algebra_dimension: 2
+local_qca_coefficient_center_dimension: 2
+local_qca_central_idempotent_ranks: [0, 4, 6, 10]
+local_qca_lower_rank_central_idempotents: 0
+local_qca_orientation_choices_after_transport: 2
+local_qca_route_label: spatial_local_qca_signs_coupled_not_load_bearing
 load_bearing_qca_bridge: false
 ```
 
@@ -98,15 +114,15 @@ alpha=-1, eta=+1
 ## Interpretation
 
 This is the first sidecar calculation that directly targets the remaining
-block-sign obstruction. In the prototype, explicit finite-hop transfer data
-computes the alpha/eta windings, and spatial transport reduces the four
-on-site choices to global `±J`.
+block-sign obstruction with an actual finite-radius local QCA layer. In the
+prototype, exact Laurent data computes the alpha/eta windings, and spatial
+transport reduces the four on-site choices to global `±J`.
 
 The result should be read narrowly. It shows that the Route-2 mechanism has
-the right combinatorial shape; it does not prove that a finite-depth real QCA
-generates the transfer rule, nor that the band projectors and `J` are forced by
-microscopic local gates.
+the right combinatorial shape and that the projector-shift layer is a genuine
+locality-preserving QCA. It does not prove that the band projectors and `J` are
+forced by microscopic local gates, because the coarse `P_alpha/P_eta`
+projectors still enter as layer coefficients.
 
-The next useful Route-2 step is to promote this finite-radius hopping
-diagnostic into a genuine unitary local QCA layer model, rather than a
-standalone transfer-symbol sidecar.
+The next useful Route-2 step is to factor or replace this projector-shift QCA
+with microscopic local gates that do not seed the coarse split.

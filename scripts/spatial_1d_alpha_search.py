@@ -6,14 +6,17 @@ import json
 from clifford_3plus2_d5.qca.spatial_1d import (
     Spatial1DAlphaCertificate,
     Spatial1DLocalHoppingCertificate,
+    Spatial1DLocalQCACertificate,
     spatial_1d_alpha_certificate,
     spatial_1d_local_hopping_certificate,
+    spatial_1d_local_qca_certificate,
 )
 
 
 def _certificate_to_dict(
     certificate: Spatial1DAlphaCertificate,
     local_hopping: Spatial1DLocalHoppingCertificate,
+    local_qca: Spatial1DLocalQCACertificate,
 ) -> dict[str, object]:
     return {
         "family": "spatial_1d_alpha",
@@ -52,6 +55,7 @@ def _certificate_to_dict(
         "route_label": certificate.route_label,
         "load_bearing_qca_bridge": certificate.load_bearing_qca_bridge,
         "local_hopping": _local_hopping_to_dict(local_hopping),
+        "local_qca": _local_qca_to_dict(local_qca),
     }
 
 
@@ -90,6 +94,54 @@ def _local_hopping_to_dict(
     }
 
 
+def _local_qca_to_dict(
+    certificate: Spatial1DLocalQCACertificate,
+) -> dict[str, object]:
+    return {
+        "layer_name": certificate.layer_name,
+        "period": certificate.period,
+        "dimension": certificate.dimension,
+        "qca_term_count": certificate.qca_term_count,
+        "qca_shifts": list(certificate.qca_shifts),
+        "qca_locality_radius": certificate.qca_locality_radius,
+        "finite_radius": certificate.finite_radius,
+        "coefficient_matrices_real": certificate.coefficient_matrices_real,
+        "laurent_orthogonal": certificate.laurent_orthogonal,
+        "symbol_reconstructs_transfer_on_samples": (
+            certificate.symbol_reconstructs_transfer_on_samples
+        ),
+        "symbol_unitary_on_samples": certificate.symbol_unitary_on_samples,
+        "coefficient_algebra_dimension": certificate.coefficient_algebra_dimension,
+        "coefficient_center_dimension": certificate.coefficient_center_dimension,
+        "central_idempotent_ranks": list(certificate.central_idempotent_ranks),
+        "lower_rank_central_idempotents": certificate.lower_rank_central_idempotents,
+        "coarse_6_4_center_pair": certificate.coarse_6_4_center_pair,
+        "mode_windings": list(certificate.mode_windings),
+        "computed_alpha_winding": certificate.computed_alpha_winding,
+        "computed_eta_winding": certificate.computed_eta_winding,
+        "computed_winding_gcd": certificate.computed_winding_gcd,
+        "computed_winding_lcm": certificate.computed_winding_lcm,
+        "orientation_choices_before_transport": (
+            certificate.orientation_choices_before_transport
+        ),
+        "orientation_choices_after_transport": (
+            certificate.orientation_choices_after_transport
+        ),
+        "orientation_orbits": [
+            {
+                "alpha_sign": orbit.alpha_sign,
+                "eta_sign": orbit.eta_sign,
+                "transport_allowed": orbit.transport_allowed,
+            }
+            for orbit in certificate.orientation_orbits
+        ],
+        "sign_coupled_to_global_pm": certificate.sign_coupled_to_global_pm,
+        "strict_bridge_candidates": certificate.strict_bridge_candidates,
+        "route_label": certificate.route_label,
+        "load_bearing_qca_bridge": certificate.load_bearing_qca_bridge,
+    }
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(
         description="Check the sidecar 1D spatial alpha winding prototype."
@@ -104,7 +156,8 @@ def main() -> int:
 
     certificate = spatial_1d_alpha_certificate()
     local_hopping = spatial_1d_local_hopping_certificate()
-    payload = _certificate_to_dict(certificate, local_hopping)
+    local_qca = spatial_1d_local_qca_certificate()
+    payload = _certificate_to_dict(certificate, local_hopping, local_qca)
 
     if args.json:
         print(json.dumps(payload, indent=2, sort_keys=True))
@@ -153,6 +206,44 @@ def main() -> int:
             f"{local_hopping.orientation_choices_after_transport}"
         )
         print(f"local_hopping_route_label: {local_hopping.route_label}")
+        print(f"local_qca_layer_name: {local_qca.layer_name}")
+        print(f"local_qca_term_count: {local_qca.qca_term_count}")
+        print(f"local_qca_shifts: {list(local_qca.qca_shifts)}")
+        print(f"local_qca_locality_radius: {local_qca.qca_locality_radius}")
+        print(f"local_qca_finite_radius: {str(local_qca.finite_radius).lower()}")
+        print(
+            "local_qca_laurent_orthogonal: "
+            f"{str(local_qca.laurent_orthogonal).lower()}"
+        )
+        print(
+            "local_qca_symbol_reconstructs_transfer_on_samples: "
+            f"{str(local_qca.symbol_reconstructs_transfer_on_samples).lower()}"
+        )
+        print(
+            "local_qca_symbol_unitary_on_samples: "
+            f"{str(local_qca.symbol_unitary_on_samples).lower()}"
+        )
+        print(
+            "local_qca_coefficient_algebra_dimension: "
+            f"{local_qca.coefficient_algebra_dimension}"
+        )
+        print(
+            "local_qca_coefficient_center_dimension: "
+            f"{local_qca.coefficient_center_dimension}"
+        )
+        print(
+            "local_qca_central_idempotent_ranks: "
+            f"{list(local_qca.central_idempotent_ranks)}"
+        )
+        print(
+            "local_qca_lower_rank_central_idempotents: "
+            f"{local_qca.lower_rank_central_idempotents}"
+        )
+        print(
+            "local_qca_orientation_choices_after_transport: "
+            f"{local_qca.orientation_choices_after_transport}"
+        )
+        print(f"local_qca_route_label: {local_qca.route_label}")
         print(f"load_bearing_qca_bridge: {str(certificate.load_bearing_qca_bridge).lower()}")
         for orbit in certificate.orientation_orbits:
             print(
@@ -183,7 +274,24 @@ def main() -> int:
             and local_hopping.orientation_choices_after_transport == 2
             and local_hopping.sign_coupled_to_global_pm
             and local_hopping.route_label == "spatial_local_hopping_signs_coupled"
+            and local_qca.qca_shifts == (3, 4)
+            and local_qca.finite_radius
+            and local_qca.coefficient_matrices_real
+            and local_qca.laurent_orthogonal
+            and local_qca.symbol_reconstructs_transfer_on_samples
+            and local_qca.symbol_unitary_on_samples
+            and local_qca.coefficient_algebra_dimension == 2
+            and local_qca.coefficient_center_dimension == 2
+            and local_qca.central_idempotent_ranks == (0, 4, 6, 10)
+            and local_qca.lower_rank_central_idempotents == 0
+            and local_qca.coarse_6_4_center_pair
+            and local_qca.mode_windings == (4, 4, 4, 3, 3)
+            and local_qca.orientation_choices_after_transport == 2
+            and local_qca.sign_coupled_to_global_pm
+            and local_qca.strict_bridge_candidates == 0
+            and local_qca.route_label == "spatial_local_qca_signs_coupled_not_load_bearing"
             and not certificate.load_bearing_qca_bridge
+            and not local_qca.load_bearing_qca_bridge
         )
         if not check_passed:
             return 1

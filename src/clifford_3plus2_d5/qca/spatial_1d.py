@@ -9,6 +9,12 @@ from math import gcd, lcm
 import sympy as sp
 
 from clifford_3plus2_d5.algebra.matrices import identity
+from clifford_3plus2_d5.qca.gates import is_real_matrix
+from clifford_3plus2_d5.qca.rule_verdict import (
+    center_basis_of_algebra,
+    generated_algebra_basis,
+    solve_central_idempotents,
+)
 
 
 @dataclass(frozen=True)
@@ -44,6 +50,18 @@ class SpatialOrientationOrbit:
 class SpatialHoppingTerm:
     shift: int
     matrix: sp.Matrix
+
+
+@dataclass(frozen=True)
+class SpatialLocalQCALayer1D:
+    name: str
+    period: int
+    dimension: int
+    terms: tuple[SpatialHoppingTerm, ...]
+
+    @property
+    def locality_radius(self) -> int:
+        return max((abs(term.shift) for term in self.terms), default=0)
 
 
 @dataclass(frozen=True)
@@ -87,6 +105,39 @@ class Spatial1DLocalHoppingCertificate:
     orientation_choices_after_transport: int
     orientation_orbits: tuple[SpatialOrientationOrbit, ...]
     sign_coupled_to_global_pm: bool
+    route_label: str
+    load_bearing_qca_bridge: bool = False
+
+
+@dataclass(frozen=True)
+class Spatial1DLocalQCACertificate:
+    rule_name: str
+    layer_name: str
+    period: int
+    dimension: int
+    qca_term_count: int
+    qca_shifts: tuple[int, ...]
+    qca_locality_radius: int
+    finite_radius: bool
+    coefficient_matrices_real: bool
+    laurent_orthogonal: bool
+    symbol_reconstructs_transfer_on_samples: bool
+    symbol_unitary_on_samples: bool
+    coefficient_algebra_dimension: int
+    coefficient_center_dimension: int
+    central_idempotent_ranks: tuple[int, ...]
+    lower_rank_central_idempotents: int
+    coarse_6_4_center_pair: bool
+    mode_windings: tuple[int, ...]
+    computed_alpha_winding: int | None
+    computed_eta_winding: int | None
+    computed_winding_gcd: int | None
+    computed_winding_lcm: int | None
+    orientation_choices_before_transport: int
+    orientation_choices_after_transport: int
+    orientation_orbits: tuple[SpatialOrientationOrbit, ...]
+    sign_coupled_to_global_pm: bool
+    strict_bridge_candidates: int
     route_label: str
     load_bearing_qca_bridge: bool = False
 
@@ -137,6 +188,20 @@ def local_hopping_terms(rule: SpatialTransferRule1D) -> tuple[SpatialHoppingTerm
     )
 
 
+def spatial_alpha_local_qca_layer(
+    rule: SpatialTransferRule1D | None = None,
+) -> SpatialLocalQCALayer1D:
+    """Return the explicit finite-radius real local QCA layer prototype."""
+
+    rule = rule if rule is not None else spatial_alpha_prototype()
+    return SpatialLocalQCALayer1D(
+        name="spatial_1d_alpha_projector_shift_qca",
+        period=rule.period,
+        dimension=rule.dimension,
+        terms=local_hopping_terms(rule),
+    )
+
+
 def transfer_matrix_from_hopping_at_root(
     terms: tuple[SpatialHoppingTerm, ...],
     *,
@@ -149,6 +214,14 @@ def transfer_matrix_from_hopping_at_root(
     for term in terms:
         transfer += term.matrix * zeta**term.shift
     return transfer.applyfunc(sp.simplify)
+
+
+def local_qca_symbol_at_root(layer: SpatialLocalQCALayer1D, sample: int) -> sp.Matrix:
+    return transfer_matrix_from_hopping_at_root(
+        layer.terms,
+        period=layer.period,
+        sample=sample,
+    )
 
 
 def alpha_eta_projectors(rule: SpatialTransferRule1D) -> tuple[sp.Matrix, sp.Matrix]:
@@ -183,20 +256,84 @@ def local_hopping_reconstructs_transfer(rule: SpatialTransferRule1D) -> bool:
     return True
 
 
-def mode_windings_from_hopping(rule: SpatialTransferRule1D) -> tuple[int, ...]:
-    terms = local_hopping_terms(rule)
+def _terms_by_shift(
+    terms: tuple[SpatialHoppingTerm, ...],
+) -> dict[int, sp.Matrix]:
+    return {term.shift: term.matrix for term in terms}
+
+
+def _laurent_deltas(terms: tuple[SpatialHoppingTerm, ...]) -> tuple[int, ...]:
+    shifts = tuple(term.shift for term in terms)
+    return tuple(sorted({left - right for left in shifts for right in shifts}))
+
+
+def local_qca_laurent_orthogonal(layer: SpatialLocalQCALayer1D) -> bool:
+    """Check exact Laurent coefficient identities for a real local QCA layer."""
+
+    terms_by_shift = _terms_by_shift(layer.terms)
+    deltas = _laurent_deltas(layer.terms)
+    one = identity(layer.dimension)
+    zero = sp.zeros(layer.dimension)
+    for delta in deltas:
+        right = sp.zeros(layer.dimension)
+        left = sp.zeros(layer.dimension)
+        for shift, matrix in terms_by_shift.items():
+            shifted = terms_by_shift.get(shift + delta)
+            if shifted is None:
+                continue
+            right += matrix.T * shifted
+            left += matrix * shifted.T
+        expected = one if delta == 0 else zero
+        if sp.simplify(right - expected) != zero:
+            return False
+        if sp.simplify(left - expected) != zero:
+            return False
+    return True
+
+
+def local_qca_symbol_reconstructs_transfer(
+    layer: SpatialLocalQCALayer1D,
+    rule: SpatialTransferRule1D,
+) -> bool:
+    for sample in range(rule.period):
+        if local_qca_symbol_at_root(layer, sample) != transfer_matrix_at_root(rule, sample):
+            return False
+    return True
+
+
+def local_qca_symbol_unitary_on_samples(layer: SpatialLocalQCALayer1D) -> bool:
+    one = identity(layer.dimension)
+    for sample in range(layer.period):
+        symbol = local_qca_symbol_at_root(layer, sample)
+        if sp.simplify(symbol.conjugate().T * symbol - one) != sp.zeros(layer.dimension):
+            return False
+    return True
+
+
+def mode_windings_from_terms(
+    terms: tuple[SpatialHoppingTerm, ...],
+    *,
+    mode_count: int,
+) -> tuple[int, ...]:
     windings = []
-    for mode in range(rule.mode_count):
+    for mode in range(mode_count):
         mode_shifts = tuple(
             term.shift
             for term in terms
             if term.matrix[mode, mode] == 1
-            and term.matrix[mode + rule.mode_count, mode + rule.mode_count] == 1
+            and term.matrix[mode + mode_count, mode + mode_count] == 1
         )
         if len(mode_shifts) != 1:
             return ()
         windings.append(mode_shifts[0])
     return tuple(windings)
+
+
+def mode_windings_from_hopping(rule: SpatialTransferRule1D) -> tuple[int, ...]:
+    return mode_windings_from_terms(
+        local_hopping_terms(rule),
+        mode_count=rule.mode_count,
+    )
 
 
 def _common_sector_winding(
@@ -365,5 +502,111 @@ def spatial_1d_local_hopping_certificate(
         orientation_choices_after_transport=allowed_count,
         orientation_orbits=orientation_orbits,
         sign_coupled_to_global_pm=sign_coupled,
+        route_label=route_label,
+    )
+
+
+def _coefficient_center_diagnostics(
+    layer: SpatialLocalQCALayer1D,
+) -> tuple[int, int, tuple[int, ...], int, bool]:
+    coefficient_matrices = tuple(term.matrix for term in layer.terms)
+    algebra = generated_algebra_basis(coefficient_matrices, dimension=layer.dimension)
+    center = center_basis_of_algebra(algebra, dimension=layer.dimension)
+    center_solved, idempotents = solve_central_idempotents(
+        center,
+        max_center_dimension=8,
+        dimension=layer.dimension,
+    )
+    ranks = tuple(item.rank for item in idempotents) if center_solved else ()
+    lower_rank_count = sum(rank not in (0, 4, 6, 10) for rank in ranks)
+    coarse_pair = ranks == (0, 4, 6, 10)
+    return len(algebra), len(center), ranks, lower_rank_count, coarse_pair
+
+
+def spatial_1d_local_qca_certificate(
+    rule: SpatialTransferRule1D | None = None,
+) -> Spatial1DLocalQCACertificate:
+    rule = rule if rule is not None else spatial_alpha_prototype()
+    layer = spatial_alpha_local_qca_layer(rule)
+    windings = mode_windings_from_terms(layer.terms, mode_count=rule.mode_count)
+    alpha_winding = _common_sector_winding(windings, rule.alpha_modes) if windings else None
+    eta_winding = _common_sector_winding(windings, rule.eta_modes) if windings else None
+    winding_gcd = (
+        gcd(abs(alpha_winding), abs(eta_winding))
+        if alpha_winding is not None and eta_winding is not None
+        else None
+    )
+    winding_lcm = (
+        lcm(abs(alpha_winding), abs(eta_winding))
+        if alpha_winding is not None and eta_winding is not None
+        else None
+    )
+    orientation_orbits = spatial_orientation_orbits_from_windings(
+        alpha_winding=alpha_winding,
+        eta_winding=eta_winding,
+        period=rule.period,
+    )
+    allowed_count = sum(orbit.transport_allowed for orbit in orientation_orbits)
+    sign_coupled = allowed_count == 2 and all(
+        orbit.alpha_sign == orbit.eta_sign
+        for orbit in orientation_orbits
+        if orbit.transport_allowed
+    )
+    (
+        coefficient_algebra_dimension,
+        coefficient_center_dimension,
+        central_idempotent_ranks,
+        lower_rank_central_idempotents,
+        coarse_pair,
+    ) = _coefficient_center_diagnostics(layer)
+    finite_radius = bool(layer.terms) and layer.locality_radius < rule.period
+    coefficient_matrices_real = all(is_real_matrix(term.matrix) for term in layer.terms)
+    laurent_orthogonal = local_qca_laurent_orthogonal(layer)
+    reconstructs = local_qca_symbol_reconstructs_transfer(layer, rule)
+    unitary = local_qca_symbol_unitary_on_samples(layer)
+
+    if not finite_radius:
+        route_label = "spatial_local_qca_not_finite_radius"
+    elif not coefficient_matrices_real:
+        route_label = "spatial_local_qca_not_real"
+    elif not laurent_orthogonal:
+        route_label = "spatial_local_qca_not_laurent_orthogonal"
+    elif not reconstructs:
+        route_label = "spatial_local_qca_symbol_mismatch"
+    elif not coarse_pair or lower_rank_central_idempotents:
+        route_label = "spatial_local_qca_center_locking_fail"
+    elif sign_coupled:
+        route_label = "spatial_local_qca_signs_coupled_not_load_bearing"
+    else:
+        route_label = "spatial_local_qca_signs_uncoupled"
+
+    return Spatial1DLocalQCACertificate(
+        rule_name=rule.name,
+        layer_name=layer.name,
+        period=rule.period,
+        dimension=layer.dimension,
+        qca_term_count=len(layer.terms),
+        qca_shifts=tuple(term.shift for term in layer.terms),
+        qca_locality_radius=layer.locality_radius,
+        finite_radius=finite_radius,
+        coefficient_matrices_real=coefficient_matrices_real,
+        laurent_orthogonal=laurent_orthogonal,
+        symbol_reconstructs_transfer_on_samples=reconstructs,
+        symbol_unitary_on_samples=unitary,
+        coefficient_algebra_dimension=coefficient_algebra_dimension,
+        coefficient_center_dimension=coefficient_center_dimension,
+        central_idempotent_ranks=central_idempotent_ranks,
+        lower_rank_central_idempotents=lower_rank_central_idempotents,
+        coarse_6_4_center_pair=coarse_pair,
+        mode_windings=windings,
+        computed_alpha_winding=alpha_winding,
+        computed_eta_winding=eta_winding,
+        computed_winding_gcd=winding_gcd,
+        computed_winding_lcm=winding_lcm,
+        orientation_choices_before_transport=len(orientation_orbits),
+        orientation_choices_after_transport=allowed_count,
+        orientation_orbits=orientation_orbits,
+        sign_coupled_to_global_pm=sign_coupled,
+        strict_bridge_candidates=0,
         route_label=route_label,
     )

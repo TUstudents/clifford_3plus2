@@ -12,10 +12,16 @@ from clifford_3plus2_d5.qca.spatial_1d import (
     alpha_eta_projectors,
     local_hopping_reconstructs_transfer,
     local_hopping_terms,
+    local_qca_laurent_orthogonal,
+    local_qca_symbol_at_root,
+    local_qca_symbol_reconstructs_transfer,
+    local_qca_symbol_unitary_on_samples,
     mode_windings_from_hopping,
     root_of_unity,
     spatial_1d_alpha_certificate,
     spatial_1d_local_hopping_certificate,
+    spatial_1d_local_qca_certificate,
+    spatial_alpha_local_qca_layer,
     spatial_alpha_prototype,
     spatial_orientation_orbits,
     transfer_matrix_at_root,
@@ -62,6 +68,20 @@ def test_spatial_local_hopping_terms_reconstruct_transfer() -> None:
             )
             == transfer_matrix_at_root(rule, sample)
         )
+
+
+def test_spatial_local_qca_layer_is_exact_laurent_unitary() -> None:
+    rule = spatial_alpha_prototype()
+    layer = spatial_alpha_local_qca_layer(rule)
+
+    assert layer.name == "spatial_1d_alpha_projector_shift_qca"
+    assert tuple(term.shift for term in layer.terms) == (3, 4)
+    assert layer.locality_radius == 4
+    assert local_qca_laurent_orthogonal(layer)
+    assert local_qca_symbol_reconstructs_transfer(layer, rule)
+    assert local_qca_symbol_unitary_on_samples(layer)
+    for sample in range(rule.period):
+        assert local_qca_symbol_at_root(layer, sample) == transfer_matrix_at_root(rule, sample)
 
 
 def test_spatial_alpha_eta_rank_profile() -> None:
@@ -126,6 +146,35 @@ def test_spatial_1d_local_hopping_certificate_reports_computed_sign_coupling() -
     assert not certificate.load_bearing_qca_bridge
 
 
+def test_spatial_1d_local_qca_certificate_reports_exact_local_rule() -> None:
+    certificate = spatial_1d_local_qca_certificate()
+
+    assert certificate.layer_name == "spatial_1d_alpha_projector_shift_qca"
+    assert certificate.qca_term_count == 2
+    assert certificate.qca_shifts == (3, 4)
+    assert certificate.qca_locality_radius == 4
+    assert certificate.finite_radius
+    assert certificate.coefficient_matrices_real
+    assert certificate.laurent_orthogonal
+    assert certificate.symbol_reconstructs_transfer_on_samples
+    assert certificate.symbol_unitary_on_samples
+    assert certificate.coefficient_algebra_dimension == 2
+    assert certificate.coefficient_center_dimension == 2
+    assert certificate.central_idempotent_ranks == (0, 4, 6, 10)
+    assert certificate.lower_rank_central_idempotents == 0
+    assert certificate.coarse_6_4_center_pair
+    assert certificate.mode_windings == (4, 4, 4, 3, 3)
+    assert certificate.computed_alpha_winding == 4
+    assert certificate.computed_eta_winding == 3
+    assert certificate.computed_winding_gcd == 1
+    assert certificate.computed_winding_lcm == 12
+    assert certificate.orientation_choices_after_transport == 2
+    assert certificate.sign_coupled_to_global_pm
+    assert certificate.strict_bridge_candidates == 0
+    assert certificate.route_label == "spatial_local_qca_signs_coupled_not_load_bearing"
+    assert not certificate.load_bearing_qca_bridge
+
+
 def test_spatial_1d_alpha_cli_check() -> None:
     result = subprocess.run(
         [
@@ -158,3 +207,23 @@ def test_spatial_1d_alpha_cli_check() -> None:
     assert payload["local_hopping"]["reconstructs_transfer_on_samples"] is True
     assert payload["local_hopping"]["orientation_choices_after_transport"] == 2
     assert payload["local_hopping"]["route_label"] == "spatial_local_hopping_signs_coupled"
+    assert payload["local_qca"]["qca_shifts"] == [3, 4]
+    assert payload["local_qca"]["finite_radius"] is True
+    assert payload["local_qca"]["coefficient_matrices_real"] is True
+    assert payload["local_qca"]["laurent_orthogonal"] is True
+    assert payload["local_qca"]["symbol_reconstructs_transfer_on_samples"] is True
+    assert payload["local_qca"]["symbol_unitary_on_samples"] is True
+    assert payload["local_qca"]["coefficient_algebra_dimension"] == 2
+    assert payload["local_qca"]["coefficient_center_dimension"] == 2
+    assert payload["local_qca"]["central_idempotent_ranks"] == [0, 4, 6, 10]
+    assert payload["local_qca"]["lower_rank_central_idempotents"] == 0
+    assert payload["local_qca"]["coarse_6_4_center_pair"] is True
+    assert payload["local_qca"]["mode_windings"] == [4, 4, 4, 3, 3]
+    assert payload["local_qca"]["orientation_choices_after_transport"] == 2
+    assert payload["local_qca"]["sign_coupled_to_global_pm"] is True
+    assert payload["local_qca"]["strict_bridge_candidates"] == 0
+    assert (
+        payload["local_qca"]["route_label"]
+        == "spatial_local_qca_signs_coupled_not_load_bearing"
+    )
+    assert payload["local_qca"]["load_bearing_qca_bridge"] is False
