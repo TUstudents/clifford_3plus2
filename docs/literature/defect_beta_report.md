@@ -75,6 +75,8 @@ Current output:
 candidate_count: 10
 monodromy_candidates: 10
 scaled_monodromy_certified_candidates: 10
+compatible_centralizer_dimension: 26
+compatible_j_variety_dimension: 9
 strict_compatible_j_forced_candidates: 0
 strict_bridge_candidates: 0
 verdict_counts: {'monodromy_j_produced_not_strictly_unique': 10}
@@ -94,6 +96,8 @@ central_idempotent_ranks = [0, 4, 6, 10]
 lower_rank_central_idempotents = 0
 scaled_monodromy_certified = true
 canonical_j_generated_by_monodromy = true
+compatible_centralizer_dimension = 26
+compatible_j_variety_dimension = 9
 strict_compatible_j_forced = false
 ```
 
@@ -103,7 +107,9 @@ Defect-β confirms that the α+ obstruction is not an artifact of Floquet
 notation. It is not merely the old identical-half factorization: the entry and
 exit transitions are different orientation-reversing wall maps. The computed
 monodromy still has the same spectral data as Floquet-α, so the same strict
-compatible-commutant obstruction remains.
+compatible-commutant obstruction remains: `M_3(C) ⊕ M_2(C)` has real
+dimension `26`, and the compatible orthogonal complex structures contain the
+continuous `U(3)/O(3) × U(2)/O(2)` family of dimension `9`.
 
 The bridge remains non-load-bearing:
 
@@ -113,4 +119,4 @@ load_bearing_qca_bridge = false
 
 The next decision is conceptual: accept a canonical spectral/monodromy `J` as
 rule-produced, or require an additional microscopic orientation constraint
-that removes block-sign alternatives.
+that removes the 9-dimensional compatible-`J` family.

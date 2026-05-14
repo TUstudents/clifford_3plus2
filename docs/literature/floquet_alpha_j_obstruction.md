@@ -1,6 +1,6 @@
 # Floquet Alpha J Obstruction
 
-Status: theorem-standard decision point.
+Status: strict-standard obstruction, not a cosmetic sign choice.
 
 Floquet-α and α+ now separate two notions of "forced `J`".
 
@@ -66,11 +66,36 @@ and wants only:
 J' = ±J
 ```
 
-The current exact solve does not certify that. Once the central
-`P_alpha/P_eta` split exists, the compatible commutant retains block-sign
-alternatives. The checker therefore reports:
+The current exact solve does not certify that. More importantly, the failure is
+not just the four choices `±J_alpha ± J_eta`.
+
+For each Floquet-α pattern, the compatible centralizer of `U` is:
 
 ```text
+alpha sector: rank 6 = three identical R(2 pi / 3) blocks
+  Cent_U(alpha) ~= M_3(C), real dimension 18
+
+eta sector: rank 4 = two identical R(pi / 2) blocks
+  Cent_U(eta) ~= M_2(C), real dimension 8
+
+total compatible_centralizer_dimension = 26
+```
+
+Inside that centralizer, the orthogonal compatible complex structures form a
+continuous family. The standard orbit count gives:
+
+```text
+alpha sector: U(3) / O(3), real dimension 6
+eta sector: U(2) / O(2), real dimension 3
+total compatible_J_family_dimension ~= 9
+```
+
+So the spectral-vs-strict gap is a roughly nine-parameter family of valid
+compatible `J'`, not a finite sign ambiguity. The checker reports:
+
+```text
+compatible_centralizer_dimension = 26
+compatible_j_variety_dimension = 9
 strict_compatible_j_forced = false
 pass_strict_rule_to_bridge = false
 ```
@@ -90,4 +115,6 @@ strict commutant standard:
 The current bridge remains non-load-bearing under the strict standard.
 Under the spectral standard, Floquet-α solves the algebraic `J` and coarse
 center problems but still needs a source-backed microscopic reason why the
-oriented spectral branch is mandatory.
+oriented spectral branch is mandatory. Under the strict standard, the next
+candidate must physically reduce the 26-dimensional compatible centralizer or
+otherwise eliminate the 9-dimensional family of compatible complex structures.

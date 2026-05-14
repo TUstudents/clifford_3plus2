@@ -92,10 +92,14 @@ floquet_alpha_candidate_count: 10
 floquet_alpha_rank_6_4_pair_candidates: 10
 floquet_alpha_plus_polarization_j_candidates: 10
 floquet_alpha_plus_scaled_polarization_certified_candidates: 10
+floquet_alpha_plus_compatible_centralizer_dimension: 26
+floquet_alpha_plus_compatible_j_variety_dimension: 9
 floquet_alpha_plus_strict_bridge_candidates: 0
 floquet_alpha_bridge_candidates: 0
 defect_beta_monodromy_candidates: 10
 defect_beta_scaled_monodromy_certified_candidates: 10
+defect_beta_compatible_centralizer_dimension: 26
+defect_beta_compatible_j_variety_dimension: 9
 defect_beta_strict_bridge_candidates: 0
 branching_check_passed: true
 qca_split_audit_verdict: notation_only
@@ -890,6 +894,8 @@ Alpha-plus outcome:
 ```text
 polarization_j_candidates = 10
 scaled_polarization_certified_candidates = 10
+compatible_centralizer_dimension = 26
+compatible_j_variety_dimension = 9
 strict_compatible_j_forced_candidates = 0
 strict_bridge_candidates = 0
 verdict_counts = {'polarization_j_produced_not_strictly_unique': 10}
@@ -904,7 +910,8 @@ lattice without rank-one centers. Alpha-plus now certifies the scaled exact
 operator K_alpha = (2U+I)P_alpha with K_alpha^2 = -3P_alpha over QQ(zeta_12);
 the normalized J_alpha is derived afterward over QQ(sqrt(3)). It still does
 not pass the strict rule-to-verdict bridge criterion because the
-compatible-commutant equations retain block-sign alternatives.
+compatible centralizer is M_3(C) plus M_2(C), real dimension 26, with a
+9-dimensional compatible-J family.
 ```
 
 ## Defect-Beta Monodromy Family
@@ -937,6 +944,8 @@ Current outcome:
 ```text
 monodromy_candidates = 10
 scaled_monodromy_certified_candidates = 10
+compatible_centralizer_dimension = 26
+compatible_j_variety_dimension = 9
 strict_compatible_j_forced_candidates = 0
 strict_bridge_candidates = 0
 verdict_counts = {'monodromy_j_produced_not_strictly_unique': 10}
@@ -948,7 +957,8 @@ Interpretation:
 ```text
 Defect-beta confirms the same obstruction as Floquet-alpha-plus through a
 non-identical wall transitions: the spectral/monodromy data produce the coarse
-center and a canonical J, but strict compatible-J uniqueness is not proven.
+center and a canonical J, but strict compatible-J uniqueness fails against the
+same 26-dimensional centralizer and 9-dimensional compatible-J family.
 ```
 
 ## Phase 9: Family Number Status

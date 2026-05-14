@@ -296,6 +296,8 @@ polarization `J` from the same mandatory Floquet layer:
 ```text
 polarization_j_candidates: 10
 scaled_polarization_certified_candidates: 10
+compatible_centralizer_dimension: 26
+compatible_j_variety_dimension: 9
 strict_compatible_j_forced_candidates: 0
 strict_bridge_candidates: 0
 verdict_counts: {'polarization_j_produced_not_strictly_unique': 10}
@@ -313,6 +315,8 @@ physical route:
 ```text
 monodromy_candidates: 10
 scaled_monodromy_certified_candidates: 10
+compatible_centralizer_dimension: 26
+compatible_j_variety_dimension: 9
 strict_compatible_j_forced_candidates: 0
 strict_bridge_candidates: 0
 verdict_counts: {'monodromy_j_produced_not_strictly_unique': 10}
@@ -322,6 +326,11 @@ load_bearing_qca_bridge: false
 The β wall transitions now avoid half-angle factors: `T_entry = C`,
 `T_exit = M C`, and `T_exit T_entry = M`, so no accidental `sqrt(2)` extension
 enters the exact certificate.
+
+The strict obstruction is not a four-sign ambiguity. In both α and β, the
+compatible centralizer is `M_3(C) ⊕ M_2(C)` of real dimension `26`, and the
+compatible orthogonal complex structures contain a 9-dimensional
+`U(3)/O(3) × U(2)/O(2)` family.
 
 ## QCA Input Contract
 

@@ -190,8 +190,9 @@ and `pi / 2` on two mode pairs. All ten resonance patterns produce the coarse
 `[0,4,6,10]` central idempotent lattice without rank-one centers. Alpha-plus
 extracts a canonical spectral-polarization `J` as a polynomial in the Floquet
 operator for all ten patterns. The strict compatible-commutant equations still
-do not force `J` uniquely because the central split permits block-sign
-alternatives.
+do not force `J` uniquely: the compatible centralizer is
+`M_3(C) plus M_2(C)`, real dimension `26`, and the compatible orthogonal
+complex structures contain a 9-dimensional `U(3)/O(3) x U(2)/O(2)` family.
 
 The theorem-standard decision is documented in
 [Floquet Alpha J Obstruction](literature/floquet_alpha_j_obstruction.md). The
@@ -203,7 +204,8 @@ The second physical family is Defect-β, documented in
 round-trip monodromy from two distinct orientation-reversing wall-cycle
 transition functions. All ten defect charge patterns produce the same coarse
 center and canonical monodromy `J`; the same strict compatible-commutant
-obstruction remains.
+obstruction remains with centralizer dimension `26`, not a finite sign
+ambiguity.
 
 ## Load-Bearing Conditions
 

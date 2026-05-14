@@ -17,6 +17,10 @@ ALPHA_PHASE = sp.Rational(2, 3) * sp.pi
 ETA_PHASE = sp.Rational(1, 2) * sp.pi
 FLOQUET_ALPHA_EXACT_WORKING_FIELD = "QQ(zeta_12); real entries in QQ(sqrt(3))"
 FLOQUET_ALPHA_SCALED_RELATION = "K_alpha=(2U+I)P_alpha, K_alpha^2=-3P_alpha"
+FLOQUET_ALPHA_ALPHA_SECTOR_CENTRALIZER_DIMENSION = 18
+FLOQUET_ALPHA_ETA_SECTOR_CENTRALIZER_DIMENSION = 8
+FLOQUET_ALPHA_COMPATIBLE_CENTRALIZER_DIMENSION = 26
+FLOQUET_ALPHA_COMPATIBLE_J_VARIETY_DIMENSION = 9
 
 
 @dataclass(frozen=True)
@@ -54,6 +58,10 @@ class FloquetAlphaPolarizationCertificate:
     central_idempotent_ranks: tuple[int, ...]
     complementary_rank_6_4_pairs: int
     lower_rank_central_idempotents: int
+    alpha_sector_centralizer_dimension: int
+    eta_sector_centralizer_dimension: int
+    compatible_centralizer_dimension: int
+    compatible_j_variety_dimension: int
     strict_compatible_j_forced: bool
     compatible_j_solved: bool
     alpha_plus_polarization_passed: bool
@@ -242,6 +250,10 @@ def floquet_alpha_polarization_certificate(
         central_idempotent_ranks=tuple(item.rank for item in verdict.central_idempotents),
         complementary_rank_6_4_pairs=verdict.complementary_rank_6_4_pairs,
         lower_rank_central_idempotents=len(verdict.lower_rank_central_idempotents),
+        alpha_sector_centralizer_dimension=FLOQUET_ALPHA_ALPHA_SECTOR_CENTRALIZER_DIMENSION,
+        eta_sector_centralizer_dimension=FLOQUET_ALPHA_ETA_SECTOR_CENTRALIZER_DIMENSION,
+        compatible_centralizer_dimension=verdict.compatible_centralizer_dimension,
+        compatible_j_variety_dimension=FLOQUET_ALPHA_COMPATIBLE_J_VARIETY_DIMENSION,
         strict_compatible_j_forced=verdict.forced_j_found,
         compatible_j_solved=verdict.compatible_j_solved,
         alpha_plus_polarization_passed=alpha_plus_polarization_passed,

@@ -11,7 +11,11 @@ from clifford_3plus2_d5.algebra.matrices import identity
 from clifford_3plus2_d5.qca.floquet_alpha import (
     ALPHA_PHASE,
     ETA_PHASE,
+    FLOQUET_ALPHA_ALPHA_SECTOR_CENTRALIZER_DIMENSION,
+    FLOQUET_ALPHA_COMPATIBLE_CENTRALIZER_DIMENSION,
+    FLOQUET_ALPHA_COMPATIBLE_J_VARIETY_DIMENSION,
     FLOQUET_ALPHA_EXACT_WORKING_FIELD,
+    FLOQUET_ALPHA_ETA_SECTOR_CENTRALIZER_DIMENSION,
     FLOQUET_ALPHA_SCALED_RELATION,
     floquet_alpha_candidates,
     floquet_alpha_canonical_j,
@@ -63,6 +67,7 @@ def test_floquet_alpha_generates_coarse_center_without_rank_one() -> None:
     assert [item.rank for item in result.central_idempotents] == [0, 4, 6, 10]
     assert result.complementary_rank_6_4_pairs == 1
     assert result.lower_rank_central_idempotents == ()
+    assert result.compatible_centralizer_dimension == 26
     assert not result.forced_j_found
     assert not result.pass_rule_to_bridge
     assert result.verdict == "candidate_only_j_not_forced"
@@ -99,6 +104,22 @@ def test_floquet_alpha_plus_reports_polarization_j_and_strict_obstruction() -> N
     assert certificate.eta_j_orthogonality_relation
     assert certificate.scaled_polarization_certified
     assert certificate.normalized_j_requires_sqrt3
+    assert (
+        certificate.alpha_sector_centralizer_dimension
+        == FLOQUET_ALPHA_ALPHA_SECTOR_CENTRALIZER_DIMENSION
+    )
+    assert (
+        certificate.eta_sector_centralizer_dimension
+        == FLOQUET_ALPHA_ETA_SECTOR_CENTRALIZER_DIMENSION
+    )
+    assert (
+        certificate.compatible_centralizer_dimension
+        == FLOQUET_ALPHA_COMPATIBLE_CENTRALIZER_DIMENSION
+    )
+    assert (
+        certificate.compatible_j_variety_dimension
+        == FLOQUET_ALPHA_COMPATIBLE_J_VARIETY_DIMENSION
+    )
     assert certificate.alpha_plus_polarization_passed
     assert certificate.canonical_j_generated_by_floquet
     assert certificate.canonical_j_squared_minus_identity
@@ -150,6 +171,10 @@ def test_floquet_alpha_plus_cli_searches_all_patterns() -> None:
     assert payload["candidate_count"] == 10
     assert payload["polarization_j_candidates"] == 10
     assert payload["scaled_polarization_certified_candidates"] == 10
+    assert payload["compatible_centralizer_dimension"] == 26
+    assert payload["compatible_j_variety_dimension"] == 9
+    assert payload["results"][0]["compatible_centralizer_dimension"] == 26
+    assert payload["results"][0]["compatible_j_variety_dimension"] == 9
     assert payload["strict_compatible_j_forced_candidates"] == 0
     assert payload["strict_bridge_candidates"] == 0
     assert payload["verdict_counts"] == {

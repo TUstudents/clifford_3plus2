@@ -84,6 +84,7 @@ def test_result_serialization_is_stable() -> None:
     assert payload["floquet_spectrum"] == [{"eigenvalue": "1", "multiplicity": 10}]
     assert payload["central_idempotent_ranks"] == [0, 10]
     assert payload["generated_j_solved"] is True
+    assert isinstance(payload["compatible_centralizer_dimension"], int)
     assert payload["compatible_j_solved"] is False
     assert payload["pass_rule_to_bridge"] is False
     assert payload["load_bearing_qca_bridge"] is False
@@ -110,6 +111,7 @@ def test_rule_to_verdict_cli_json() -> None:
     assert payload["exact_working_field"] == EXACT_WORKING_FIELD
     assert payload["central_idempotent_ranks"] == [0, 4, 6, 10]
     assert payload["complementary_rank_6_4_pairs"] == 1
+    assert isinstance(payload["compatible_centralizer_dimension"], int)
     assert payload["forced_j_found"] is False
 
 

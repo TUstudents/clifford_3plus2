@@ -434,6 +434,7 @@ central_idempotent_ranks: [0, 4, 6, 10]
 complementary_rank_6_4_pairs: 1
 lower_rank_central_idempotents: 0
 generated_complex_structures: 4
+compatible_centralizer_dimension: 26
 compatible_j_solved: false
 forced_j_found: false
 pass_rule_to_bridge: false
@@ -473,6 +474,8 @@ It reports the strict compatible-J obstruction separately.
 candidate_count: 10
 polarization_j_candidates: 10
 scaled_polarization_certified_candidates: 10
+compatible_centralizer_dimension: 26
+compatible_j_variety_dimension: 9
 strict_compatible_j_forced_candidates: 0
 strict_bridge_candidates: 0
 verdict_counts: {'polarization_j_produced_not_strictly_unique': 10}
@@ -487,6 +490,8 @@ It computes round-trip monodromy from wall transition functions.
 candidate_count: 10
 monodromy_candidates: 10
 scaled_monodromy_certified_candidates: 10
+compatible_centralizer_dimension: 26
+compatible_j_variety_dimension: 9
 strict_compatible_j_forced_candidates: 0
 strict_bridge_candidates: 0
 verdict_counts: {'monodromy_j_produced_not_strictly_unique': 10}
@@ -580,11 +585,12 @@ Floquet-alpha replaces the abstract primitive-family direction with a physical
 quantized resonance layer. It produces the coarse `6+4` center in all ten
 patterns, without rank-one centers. Alpha-plus extracts a canonical
 spectral-polarization `J` from the same rule operator in all ten patterns, but
-strict compatible-commutant uniqueness still fails.
+strict compatible-commutant uniqueness fails against a 26-dimensional
+compatible centralizer and a 9-dimensional compatible-`J` family.
 Defect-beta now uses distinct orientation-reversing wall transitions whose
 product gives the monodromy by a clutching identity. It reaches the same
 spectral verdict: coarse center and canonical monodromy `J` are present, but
-strict compatible `J` uniqueness remains open.
+strict compatible `J` uniqueness fails for the same continuous family.
 ```
 
 ## Active Roadmap Update

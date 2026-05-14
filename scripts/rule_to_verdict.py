@@ -125,6 +125,7 @@ def main() -> int:
         )
         print(f"generated_j_solved: {str(payload['generated_j_solved']).lower()}")
         print(f"generated_complex_structures: {len(payload['generated_complex_structures'])}")
+        print(f"compatible_centralizer_dimension: {payload['compatible_centralizer_dimension']}")
         print(f"compatible_j_solved: {str(payload['compatible_j_solved']).lower()}")
         print(
             "compatible_complex_structure_count: "

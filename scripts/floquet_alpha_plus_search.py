@@ -39,6 +39,12 @@ def _certificate_to_dict(certificate: FloquetAlphaPolarizationCertificate) -> di
         "central_idempotent_ranks": list(certificate.central_idempotent_ranks),
         "complementary_rank_6_4_pairs": certificate.complementary_rank_6_4_pairs,
         "lower_rank_central_idempotents": certificate.lower_rank_central_idempotents,
+        "alpha_sector_centralizer_dimension": (
+            certificate.alpha_sector_centralizer_dimension
+        ),
+        "eta_sector_centralizer_dimension": certificate.eta_sector_centralizer_dimension,
+        "compatible_centralizer_dimension": certificate.compatible_centralizer_dimension,
+        "compatible_j_variety_dimension": certificate.compatible_j_variety_dimension,
         "strict_compatible_j_forced": certificate.strict_compatible_j_forced,
         "compatible_j_solved": certificate.compatible_j_solved,
         "alpha_plus_polarization_passed": certificate.alpha_plus_polarization_passed,
@@ -75,6 +81,8 @@ def main() -> int:
         "scaled_polarization_certified_candidates": sum(
             certificate.scaled_polarization_certified for certificate in certificates
         ),
+        "compatible_centralizer_dimension": certificates[0].compatible_centralizer_dimension,
+        "compatible_j_variety_dimension": certificates[0].compatible_j_variety_dimension,
         "strict_bridge_candidates": sum(
             certificate.pass_strict_rule_to_bridge for certificate in certificates
         ),
@@ -100,6 +108,8 @@ def main() -> int:
             "scaled_polarization_certified_candidates: "
             f"{payload['scaled_polarization_certified_candidates']}"
         )
+        print(f"compatible_centralizer_dimension: {payload['compatible_centralizer_dimension']}")
+        print(f"compatible_j_variety_dimension: {payload['compatible_j_variety_dimension']}")
         print(f"strict_compatible_j_forced_candidates: {payload['strict_compatible_j_forced_candidates']}")
         print(f"strict_bridge_candidates: {payload['strict_bridge_candidates']}")
         print(f"verdict_counts: {payload['verdict_counts']}")
@@ -112,6 +122,8 @@ def main() -> int:
                 f"{certificate.eta_projector_rank}), "
                 f"scaled_cert={str(certificate.scaled_polarization_certified).lower()}, "
                 f"center_ranks={list(certificate.central_idempotent_ranks)}, "
+                f"centralizer_dim={certificate.compatible_centralizer_dimension}, "
+                f"j_variety_dim={certificate.compatible_j_variety_dimension}, "
                 f"polarization_j={str(certificate.alpha_plus_polarization_passed).lower()}, "
                 f"strict_forced_j={str(certificate.strict_compatible_j_forced).lower()}, "
                 f"verdict={certificate.verdict}"

@@ -65,6 +65,7 @@ class RuleToVerdictResult:
     lower_rank_central_idempotents: tuple[CentralIdempotent, ...]
     generated_j_solved: bool
     generated_complex_structures: tuple[ComplexStructureCandidate, ...]
+    compatible_centralizer_dimension: int
     compatible_j_solved: bool
     compatible_complex_structures: tuple[ComplexStructureCandidate, ...]
     forced_j_found: bool
@@ -458,6 +459,7 @@ def rule_to_verdict(
         lower_rank_central_idempotents=lower_rank,
         generated_j_solved=generated_j_solved,
         generated_complex_structures=generated_j,
+        compatible_centralizer_dimension=len(compatible_basis),
         compatible_j_solved=compatible_j_solved,
         compatible_complex_structures=compatible_j,
         forced_j_found=forced_j_found,
@@ -540,6 +542,7 @@ def result_to_dict(result: RuleToVerdictResult) -> dict[str, object]:
             for candidate in result.generated_complex_structures
         ],
         "compatible_j_solved": result.compatible_j_solved,
+        "compatible_centralizer_dimension": result.compatible_centralizer_dimension,
         "compatible_complex_structure_count": len(result.compatible_complex_structures),
         "compatible_complex_structures": [
             _complex_structure_to_dict(candidate)

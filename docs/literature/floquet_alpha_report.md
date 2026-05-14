@@ -103,6 +103,8 @@ Current alpha-plus output:
 candidate_count: 10
 polarization_j_candidates: 10
 scaled_polarization_certified_candidates: 10
+compatible_centralizer_dimension: 26
+compatible_j_variety_dimension: 9
 strict_compatible_j_forced_candidates: 0
 strict_bridge_candidates: 0
 verdict_counts: {'polarization_j_produced_not_strictly_unique': 10}
@@ -119,6 +121,8 @@ It still does not solve the bridge:
 
 ```text
 canonical_j_generated_by_floquet = true
+compatible_centralizer_dimension = 26
+compatible_j_variety_dimension = 9
 strict_compatible_j_forced = false
 load_bearing_qca_bridge = false
 ```
@@ -126,10 +130,12 @@ load_bearing_qca_bridge = false
 The important obstruction is now explicit. The oriented Floquet branch produces
 an exact scaled polarization operator as a polynomial in the mandatory rule
 operator. The normalized `J` then lives in `QQ(sqrt(3))`. The full
-compatible-commutant equations still admit block-sign alternatives once the
-central `P_alpha/P_eta` split exists. Alpha-plus is therefore progress on
-rule-produced `J`, but not a strict uniqueness proof.
+compatible centralizer is still large: `M_3(C)` on the alpha sector and
+`M_2(C)` on the eta sector, real dimension `18 + 8 = 26`. The compatible
+orthogonal complex structures form a continuous family of dimension
+`dim U(3)/O(3) + dim U(2)/O(2) = 6 + 3 = 9`. Alpha-plus is therefore progress
+on rule-produced `J`, but not a strict uniqueness proof.
 
 The next pressure is to decide whether the physical theorem accepts this
 spectral-polarization `J` as forced by the rule, or whether a stricter
-microscopic constraint must eliminate the block-sign ambiguity.
+microscopic constraint must eliminate the 9-dimensional compatible-`J` family.

@@ -9,7 +9,11 @@ import sympy as sp
 
 from clifford_3plus2_d5.algebra.matrices import identity
 from clifford_3plus2_d5.qca.defect_beta import (
+    DEFECT_BETA_COMPATIBLE_CENTRALIZER_DIMENSION,
+    DEFECT_BETA_COMPATIBLE_J_VARIETY_DIMENSION,
     DEFECT_BETA_EXACT_WORKING_FIELD,
+    DEFECT_BETA_I_SECTOR_CENTRALIZER_DIMENSION,
+    DEFECT_BETA_OMEGA_SECTOR_CENTRALIZER_DIMENSION,
     DEFECT_BETA_SCALED_RELATION,
     defect_beta_clutching_reflection,
     defect_beta_candidates,
@@ -94,6 +98,22 @@ def test_defect_beta_reports_monodromy_j_and_strict_obstruction() -> None:
     assert certificate.i_j_orthogonality_relation
     assert certificate.scaled_monodromy_certified
     assert certificate.normalized_j_requires_sqrt3
+    assert (
+        certificate.omega_sector_centralizer_dimension
+        == DEFECT_BETA_OMEGA_SECTOR_CENTRALIZER_DIMENSION
+    )
+    assert (
+        certificate.i_sector_centralizer_dimension
+        == DEFECT_BETA_I_SECTOR_CENTRALIZER_DIMENSION
+    )
+    assert (
+        certificate.compatible_centralizer_dimension
+        == DEFECT_BETA_COMPATIBLE_CENTRALIZER_DIMENSION
+    )
+    assert (
+        certificate.compatible_j_variety_dimension
+        == DEFECT_BETA_COMPATIBLE_J_VARIETY_DIMENSION
+    )
     assert certificate.beta_monodromy_passed
     assert certificate.canonical_j_generated_by_monodromy
     assert certificate.canonical_j_squared_minus_identity
@@ -124,6 +144,10 @@ def test_defect_beta_cli_single_pattern() -> None:
     assert payload["candidate_count"] == 1
     assert payload["monodromy_candidates"] == 1
     assert payload["scaled_monodromy_certified_candidates"] == 1
+    assert payload["compatible_centralizer_dimension"] == 26
+    assert payload["compatible_j_variety_dimension"] == 9
+    assert payload["results"][0]["compatible_centralizer_dimension"] == 26
+    assert payload["results"][0]["compatible_j_variety_dimension"] == 9
     assert payload["results"][0]["entry_exit_transitions_distinct"] is True
     assert payload["results"][0]["transition_determinants"] == [-1, -1]
     assert payload["results"][0]["clutching_identity_passed"] is True
