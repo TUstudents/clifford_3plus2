@@ -957,7 +957,7 @@ within-block spectral projectors are rule-generated central idempotents. The
 explicit rank-2 witnesses fail the no-locking guardrail. This upgrades the
 next theorem target: a successful second layer cannot be a commuting
 semisimple lock whose spectral projectors are available inside the generated
-rule algebra.
+rule algebra. The proposition is stated in [Theory](theory.md).
 ```
 
 ## Defect-Beta Monodromy Family

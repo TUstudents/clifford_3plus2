@@ -158,4 +158,5 @@ blocks and cannot reduce the compatible centralizer.
 So the strict route cannot be "add any commuting semisimple lock." The next
 candidate must break the compatible-`J` ambiguity without making the lock's
 within-block spectral projectors available as rule-generated central
-idempotents.
+idempotents. The formal proposition and proof are recorded in
+[Theory](../theory.md).
