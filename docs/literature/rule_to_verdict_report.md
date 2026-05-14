@@ -167,6 +167,10 @@ compatible `J` problem to a finite set; it still fails because no
 rule-generated/local `J` is certified. The companion J-gap script verifies
 that the four finite compatible `J`s are pair-orientation sign patterns and
 that none lies in either the generated algebra or the rule-local center.
+The completion script then declares one such `J` as a third layer; the
+resulting rule still has no lower-rank central idempotents, but the rule-local
+compatible `J` set has four block-sign choices, so it remains below the strict
+bridge standard.
 
 The second replacement family is [Defect Beta](defect_beta_report.md). It
 computes round-trip monodromy from wall-cycle transition functions. Its

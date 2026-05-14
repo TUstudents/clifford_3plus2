@@ -260,6 +260,11 @@ None lies in the generated algebra or in the rule-local center, and none
 matches the spectral-polarization `J`. The remaining theorem target is
 therefore not centralizer collapse; it is microscopic production of the local
 orientation structure.
+The minimal completion experiment declares one such orientation as a third
+layer. That does not generate lower-rank central idempotents, but it still
+leaves four rule-local compatible complex structures. The residual obstruction
+is the independent alpha/eta block sign: the strict bridge needs a mechanism
+that reduces those four choices to global `±J`.
 
 The second physical family is Defect-β, documented in
 [Defect Beta Report](literature/defect_beta_report.md). It computes

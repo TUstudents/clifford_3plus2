@@ -265,3 +265,31 @@ reason_for_forced_j_failure = compatible_j_finite_but_not_generated_or_rule_loca
 
 So the noncommuting twist solves the continuous-moduli problem but not the
 microscopic-production problem.
+
+The minimal completion experiment is also checked by
+[`scripts/floquet_alpha_noncommuting_completion.py`](../../scripts/floquet_alpha_noncommuting_completion.py).
+It declares one finite compatible `J` as a third mandatory layer `W`. This is
+only a diagnostic, not a physical claim.
+
+```text
+w_in_previous_generated_algebra = false
+w_in_completed_generated_algebra = true
+w_in_completed_center = true
+generated_algebra_dimension = 26
+center_dimension = 4
+central_idempotent_ranks = [0, 4, 6, 10]
+lower_rank_central_idempotents = 0
+compatible_centralizer_dimension = 4
+compatible_j_moduli_dimension = 0
+compatible_complex_structure_count = 4
+local_compatible_complex_structure_count = 4
+strict_unique_j_found = false
+pass_completion_to_bridge = false
+completion_label = completion_no_lower_rank_but_j_still_block_sign_ambiguous
+```
+
+Thus producing one local pair-orientation `J` is not by itself enough. It does
+not violate the no-locking guardrail, but it leaves the independent alpha/eta
+block-sign choices. A load-bearing microscopic mechanism must either couple
+those signs into a global orientation or produce a different finite compatible
+`J` set with only `±J`.

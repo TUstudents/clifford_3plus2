@@ -217,3 +217,20 @@ Thus the next microscopic input cannot merely collapse the compatible
 centralizer. It must also produce one of these local pair-orientation
 structures, or produce a different noncommuting mechanism whose finite
 compatible `J` is already in the rule algebra.
+
+The minimal completion experiment answers the next fork. If one of these
+finite compatible `J`s is declared as a third mandatory layer `W`, no lower
+central projectors appear:
+
+```text
+central_idempotent_ranks = [0, 4, 6, 10]
+lower_rank_central_idempotents = 0
+compatible_centralizer_dimension = 4
+local_compatible_complex_structure_count = 4
+completion_label = completion_no_lower_rank_but_j_still_block_sign_ambiguous
+```
+
+So the obstruction is not that the pair-orientation `J` immediately violates
+no-locking. The obstruction is that it still leaves two independent block
+orientations. The strict standard needs a mechanism that ties the alpha and
+eta signs together, reducing four choices to a single global `±J`.

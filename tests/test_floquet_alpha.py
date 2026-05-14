@@ -389,3 +389,52 @@ def test_floquet_alpha_noncommuting_j_gap_cli_lists_missing_j_source() -> None:
         for item in payload["compatible_j_diagnostics"]
     )
     assert payload["compatible_j_diagnostics"][0]["matrix"][0][5] == "-1"
+
+
+def test_floquet_alpha_noncommuting_completion_cli_reports_remaining_sign_ambiguity() -> None:
+    result = subprocess.run(
+        [
+            sys.executable,
+            "scripts/floquet_alpha_noncommuting_completion.py",
+            "--json",
+            "--check",
+            "--pattern-index",
+            "0",
+            "--j-index",
+            "0",
+        ],
+        cwd=ROOT,
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    payload = json.loads(result.stdout)
+
+    assert payload["family"] == "floquet_alpha_noncommuting_completion"
+    assert payload["completed_j_index"] == 0
+    assert payload["completed_j_pair_orientation_signs"] == [1, 1, -1, 1, -1]
+    assert payload["w_in_previous_generated_algebra"] is False
+    assert payload["w_in_completed_generated_algebra"] is True
+    assert payload["w_in_completed_center"] is True
+    assert payload["w_commutes_with_u1"] is True
+    assert payload["w_commutes_with_u2"] is True
+    assert payload["w_squares_to_minus_identity"] is True
+    assert payload["w_orthogonal"] is True
+    assert payload["generated_algebra_dimension"] == 26
+    assert payload["center_dimension"] == 4
+    assert payload["central_idempotent_ranks"] == [0, 4, 6, 10]
+    assert payload["complementary_rank_6_4_pairs"] == 1
+    assert payload["lower_rank_central_idempotents"] == 0
+    assert payload["compatible_centralizer_dimension"] == 4
+    assert payload["compatible_j_moduli_dimension"] == 0
+    assert payload["compatible_complex_structure_count"] == 4
+    assert payload["local_compatible_operator_dimension"] == 4
+    assert payload["local_compatible_j_moduli_dimension"] == 0
+    assert payload["local_compatible_complex_structure_count"] == 4
+    assert payload["declared_w_is_local_compatible_j"] is True
+    assert payload["strict_unique_j_found"] is False
+    assert payload["pass_completion_to_bridge"] is False
+    assert (
+        payload["completion_label"]
+        == "completion_no_lower_rank_but_j_still_block_sign_ambiguous"
+    )

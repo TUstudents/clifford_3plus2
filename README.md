@@ -35,6 +35,7 @@ rule_to_verdict_check: unified negative interface with exact field and J-moduli 
 floquet_alpha_search: coarse 6+4 center, scaled polarization J certificate
 floquet_alpha_second_layer: cycle/swap lock fails no-locking guardrail
 floquet_alpha_noncommuting: block-preserving signed twist under exploration
+floquet_alpha_noncommuting_completion: no lower center, still four J signs
 defect_beta_search: monodromy equals alpha; transition-pair rule still negative
 Spin(10) branching check: passes
 QCA load-bearing bridge: notation_only
@@ -379,6 +380,28 @@ reason_for_forced_j_failure: compatible_j_finite_but_not_generated_or_rule_local
 load_bearing_qca_bridge: false
 ```
 
+`scripts/floquet_alpha_noncommuting_completion.py` performs the minimal
+completion experiment: declare one of those finite compatible `J`s as a third
+mandatory layer `W`. This does not create lower-rank central idempotents, but
+it still does not force a unique `±J`; the rule-local center contains four
+block-sign choices:
+
+```text
+w_in_previous_generated_algebra: false
+w_in_completed_generated_algebra: true
+w_in_completed_center: true
+central_idempotent_ranks: [0, 4, 6, 10]
+lower_rank_central_idempotents: 0
+compatible_centralizer_dimension: 4
+compatible_j_moduli_dimension: 0
+compatible_complex_structure_count: 4
+local_compatible_complex_structure_count: 4
+strict_unique_j_found: false
+pass_completion_to_bridge: false
+completion_label: completion_no_lower_rank_but_j_still_block_sign_ambiguous
+load_bearing_qca_bridge: false
+```
+
 `scripts/defect_beta_search.py` computes round-trip monodromy from wall
 transition functions. It is retained as a regression target, but parked as a
 load-bearing route until rebuilt as a genuine higher-dimensional defect
@@ -472,6 +495,7 @@ uv run python scripts/floquet_alpha_plus_search.py --check
 uv run python scripts/floquet_alpha_second_layer_search.py --check
 uv run python scripts/floquet_alpha_noncommuting_search.py --check
 uv run python scripts/floquet_alpha_noncommuting_j_gap.py --check
+uv run python scripts/floquet_alpha_noncommuting_completion.py --check
 uv run python scripts/defect_beta_search.py --check
 uv run python scripts/branching_check.py --check
 uv run python scripts/qca_split_audit.py --check --expect-verdict notation_only

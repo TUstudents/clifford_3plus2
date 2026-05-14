@@ -19,9 +19,14 @@ from clifford_3plus2_d5.qca.floquet_alpha import (
 from clifford_3plus2_d5.qca.rule_verdict import (
     RuleLayerInput,
     RuleToVerdictResult,
+    _complementary_rank_6_4_pairs,
+    _lower_rank_idempotents_inside_pairs,
     center_basis_of_algebra,
+    centralizer_basis,
     generated_algebra_basis,
     rule_to_verdict,
+    solve_central_idempotents,
+    solve_complex_structures_in_basis,
 )
 
 
@@ -112,6 +117,39 @@ class FloquetAlphaNoncommutingJGapCertificate:
     forced_j_found: bool
     reason_for_forced_j_failure: str
     compatible_j_diagnostics: tuple[FloquetAlphaNoncommutingJDiagnostic, ...]
+    load_bearing_qca_bridge: bool = False
+
+
+@dataclass(frozen=True)
+class FloquetAlphaNoncommutingCompletionCertificate:
+    candidate_name: str
+    completed_j_index: int
+    completed_j_pair_orientation_signs: tuple[int, ...]
+    w_in_previous_generated_algebra: bool
+    w_in_completed_generated_algebra: bool
+    w_in_completed_center: bool
+    w_commutes_with_u1: bool
+    w_commutes_with_u2: bool
+    w_squares_to_minus_identity: bool
+    w_orthogonal: bool
+    generated_algebra_dimension: int
+    center_dimension: int
+    center_solved: bool
+    central_idempotent_ranks: tuple[int, ...]
+    complementary_rank_6_4_pairs: int
+    lower_rank_central_idempotents: int
+    compatible_centralizer_dimension: int
+    compatible_j_solved: bool
+    compatible_j_moduli_dimension: int | None
+    compatible_complex_structure_count: int
+    local_compatible_operator_dimension: int
+    local_compatible_j_solved: bool
+    local_compatible_j_moduli_dimension: int | None
+    local_compatible_complex_structure_count: int
+    declared_w_is_local_compatible_j: bool
+    strict_unique_j_found: bool
+    pass_completion_to_bridge: bool
+    completion_label: str
     load_bearing_qca_bridge: bool = False
 
 
@@ -254,6 +292,36 @@ def _pair_orientation_signs(matrix: sp.Matrix, *, dimension: int = 10) -> tuple[
             signs.append(-1)
         else:
             return ()
+    return tuple(signs)
+
+
+def pair_orientation_j_operator(
+    orientation_signs: tuple[int, ...],
+    *,
+    dimension: int = 10,
+) -> sp.Matrix:
+    """Return the local pair-orientation complex structure for the signs."""
+
+    _validate_signs(orientation_signs, dimension=dimension)
+    mode_count = _mode_count(dimension)
+    matrix = sp.zeros(dimension)
+    for mode, sign in enumerate(orientation_signs):
+        matrix[mode, mode + mode_count] = -sign
+        matrix[mode + mode_count, mode] = sign
+    return matrix
+
+
+def floquet_alpha_noncommuting_completion_j_signs(
+    candidate: FloquetAlphaNoncommutingCandidate,
+    *,
+    j_index: int = 0,
+) -> tuple[int, ...]:
+    alpha_flip, eta_flip = ((1, 1), (1, -1), (-1, 1), (-1, -1))[j_index]
+    signs = list(candidate.orientation_signs)
+    for mode in candidate.pattern.alpha_modes:
+        signs[mode] *= alpha_flip
+    for mode in candidate.pattern.eta_modes:
+        signs[mode] *= eta_flip
     return tuple(signs)
 
 
@@ -430,4 +498,111 @@ def floquet_alpha_noncommuting_j_gap_certificate(
         forced_j_found=result.forced_j_found,
         reason_for_forced_j_failure=_j_gap_failure_reason(result, diagnostic_tuple),
         compatible_j_diagnostics=diagnostic_tuple,
+    )
+
+
+def floquet_alpha_noncommuting_completion_certificate(
+    candidate: FloquetAlphaNoncommutingCandidate,
+    *,
+    j_index: int = 0,
+) -> FloquetAlphaNoncommutingCompletionCertificate:
+    """Declare one finite compatible J as a diagnostic third layer.
+
+    This is a completion experiment, not a physical claim.  It asks whether
+    adding the missing local pair-orientation structure would close the strict
+    bridge or create a new no-locking obstruction.
+    """
+
+    try:
+        w_signs = floquet_alpha_noncommuting_completion_j_signs(
+            candidate,
+            j_index=j_index,
+        )
+    except IndexError as exc:
+        raise ValueError(f"unknown compatible J index: {j_index}") from exc
+
+    u1 = floquet_alpha_operator(candidate.pattern)
+    u2 = floquet_alpha_noncommuting_twist_operator(candidate)
+    w = pair_orientation_j_operator(w_signs)
+    previous_generated_basis = generated_algebra_basis((u1, u2))
+    completed_generated_basis = generated_algebra_basis((u1, u2, w))
+    completed_center_basis = center_basis_of_algebra(completed_generated_basis)
+    center_solved, idempotents = solve_central_idempotents(
+        completed_center_basis,
+        max_center_dimension=8,
+    )
+    rank_pairs = _complementary_rank_6_4_pairs(idempotents)
+    lower_rank = _lower_rank_idempotents_inside_pairs(idempotents, rank_pairs)
+    compatible_basis = centralizer_basis((u1, u2, w))
+    (
+        compatible_j_solved,
+        compatible_j_moduli_dimension,
+        compatible_j,
+    ) = solve_complex_structures_in_basis(
+        compatible_basis,
+        source="compatible_centralizer",
+        max_basis_dimension=8,
+    )
+    (
+        local_j_solved,
+        local_j_moduli_dimension,
+        local_j,
+    ) = solve_complex_structures_in_basis(
+        completed_center_basis,
+        source="local_compatible_center",
+        max_basis_dimension=8,
+    )
+    declared_w_is_local_compatible_j = any(item.matrix == w for item in local_j)
+    strict_unique_j_found = (
+        local_j_solved
+        and local_j_moduli_dimension == 0
+        and len(local_j) == 2
+        and declared_w_is_local_compatible_j
+    )
+    pass_completion = bool(
+        center_solved
+        and rank_pairs
+        and not lower_rank
+        and strict_unique_j_found
+    )
+    if pass_completion:
+        label = "completion_bridge_candidate"
+    elif lower_rank:
+        label = "completion_generates_lower_rank_center"
+    elif local_j_solved and len(local_j) > 2:
+        label = "completion_no_lower_rank_but_j_still_block_sign_ambiguous"
+    else:
+        label = "completion_j_not_forced"
+
+    zero = sp.zeros(10)
+    one = identity(10)
+    return FloquetAlphaNoncommutingCompletionCertificate(
+        candidate_name=candidate.name,
+        completed_j_index=j_index,
+        completed_j_pair_orientation_signs=w_signs,
+        w_in_previous_generated_algebra=_matrix_in_span(w, previous_generated_basis),
+        w_in_completed_generated_algebra=_matrix_in_span(w, completed_generated_basis),
+        w_in_completed_center=_matrix_in_span(w, completed_center_basis),
+        w_commutes_with_u1=is_zero_matrix(commutator(w, u1)),
+        w_commutes_with_u2=is_zero_matrix(commutator(w, u2)),
+        w_squares_to_minus_identity=sp.simplify(w * w + one) == zero,
+        w_orthogonal=sp.simplify(w.T * w - one) == zero,
+        generated_algebra_dimension=len(completed_generated_basis),
+        center_dimension=len(completed_center_basis),
+        center_solved=center_solved,
+        central_idempotent_ranks=tuple(item.rank for item in idempotents),
+        complementary_rank_6_4_pairs=len(rank_pairs),
+        lower_rank_central_idempotents=len(lower_rank),
+        compatible_centralizer_dimension=len(compatible_basis),
+        compatible_j_solved=compatible_j_solved,
+        compatible_j_moduli_dimension=compatible_j_moduli_dimension,
+        compatible_complex_structure_count=len(compatible_j),
+        local_compatible_operator_dimension=len(completed_center_basis),
+        local_compatible_j_solved=local_j_solved,
+        local_compatible_j_moduli_dimension=local_j_moduli_dimension,
+        local_compatible_complex_structure_count=len(local_j),
+        declared_w_is_local_compatible_j=declared_w_is_local_compatible_j,
+        strict_unique_j_found=strict_unique_j_found,
+        pass_completion_to_bridge=pass_completion,
+        completion_label=label,
     )
