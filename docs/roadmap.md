@@ -91,9 +91,11 @@ rule_to_verdict_bridge_candidate: false
 floquet_alpha_candidate_count: 10
 floquet_alpha_rank_6_4_pair_candidates: 10
 floquet_alpha_plus_polarization_j_candidates: 10
+floquet_alpha_plus_scaled_polarization_certified_candidates: 10
 floquet_alpha_plus_strict_bridge_candidates: 0
 floquet_alpha_bridge_candidates: 0
 defect_beta_monodromy_candidates: 10
+defect_beta_scaled_monodromy_certified_candidates: 10
 defect_beta_strict_bridge_candidates: 0
 branching_check_passed: true
 qca_split_audit_verdict: notation_only
@@ -887,6 +889,7 @@ Alpha-plus outcome:
 
 ```text
 polarization_j_candidates = 10
+scaled_polarization_certified_candidates = 10
 strict_compatible_j_forced_candidates = 0
 strict_bridge_candidates = 0
 verdict_counts = {'polarization_j_produced_not_strictly_unique': 10}
@@ -897,10 +900,11 @@ Interpretation:
 
 ```text
 Floquet-alpha produces the desired coarse [0,4,6,10] central idempotent
-lattice without rank-one centers. Alpha-plus also produces a canonical `J` as
-a polynomial in the oriented Floquet operator. It still does not pass the
-strict rule-to-verdict bridge criterion because the compatible-commutant
-equations retain block-sign alternatives.
+lattice without rank-one centers. Alpha-plus now certifies the scaled exact
+operator K_alpha = (2U+I)P_alpha with K_alpha^2 = -3P_alpha over QQ(zeta_12);
+the normalized J_alpha is derived afterward over QQ(sqrt(3)). It still does
+not pass the strict rule-to-verdict bridge criterion because the
+compatible-commutant equations retain block-sign alternatives.
 ```
 
 ## Defect-Beta Monodromy Family
@@ -922,7 +926,7 @@ Family:
 ```text
 two distinct orientation-reversing wall-cycle transition functions
 clutching reflection C = diag(-I_5, I_5)
-round-trip monodromy computed by T_exit T_entry = H C C H = H^2
+round-trip monodromy computed by T_entry = C, T_exit = M C, T_exit T_entry = M
 three mode pairs with omega = exp(2 pi i / 3)
 two mode pairs with i
 ten defect-charge patterns enumerated
@@ -932,6 +936,7 @@ Current outcome:
 
 ```text
 monodromy_candidates = 10
+scaled_monodromy_certified_candidates = 10
 strict_compatible_j_forced_candidates = 0
 strict_bridge_candidates = 0
 verdict_counts = {'monodromy_j_produced_not_strictly_unique': 10}

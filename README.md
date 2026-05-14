@@ -31,9 +31,9 @@ normalizer_check: candidate_only
 real_qca_branch_check: candidate_only
 rule_space_exploration: no forced survivors
 unseeded_projector_discovery: no complementary 6+4 pair
-rule_to_verdict_check: unified negative interface
-floquet_alpha_search: coarse 6+4 center, polarization J produced
-defect_beta_search: monodromy 6+4 center, monodromy J produced
+rule_to_verdict_check: unified negative interface with exact field metadata
+floquet_alpha_search: coarse 6+4 center, scaled polarization J certificate
+defect_beta_search: monodromy 6+4 center, scaled monodromy J certificate
 Spin(10) branching check: passes
 QCA load-bearing bridge: notation_only
 ```
@@ -295,11 +295,16 @@ polarization `J` from the same mandatory Floquet layer:
 
 ```text
 polarization_j_candidates: 10
+scaled_polarization_certified_candidates: 10
 strict_compatible_j_forced_candidates: 0
 strict_bridge_candidates: 0
 verdict_counts: {'polarization_j_produced_not_strictly_unique': 10}
 load_bearing_qca_bridge: false
 ```
+
+The load-bearing α certificate is exact over `QQ(zeta_12)`: it verifies
+`K_alpha = (2U+I)P_alpha` and `K_alpha^2 = -3P_alpha` before deriving the
+normalized `J_alpha = K_alpha/sqrt(3)`.
 
 `scripts/defect_beta_search.py` computes round-trip monodromy from wall
 transition functions. It reproduces the same obstruction through a different
@@ -307,11 +312,16 @@ physical route:
 
 ```text
 monodromy_candidates: 10
+scaled_monodromy_certified_candidates: 10
 strict_compatible_j_forced_candidates: 0
 strict_bridge_candidates: 0
 verdict_counts: {'monodromy_j_produced_not_strictly_unique': 10}
 load_bearing_qca_bridge: false
 ```
+
+The β wall transitions now avoid half-angle factors: `T_entry = C`,
+`T_exit = M C`, and `T_exit T_entry = M`, so no accidental `sqrt(2)` extension
+enters the exact certificate.
 
 ## QCA Input Contract
 
@@ -319,6 +329,8 @@ The current audit reads nontrivial input only from `data/qca_data.json`.
 The expected shape is documented in `data/qca_data.schema.json`.
 Exact matrix entries must be strings parseable as rational numbers, such as
 `"0"`, `"1"`, `"-1"`, or `"1/2"`. Floating-point matrix entries are rejected.
+Internal symbolic primitive families may use declared algebraic fields, such
+as `QQ(zeta_12)`, but must certify the relevant polynomial identities exactly.
 
 Do not add `data/qca_data.json` unless it contains real source-backed QCA data.
 

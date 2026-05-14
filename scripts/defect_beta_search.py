@@ -13,6 +13,7 @@ from clifford_3plus2_d5.qca.defect_beta import (
 def _certificate_to_dict(certificate: DefectBetaCertificate) -> dict[str, object]:
     return {
         "candidate_name": certificate.candidate_name,
+        "exact_working_field": certificate.exact_working_field,
         "transition_count": certificate.transition_count,
         "monodromy_computed_from_transitions": certificate.monodromy_computed_from_transitions,
         "entry_exit_transitions_distinct": certificate.entry_exit_transitions_distinct,
@@ -25,6 +26,18 @@ def _certificate_to_dict(certificate: DefectBetaCertificate) -> dict[str, object
         "spectral_projectors_are_complementary": (
             certificate.spectral_projectors_are_complementary
         ),
+        "scaled_omega_relation": certificate.scaled_omega_relation,
+        "scaled_omega_square_relation": certificate.scaled_omega_square_relation,
+        "scaled_omega_orthogonality_relation": (
+            certificate.scaled_omega_orthogonality_relation
+        ),
+        "scaled_omega_commutes_with_projectors": (
+            certificate.scaled_omega_commutes_with_projectors
+        ),
+        "i_j_square_relation": certificate.i_j_square_relation,
+        "i_j_orthogonality_relation": certificate.i_j_orthogonality_relation,
+        "scaled_monodromy_certified": certificate.scaled_monodromy_certified,
+        "normalized_j_requires_sqrt3": certificate.normalized_j_requires_sqrt3,
         "canonical_j_generated_by_monodromy": certificate.canonical_j_generated_by_monodromy,
         "canonical_j_squared_minus_identity": certificate.canonical_j_squared_minus_identity,
         "canonical_j_orthogonal": certificate.canonical_j_orthogonal,
@@ -61,6 +74,9 @@ def main() -> int:
         "family": "defect_beta",
         "candidate_count": len(certificates),
         "monodromy_candidates": sum(certificate.beta_monodromy_passed for certificate in certificates),
+        "scaled_monodromy_certified_candidates": sum(
+            certificate.scaled_monodromy_certified for certificate in certificates
+        ),
         "strict_compatible_j_forced_candidates": sum(
             certificate.strict_compatible_j_forced for certificate in certificates
         ),
@@ -82,6 +98,10 @@ def main() -> int:
         print("It computes round-trip monodromy from wall transition functions.")
         print(f"candidate_count: {payload['candidate_count']}")
         print(f"monodromy_candidates: {payload['monodromy_candidates']}")
+        print(
+            "scaled_monodromy_certified_candidates: "
+            f"{payload['scaled_monodromy_certified_candidates']}"
+        )
         print(f"strict_compatible_j_forced_candidates: {payload['strict_compatible_j_forced_candidates']}")
         print(f"strict_bridge_candidates: {payload['strict_bridge_candidates']}")
         print(f"verdict_counts: {payload['verdict_counts']}")
@@ -95,6 +115,7 @@ def main() -> int:
                 f"transition_dets={list(certificate.transition_determinants)}, "
                 f"omega_i_ranks=({certificate.omega_projector_rank},"
                 f"{certificate.i_projector_rank}), "
+                f"scaled_cert={str(certificate.scaled_monodromy_certified).lower()}, "
                 f"center_ranks={list(certificate.central_idempotent_ranks)}, "
                 f"monodromy_j={str(certificate.beta_monodromy_passed).lower()}, "
                 f"strict_forced_j={str(certificate.strict_compatible_j_forced).lower()}, "

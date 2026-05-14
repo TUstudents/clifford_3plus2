@@ -29,12 +29,18 @@ P_eta = I - P_alpha
 The oriented Floquet branches define:
 
 ```text
-J_alpha = (2 / sqrt(3)) (U + I/2) P_alpha
+K_alpha = (2U + I) P_alpha
+K_alpha^2 = -3 P_alpha
 J_eta = U P_eta
+J_eta^2 = -P_eta
+J_alpha = K_alpha / sqrt(3)
 J = J_alpha + J_eta
 ```
 
-This `J` is a polynomial expression in the rule-generated operator `U`.
+The exact certificate is the scaled relation for `K_alpha`, over
+`QQ(zeta_12)` with real entries in `QQ(sqrt(3))`. The normalized `J_alpha`
+requires division by `sqrt(3)` and is recorded as a derived algebraic-field
+object, not as something the rational-basis solver must recover.
 
 It satisfies:
 

@@ -38,11 +38,12 @@ C^2 = I
 det(C) = -1
 ```
 
-and a half-monodromy `H`:
+and a monodromy core `M`:
 
 ```text
-T_entry = C H
-T_exit = H C
+M = diag(omega, omega, omega, i, i) in real pair-rotation form
+T_entry = C
+T_exit = M C
 T_entry != T_exit
 det(T_entry) = det(T_exit) = -1
 ```
@@ -51,12 +52,16 @@ Their product is the monodromy by the wall clutching identity:
 
 ```text
 M_defect = T_exit T_entry
-         = H C C H
-         = H^2
+         = M C C
+         = M
 ```
 
 The search enumerates the ten choices of which three mode pairs carry the
 `omega` defect charge.
+
+The exact working field is `QQ(zeta_12)`, with real transition entries in
+`QQ(sqrt(3))`. The current certificate avoids a half-angle implementation, so
+no `sqrt(2)` extension is introduced by the wall transitions.
 
 ## Command
 
@@ -69,6 +74,7 @@ Current output:
 ```text
 candidate_count: 10
 monodromy_candidates: 10
+scaled_monodromy_certified_candidates: 10
 strict_compatible_j_forced_candidates: 0
 strict_bridge_candidates: 0
 verdict_counts: {'monodromy_j_produced_not_strictly_unique': 10}
@@ -86,6 +92,7 @@ omega_projector_rank = 6
 i_projector_rank = 4
 central_idempotent_ranks = [0, 4, 6, 10]
 lower_rank_central_idempotents = 0
+scaled_monodromy_certified = true
 canonical_j_generated_by_monodromy = true
 strict_compatible_j_forced = false
 ```

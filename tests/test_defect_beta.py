@@ -9,12 +9,15 @@ import sympy as sp
 
 from clifford_3plus2_d5.algebra.matrices import identity
 from clifford_3plus2_d5.qca.defect_beta import (
+    DEFECT_BETA_EXACT_WORKING_FIELD,
+    DEFECT_BETA_SCALED_RELATION,
     defect_beta_clutching_reflection,
     defect_beta_candidates,
     defect_beta_canonical_j,
     defect_beta_certificate,
-    defect_beta_half_monodromy,
+    defect_beta_monodromy_core,
     defect_beta_monodromy_operator,
+    defect_beta_scaled_omega_operator,
     defect_beta_spectral_projectors,
     defect_beta_transition_functions,
 )
@@ -37,7 +40,7 @@ def test_defect_beta_monodromy_is_computed_from_transitions() -> None:
     candidate = defect_beta_candidates()[0]
     transitions = defect_beta_transition_functions(candidate)
     clutching = defect_beta_clutching_reflection()
-    half_turn = defect_beta_half_monodromy(candidate)
+    monodromy_core = defect_beta_monodromy_core(candidate)
     monodromy = identity(10)
     for transition in transitions:
         monodromy = transition.matrix * monodromy
@@ -47,7 +50,9 @@ def test_defect_beta_monodromy_is_computed_from_transitions() -> None:
     assert [transition.matrix.det() for transition in transitions] == [-1, -1]
     assert clutching.det() == -1
     assert clutching * clutching == identity(10)
-    assert monodromy == half_turn * half_turn
+    assert transitions[0].matrix == clutching
+    assert transitions[1].matrix == monodromy_core * clutching
+    assert monodromy == monodromy_core
     assert sp.simplify(monodromy) == defect_beta_monodromy_operator(candidate)
     assert monodromy.T * monodromy == identity(10)
 
@@ -55,6 +60,7 @@ def test_defect_beta_monodromy_is_computed_from_transitions() -> None:
 def test_defect_beta_spectral_projectors_and_j() -> None:
     candidate = defect_beta_candidates()[0]
     omega_projector, i_projector = defect_beta_spectral_projectors(candidate)
+    scaled_omega = defect_beta_scaled_omega_operator(candidate)
     canonical_j = defect_beta_canonical_j(candidate)
 
     assert omega_projector.rank() == 6
@@ -62,6 +68,8 @@ def test_defect_beta_spectral_projectors_and_j() -> None:
     assert omega_projector * omega_projector == omega_projector
     assert i_projector * i_projector == i_projector
     assert omega_projector + i_projector == identity(10)
+    assert sp.simplify(scaled_omega * scaled_omega + 3 * omega_projector) == sp.zeros(10)
+    assert sp.simplify(scaled_omega.T * scaled_omega - 3 * omega_projector) == sp.zeros(10)
     assert canonical_j * canonical_j == -identity(10)
     assert canonical_j.T * canonical_j == identity(10)
 
@@ -69,6 +77,7 @@ def test_defect_beta_spectral_projectors_and_j() -> None:
 def test_defect_beta_reports_monodromy_j_and_strict_obstruction() -> None:
     certificate = defect_beta_certificate(defect_beta_candidates()[0])
 
+    assert certificate.exact_working_field == DEFECT_BETA_EXACT_WORKING_FIELD
     assert certificate.transition_count == 2
     assert certificate.monodromy_computed_from_transitions
     assert certificate.entry_exit_transitions_distinct
@@ -77,6 +86,14 @@ def test_defect_beta_reports_monodromy_j_and_strict_obstruction() -> None:
     assert certificate.clutching_identity_passed
     assert certificate.omega_projector_rank == 6
     assert certificate.i_projector_rank == 4
+    assert certificate.scaled_omega_relation == DEFECT_BETA_SCALED_RELATION
+    assert certificate.scaled_omega_square_relation
+    assert certificate.scaled_omega_orthogonality_relation
+    assert certificate.scaled_omega_commutes_with_projectors
+    assert certificate.i_j_square_relation
+    assert certificate.i_j_orthogonality_relation
+    assert certificate.scaled_monodromy_certified
+    assert certificate.normalized_j_requires_sqrt3
     assert certificate.beta_monodromy_passed
     assert certificate.canonical_j_generated_by_monodromy
     assert certificate.canonical_j_squared_minus_identity
@@ -106,6 +123,7 @@ def test_defect_beta_cli_single_pattern() -> None:
 
     assert payload["candidate_count"] == 1
     assert payload["monodromy_candidates"] == 1
+    assert payload["scaled_monodromy_certified_candidates"] == 1
     assert payload["results"][0]["entry_exit_transitions_distinct"] is True
     assert payload["results"][0]["transition_determinants"] == [-1, -1]
     assert payload["results"][0]["clutching_identity_passed"] is True

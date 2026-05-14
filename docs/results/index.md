@@ -472,6 +472,7 @@ This searches Floquet-alpha plus canonical polarization J extraction.
 It reports the strict compatible-J obstruction separately.
 candidate_count: 10
 polarization_j_candidates: 10
+scaled_polarization_certified_candidates: 10
 strict_compatible_j_forced_candidates: 0
 strict_bridge_candidates: 0
 verdict_counts: {'polarization_j_produced_not_strictly_unique': 10}
@@ -485,6 +486,7 @@ This searches the defect-beta monodromy primitive family.
 It computes round-trip monodromy from wall transition functions.
 candidate_count: 10
 monodromy_candidates: 10
+scaled_monodromy_certified_candidates: 10
 strict_compatible_j_forced_candidates: 0
 strict_bridge_candidates: 0
 verdict_counts: {'monodromy_j_produced_not_strictly_unique': 10}

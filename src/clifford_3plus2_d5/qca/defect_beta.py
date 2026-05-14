@@ -8,8 +8,16 @@ from itertools import combinations
 import sympy as sp
 
 from clifford_3plus2_d5.algebra.matrices import commutator, identity, is_zero_matrix
-from clifford_3plus2_d5.qca.floquet_alpha import ALPHA_PHASE, ETA_PHASE, pair_rotation
+from clifford_3plus2_d5.qca.floquet_alpha import (
+    ALPHA_PHASE,
+    ETA_PHASE,
+    FLOQUET_ALPHA_EXACT_WORKING_FIELD,
+    pair_rotation,
+)
 from clifford_3plus2_d5.qca.rule_verdict import RuleLayerInput, RuleToVerdictResult, rule_to_verdict
+
+DEFECT_BETA_EXACT_WORKING_FIELD = FLOQUET_ALPHA_EXACT_WORKING_FIELD
+DEFECT_BETA_SCALED_RELATION = "K_omega=(2M+I)P_omega, K_omega^2=-3P_omega"
 
 
 @dataclass(frozen=True)
@@ -27,6 +35,7 @@ class DefectBetaCandidate:
 @dataclass(frozen=True)
 class DefectBetaCertificate:
     candidate_name: str
+    exact_working_field: str
     transition_count: int
     monodromy_computed_from_transitions: bool
     entry_exit_transitions_distinct: bool
@@ -37,6 +46,14 @@ class DefectBetaCertificate:
     i_projector_rank: int
     spectral_projectors_are_idempotent: bool
     spectral_projectors_are_complementary: bool
+    scaled_omega_relation: str
+    scaled_omega_square_relation: bool
+    scaled_omega_orthogonality_relation: bool
+    scaled_omega_commutes_with_projectors: bool
+    i_j_square_relation: bool
+    i_j_orthogonality_relation: bool
+    scaled_monodromy_certified: bool
+    normalized_j_requires_sqrt3: bool
     canonical_j_generated_by_monodromy: bool
     canonical_j_squared_minus_identity: bool
     canonical_j_orthogonal: bool
@@ -86,13 +103,13 @@ def defect_beta_clutching_reflection() -> sp.Matrix:
     return reflection
 
 
-def defect_beta_half_monodromy(candidate: DefectBetaCandidate) -> sp.Matrix:
-    half_turn = identity(10)
+def defect_beta_monodromy_core(candidate: DefectBetaCandidate) -> sp.Matrix:
+    monodromy = identity(10)
     for mode in candidate.omega_modes:
-        half_turn = pair_rotation(mode, ALPHA_PHASE / 2) * half_turn
+        monodromy = pair_rotation(mode, ALPHA_PHASE) * monodromy
     for mode in candidate.i_modes:
-        half_turn = pair_rotation(mode, ETA_PHASE / 2) * half_turn
-    return _simplify_matrix(half_turn)
+        monodromy = pair_rotation(mode, ETA_PHASE) * monodromy
+    return _simplify_matrix(monodromy)
 
 
 def defect_beta_transition_functions(
@@ -100,10 +117,10 @@ def defect_beta_transition_functions(
 ) -> tuple[RuleLayerInput, ...]:
     """Return wall-cycle transitions whose product is the defect monodromy."""
 
-    half_turn = defect_beta_half_monodromy(candidate)
+    monodromy_core = defect_beta_monodromy_core(candidate)
     clutching = defect_beta_clutching_reflection()
-    entry = _simplify_matrix(clutching * half_turn)
-    exit = _simplify_matrix(half_turn * clutching)
+    entry = clutching
+    exit = _simplify_matrix(monodromy_core * clutching)
     return (
         RuleLayerInput(
             name=f"{candidate.name}_wall_entry",
@@ -147,14 +164,21 @@ def defect_beta_spectral_projectors(
 
 
 def defect_beta_canonical_j(candidate: DefectBetaCandidate) -> sp.Matrix:
+    """Return the normalized monodromy complex structure over ``QQ(sqrt(3))``."""
+
     monodromy = defect_beta_monodromy_operator(candidate)
-    one = identity(10)
-    omega_projector, i_projector = defect_beta_spectral_projectors(candidate)
-    omega_j = (sp.Rational(2) / sp.sqrt(3)) * (
-        monodromy + sp.Rational(1, 2) * one
-    ) * omega_projector
+    _, i_projector = defect_beta_spectral_projectors(candidate)
+    omega_j = defect_beta_scaled_omega_operator(candidate) / sp.sqrt(3)
     i_j = monodromy * i_projector
     return _simplify_matrix(omega_j + i_j)
+
+
+def defect_beta_scaled_omega_operator(candidate: DefectBetaCandidate) -> sp.Matrix:
+    """Return ``K_omega=(2M+I)P_omega`` without dividing by ``sqrt(3)``."""
+
+    monodromy = defect_beta_monodromy_operator(candidate)
+    omega_projector, _ = defect_beta_spectral_projectors(candidate)
+    return _simplify_matrix((2 * monodromy + identity(10)) * omega_projector)
 
 
 def defect_beta_rule_to_verdict(
@@ -174,16 +198,18 @@ def defect_beta_rule_to_verdict(
 def defect_beta_certificate(candidate: DefectBetaCandidate) -> DefectBetaCertificate:
     verdict = defect_beta_rule_to_verdict(candidate)
     transitions = defect_beta_transition_functions(candidate)
-    half_turn = defect_beta_half_monodromy(candidate)
+    monodromy_core = defect_beta_monodromy_core(candidate)
     clutching = defect_beta_clutching_reflection()
     computed_monodromy = identity(10)
     for transition in transitions:
         computed_monodromy = transition.matrix * computed_monodromy
     clutching_identity_passed = (
         _simplify_matrix(clutching * clutching - identity(10)) == sp.zeros(10)
-        and _simplify_matrix(computed_monodromy - half_turn * half_turn) == sp.zeros(10)
+        and _simplify_matrix(computed_monodromy - monodromy_core) == sp.zeros(10)
     )
     omega_projector, i_projector = defect_beta_spectral_projectors(candidate)
+    scaled_omega = defect_beta_scaled_omega_operator(candidate)
+    i_j = _simplify_matrix(defect_beta_monodromy_operator(candidate) * i_projector)
     canonical_j = defect_beta_canonical_j(candidate)
     one = identity(10)
     zero = sp.zeros(10)
@@ -195,6 +221,24 @@ def defect_beta_certificate(candidate: DefectBetaCandidate) -> DefectBetaCertifi
         _simplify_matrix(omega_projector + i_projector - one) == zero
         and _simplify_matrix(omega_projector * i_projector) == zero
         and _simplify_matrix(i_projector * omega_projector) == zero
+    )
+    scaled_omega_square = (
+        _simplify_matrix(scaled_omega * scaled_omega + 3 * omega_projector) == zero
+    )
+    scaled_omega_orthogonal = (
+        _simplify_matrix(scaled_omega.T * scaled_omega - 3 * omega_projector) == zero
+    )
+    scaled_omega_commutes = is_zero_matrix(
+        commutator(scaled_omega, omega_projector)
+    ) and is_zero_matrix(commutator(scaled_omega, i_projector))
+    i_j_square = _simplify_matrix(i_j * i_j + i_projector) == zero
+    i_j_orthogonal = _simplify_matrix(i_j.T * i_j - i_projector) == zero
+    scaled_monodromy_certified = (
+        scaled_omega_square
+        and scaled_omega_orthogonal
+        and scaled_omega_commutes
+        and i_j_square
+        and i_j_orthogonal
     )
     canonical_j_squared = _simplify_matrix(canonical_j * canonical_j + one) == zero
     canonical_j_orthogonal = _simplify_matrix(canonical_j.T * canonical_j - one) == zero
@@ -211,14 +255,13 @@ def defect_beta_certificate(candidate: DefectBetaCandidate) -> DefectBetaCertifi
         and spectral_projectors_are_complementary
         and omega_projector.rank() == 6
         and i_projector.rank() == 4
-        and canonical_j_squared
-        and canonical_j_orthogonal
-        and canonical_j_commutes
+        and scaled_monodromy_certified
         and verdict.complementary_rank_6_4_pairs > 0
         and not verdict.lower_rank_central_idempotents
     )
     return DefectBetaCertificate(
         candidate_name=candidate.name,
+        exact_working_field=DEFECT_BETA_EXACT_WORKING_FIELD,
         transition_count=len(transitions),
         monodromy_computed_from_transitions=True,
         entry_exit_transitions_distinct=transitions[0].matrix != transitions[1].matrix,
@@ -229,6 +272,14 @@ def defect_beta_certificate(candidate: DefectBetaCandidate) -> DefectBetaCertifi
         i_projector_rank=i_projector.rank(),
         spectral_projectors_are_idempotent=spectral_projectors_are_idempotent,
         spectral_projectors_are_complementary=spectral_projectors_are_complementary,
+        scaled_omega_relation=DEFECT_BETA_SCALED_RELATION,
+        scaled_omega_square_relation=scaled_omega_square,
+        scaled_omega_orthogonality_relation=scaled_omega_orthogonal,
+        scaled_omega_commutes_with_projectors=scaled_omega_commutes,
+        i_j_square_relation=i_j_square,
+        i_j_orthogonality_relation=i_j_orthogonal,
+        scaled_monodromy_certified=scaled_monodromy_certified,
+        normalized_j_requires_sqrt3=True,
         canonical_j_generated_by_monodromy=True,
         canonical_j_squared_minus_identity=canonical_j_squared,
         canonical_j_orthogonal=canonical_j_orthogonal,

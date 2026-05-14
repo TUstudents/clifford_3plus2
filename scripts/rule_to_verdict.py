@@ -109,6 +109,7 @@ def main() -> int:
         print("This runs the one-pass finite-depth rule to bridge verdict checker.")
         print("Spinor-16 bookkeeping is intentionally outside this verdict.")
         print(f"rule_name: {payload['rule_name']}")
+        print(f"exact_working_field: {payload['exact_working_field']}")
         print(f"layer_count: {payload['layer_count']}")
         print(f"all_layers_real_orthogonal: {str(payload['all_layers_real_orthogonal']).lower()}")
         print(f"all_layers_local: {str(payload['all_layers_local']).lower()}")

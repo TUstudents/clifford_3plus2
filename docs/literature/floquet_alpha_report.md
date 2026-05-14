@@ -83,16 +83,26 @@ so:
 ```text
 P_alpha = (U + I)(U^2 + I)
 P_eta = I - P_alpha
-J_alpha = (2 / sqrt(3)) (U + I/2) P_alpha
+K_alpha = (2U + I) P_alpha
+K_alpha^2 = -3 P_alpha
 J_eta = U P_eta
+J_eta^2 = -P_eta
+J_alpha = K_alpha / sqrt(3)
 J = J_alpha + J_eta
 ```
+
+The implementation declares the exact working field as `QQ(zeta_12)`, with
+real matrix entries in `QQ(sqrt(3))`. The load-bearing certificate uses
+`K_alpha`, not a rational-basis solve for the normalized `J_alpha`; the
+normalized `J` is a derived algebraic-field object after the scaled identity is
+certified.
 
 Current alpha-plus output:
 
 ```text
 candidate_count: 10
 polarization_j_candidates: 10
+scaled_polarization_certified_candidates: 10
 strict_compatible_j_forced_candidates: 0
 strict_bridge_candidates: 0
 verdict_counts: {'polarization_j_produced_not_strictly_unique': 10}
@@ -114,7 +124,8 @@ load_bearing_qca_bridge = false
 ```
 
 The important obstruction is now explicit. The oriented Floquet branch produces
-a canonical `J` as a polynomial in the mandatory rule operator, but the full
+an exact scaled polarization operator as a polynomial in the mandatory rule
+operator. The normalized `J` then lives in `QQ(sqrt(3))`. The full
 compatible-commutant equations still admit block-sign alternatives once the
 central `P_alpha/P_eta` split exists. Alpha-plus is therefore progress on
 rule-produced `J`, but not a strict uniqueness proof.

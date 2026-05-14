@@ -13,12 +13,25 @@ from clifford_3plus2_d5.qca.floquet_alpha import (
 def _certificate_to_dict(certificate: FloquetAlphaPolarizationCertificate) -> dict[str, object]:
     return {
         "candidate_name": certificate.candidate_name,
+        "exact_working_field": certificate.exact_working_field,
         "alpha_projector_rank": certificate.alpha_projector_rank,
         "eta_projector_rank": certificate.eta_projector_rank,
         "spectral_projectors_are_idempotent": certificate.spectral_projectors_are_idempotent,
         "spectral_projectors_are_complementary": (
             certificate.spectral_projectors_are_complementary
         ),
+        "scaled_alpha_relation": certificate.scaled_alpha_relation,
+        "scaled_alpha_square_relation": certificate.scaled_alpha_square_relation,
+        "scaled_alpha_orthogonality_relation": (
+            certificate.scaled_alpha_orthogonality_relation
+        ),
+        "scaled_alpha_commutes_with_projectors": (
+            certificate.scaled_alpha_commutes_with_projectors
+        ),
+        "eta_j_square_relation": certificate.eta_j_square_relation,
+        "eta_j_orthogonality_relation": certificate.eta_j_orthogonality_relation,
+        "scaled_polarization_certified": certificate.scaled_polarization_certified,
+        "normalized_j_requires_sqrt3": certificate.normalized_j_requires_sqrt3,
         "canonical_j_generated_by_floquet": certificate.canonical_j_generated_by_floquet,
         "canonical_j_squared_minus_identity": certificate.canonical_j_squared_minus_identity,
         "canonical_j_orthogonal": certificate.canonical_j_orthogonal,
@@ -59,6 +72,9 @@ def main() -> int:
         "polarization_j_candidates": sum(
             certificate.alpha_plus_polarization_passed for certificate in certificates
         ),
+        "scaled_polarization_certified_candidates": sum(
+            certificate.scaled_polarization_certified for certificate in certificates
+        ),
         "strict_bridge_candidates": sum(
             certificate.pass_strict_rule_to_bridge for certificate in certificates
         ),
@@ -80,6 +96,10 @@ def main() -> int:
         print("It reports the strict compatible-J obstruction separately.")
         print(f"candidate_count: {payload['candidate_count']}")
         print(f"polarization_j_candidates: {payload['polarization_j_candidates']}")
+        print(
+            "scaled_polarization_certified_candidates: "
+            f"{payload['scaled_polarization_certified_candidates']}"
+        )
         print(f"strict_compatible_j_forced_candidates: {payload['strict_compatible_j_forced_candidates']}")
         print(f"strict_bridge_candidates: {payload['strict_bridge_candidates']}")
         print(f"verdict_counts: {payload['verdict_counts']}")
@@ -90,6 +110,7 @@ def main() -> int:
                 f"{certificate.candidate_name}, "
                 f"alpha_eta_ranks=({certificate.alpha_projector_rank},"
                 f"{certificate.eta_projector_rank}), "
+                f"scaled_cert={str(certificate.scaled_polarization_certified).lower()}, "
                 f"center_ranks={list(certificate.central_idempotent_ranks)}, "
                 f"polarization_j={str(certificate.alpha_plus_polarization_passed).lower()}, "
                 f"strict_forced_j={str(certificate.strict_compatible_j_forced).lower()}, "

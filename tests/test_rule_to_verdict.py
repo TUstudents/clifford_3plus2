@@ -10,6 +10,7 @@ from clifford_3plus2_d5.algebra.real_carrier import standard_real_carrier
 from clifford_3plus2_d5.explore.primitives import block_reflection_primitive
 from clifford_3plus2_d5.qca.layers import minimal_period_four_update
 from clifford_3plus2_d5.qca.rule_verdict import (
+    EXACT_WORKING_FIELD,
     RuleLayerInput,
     layers_from_update,
     result_to_dict,
@@ -79,6 +80,7 @@ def test_result_serialization_is_stable() -> None:
     payload = result_to_dict(rule_to_verdict(layers_from_update(update), rule_name=update.name))
 
     assert payload["rule_name"] == "minimal_period_four_clock_candidate"
+    assert payload["exact_working_field"] == EXACT_WORKING_FIELD
     assert payload["floquet_spectrum"] == [{"eigenvalue": "1", "multiplicity": 10}]
     assert payload["central_idempotent_ranks"] == [0, 10]
     assert payload["generated_j_solved"] is True
@@ -105,6 +107,7 @@ def test_rule_to_verdict_cli_json() -> None:
     )
     payload = json.loads(result.stdout)
 
+    assert payload["exact_working_field"] == EXACT_WORKING_FIELD
     assert payload["central_idempotent_ranks"] == [0, 4, 6, 10]
     assert payload["complementary_rank_6_4_pairs"] == 1
     assert payload["forced_j_found"] is False

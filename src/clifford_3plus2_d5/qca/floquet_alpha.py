@@ -15,6 +15,8 @@ from clifford_3plus2_d5.qca.rule_verdict import RuleLayerInput, RuleToVerdictRes
 
 ALPHA_PHASE = sp.Rational(2, 3) * sp.pi
 ETA_PHASE = sp.Rational(1, 2) * sp.pi
+FLOQUET_ALPHA_EXACT_WORKING_FIELD = "QQ(zeta_12); real entries in QQ(sqrt(3))"
+FLOQUET_ALPHA_SCALED_RELATION = "K_alpha=(2U+I)P_alpha, K_alpha^2=-3P_alpha"
 
 
 @dataclass(frozen=True)
@@ -32,10 +34,19 @@ class FloquetAlphaCandidate:
 @dataclass(frozen=True)
 class FloquetAlphaPolarizationCertificate:
     candidate_name: str
+    exact_working_field: str
     alpha_projector_rank: int
     eta_projector_rank: int
     spectral_projectors_are_idempotent: bool
     spectral_projectors_are_complementary: bool
+    scaled_alpha_relation: str
+    scaled_alpha_square_relation: bool
+    scaled_alpha_orthogonality_relation: bool
+    scaled_alpha_commutes_with_projectors: bool
+    eta_j_square_relation: bool
+    eta_j_orthogonality_relation: bool
+    scaled_polarization_certified: bool
+    normalized_j_requires_sqrt3: bool
     canonical_j_generated_by_floquet: bool
     canonical_j_squared_minus_identity: bool
     canonical_j_orthogonal: bool
@@ -102,16 +113,21 @@ def floquet_alpha_spectral_projectors(
 
 
 def floquet_alpha_canonical_j(candidate: FloquetAlphaCandidate) -> sp.Matrix:
-    """Return the oriented complex structure selected by the Floquet branch."""
+    """Return the normalized complex structure over ``QQ(sqrt(3))``."""
 
     operator = floquet_alpha_operator(candidate)
-    one = identity(10)
-    alpha_projector, eta_projector = floquet_alpha_spectral_projectors(candidate)
-    alpha_j = (sp.Rational(2) / sp.sqrt(3)) * (
-        operator + sp.Rational(1, 2) * one
-    ) * alpha_projector
+    _, eta_projector = floquet_alpha_spectral_projectors(candidate)
+    alpha_j = floquet_alpha_scaled_alpha_operator(candidate) / sp.sqrt(3)
     eta_j = operator * eta_projector
     return _simplify_matrix(alpha_j + eta_j)
+
+
+def floquet_alpha_scaled_alpha_operator(candidate: FloquetAlphaCandidate) -> sp.Matrix:
+    """Return ``K_alpha=(2U+I)P_alpha`` without dividing by ``sqrt(3)``."""
+
+    operator = floquet_alpha_operator(candidate)
+    alpha_projector, _ = floquet_alpha_spectral_projectors(candidate)
+    return _simplify_matrix((2 * operator + identity(10)) * alpha_projector)
 
 
 def floquet_alpha_layer(candidate: FloquetAlphaCandidate) -> RuleLayerInput:
@@ -158,6 +174,8 @@ def floquet_alpha_polarization_certificate(
 ) -> FloquetAlphaPolarizationCertificate:
     verdict = floquet_alpha_rule_to_verdict(candidate)
     alpha_projector, eta_projector = floquet_alpha_spectral_projectors(candidate)
+    scaled_alpha = floquet_alpha_scaled_alpha_operator(candidate)
+    eta_j = _simplify_matrix(floquet_alpha_operator(candidate) * eta_projector)
     canonical_j = floquet_alpha_canonical_j(candidate)
     one = identity(10)
     zero = sp.zeros(10)
@@ -170,6 +188,24 @@ def floquet_alpha_polarization_certificate(
         and _simplify_matrix(alpha_projector * eta_projector) == zero
         and _simplify_matrix(eta_projector * alpha_projector) == zero
     )
+    scaled_alpha_square = (
+        _simplify_matrix(scaled_alpha * scaled_alpha + 3 * alpha_projector) == zero
+    )
+    scaled_alpha_orthogonal = (
+        _simplify_matrix(scaled_alpha.T * scaled_alpha - 3 * alpha_projector) == zero
+    )
+    scaled_alpha_commutes = is_zero_matrix(
+        commutator(scaled_alpha, alpha_projector)
+    ) and is_zero_matrix(commutator(scaled_alpha, eta_projector))
+    eta_j_square = _simplify_matrix(eta_j * eta_j + eta_projector) == zero
+    eta_j_orthogonal = _simplify_matrix(eta_j.T * eta_j - eta_projector) == zero
+    scaled_polarization_certified = (
+        scaled_alpha_square
+        and scaled_alpha_orthogonal
+        and scaled_alpha_commutes
+        and eta_j_square
+        and eta_j_orthogonal
+    )
     canonical_j_squared = _simplify_matrix(canonical_j * canonical_j + one) == zero
     canonical_j_orthogonal = _simplify_matrix(canonical_j.T * canonical_j - one) == zero
     canonical_j_commutes = is_zero_matrix(commutator(canonical_j, alpha_projector)) and is_zero_matrix(
@@ -180,18 +216,25 @@ def floquet_alpha_polarization_certificate(
         and spectral_projectors_are_complementary
         and alpha_projector.rank() == 6
         and eta_projector.rank() == 4
-        and canonical_j_squared
-        and canonical_j_orthogonal
-        and canonical_j_commutes
+        and scaled_polarization_certified
         and verdict.complementary_rank_6_4_pairs > 0
         and not verdict.lower_rank_central_idempotents
     )
     return FloquetAlphaPolarizationCertificate(
         candidate_name=candidate.name,
+        exact_working_field=FLOQUET_ALPHA_EXACT_WORKING_FIELD,
         alpha_projector_rank=alpha_projector.rank(),
         eta_projector_rank=eta_projector.rank(),
         spectral_projectors_are_idempotent=spectral_projectors_are_idempotent,
         spectral_projectors_are_complementary=spectral_projectors_are_complementary,
+        scaled_alpha_relation=FLOQUET_ALPHA_SCALED_RELATION,
+        scaled_alpha_square_relation=scaled_alpha_square,
+        scaled_alpha_orthogonality_relation=scaled_alpha_orthogonal,
+        scaled_alpha_commutes_with_projectors=scaled_alpha_commutes,
+        eta_j_square_relation=eta_j_square,
+        eta_j_orthogonality_relation=eta_j_orthogonal,
+        scaled_polarization_certified=scaled_polarization_certified,
+        normalized_j_requires_sqrt3=True,
         canonical_j_generated_by_floquet=True,
         canonical_j_squared_minus_identity=canonical_j_squared,
         canonical_j_orthogonal=canonical_j_orthogonal,
