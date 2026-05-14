@@ -164,7 +164,9 @@ The active Route-1 finite-dimensional exploration is now
 `<U1,U2>`, not only the product Floquet. The representative preserves the
 coarse center and avoids lower-rank central projectors while reducing the
 compatible `J` problem to a finite set; it still fails because no
-rule-generated/local `J` is certified.
+rule-generated/local `J` is certified. The companion J-gap script verifies
+that the four finite compatible `J`s are pair-orientation sign patterns and
+that none lies in either the generated algebra or the rule-local center.
 
 The second replacement family is [Defect Beta](defect_beta_report.md). It
 computes round-trip monodromy from wall-cycle transition functions. Its

@@ -254,6 +254,12 @@ lower-rank central idempotents, compatible centralizer dimension `6`, and a
 zero-dimensional compatible-`J` set. It still fails the strict bridge because
 the compatible `J` is not certified as rule-generated/local. This is the
 current finite-dimensional laboratory for the missing microscopic primitive.
+The extracted finite `J` candidates are exactly four pair-orientation sign
+patterns, `(+,+,-,+,-)`, `(+,+,-,-,+)`, `(-,-,+,+,-)`, and `(-,-,+,-,+)`.
+None lies in the generated algebra or in the rule-local center, and none
+matches the spectral-polarization `J`. The remaining theorem target is
+therefore not centralizer collapse; it is microscopic production of the local
+orientation structure.
 
 The second physical family is Defect-β, documented in
 [Defect Beta Report](literature/defect_beta_report.md). It computes

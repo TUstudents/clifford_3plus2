@@ -39,6 +39,7 @@ uv run python scripts/floquet_alpha_search.py --check
 uv run python scripts/floquet_alpha_plus_search.py --check
 uv run python scripts/floquet_alpha_second_layer_search.py --check
 uv run python scripts/floquet_alpha_noncommuting_search.py --check
+uv run python scripts/floquet_alpha_noncommuting_j_gap.py --check
 uv run python scripts/defect_beta_search.py --check
 uv run python scripts/branching_check.py --check
 uv run python scripts/qca_split_audit.py --check --expect-verdict notation_only
@@ -49,7 +50,7 @@ Verification:
 
 ```text
 ruff: passed
-pytest: 215 passed
+pytest: 216 passed
 ```
 
 Real carrier check:

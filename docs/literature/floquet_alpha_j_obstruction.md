@@ -192,3 +192,28 @@ commuting no-go and avoids lower-rank central projectors, while reducing the
 compatible `J` variety to finite signs. The remaining gap is exactly the
 missing microscopic primitive: the compatible `J` is not yet certified as a
 rule-generated local element.
+
+The extracted compatible `J` list makes the gap concrete. The four finite
+solutions are pair-orientation choices:
+
+```text
+(+,+,-,+,-)
+(+,+,-,-,+)
+(-,-,+,+,-)
+(-,-,+,-,+)
+```
+
+All four commute with `U1` and `U2`; all four square to `-I` and are
+orthogonal. However:
+
+```text
+compatible_j_in_generated_algebra_count = 0
+compatible_j_in_rule_local_center_count = 0
+spectral_polarization_j_matched_count = 0
+reason_for_forced_j_failure = compatible_j_finite_but_not_generated_or_rule_local
+```
+
+Thus the next microscopic input cannot merely collapse the compatible
+centralizer. It must also produce one of these local pair-orientation
+structures, or produce a different noncommuting mechanism whose finite
+compatible `J` is already in the rule algebra.

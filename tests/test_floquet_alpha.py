@@ -330,3 +330,62 @@ def test_floquet_alpha_noncommuting_cli_checks_representative_route() -> None:
     assert result_payload["local_compatible_operator_dimension"] == 3
     assert result_payload["local_compatible_complex_structure_count"] == 0
     assert result_payload["rule_verdict"] == "not_solved"
+
+
+def test_floquet_alpha_noncommuting_j_gap_cli_lists_missing_j_source() -> None:
+    result = subprocess.run(
+        [
+            sys.executable,
+            "scripts/floquet_alpha_noncommuting_j_gap.py",
+            "--json",
+            "--check",
+            "--pattern-index",
+            "0",
+        ],
+        cwd=ROOT,
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    payload = json.loads(result.stdout)
+
+    assert payload["family"] == "floquet_alpha_noncommuting_j_gap"
+    assert payload["compatible_j_count"] == 4
+    assert payload["generated_algebra_dimension"] == 22
+    assert payload["center_dimension"] == 3
+    assert payload["compatible_centralizer_dimension"] == 6
+    assert payload["compatible_j_moduli_dimension"] == 0
+    assert payload["generated_j_solved"] is False
+    assert payload["generated_complex_structure_count"] == 0
+    assert payload["local_compatible_complex_structure_count"] == 0
+    assert payload["compatible_j_in_generated_algebra_count"] == 0
+    assert payload["compatible_j_in_rule_local_center_count"] == 0
+    assert payload["spectral_polarization_j_matched_count"] == 0
+    assert payload["forced_j_found"] is False
+    assert (
+        payload["reason_for_forced_j_failure"]
+        == "compatible_j_finite_but_not_generated_or_rule_local"
+    )
+
+    pair_signs = {
+        tuple(item["pair_orientation_signs"])
+        for item in payload["compatible_j_diagnostics"]
+    }
+    assert pair_signs == {
+        (1, 1, -1, 1, -1),
+        (1, 1, -1, -1, 1),
+        (-1, -1, 1, 1, -1),
+        (-1, -1, 1, -1, 1),
+    }
+    assert all(
+        not item["in_generated_algebra"]
+        and not item["in_rule_local_center"]
+        and not item["equals_spectral_polarization_j"]
+        and not item["equals_negative_spectral_polarization_j"]
+        and item["commutes_with_u1"]
+        and item["commutes_with_u2"]
+        and item["squares_to_minus_identity"]
+        and item["orthogonal"]
+        for item in payload["compatible_j_diagnostics"]
+    )
+    assert payload["compatible_j_diagnostics"][0]["matrix"][0][5] == "-1"

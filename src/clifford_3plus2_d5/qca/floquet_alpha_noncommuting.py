@@ -6,15 +6,23 @@ from dataclasses import dataclass
 
 import sympy as sp
 
+from clifford_3plus2_d5.algebra.commutants import matrix_span_rank
 from clifford_3plus2_d5.algebra.matrices import commutator, identity, is_zero_matrix
 from clifford_3plus2_d5.qca.floquet_alpha import (
     FloquetAlphaCandidate,
     floquet_alpha_candidates,
+    floquet_alpha_canonical_j,
     floquet_alpha_layer,
     floquet_alpha_operator,
     floquet_alpha_spectral_projectors,
 )
-from clifford_3plus2_d5.qca.rule_verdict import RuleLayerInput, RuleToVerdictResult, rule_to_verdict
+from clifford_3plus2_d5.qca.rule_verdict import (
+    RuleLayerInput,
+    RuleToVerdictResult,
+    center_basis_of_algebra,
+    generated_algebra_basis,
+    rule_to_verdict,
+)
 
 
 RouteLabel = str
@@ -65,6 +73,45 @@ class FloquetAlphaNoncommutingCertificate:
     pass_strict_rule_to_bridge: bool
     rule_verdict: str
     route_label: RouteLabel
+    load_bearing_qca_bridge: bool = False
+
+
+@dataclass(frozen=True)
+class FloquetAlphaNoncommutingJDiagnostic:
+    index: int
+    expression: tuple[tuple[str, sp.Expr], ...]
+    pair_orientation_signs: tuple[int, ...]
+    in_generated_algebra: bool
+    in_rule_local_center: bool
+    equals_spectral_polarization_j: bool
+    equals_negative_spectral_polarization_j: bool
+    commutes_with_u1: bool
+    commutes_with_u2: bool
+    squares_to_minus_identity: bool
+    orthogonal: bool
+    matrix: sp.Matrix
+
+
+@dataclass(frozen=True)
+class FloquetAlphaNoncommutingJGapCertificate:
+    candidate_name: str
+    compatible_j_count: int
+    generated_algebra_dimension: int
+    center_dimension: int
+    compatible_centralizer_dimension: int
+    compatible_j_solved: bool
+    compatible_j_moduli_dimension: int | None
+    generated_j_solved: bool
+    generated_complex_structure_count: int
+    local_compatible_j_solved: bool
+    local_compatible_j_moduli_dimension: int | None
+    local_compatible_complex_structure_count: int
+    compatible_j_in_generated_algebra_count: int
+    compatible_j_in_rule_local_center_count: int
+    spectral_polarization_j_matched_count: int
+    forced_j_found: bool
+    reason_for_forced_j_failure: str
+    compatible_j_diagnostics: tuple[FloquetAlphaNoncommutingJDiagnostic, ...]
     load_bearing_qca_bridge: bool = False
 
 
@@ -191,6 +238,25 @@ def _orientation_nonconstant(
     return len({signs[mode] for mode in modes}) > 1
 
 
+def _matrix_in_span(matrix: sp.Matrix, basis: tuple[sp.Matrix, ...]) -> bool:
+    return matrix_span_rank((*basis, matrix)) == matrix_span_rank(basis)
+
+
+def _pair_orientation_signs(matrix: sp.Matrix, *, dimension: int = 10) -> tuple[int, ...]:
+    mode_count = _mode_count(dimension)
+    signs: list[int] = []
+    for mode in range(mode_count):
+        top_right = sp.simplify(matrix[mode, mode + mode_count])
+        bottom_left = sp.simplify(matrix[mode + mode_count, mode])
+        if top_right == -1 and bottom_left == 1:
+            signs.append(1)
+        elif top_right == 1 and bottom_left == -1:
+            signs.append(-1)
+        else:
+            return ()
+    return tuple(signs)
+
+
 def _route_label(
     result: RuleToVerdictResult,
     *,
@@ -217,6 +283,29 @@ def _route_label(
     ):
         return "coarse_center_preserved_compatible_j_not_rule_generated"
     return "coarse_center_preserved_j_not_forced"
+
+
+def _j_gap_failure_reason(
+    result: RuleToVerdictResult,
+    diagnostics: tuple[FloquetAlphaNoncommutingJDiagnostic, ...],
+) -> str:
+    if result.forced_j_found:
+        return "forced_j_found"
+    if not result.compatible_j_solved:
+        return "compatible_j_not_solved"
+    if result.compatible_j_moduli_dimension != 0:
+        return "compatible_j_not_zero_dimensional"
+    if not diagnostics:
+        return "no_compatible_j_candidates"
+    if not any(item.in_generated_algebra for item in diagnostics) and not any(
+        item.in_rule_local_center for item in diagnostics
+    ):
+        return "compatible_j_finite_but_not_generated_or_rule_local"
+    if not result.generated_j_solved:
+        return "generated_j_not_solved"
+    if not result.local_compatible_j_solved:
+        return "rule_local_j_not_solved"
+    return "compatible_j_not_matched_by_forced_pair"
 
 
 def floquet_alpha_noncommuting_certificate(
@@ -276,4 +365,69 @@ def floquet_alpha_noncommuting_certificate(
             preserves_eta=preserves_eta,
             commutes=commutes,
         ),
+    )
+
+
+def floquet_alpha_noncommuting_j_gap_certificate(
+    candidate: FloquetAlphaNoncommutingCandidate,
+) -> FloquetAlphaNoncommutingJGapCertificate:
+    u1 = floquet_alpha_operator(candidate.pattern)
+    u2 = floquet_alpha_noncommuting_twist_operator(candidate)
+    result = floquet_alpha_noncommuting_rule_to_verdict(candidate)
+    generated_basis = generated_algebra_basis((u1, u2))
+    local_center_basis = center_basis_of_algebra(generated_basis)
+    spectral_j = floquet_alpha_canonical_j(candidate.pattern)
+    zero = sp.zeros(10)
+    one = identity(10)
+
+    diagnostics: list[FloquetAlphaNoncommutingJDiagnostic] = []
+    for index, compatible_j in enumerate(result.compatible_complex_structures):
+        matrix = compatible_j.matrix
+        diagnostics.append(
+            FloquetAlphaNoncommutingJDiagnostic(
+                index=index,
+                expression=compatible_j.expression,
+                pair_orientation_signs=_pair_orientation_signs(matrix),
+                in_generated_algebra=_matrix_in_span(matrix, generated_basis),
+                in_rule_local_center=_matrix_in_span(matrix, local_center_basis),
+                equals_spectral_polarization_j=sp.simplify(matrix - spectral_j) == zero,
+                equals_negative_spectral_polarization_j=(
+                    sp.simplify(matrix + spectral_j) == zero
+                ),
+                commutes_with_u1=is_zero_matrix(commutator(matrix, u1)),
+                commutes_with_u2=is_zero_matrix(commutator(matrix, u2)),
+                squares_to_minus_identity=sp.simplify(matrix * matrix + one) == zero,
+                orthogonal=sp.simplify(matrix.T * matrix - one) == zero,
+                matrix=matrix,
+            )
+        )
+
+    diagnostic_tuple = tuple(diagnostics)
+    return FloquetAlphaNoncommutingJGapCertificate(
+        candidate_name=candidate.name,
+        compatible_j_count=len(result.compatible_complex_structures),
+        generated_algebra_dimension=result.generated_algebra_dimension,
+        center_dimension=result.center_dimension,
+        compatible_centralizer_dimension=result.compatible_centralizer_dimension,
+        compatible_j_solved=result.compatible_j_solved,
+        compatible_j_moduli_dimension=result.compatible_j_moduli_dimension,
+        generated_j_solved=result.generated_j_solved,
+        generated_complex_structure_count=len(result.generated_complex_structures),
+        local_compatible_j_solved=result.local_compatible_j_solved,
+        local_compatible_j_moduli_dimension=result.local_compatible_j_moduli_dimension,
+        local_compatible_complex_structure_count=len(result.local_compatible_complex_structures),
+        compatible_j_in_generated_algebra_count=sum(
+            item.in_generated_algebra for item in diagnostic_tuple
+        ),
+        compatible_j_in_rule_local_center_count=sum(
+            item.in_rule_local_center for item in diagnostic_tuple
+        ),
+        spectral_polarization_j_matched_count=sum(
+            item.equals_spectral_polarization_j
+            or item.equals_negative_spectral_polarization_j
+            for item in diagnostic_tuple
+        ),
+        forced_j_found=result.forced_j_found,
+        reason_for_forced_j_failure=_j_gap_failure_reason(result, diagnostic_tuple),
+        compatible_j_diagnostics=diagnostic_tuple,
     )

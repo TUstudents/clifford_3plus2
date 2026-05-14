@@ -356,6 +356,29 @@ route_label_counts: {'coarse_center_preserved_compatible_j_not_rule_generated': 
 load_bearing_qca_bridge: false
 ```
 
+`scripts/floquet_alpha_noncommuting_j_gap.py` extracts the finite `J` gap for
+that representative. The four compatible complex structures are exact
+pair-orientation matrices with signs
+`(+,+,-,+,-)`, `(+,+,-,-,+)`, `(-,-,+,+,-)`, and `(-,-,+,-,+)`. None lies in
+the generated algebra, none lies in the rule-local center, and none equals
+the spectral-polarization `J` or its negative:
+
+```text
+compatible_j_count: 4
+generated_algebra_dimension: 22
+center_dimension: 3
+compatible_centralizer_dimension: 6
+compatible_j_moduli_dimension: 0
+generated_j_solved: false
+generated_complex_structure_count: 0
+local_compatible_complex_structure_count: 0
+compatible_j_in_generated_algebra_count: 0
+compatible_j_in_rule_local_center_count: 0
+spectral_polarization_j_matched_count: 0
+reason_for_forced_j_failure: compatible_j_finite_but_not_generated_or_rule_local
+load_bearing_qca_bridge: false
+```
+
 `scripts/defect_beta_search.py` computes round-trip monodromy from wall
 transition functions. It is retained as a regression target, but parked as a
 load-bearing route until rebuilt as a genuine higher-dimensional defect
@@ -448,6 +471,7 @@ uv run python scripts/floquet_alpha_search.py --check
 uv run python scripts/floquet_alpha_plus_search.py --check
 uv run python scripts/floquet_alpha_second_layer_search.py --check
 uv run python scripts/floquet_alpha_noncommuting_search.py --check
+uv run python scripts/floquet_alpha_noncommuting_j_gap.py --check
 uv run python scripts/defect_beta_search.py --check
 uv run python scripts/branching_check.py --check
 uv run python scripts/qca_split_audit.py --check --expect-verdict notation_only

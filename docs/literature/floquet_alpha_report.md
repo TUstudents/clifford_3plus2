@@ -239,3 +239,29 @@ rule-generated/local `J`. The route label is therefore
 `coarse_center_preserved_compatible_j_not_rule_generated`, not
 `bridge_candidate`. This is the active finite-dimensional laboratory for the
 next microscopic mechanism.
+
+The gap is now extracted explicitly by
+[`scripts/floquet_alpha_noncommuting_j_gap.py`](../../scripts/floquet_alpha_noncommuting_j_gap.py).
+The four compatible `J` candidates are pair-orientation matrices with signs:
+
+```text
+(+,+,-,+,-)
+(+,+,-,-,+)
+(-,-,+,+,-)
+(-,-,+,-,+)
+```
+
+They commute with both layers and satisfy `J^2 = -I` and `J^T J = I`, but none
+lies in the generated algebra, none lies in the rule-local center, and none is
+the spectral-polarization `J` or its negative:
+
+```text
+compatible_j_count = 4
+compatible_j_in_generated_algebra_count = 0
+compatible_j_in_rule_local_center_count = 0
+spectral_polarization_j_matched_count = 0
+reason_for_forced_j_failure = compatible_j_finite_but_not_generated_or_rule_local
+```
+
+So the noncommuting twist solves the continuous-moduli problem but not the
+microscopic-production problem.
