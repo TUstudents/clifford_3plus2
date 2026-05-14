@@ -53,6 +53,8 @@ cannot resolve individual color or weak axes.
   first physical primitive family replacing abstract depth escalation.
 - [Floquet Alpha J Obstruction](literature/floquet_alpha_j_obstruction.md):
   theorem-standard decision between spectral and strict forced `J`.
+- [Spatial 1D Sidecar Report](literature/spatial_1d_report.md):
+  Route-2 winding prototype for coupling alpha/eta orientation signs.
 - [Defect Beta Report](literature/defect_beta_report.md):
   second physical primitive family using computed wall-cycle monodromy.
 - [Handover Compliance](handover_compliance.md): Phase 0 closeout checklist.
@@ -119,6 +121,14 @@ floquet_alpha_noncommuting_completion_lower_rank_central_idempotents: 0
 floquet_alpha_noncommuting_completion_local_compatible_j_count: 4
 floquet_alpha_noncommuting_completion_strict_unique_j_found: false
 floquet_alpha_noncommuting_completion_pass_bridge: false
+spatial_1d_alpha_candidate_count: 1
+spatial_1d_alpha_unitary_candidates: 1
+spatial_1d_alpha_coarse_6_4_band_candidates: 1
+spatial_1d_alpha_orientation_choices_before_transport: 4
+spatial_1d_alpha_orientation_choices_after_transport: 2
+spatial_1d_alpha_sign_coupled_to_global_pm: true
+spatial_1d_alpha_route_label: spatial_signs_coupled_to_global_pm
+spatial_1d_alpha_strict_bridge_candidates: 0
 floquet_alpha_noncommuting_forced_j_candidates: 0
 floquet_alpha_noncommuting_strict_bridge_candidates: 0
 floquet_alpha_bridge_candidates: 0
@@ -1056,6 +1066,54 @@ The completion experiment shows this is not enough on its own: declaring one
 pair-orientation J leaves four local compatible J choices. The remaining
 physics target is a mechanism that couples the alpha/eta orientation signs so
 only a global ±J remains.
+```
+
+## Spatial 1D Sidecar Route
+
+Status: sidecar diagnostic implemented; not load-bearing.
+
+Implementation:
+
+```text
+src/clifford_3plus2_d5/qca/spatial_1d.py
+scripts/spatial_1d_alpha_search.py
+tests/test_spatial_1d.py
+docs/literature/spatial_1d_report.md
+```
+
+Prototype:
+
+```text
+period = 12
+alpha_winding = 4
+eta_winding = 3
+gcd(4,3) = 1
+lcm(4,3) = 12
+```
+
+Current outcome:
+
+```text
+candidate_count = 1
+unitary_candidates = 1
+coarse_6_4_band_candidates = 1
+orientation_choices_before_transport = 4
+orientation_choices_after_transport = 2
+sign_coupled_to_global_pm = true
+strict_bridge_candidates = 0
+route_label = spatial_signs_coupled_to_global_pm
+load_bearing_qca_bridge = false
+```
+
+Interpretation:
+
+```text
+This tests the Route-2 idea in the smallest exact setting. The sidecar
+root-of-unity transfer rule has the right sign-coupling shape: one spatial
+period-12 cycle reduces independent alpha/eta orientations to global ±J. It
+does not yet prove a finite-depth real QCA generates this transfer rule. The
+next Route-2 task is to replace the diagonal transfer diagnostic with an
+explicit local hopping construction carrying the same invariant.
 ```
 
 ## Defect-Beta Transition-Pair Family

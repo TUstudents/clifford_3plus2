@@ -266,6 +266,15 @@ leaves four rule-local compatible complex structures. The residual obstruction
 is the independent alpha/eta block sign: the strict bridge needs a mechanism
 that reduces those four choices to global `±J`.
 
+Route 2 is now represented by a spatial 1D sidecar. It does not alter the
+finite-depth on-site verdict checker. Instead it tests the remaining sign
+obstruction directly with a period-12 transfer prototype: alpha winding `4`,
+eta winding `3`, `gcd(4,3)=1`, and `lcm(4,3)=12`. Under the sidecar's shared
+spatial-orientation transport constraint, the four alpha/eta block-sign
+choices reduce to the two global choices `(+,+)` and `(-,-)`. This has the
+right theorem shape for the missing topological mechanism, but it is not yet a
+microscopic QCA construction.
+
 The second physical family is Defect-β, documented in
 [Defect Beta Report](literature/defect_beta_report.md). It computes
 round-trip monodromy from two distinct orientation-reversing wall-cycle
