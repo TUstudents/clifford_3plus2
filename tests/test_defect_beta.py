@@ -115,6 +115,11 @@ def test_defect_beta_reports_monodromy_j_and_strict_obstruction() -> None:
         certificate.compatible_j_moduli_dimension
         == DEFECT_BETA_COMPATIBLE_J_MODULI_DIMENSION
     )
+    assert certificate.locality_radius_bound == 0
+    assert certificate.local_compatible_operator_dimension == 4
+    assert certificate.local_compatible_j_solved
+    assert certificate.local_compatible_j_moduli_dimension == 0
+    assert certificate.local_compatible_complex_structure_count == 4
     assert certificate.beta_monodromy_passed
     assert certificate.canonical_j_generated_by_monodromy
     assert certificate.canonical_j_squared_minus_identity
@@ -148,9 +153,15 @@ def test_defect_beta_cli_single_pattern() -> None:
     assert payload["generated_j_moduli_dimension"] == 0
     assert payload["compatible_centralizer_dimension"] == 26
     assert payload["compatible_j_moduli_dimension"] == 9
+    assert payload["locality_radius_bound"] == 0
+    assert payload["local_compatible_operator_dimension"] == 4
+    assert payload["local_compatible_j_moduli_dimension"] == 0
+    assert payload["local_compatible_complex_structure_count"] == 4
     assert payload["results"][0]["generated_j_moduli_dimension"] == 0
     assert payload["results"][0]["compatible_centralizer_dimension"] == 26
     assert payload["results"][0]["compatible_j_moduli_dimension"] == 9
+    assert payload["results"][0]["local_compatible_operator_dimension"] == 4
+    assert payload["results"][0]["local_compatible_complex_structure_count"] == 4
     assert payload["results"][0]["entry_exit_transitions_distinct"] is True
     assert payload["results"][0]["transition_determinants"] == [-1, -1]
     assert payload["results"][0]["clutching_identity_passed"] is True

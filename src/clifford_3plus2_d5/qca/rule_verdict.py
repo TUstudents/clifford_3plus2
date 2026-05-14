@@ -45,7 +45,11 @@ class CentralIdempotent:
 class ComplexStructureCandidate:
     expression: tuple[tuple[str, sp.Expr], ...]
     matrix: sp.Matrix
-    source: Literal["generated_algebra", "compatible_centralizer"]
+    source: Literal[
+        "generated_algebra",
+        "compatible_centralizer",
+        "local_compatible_center",
+    ]
 
 
 @dataclass(frozen=True)
@@ -56,6 +60,7 @@ class RuleToVerdictResult:
     layer_count: int
     all_layers_real_orthogonal: bool
     all_layers_local: bool
+    locality_radius_bound: int
     floquet_operator: sp.Matrix
     floquet_spectrum: tuple[tuple[str, int], ...]
     generated_algebra_dimension: int
@@ -71,6 +76,10 @@ class RuleToVerdictResult:
     compatible_j_solved: bool
     compatible_j_moduli_dimension: int | None
     compatible_complex_structures: tuple[ComplexStructureCandidate, ...]
+    local_compatible_operator_dimension: int
+    local_compatible_j_solved: bool
+    local_compatible_j_moduli_dimension: int | None
+    local_compatible_complex_structures: tuple[ComplexStructureCandidate, ...]
     forced_j_found: bool
     rank_6_4_pair_commutes_with_forced_j: bool
     pass_rule_to_bridge: bool
@@ -109,6 +118,10 @@ def _layer_is_local(layer: RuleLayerInput) -> bool:
     if not layer.support or any(site < 0 for site in layer.support):
         return False
     return layer.locality_radius >= max(layer.support) - min(layer.support)
+
+
+def _locality_radius_bound(layers: Sequence[RuleLayerInput]) -> int:
+    return max((layer.locality_radius for layer in layers), default=0)
 
 
 def floquet_operator(layers: Sequence[RuleLayerInput], *, dimension: int = 10) -> sp.Matrix:
@@ -311,7 +324,11 @@ def solve_central_idempotents(
 def solve_complex_structures_in_basis(
     basis: Sequence[sp.Matrix],
     *,
-    source: Literal["generated_algebra", "compatible_centralizer"],
+    source: Literal[
+        "generated_algebra",
+        "compatible_centralizer",
+        "local_compatible_center",
+    ],
     max_basis_dimension: int = 8,
     dimension: int = 10,
 ) -> tuple[bool, int | None, tuple[ComplexStructureCandidate, ...]]:
@@ -448,6 +465,12 @@ def rule_to_verdict(
 ) -> RuleToVerdictResult:
     _validate_layers(layers, dimension=dimension)
     layer_matrices = tuple(layer.matrix for layer in layers)
+    layers_are_real_orthogonal = all(
+        is_real_matrix(layer.matrix) and is_real_orthogonal(layer.matrix)
+        for layer in layers
+    )
+    layers_are_local = all(_layer_is_local(layer) for layer in layers)
+    locality_radius_bound = _locality_radius_bound(layers)
     floquet = floquet_operator(layers, dimension=dimension)
     algebra = generated_algebra_basis(layer_matrices, dimension=dimension)
     center = center_basis_of_algebra(algebra, dimension=dimension)
@@ -486,11 +509,26 @@ def rule_to_verdict(
         if solved_compatible_j_moduli_dimension is not None
         else estimated_compatible_j_moduli_dimension
     )
+    # The current finite-cell model has no tensor basis for arbitrary
+    # radius-r lattice operators. The certified local compatible subspace is
+    # therefore the center of the rule-generated local algebra; the full
+    # M_10(R) centralizer above remains a diagnostic only.
+    local_compatible_basis = center
+    (
+        local_compatible_j_solved,
+        local_compatible_j_moduli_dimension,
+        local_compatible_j,
+    ) = solve_complex_structures_in_basis(
+        local_compatible_basis,
+        source="local_compatible_center",
+        max_basis_dimension=max_j_solve_dimension,
+        dimension=dimension,
+    )
     forced_j_found = _forced_j(
         generated_j,
-        compatible_j,
-        compatible_solved=compatible_j_solved,
-        compatible_j_moduli_dimension=compatible_j_moduli_dimension,
+        local_compatible_j,
+        compatible_solved=local_compatible_j_solved,
+        compatible_j_moduli_dimension=local_compatible_j_moduli_dimension,
     )
     pair_commutes = _pair_commutes_with_forced_j(
         rank_pairs,
@@ -498,9 +536,11 @@ def rule_to_verdict(
         forced_j_found=forced_j_found,
     )
     pass_rule = bool(
-        center_solved
+        layers_are_real_orthogonal
+        and layers_are_local
+        and center_solved
         and generated_j_solved
-        and compatible_j_solved
+        and local_compatible_j_solved
         and rank_pairs
         and not lower_rank
         and forced_j_found
@@ -523,11 +563,9 @@ def rule_to_verdict(
         exact_working_field=EXACT_WORKING_FIELD,
         natural_eigenvalue_field=_natural_eigenvalue_field_label(floquet.eigenvals().keys()),
         layer_count=len(layers),
-        all_layers_real_orthogonal=all(
-            is_real_matrix(layer.matrix) and is_real_orthogonal(layer.matrix)
-            for layer in layers
-        ),
-        all_layers_local=all(_layer_is_local(layer) for layer in layers),
+        all_layers_real_orthogonal=layers_are_real_orthogonal,
+        all_layers_local=layers_are_local,
+        locality_radius_bound=locality_radius_bound,
         floquet_operator=floquet,
         floquet_spectrum=tuple(
             sorted((str(value), multiplicity) for value, multiplicity in floquet.eigenvals().items())
@@ -545,6 +583,10 @@ def rule_to_verdict(
         compatible_j_solved=compatible_j_solved,
         compatible_j_moduli_dimension=compatible_j_moduli_dimension,
         compatible_complex_structures=compatible_j,
+        local_compatible_operator_dimension=len(local_compatible_basis),
+        local_compatible_j_solved=local_compatible_j_solved,
+        local_compatible_j_moduli_dimension=local_compatible_j_moduli_dimension,
+        local_compatible_complex_structures=local_compatible_j,
         forced_j_found=forced_j_found,
         rank_6_4_pair_commutes_with_forced_j=pair_commutes,
         pass_rule_to_bridge=pass_rule,
@@ -601,6 +643,7 @@ def result_to_dict(result: RuleToVerdictResult) -> dict[str, object]:
         "layer_count": result.layer_count,
         "all_layers_real_orthogonal": result.all_layers_real_orthogonal,
         "all_layers_local": result.all_layers_local,
+        "locality_radius_bound": result.locality_radius_bound,
         "floquet_spectrum": [
             {"eigenvalue": value, "multiplicity": multiplicity}
             for value, multiplicity in result.floquet_spectrum
@@ -633,6 +676,16 @@ def result_to_dict(result: RuleToVerdictResult) -> dict[str, object]:
         "compatible_complex_structures": [
             _complex_structure_to_dict(candidate)
             for candidate in result.compatible_complex_structures
+        ],
+        "local_compatible_operator_dimension": result.local_compatible_operator_dimension,
+        "local_compatible_j_solved": result.local_compatible_j_solved,
+        "local_compatible_j_moduli_dimension": result.local_compatible_j_moduli_dimension,
+        "local_compatible_complex_structure_count": (
+            len(result.local_compatible_complex_structures)
+        ),
+        "local_compatible_complex_structures": [
+            _complex_structure_to_dict(candidate)
+            for candidate in result.local_compatible_complex_structures
         ],
         "forced_j_found": result.forced_j_found,
         "rank_6_4_pair_commutes_with_forced_j": (

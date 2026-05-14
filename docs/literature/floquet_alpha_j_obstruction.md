@@ -97,13 +97,20 @@ compatible `J'`, not a finite sign ambiguity. The checker reports:
 generated_j_moduli_dimension = 0
 compatible_centralizer_dimension = 26
 compatible_j_moduli_dimension = 9
+locality_radius_bound = 0
+local_compatible_operator_dimension = 4
+local_compatible_j_moduli_dimension = 0
+local_compatible_complex_structure_count = 4
 strict_compatible_j_forced = false
 pass_strict_rule_to_bridge = false
 ```
 
-The strict checker now treats forcedness as a moduli condition. A length-two
-candidate list is only meaningful after the compatible `J` moduli dimension has
-collapsed to `0`; parametric families are never accepted as forced.
+The strict checker now treats forcedness as a local moduli condition. A
+length-two candidate list is only meaningful after the local compatible `J`
+moduli dimension has collapsed to `0`; parametric families are never accepted
+as forced. In Floquet-α, locality removes the continuous family but still
+leaves four local compatible complex structures, so the strict bridge remains
+false.
 
 ## Decision
 
@@ -121,5 +128,5 @@ The current bridge remains non-load-bearing under the strict standard.
 Under the spectral standard, Floquet-α solves the algebraic `J` and coarse
 center problems but still needs a source-backed microscopic reason why the
 oriented spectral branch is mandatory. Under the strict standard, the next
-candidate must physically reduce the 26-dimensional compatible centralizer or
-otherwise eliminate the 9-dimensional family of compatible complex structures.
+candidate must physically eliminate the remaining four local compatible
+complex structures down to `±J`.

@@ -114,6 +114,7 @@ def main() -> int:
         print(f"layer_count: {payload['layer_count']}")
         print(f"all_layers_real_orthogonal: {str(payload['all_layers_real_orthogonal']).lower()}")
         print(f"all_layers_local: {str(payload['all_layers_local']).lower()}")
+        print(f"locality_radius_bound: {payload['locality_radius_bound']}")
         print(f"floquet_spectrum: {payload['floquet_spectrum']}")
         print(f"generated_algebra_dimension: {payload['generated_algebra_dimension']}")
         print(f"center_dimension: {payload['center_dimension']}")
@@ -133,6 +134,19 @@ def main() -> int:
         print(
             "compatible_complex_structure_count: "
             f"{payload['compatible_complex_structure_count']}"
+        )
+        print(
+            "local_compatible_operator_dimension: "
+            f"{payload['local_compatible_operator_dimension']}"
+        )
+        print(f"local_compatible_j_solved: {str(payload['local_compatible_j_solved']).lower()}")
+        print(
+            "local_compatible_j_moduli_dimension: "
+            f"{payload['local_compatible_j_moduli_dimension']}"
+        )
+        print(
+            "local_compatible_complex_structure_count: "
+            f"{payload['local_compatible_complex_structure_count']}"
         )
         print(f"forced_j_found: {str(payload['forced_j_found']).lower()}")
         print(

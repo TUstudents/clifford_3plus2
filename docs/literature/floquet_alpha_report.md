@@ -106,6 +106,10 @@ scaled_polarization_certified_candidates: 10
 generated_j_moduli_dimension: 0
 compatible_centralizer_dimension: 26
 compatible_j_moduli_dimension: 9
+locality_radius_bound: 0
+local_compatible_operator_dimension: 4
+local_compatible_j_moduli_dimension: 0
+local_compatible_complex_structure_count: 4
 strict_compatible_j_forced_candidates: 0
 strict_bridge_candidates: 0
 verdict_counts: {'polarization_j_produced_not_strictly_unique': 10}
@@ -125,6 +129,10 @@ canonical_j_generated_by_floquet = true
 generated_j_moduli_dimension = 0
 compatible_centralizer_dimension = 26
 compatible_j_moduli_dimension = 9
+locality_radius_bound = 0
+local_compatible_operator_dimension = 4
+local_compatible_j_moduli_dimension = 0
+local_compatible_complex_structure_count = 4
 strict_compatible_j_forced = false
 load_bearing_qca_bridge = false
 ```
@@ -138,6 +146,12 @@ orthogonal complex structures form a continuous family of dimension
 `dim U(3)/O(3) + dim U(2)/O(2) = 6 + 3 = 9`. Alpha-plus is therefore progress
 on rule-produced `J`, but not a strict uniqueness proof.
 
+After imposing the current locality restriction, the compatible search is run
+inside the rule-generated local center. That shrinks the compatible operator
+space from dimension `26` to `4` and collapses the moduli dimension to `0`,
+but still leaves four local compatible complex structures rather than a unique
+`±J`.
+
 The next pressure is to decide whether the physical theorem accepts this
 spectral-polarization `J` as forced by the rule, or whether a stricter
-microscopic constraint must eliminate the 9-dimensional compatible-`J` family.
+microscopic constraint must eliminate the remaining local discrete ambiguity.

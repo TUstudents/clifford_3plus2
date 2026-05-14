@@ -22,6 +22,7 @@ rank-(6,4) complementary pairs
 lower-rank central idempotent witnesses
 rule-generated complex structures
 compatible complex-structure solve status
+local compatible complex-structure solve status
 one bridge-candidate boolean
 ```
 
@@ -47,6 +48,9 @@ central_idempotent_ranks: [0, 10]
 generated_j_moduli_dimension: 0
 generated_complex_structures: 2
 compatible_j_moduli_dimension: None
+local_compatible_operator_dimension: 2
+local_compatible_j_moduli_dimension: 0
+local_compatible_complex_structure_count: 2
 forced_j_found: false
 verdict: falsified_no_rank_6_4_center
 load_bearing_qca_bridge: false
@@ -72,6 +76,10 @@ generated_complex_structures: 4
 compatible_centralizer_dimension: 26
 compatible_j_solved: false
 compatible_j_moduli_dimension: None
+local_compatible_operator_dimension: 4
+local_compatible_j_solved: true
+local_compatible_j_moduli_dimension: 0
+local_compatible_complex_structure_count: 4
 forced_j_found: false
 verdict: candidate_only_j_not_forced
 load_bearing_qca_bridge: false
@@ -101,21 +109,24 @@ with the Floquet eigenvalue field reported separately. The Floquet-α and
 Defect-β certificates specialize that to `QQ(zeta_12)`, with the real matrices
 living in `QQ(sqrt(3))`.
 
-The checker records `generated_j_moduli_dimension`,
-`compatible_centralizer_dimension`, and `compatible_j_moduli_dimension`.
-Generated `J` candidates are not enough: the forcedness condition now requires
-the compatible `J` moduli dimension to be exactly zero before any finite
-candidate comparison is allowed. The nonlinear `J` equations are solved
-exactly only when the generated algebra or compatible centralizer basis is
-below the configured solve bound. When the compatible centralizer is too large,
-the checker reports `compatible_j_solved: false` and refuses to mark `J`
-forced.
+The checker records the full compatible centralizer as a diagnostic, but the
+strict forcedness test is local. In the current one-cell matrix model, the
+local compatible basis is the center of the rule-generated local algebra, not
+the full `M_10(R)` centralizer. The forcedness condition requires the local
+compatible `J` moduli dimension to be exactly zero before any finite candidate
+comparison is allowed. The nonlinear `J` equations are solved exactly only when
+the generated algebra or compatible basis is below the configured solve bound.
+When the full compatible centralizer is too large, the checker reports
+`compatible_j_solved: false` for that diagnostic solve but can still solve the
+local compatible problem.
 
 This is intentional. A large compatible centralizer is precisely the current
 failure mode: the rule has not selected a unique complex structure.
 For the Floquet-α and Defect-β families this dimension is `26`, not a small
 finite sign ambiguity, and their compatible `J` moduli dimension is reported
-as `9`.
+as `9`. After locality restriction, the local compatible operator dimension is
+`4`, with four discrete local compatible complex structures. That is local but
+still not unique.
 
 ## Interpretation
 
@@ -129,7 +140,7 @@ The first active replacement family is
 abstract E1 primitives; it exposes one mandatory quantized resonance layer per
 candidate. Alpha-plus also extracts a canonical spectral-polarization `J` from
 that layer, while the strict rule-to-verdict checker continues to report that
-compatible `J` is not unique in the full commutant.
+compatible `J` is not unique after the local restriction.
 
 The second replacement family is [Defect Beta](defect_beta_report.md). It
 computes round-trip monodromy from wall-cycle transition functions and reaches

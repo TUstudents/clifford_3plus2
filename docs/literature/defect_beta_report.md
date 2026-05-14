@@ -78,6 +78,10 @@ scaled_monodromy_certified_candidates: 10
 generated_j_moduli_dimension: 0
 compatible_centralizer_dimension: 26
 compatible_j_moduli_dimension: 9
+locality_radius_bound: 0
+local_compatible_operator_dimension: 4
+local_compatible_j_moduli_dimension: 0
+local_compatible_complex_structure_count: 4
 strict_compatible_j_forced_candidates: 0
 strict_bridge_candidates: 0
 verdict_counts: {'monodromy_j_produced_not_strictly_unique': 10}
@@ -100,6 +104,10 @@ canonical_j_generated_by_monodromy = true
 generated_j_moduli_dimension = 0
 compatible_centralizer_dimension = 26
 compatible_j_moduli_dimension = 9
+locality_radius_bound = 0
+local_compatible_operator_dimension = 4
+local_compatible_j_moduli_dimension = 0
+local_compatible_complex_structure_count = 4
 strict_compatible_j_forced = false
 ```
 
@@ -112,6 +120,9 @@ monodromy still has the same spectral data as Floquet-α, so the same strict
 compatible-commutant obstruction remains: `M_3(C) ⊕ M_2(C)` has real
 dimension `26`, and the compatible orthogonal complex structures contain the
 continuous `U(3)/O(3) × U(2)/O(2)` family of dimension `9`.
+The locality-restricted compatible search uses the rule-generated local center;
+it has dimension `4`, moduli dimension `0`, and four local compatible complex
+structures. The strict bridge still fails because this is not a unique `±J`.
 
 The bridge remains non-load-bearing:
 
@@ -121,4 +132,4 @@ load_bearing_qca_bridge = false
 
 The next decision is conceptual: accept a canonical spectral/monodromy `J` as
 rule-produced, or require an additional microscopic orientation constraint
-that removes the 9-dimensional compatible-`J` family.
+that removes the remaining local discrete ambiguity.

@@ -70,6 +70,10 @@ def test_floquet_alpha_generates_coarse_center_without_rank_one() -> None:
     assert result.compatible_centralizer_dimension == 26
     assert result.generated_j_moduli_dimension == 0
     assert result.compatible_j_moduli_dimension == 9
+    assert result.local_compatible_operator_dimension == 4
+    assert result.local_compatible_j_solved
+    assert result.local_compatible_j_moduli_dimension == 0
+    assert len(result.local_compatible_complex_structures) == 4
     assert not result.forced_j_found
     assert not result.pass_rule_to_bridge
     assert result.verdict == "candidate_only_j_not_forced"
@@ -123,6 +127,11 @@ def test_floquet_alpha_plus_reports_polarization_j_and_strict_obstruction() -> N
         certificate.compatible_j_moduli_dimension
         == FLOQUET_ALPHA_COMPATIBLE_J_MODULI_DIMENSION
     )
+    assert certificate.locality_radius_bound == 0
+    assert certificate.local_compatible_operator_dimension == 4
+    assert certificate.local_compatible_j_solved
+    assert certificate.local_compatible_j_moduli_dimension == 0
+    assert certificate.local_compatible_complex_structure_count == 4
     assert certificate.alpha_plus_polarization_passed
     assert certificate.canonical_j_generated_by_floquet
     assert certificate.canonical_j_squared_minus_identity
@@ -177,9 +186,15 @@ def test_floquet_alpha_plus_cli_searches_all_patterns() -> None:
     assert payload["generated_j_moduli_dimension"] == 0
     assert payload["compatible_centralizer_dimension"] == 26
     assert payload["compatible_j_moduli_dimension"] == 9
+    assert payload["locality_radius_bound"] == 0
+    assert payload["local_compatible_operator_dimension"] == 4
+    assert payload["local_compatible_j_moduli_dimension"] == 0
+    assert payload["local_compatible_complex_structure_count"] == 4
     assert payload["results"][0]["generated_j_moduli_dimension"] == 0
     assert payload["results"][0]["compatible_centralizer_dimension"] == 26
     assert payload["results"][0]["compatible_j_moduli_dimension"] == 9
+    assert payload["results"][0]["local_compatible_operator_dimension"] == 4
+    assert payload["results"][0]["local_compatible_complex_structure_count"] == 4
     assert payload["strict_compatible_j_forced_candidates"] == 0
     assert payload["strict_bridge_candidates"] == 0
     assert payload["verdict_counts"] == {

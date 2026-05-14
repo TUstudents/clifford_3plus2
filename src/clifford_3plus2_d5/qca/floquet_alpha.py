@@ -63,6 +63,11 @@ class FloquetAlphaPolarizationCertificate:
     eta_sector_centralizer_dimension: int
     compatible_centralizer_dimension: int
     compatible_j_moduli_dimension: int
+    locality_radius_bound: int
+    local_compatible_operator_dimension: int
+    local_compatible_j_solved: bool
+    local_compatible_j_moduli_dimension: int | None
+    local_compatible_complex_structure_count: int
     strict_compatible_j_forced: bool
     compatible_j_solved: bool
     alpha_plus_polarization_passed: bool
@@ -259,6 +264,13 @@ def floquet_alpha_polarization_certificate(
             verdict.compatible_j_moduli_dimension
             if verdict.compatible_j_moduli_dimension is not None
             else FLOQUET_ALPHA_COMPATIBLE_J_MODULI_DIMENSION
+        ),
+        locality_radius_bound=verdict.locality_radius_bound,
+        local_compatible_operator_dimension=verdict.local_compatible_operator_dimension,
+        local_compatible_j_solved=verdict.local_compatible_j_solved,
+        local_compatible_j_moduli_dimension=verdict.local_compatible_j_moduli_dimension,
+        local_compatible_complex_structure_count=(
+            len(verdict.local_compatible_complex_structures)
         ),
         strict_compatible_j_forced=verdict.forced_j_found,
         compatible_j_solved=verdict.compatible_j_solved,

@@ -94,12 +94,18 @@ floquet_alpha_plus_polarization_j_candidates: 10
 floquet_alpha_plus_scaled_polarization_certified_candidates: 10
 floquet_alpha_plus_compatible_centralizer_dimension: 26
 floquet_alpha_plus_compatible_j_moduli_dimension: 9
+floquet_alpha_plus_local_compatible_operator_dimension: 4
+floquet_alpha_plus_local_compatible_j_moduli_dimension: 0
+floquet_alpha_plus_local_compatible_complex_structure_count: 4
 floquet_alpha_plus_strict_bridge_candidates: 0
 floquet_alpha_bridge_candidates: 0
 defect_beta_monodromy_candidates: 10
 defect_beta_scaled_monodromy_certified_candidates: 10
 defect_beta_compatible_centralizer_dimension: 26
 defect_beta_compatible_j_moduli_dimension: 9
+defect_beta_local_compatible_operator_dimension: 4
+defect_beta_local_compatible_j_moduli_dimension: 0
+defect_beta_local_compatible_complex_structure_count: 4
 defect_beta_strict_bridge_candidates: 0
 branching_check_passed: true
 qca_split_audit_verdict: notation_only
@@ -897,6 +903,10 @@ scaled_polarization_certified_candidates = 10
 generated_j_moduli_dimension = 0
 compatible_centralizer_dimension = 26
 compatible_j_moduli_dimension = 9
+locality_radius_bound = 0
+local_compatible_operator_dimension = 4
+local_compatible_j_moduli_dimension = 0
+local_compatible_complex_structure_count = 4
 strict_compatible_j_forced_candidates = 0
 strict_bridge_candidates = 0
 verdict_counts = {'polarization_j_produced_not_strictly_unique': 10}
@@ -912,7 +922,9 @@ operator K_alpha = (2U+I)P_alpha with K_alpha^2 = -3P_alpha over QQ(zeta_12);
 the normalized J_alpha is derived afterward over QQ(sqrt(3)). It still does
 not pass the strict rule-to-verdict bridge criterion because the
 compatible centralizer is M_3(C) plus M_2(C), real dimension 26, with a
-9-dimensional compatible-J family.
+9-dimensional compatible-J family. The local compatible search shrinks this to
+a 4-dimensional operator space with four discrete local J choices, so
+strict forcedness still fails.
 ```
 
 ## Defect-Beta Monodromy Family
@@ -948,6 +960,10 @@ scaled_monodromy_certified_candidates = 10
 generated_j_moduli_dimension = 0
 compatible_centralizer_dimension = 26
 compatible_j_moduli_dimension = 9
+locality_radius_bound = 0
+local_compatible_operator_dimension = 4
+local_compatible_j_moduli_dimension = 0
+local_compatible_complex_structure_count = 4
 strict_compatible_j_forced_candidates = 0
 strict_bridge_candidates = 0
 verdict_counts = {'monodromy_j_produced_not_strictly_unique': 10}
@@ -959,8 +975,10 @@ Interpretation:
 ```text
 Defect-beta confirms the same obstruction as Floquet-alpha-plus through a
 non-identical wall transitions: the spectral/monodromy data produce the coarse
-center and a canonical J, but strict compatible-J uniqueness fails against the
-same 26-dimensional centralizer and 9-dimensional compatible-J family.
+center and a canonical J. The global compatible centralizer is again
+26-dimensional with a 9-dimensional compatible-J family; the local compatible
+search removes the continuous family but still leaves four discrete local J
+choices, so strict compatible-J uniqueness fails.
 ```
 
 ## Phase 9: Family Number Status

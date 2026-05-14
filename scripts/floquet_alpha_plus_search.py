@@ -46,6 +46,17 @@ def _certificate_to_dict(certificate: FloquetAlphaPolarizationCertificate) -> di
         "eta_sector_centralizer_dimension": certificate.eta_sector_centralizer_dimension,
         "compatible_centralizer_dimension": certificate.compatible_centralizer_dimension,
         "compatible_j_moduli_dimension": certificate.compatible_j_moduli_dimension,
+        "locality_radius_bound": certificate.locality_radius_bound,
+        "local_compatible_operator_dimension": (
+            certificate.local_compatible_operator_dimension
+        ),
+        "local_compatible_j_solved": certificate.local_compatible_j_solved,
+        "local_compatible_j_moduli_dimension": (
+            certificate.local_compatible_j_moduli_dimension
+        ),
+        "local_compatible_complex_structure_count": (
+            certificate.local_compatible_complex_structure_count
+        ),
         "strict_compatible_j_forced": certificate.strict_compatible_j_forced,
         "compatible_j_solved": certificate.compatible_j_solved,
         "alpha_plus_polarization_passed": certificate.alpha_plus_polarization_passed,
@@ -85,6 +96,16 @@ def main() -> int:
         "generated_j_moduli_dimension": certificates[0].generated_j_moduli_dimension,
         "compatible_centralizer_dimension": certificates[0].compatible_centralizer_dimension,
         "compatible_j_moduli_dimension": certificates[0].compatible_j_moduli_dimension,
+        "locality_radius_bound": certificates[0].locality_radius_bound,
+        "local_compatible_operator_dimension": (
+            certificates[0].local_compatible_operator_dimension
+        ),
+        "local_compatible_j_moduli_dimension": (
+            certificates[0].local_compatible_j_moduli_dimension
+        ),
+        "local_compatible_complex_structure_count": (
+            certificates[0].local_compatible_complex_structure_count
+        ),
         "strict_bridge_candidates": sum(
             certificate.pass_strict_rule_to_bridge for certificate in certificates
         ),
@@ -113,6 +134,19 @@ def main() -> int:
         print(f"generated_j_moduli_dimension: {payload['generated_j_moduli_dimension']}")
         print(f"compatible_centralizer_dimension: {payload['compatible_centralizer_dimension']}")
         print(f"compatible_j_moduli_dimension: {payload['compatible_j_moduli_dimension']}")
+        print(f"locality_radius_bound: {payload['locality_radius_bound']}")
+        print(
+            "local_compatible_operator_dimension: "
+            f"{payload['local_compatible_operator_dimension']}"
+        )
+        print(
+            "local_compatible_j_moduli_dimension: "
+            f"{payload['local_compatible_j_moduli_dimension']}"
+        )
+        print(
+            "local_compatible_complex_structure_count: "
+            f"{payload['local_compatible_complex_structure_count']}"
+        )
         print(f"strict_compatible_j_forced_candidates: {payload['strict_compatible_j_forced_candidates']}")
         print(f"strict_bridge_candidates: {payload['strict_bridge_candidates']}")
         print(f"verdict_counts: {payload['verdict_counts']}")
@@ -127,6 +161,7 @@ def main() -> int:
                 f"center_ranks={list(certificate.central_idempotent_ranks)}, "
                 f"centralizer_dim={certificate.compatible_centralizer_dimension}, "
                 f"j_moduli_dim={certificate.compatible_j_moduli_dimension}, "
+                f"local_j_count={certificate.local_compatible_complex_structure_count}, "
                 f"polarization_j={str(certificate.alpha_plus_polarization_passed).lower()}, "
                 f"strict_forced_j={str(certificate.strict_compatible_j_forced).lower()}, "
                 f"verdict={certificate.verdict}"
