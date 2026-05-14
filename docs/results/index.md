@@ -35,6 +35,7 @@ uv run python scripts/discover_projectors.py --check --mode block-reflection-can
 uv run python scripts/rule_to_verdict.py --case minimal-period-four --expect-verdict falsified_no_rank_6_4_center
 uv run python scripts/rule_to_verdict.py --case clock-block-reflection --expect-verdict candidate_only_j_not_forced
 uv run python scripts/rule_to_verdict.py --case clock-rank-one-color-reflection --expect-verdict falsified_rank_one_center
+uv run python scripts/floquet_alpha_search.py --check
 uv run python scripts/branching_check.py --check
 uv run python scripts/qca_split_audit.py --check --expect-verdict notation_only
 uv run python scripts/qca_split_audit.py --json --expect-verdict notation_only
@@ -44,7 +45,7 @@ Verification:
 
 ```text
 ruff: passed
-pytest: 196 passed
+pytest: 201 passed
 ```
 
 Real carrier check:
@@ -449,6 +450,19 @@ verdict: falsified_rank_one_center
 load_bearing_qca_bridge: false
 ```
 
+Floquet-alpha search:
+
+```text
+This searches the Floquet-alpha physical primitive family.
+It exposes one mandatory quantized resonance layer per candidate.
+candidate_count: 10
+rank_6_4_pair_candidates: 10
+rank_one_falsified_candidates: 0
+bridge_candidates: 0
+verdict_counts: {'candidate_only_j_not_forced': 10}
+load_bearing_qca_bridge: false
+```
+
 Branching check:
 
 ```text
@@ -532,6 +546,9 @@ The unified rule-to-verdict checker now collapses the real physics criterion
 into one interface. Current controls are negative: minimal clock has no
 `6+4` center, block reflection has the center but does not force `J`, and
 rank-one reflection is falsified by a lower central idempotent.
+Floquet-alpha replaces the abstract primitive-family direction with a physical
+quantized resonance layer. It produces the coarse `6+4` center in all ten
+patterns, without rank-one centers, but still does not force `J`.
 ```
 
 ## Active Roadmap Update

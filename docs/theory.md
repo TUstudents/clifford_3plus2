@@ -183,6 +183,13 @@ central idempotent lattice, rule-generated complex structures, and the single
 bridge-candidate boolean. This is the main interface for new microscopic
 candidate families.
 
+The first replacement primitive family is Floquet-α, documented in
+[Floquet Alpha Report](literature/floquet_alpha_report.md). It uses one
+mandatory quantized resonance layer with phases `2 pi / 3` on three mode pairs
+and `pi / 2` on two mode pairs. All ten resonance patterns produce the coarse
+`[0,4,6,10]` central idempotent lattice without rank-one centers, but none
+force `J`.
+
 ## Load-Bearing Conditions
 
 The bridge becomes nontrivial only if QCA data supplies all of the following:

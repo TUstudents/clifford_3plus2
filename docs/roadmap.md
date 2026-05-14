@@ -49,6 +49,8 @@ cannot resolve individual color or weak axes.
   seeding `P_3/P_2`.
 - [Rule-To-Verdict Report](literature/rule_to_verdict_report.md):
   collapsed finite-depth rule checker for the actual bridge criterion.
+- [Floquet Alpha Report](literature/floquet_alpha_report.md):
+  first physical primitive family replacing abstract depth escalation.
 - [Handover Compliance](handover_compliance.md): Phase 0 closeout checklist.
 - [Side Project Plan](clifford_3plus2_to_d5_side_project_plan.md): original
   geometry-to-D5 project plan.
@@ -82,6 +84,9 @@ e2_unseeded_projector_pairs_found: 0
 e2_unsafe_rank_one_projectors: 3
 rule_to_verdict_interface: implemented
 rule_to_verdict_bridge_candidate: false
+floquet_alpha_candidate_count: 10
+floquet_alpha_rank_6_4_pair_candidates: 10
+floquet_alpha_bridge_candidates: 0
 branching_check_passed: true
 qca_split_audit_verdict: notation_only
 load_bearing_qca_bridge: false
@@ -831,6 +836,50 @@ clock_rank_one_color_reflection -> falsified_rank_one_center
 
 This is now the preferred first-pass checker for Floquet-polarization and
 defect-monodromy candidates.
+
+## Floquet-Alpha Physical Primitive Family
+
+Status: implemented; coarse center found, `J` not forced.
+
+Purpose: replace depth escalation over abstract primitive classes with one
+physical resonance mechanism.
+
+Implementation:
+
+```text
+src/clifford_3plus2_d5/qca/floquet_alpha.py
+scripts/floquet_alpha_search.py
+tests/test_floquet_alpha.py
+docs/literature/floquet_alpha_report.md
+```
+
+Family:
+
+```text
+one mandatory quantized on-site Floquet layer
+three mode pairs with phase 2 pi / 3
+two mode pairs with phase pi / 2
+ten resonance patterns enumerated
+```
+
+Current outcome:
+
+```text
+candidate_count = 10
+rank_6_4_pair_candidates = 10
+rank_one_falsified_candidates = 0
+bridge_candidates = 0
+verdict_counts = {'candidate_only_j_not_forced': 10}
+load_bearing_qca_bridge = false
+```
+
+Interpretation:
+
+```text
+Floquet-alpha produces the desired coarse [0,4,6,10] central idempotent
+lattice without rank-one centers. It still fails the bridge criterion because
+the compatible complex structure is not forced.
+```
 
 ## Phase 9: Family Number Status
 

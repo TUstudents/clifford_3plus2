@@ -101,3 +101,8 @@ This script is now the preferred interface for new microscopic candidate
 families. E1/E2 remain useful as historical exploration reports, but new
 Floquet-polarization or defect-monodromy candidates should be fed through the
 single rule-to-verdict checker first.
+
+The first active replacement family is
+[Floquet Alpha](floquet_alpha_report.md). It is no longer a search over the
+abstract E1 primitives; it exposes one mandatory quantized resonance layer per
+candidate.
