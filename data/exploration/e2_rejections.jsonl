@@ -1,0 +1,6 @@
+{"basis_dimension": 1, "candidate_projectors": 0, "mode": "unseeded", "primitive_set_name": "identity_only_unseeded", "reason": "no_complementary_6_4_projector_pair", "unsafe_rank_one_projectors": 0}
+{"basis_dimension": 2, "candidate_projectors": 0, "mode": "unseeded", "primitive_set_name": "clock_only_unseeded", "reason": "no_complementary_6_4_projector_pair", "unsafe_rank_one_projectors": 0}
+{"basis_dimension": 2, "candidate_projectors": 0, "mode": "unseeded", "primitive_set_name": "clock_plus_minus_identity_unseeded", "reason": "no_complementary_6_4_projector_pair", "unsafe_rank_one_projectors": 0}
+{"basis_dimension": 4, "candidate_projectors": 1, "mode": "unseeded", "primitive_set_name": "clock_plus_color_swap_unseeded", "reason": "no_complementary_6_4_projector_pair", "unsafe_rank_one_projectors": 1}
+{"basis_dimension": 4, "candidate_projectors": 1, "mode": "unseeded", "primitive_set_name": "clock_plus_weak_swap_unseeded", "reason": "no_complementary_6_4_projector_pair", "unsafe_rank_one_projectors": 1}
+{"basis_dimension": 4, "candidate_projectors": 1, "mode": "unseeded", "primitive_set_name": "rank_one_pair_falsifier_unseeded", "reason": "no_complementary_6_4_projector_pair", "unsafe_rank_one_projectors": 1}

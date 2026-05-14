@@ -44,6 +44,9 @@ cannot resolve individual color or weak axes.
   Phase 8A stronger real-QCA-first branch checker.
 - [Rule-Space Exploration Report](literature/rule_space_exploration_report.md):
   E1 bounded microscopic rule-space search.
+- [Unseeded Projector Discovery Report](literature/unseeded_projector_discovery_report.md):
+  E2 bounded search for rule-generated central `6+4` projectors without
+  seeding `P_3/P_2`.
 - [Handover Compliance](handover_compliance.md): Phase 0 closeout checklist.
 - [Side Project Plan](clifford_3plus2_to_d5_side_project_plan.md): original
   geometry-to-D5 project plan.
@@ -72,6 +75,9 @@ real_qca_branch_verdict: candidate_only
 e1_exploration_check_passed: true
 e1_forced_candidate_hits: 0
 e1_surviving_candidates: 0
+e2_projector_discovery_check_passed: true
+e2_unseeded_projector_pairs_found: 0
+e2_unsafe_rank_one_projectors: 3
 branching_check_passed: true
 qca_split_audit_verdict: notation_only
 load_bearing_qca_bridge: false
@@ -703,6 +709,68 @@ wrote reproducible artifacts,
 and found zero forced bridge candidates.
 ```
 
+## E2: Unseeded Projector Discovery Sprint
+
+Status: complete; no unseeded complementary `6+4` projector pair.
+
+Purpose: remove seeded `P_3/P_2` controls from the default projector search and
+ask whether small exact rule-generated algebras derive a central complementary
+rank-`6+4` pair.
+
+Implementation:
+
+```text
+src/clifford_3plus2_d5/explore/unseeded_projectors.py
+scripts/discover_projectors.py
+tests/test_unseeded_projector_discovery.py
+docs/literature/unseeded_projector_discovery_report.md
+data/exploration/e2_summary.json
+data/exploration/e2_projector_candidates.jsonl
+data/exploration/e2_rejections.jsonl
+```
+
+Current unseeded outcome:
+
+```text
+primitive_sets_scanned = 6
+algebra_elements_considered = 1924
+candidate_projectors = 3
+rank_2_projectors = 3
+rank_6_projectors = 0
+rank_4_projectors = 0
+complementary_pairs = 0
+unsafe_rank_one_projectors = 3
+unseeded_projector_pairs_found = 0
+discovery_verdict = not_found
+load_bearing_qca_bridge = false
+```
+
+Comparison checks:
+
+```text
+sanity_seeded_standard_projectors -> projector_pair_found
+block_reflection_candidate -> projector_pair_found
+rank_one_color_control_falsifier -> discovery_check_passed = false
+```
+
+Acceptance:
+
+```text
+The default search does not seed the answer,
+the checker still finds the pair when it is genuinely inserted,
+unsafe rank-one routes are reported,
+the deterministic artifacts are committed,
+and no load-bearing bridge claim is made.
+```
+
+Next pressure:
+
+```text
+Broaden primitive families and search bounds while preserving the no-locking
+guardrail: a valid hit must derive only coarse P_3/P_2 and no rank-one
+projectors inside either block.
+```
+
 ## Phase 9: Family Number Status
 
 Status: out of scope for the bridge.
@@ -758,6 +826,12 @@ one-generation internal carrier only.
    - Maintain guarded `Lambda^even(C^5)` reconstruction from prior candidates.
    - Verify exact hypercharge and sector table.
    - Require earlier QCA-forced data before treating the spinor as load-bearing.
+
+6. **Exploration Sprints**
+   - Keep E1/E2 artifacts reproducible.
+   - Expand primitive families only when the falsifier outputs remain explicit.
+   - Treat seeded or rank-one-derived projector pairs as controls, not bridge
+     evidence.
 
 ## Non-Goals
 

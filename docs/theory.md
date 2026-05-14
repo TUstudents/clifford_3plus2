@@ -161,6 +161,13 @@ E1 starts actual bounded rule-space exploration. The report is
 The first sprint scans 170 exact words across 10 primitive sets and finds 73
 `J`/period-four hits, but zero forced surviving bridge candidates.
 
+E2 removes the seeded `P_3/P_2` controls from the default projector search.
+The report is
+[Unseeded Projector Discovery Report](literature/unseeded_projector_discovery_report.md).
+The bounded unseeded pass scans 6 primitive sets and 1924 exact algebra
+elements. It finds no complementary rank-`6+4` projector pair, while recording
+three unsafe rank-2 projectors as falsifier pressure.
+
 ## Load-Bearing Conditions
 
 The bridge becomes nontrivial only if QCA data supplies all of the following:

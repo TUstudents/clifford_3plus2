@@ -29,6 +29,9 @@ uv run python scripts/real_qca_branch_check.py --include-rank-one-weak --expect-
 uv run python scripts/real_qca_branch_check.py --include-rank-one-pair --expect-verdict falsified
 uv run python scripts/real_qca_branch_check.py --include-off-block --expect-verdict falsified
 uv run python scripts/explore_rule_space.py --check --output-dir data/exploration
+uv run python scripts/discover_projectors.py --check --mode unseeded --expect-verdict not_found --output-dir data/exploration
+uv run python scripts/discover_projectors.py --check --mode sanity-seeded --expect-verdict projector_pair_found --output-dir /tmp/e2_sanity
+uv run python scripts/discover_projectors.py --check --mode block-reflection-candidate --expect-verdict projector_pair_found --output-dir /tmp/e2_block
 uv run python scripts/branching_check.py --check
 uv run python scripts/qca_split_audit.py --check --expect-verdict notation_only
 uv run python scripts/qca_split_audit.py --json --expect-verdict notation_only
@@ -38,7 +41,7 @@ Verification:
 
 ```text
 ruff: passed
-pytest: 180 passed
+pytest: 190 passed
 ```
 
 Real carrier check:
@@ -350,6 +353,56 @@ exploration_check_passed: true
 load_bearing_qca_bridge: false
 ```
 
+E2 unseeded projector discovery:
+
+```text
+This runs E2 projector discovery.
+It separates unseeded discovery from seeded sanity checks.
+mode: unseeded
+primitive_sets_scanned: 6
+algebra_elements_considered: 1924
+candidate_projectors: 3
+rank_2_projectors: 3
+rank_6_projectors: 0
+rank_4_projectors: 0
+complementary_pairs: 0
+unsafe_rank_one_projectors: 3
+unseeded_projector_pairs_found: 0
+seeded_projector_pairs_found: 0
+block_reflection_pairs_found: 0
+discovery_verdict: not_found
+discovery_check_passed: true
+load_bearing_qca_bridge: false
+```
+
+E2 seeded sanity check:
+
+```text
+mode: sanity-seeded
+candidate_projectors: 2
+rank_6_projectors: 1
+rank_4_projectors: 1
+complementary_pairs: 1
+seeded_projector_pairs_found: 1
+discovery_verdict: projector_pair_found
+discovery_check_passed: true
+load_bearing_qca_bridge: false
+```
+
+E2 block-reflection candidate check:
+
+```text
+mode: block-reflection-candidate
+candidate_projectors: 2
+rank_6_projectors: 1
+rank_4_projectors: 1
+complementary_pairs: 1
+block_reflection_pairs_found: 1
+discovery_verdict: projector_pair_found
+discovery_check_passed: true
+load_bearing_qca_bridge: false
+```
+
 Branching check:
 
 ```text
@@ -426,6 +479,9 @@ period-four word still generates `J`, but the branch remains candidate-only
 because the rule space does not force `J` or the split.
 E1 performs bounded rule-space exploration. It scans 170 exact words, finds
 73 `J`/period-four hits, and finds zero forced surviving candidates.
+E2 performs bounded unseeded projector discovery. It scans 1924 exact algebra
+elements across 6 primitive sets, finds zero complementary `6+4` projector
+pairs, and records three unsafe rank-2 projector candidates.
 ```
 
 ## Active Roadmap Update

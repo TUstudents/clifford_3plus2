@@ -125,9 +125,10 @@ This is useful negative evidence for the bounded search space. The explored
 candidate words mostly fail because the normalizer remains too large. The
 forbidden control families are rejected as expected.
 
-## Next Exploration Pressure
+## Follow-Up
 
-The next exploration sprint should stop reusing the seeded `P_3/P_2` controls
-as structural data and instead search for rule-generated central projectors.
+E2 performs that unseeded projector pass. See
+[Unseeded Projector Discovery Report](unseeded_projector_discovery_report.md).
+The current E2 result finds no unseeded complementary `6+4` projector pair.
 Until such projectors and `J` are forced by source-backed rule data, the bridge
 remains non-load-bearing.

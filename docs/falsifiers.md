@@ -61,6 +61,9 @@ The current code enforces these boundaries:
   and off-block controls.
 - The E1 exploration runner records rejection reasons for every scanned word
   and currently finds no forced survivors in the bounded rule space.
+- The E2 projector discovery runner keeps the default projector search
+  unseeded, reports unsafe rank-2 projectors, and treats seeded or
+  rank-one-derived projector pairs as controls rather than bridge evidence.
 
 Current forcedness status:
 
@@ -68,5 +71,6 @@ Current forcedness status:
 forcedness_verdict: candidate_only
 real_qca_branch_verdict: candidate_only
 e1_surviving_candidates: 0
+e2_unseeded_projector_pairs_found: 0
 load_bearing_qca_bridge: false
 ```
