@@ -709,6 +709,15 @@ wrote reproducible artifacts,
 and found zero forced bridge candidates.
 ```
 
+Negative proposition:
+
+```text
+Within the E1/E2 coarse primitive class, increasing search depth alone is not
+expected to produce the missing object. Fully coarse generators preserve too
+much symmetry; generators that distinguish 3 from 2 have already supplied the
+coarse split; rank-one distinguishers are no-locking failures.
+```
+
 ## E2: Unseeded Projector Discovery Sprint
 
 Status: complete; no unseeded complementary `6+4` projector pair.
@@ -766,9 +775,9 @@ and no load-bearing bridge claim is made.
 Next pressure:
 
 ```text
-Broaden primitive families and search bounds while preserving the no-locking
-guardrail: a valid hit must derive only coarse P_3/P_2 and no rank-one
-projectors inside either block.
+Stop depth-only escalation in the E1/E2 primitive class.
+Move to primitive families with physical 3-versus-2 asymmetry, starting with
+Floquet polarization and defect monodromy.
 ```
 
 ## Phase 9: Family Number Status

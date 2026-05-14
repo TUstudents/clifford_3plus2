@@ -168,6 +168,14 @@ The bounded unseeded pass scans 6 primitive sets and 1924 exact algebra
 elements. It finds no complementary rank-`6+4` projector pair, while recording
 three unsafe rank-2 projectors as falsifier pressure.
 
+Together E1 and E2 close the current coarse primitive search class. The
+negative proposition is that global clock, whole-block reflections, and
+within-block permutations either preserve too much symmetry to derive a new
+coarse `6+4` center, or already contain the coarse `P_3/P_2` split as input;
+rank-one variants are rejected by no-locking. The next physics input must
+therefore create `3` versus `2` asymmetry before projector discovery, for
+example through Floquet polarization or defect monodromy.
+
 ## Load-Bearing Conditions
 
 The bridge becomes nontrivial only if QCA data supplies all of the following:

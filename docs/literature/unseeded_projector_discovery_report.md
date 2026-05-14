@@ -124,6 +124,16 @@ unseeded_projector_pairs_found = 0
 load_bearing_qca_bridge = false
 ```
 
-The next exploration pressure is to broaden the primitive families while
+## Stopping Rule For This Search Class
+
+The combined E1/E2 result should be treated as a scoped negative proposition:
+inside the searched coarse primitive class, depth is not the bottleneck. If the
+primitive family is too symmetric, no `6+4` center appears. If the primitive
+family distinguishes `3` from `2`, the split has already been inserted unless
+that distinction is forced by a separate microscopic mechanism. If the family
+distinguishes individual axes, the no-locking checks reject it.
+
+The next exploration pressure is therefore not a deeper E2 search. It is a new
+primitive family with a physical origin for `3` versus `2` asymmetry, while
 keeping the same guardrail: a valid hit must derive only the coarse `P_3/P_2`
 pair and must not derive rank-one projectors inside either block.
