@@ -52,6 +52,7 @@ class ComplexStructureCandidate:
 class RuleToVerdictResult:
     rule_name: str
     exact_working_field: str
+    natural_eigenvalue_field: str
     layer_count: int
     all_layers_real_orthogonal: bool
     all_layers_local: bool
@@ -64,9 +65,11 @@ class RuleToVerdictResult:
     complementary_rank_6_4_pairs: int
     lower_rank_central_idempotents: tuple[CentralIdempotent, ...]
     generated_j_solved: bool
+    generated_j_moduli_dimension: int | None
     generated_complex_structures: tuple[ComplexStructureCandidate, ...]
     compatible_centralizer_dimension: int
     compatible_j_solved: bool
+    compatible_j_moduli_dimension: int | None
     compatible_complex_structures: tuple[ComplexStructureCandidate, ...]
     forced_j_found: bool
     rank_6_4_pair_commutes_with_forced_j: bool
@@ -211,6 +214,58 @@ def _solve_matrix_equations(
     return tuple(complete_solutions)
 
 
+def _polynomial_system_moduli_dimension(
+    equations: Sequence[sp.Expr],
+    variables: Sequence[sp.Symbol],
+) -> int | None:
+    if not equations:
+        return len(variables)
+    try:
+        basis = sp.groebner(equations, *variables)
+    except (NotImplementedError, ValueError, sp.PolynomialError):
+        return None
+    if basis.is_zero_dimensional:
+        return 0
+    return None
+
+
+def _natural_eigenvalue_field_label(eigenvalues: Sequence[sp.Expr]) -> str:
+    if all(value.is_Rational for value in eigenvalues):
+        return "QQ"
+    values = ", ".join(str(value) for value in eigenvalues)
+    return f"QQ({values})"
+
+
+def _compatible_j_moduli_dimension_from_single_generator(
+    generator: sp.Matrix,
+) -> int | None:
+    """Estimate orthogonal compatible-J moduli from repeated spectral sectors."""
+
+    eigenvals = generator.eigenvals()
+    seen: set[sp.Expr] = set()
+    dimension = 0
+    for eigenvalue, multiplicity in eigenvals.items():
+        if eigenvalue in seen:
+            continue
+        conjugate = sp.conjugate(eigenvalue)
+        seen.add(eigenvalue)
+        seen.add(conjugate)
+
+        if sp.simplify(eigenvalue - conjugate) == 0:
+            if multiplicity % 2:
+                return None
+            half_rank = multiplicity // 2
+            dimension += half_rank * (half_rank - 1)
+            continue
+
+        conjugate_multiplicity = eigenvals.get(conjugate)
+        if conjugate_multiplicity != multiplicity:
+            return None
+        if multiplicity > 1:
+            dimension += multiplicity * (multiplicity + 1) // 2
+    return dimension
+
+
 def solve_central_idempotents(
     center_basis: Sequence[sp.Matrix],
     *,
@@ -259,9 +314,9 @@ def solve_complex_structures_in_basis(
     source: Literal["generated_algebra", "compatible_centralizer"],
     max_basis_dimension: int = 8,
     dimension: int = 10,
-) -> tuple[bool, tuple[ComplexStructureCandidate, ...]]:
+) -> tuple[bool, int | None, tuple[ComplexStructureCandidate, ...]]:
     if len(basis) > max_basis_dimension:
-        return False, ()
+        return False, None, ()
 
     variables = sp.symbols(f"j0:{len(basis)}")
     candidate = sp.zeros(dimension)
@@ -271,6 +326,8 @@ def solve_complex_structures_in_basis(
     equations = (candidate * candidate + identity(dimension)).col_join(
         candidate.T * candidate - identity(dimension)
     )
+    expanded_equations = tuple(sp.expand(value) for value in equations if sp.expand(value) != 0)
+    moduli_dimension = _polynomial_system_moduli_dimension(expanded_equations, variables)
     solutions = _solve_matrix_equations(basis, equations, variables=variables)
     candidates: list[ComplexStructureCandidate] = []
     seen: set[tuple[sp.Expr, ...]] = set()
@@ -292,7 +349,7 @@ def solve_complex_structures_in_basis(
                 source=source,
             )
         )
-    return True, tuple(candidates)
+    return True, moduli_dimension, tuple(candidates)
 
 
 def _complementary_rank_6_4_pairs(
@@ -347,8 +404,16 @@ def _forced_j(
     compatible: Sequence[ComplexStructureCandidate],
     *,
     compatible_solved: bool,
+    compatible_j_moduli_dimension: int | None,
 ) -> bool:
-    if not generated or not compatible_solved or len(compatible) != 2:
+    # Candidate counting is meaningful only after the compatible variety is
+    # certified zero-dimensional.
+    if (
+        not generated
+        or not compatible_solved
+        or compatible_j_moduli_dimension != 0
+        or len(compatible) != 2
+    ):
         return False
     for candidate in generated:
         candidate_pair = (candidate.matrix, -candidate.matrix)
@@ -394,23 +459,38 @@ def rule_to_verdict(
     rank_pairs = _complementary_rank_6_4_pairs(idempotents, dimension=dimension)
     lower_rank = _lower_rank_idempotents_inside_pairs(idempotents, rank_pairs)
 
-    generated_j_solved, generated_j = solve_complex_structures_in_basis(
+    generated_j_solved, generated_j_moduli_dimension, generated_j = solve_complex_structures_in_basis(
         algebra,
         source="generated_algebra",
         max_basis_dimension=max_j_solve_dimension,
         dimension=dimension,
     )
     compatible_basis = centralizer_basis(layer_matrices, dimension=dimension)
-    compatible_j_solved, compatible_j = solve_complex_structures_in_basis(
+    (
+        compatible_j_solved,
+        solved_compatible_j_moduli_dimension,
+        compatible_j,
+    ) = solve_complex_structures_in_basis(
         compatible_basis,
         source="compatible_centralizer",
         max_basis_dimension=max_j_solve_dimension,
         dimension=dimension,
     )
+    estimated_compatible_j_moduli_dimension = (
+        _compatible_j_moduli_dimension_from_single_generator(layer_matrices[0])
+        if len(layer_matrices) == 1
+        else None
+    )
+    compatible_j_moduli_dimension = (
+        solved_compatible_j_moduli_dimension
+        if solved_compatible_j_moduli_dimension is not None
+        else estimated_compatible_j_moduli_dimension
+    )
     forced_j_found = _forced_j(
         generated_j,
         compatible_j,
         compatible_solved=compatible_j_solved,
+        compatible_j_moduli_dimension=compatible_j_moduli_dimension,
     )
     pair_commutes = _pair_commutes_with_forced_j(
         rank_pairs,
@@ -441,6 +521,7 @@ def rule_to_verdict(
     return RuleToVerdictResult(
         rule_name=rule_name,
         exact_working_field=EXACT_WORKING_FIELD,
+        natural_eigenvalue_field=_natural_eigenvalue_field_label(floquet.eigenvals().keys()),
         layer_count=len(layers),
         all_layers_real_orthogonal=all(
             is_real_matrix(layer.matrix) and is_real_orthogonal(layer.matrix)
@@ -458,9 +539,11 @@ def rule_to_verdict(
         complementary_rank_6_4_pairs=len(rank_pairs),
         lower_rank_central_idempotents=lower_rank,
         generated_j_solved=generated_j_solved,
+        generated_j_moduli_dimension=generated_j_moduli_dimension,
         generated_complex_structures=generated_j,
         compatible_centralizer_dimension=len(compatible_basis),
         compatible_j_solved=compatible_j_solved,
+        compatible_j_moduli_dimension=compatible_j_moduli_dimension,
         compatible_complex_structures=compatible_j,
         forced_j_found=forced_j_found,
         rank_6_4_pair_commutes_with_forced_j=pair_commutes,
@@ -514,6 +597,7 @@ def result_to_dict(result: RuleToVerdictResult) -> dict[str, object]:
     return {
         "rule_name": result.rule_name,
         "exact_working_field": result.exact_working_field,
+        "natural_eigenvalue_field": result.natural_eigenvalue_field,
         "layer_count": result.layer_count,
         "all_layers_real_orthogonal": result.all_layers_real_orthogonal,
         "all_layers_local": result.all_layers_local,
@@ -537,12 +621,14 @@ def result_to_dict(result: RuleToVerdictResult) -> dict[str, object]:
             for idempotent in result.lower_rank_central_idempotents
         ],
         "generated_j_solved": result.generated_j_solved,
+        "generated_j_moduli_dimension": result.generated_j_moduli_dimension,
         "generated_complex_structures": [
             _complex_structure_to_dict(candidate)
             for candidate in result.generated_complex_structures
         ],
         "compatible_j_solved": result.compatible_j_solved,
         "compatible_centralizer_dimension": result.compatible_centralizer_dimension,
+        "compatible_j_moduli_dimension": result.compatible_j_moduli_dimension,
         "compatible_complex_structure_count": len(result.compatible_complex_structures),
         "compatible_complex_structures": [
             _complex_structure_to_dict(candidate)

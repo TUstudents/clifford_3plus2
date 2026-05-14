@@ -31,7 +31,7 @@ normalizer_check: candidate_only
 real_qca_branch_check: candidate_only
 rule_space_exploration: no forced survivors
 unseeded_projector_discovery: no complementary 6+4 pair
-rule_to_verdict_check: unified negative interface with exact field metadata
+rule_to_verdict_check: unified negative interface with exact field and J-moduli metadata
 floquet_alpha_search: coarse 6+4 center, scaled polarization J certificate
 defect_beta_search: monodromy 6+4 center, scaled monodromy J certificate
 Spin(10) branching check: passes
@@ -296,8 +296,9 @@ polarization `J` from the same mandatory Floquet layer:
 ```text
 polarization_j_candidates: 10
 scaled_polarization_certified_candidates: 10
+generated_j_moduli_dimension: 0
 compatible_centralizer_dimension: 26
-compatible_j_variety_dimension: 9
+compatible_j_moduli_dimension: 9
 strict_compatible_j_forced_candidates: 0
 strict_bridge_candidates: 0
 verdict_counts: {'polarization_j_produced_not_strictly_unique': 10}
@@ -315,8 +316,9 @@ physical route:
 ```text
 monodromy_candidates: 10
 scaled_monodromy_certified_candidates: 10
+generated_j_moduli_dimension: 0
 compatible_centralizer_dimension: 26
-compatible_j_variety_dimension: 9
+compatible_j_moduli_dimension: 9
 strict_compatible_j_forced_candidates: 0
 strict_bridge_candidates: 0
 verdict_counts: {'monodromy_j_produced_not_strictly_unique': 10}
@@ -331,6 +333,8 @@ The strict obstruction is not a four-sign ambiguity. In both α and β, the
 compatible centralizer is `M_3(C) ⊕ M_2(C)` of real dimension `26`, and the
 compatible orthogonal complex structures contain a 9-dimensional
 `U(3)/O(3) × U(2)/O(2)` family.
+The checker now treats `forced_j_found` as a moduli statement: finite candidate
+matching is considered only after `compatible_j_moduli_dimension = 0`.
 
 ## QCA Input Contract
 

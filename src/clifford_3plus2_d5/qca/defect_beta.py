@@ -13,7 +13,7 @@ from clifford_3plus2_d5.qca.floquet_alpha import (
     ETA_PHASE,
     FLOQUET_ALPHA_ALPHA_SECTOR_CENTRALIZER_DIMENSION,
     FLOQUET_ALPHA_COMPATIBLE_CENTRALIZER_DIMENSION,
-    FLOQUET_ALPHA_COMPATIBLE_J_VARIETY_DIMENSION,
+    FLOQUET_ALPHA_COMPATIBLE_J_MODULI_DIMENSION,
     FLOQUET_ALPHA_EXACT_WORKING_FIELD,
     FLOQUET_ALPHA_ETA_SECTOR_CENTRALIZER_DIMENSION,
     pair_rotation,
@@ -27,7 +27,7 @@ DEFECT_BETA_OMEGA_SECTOR_CENTRALIZER_DIMENSION = (
 )
 DEFECT_BETA_I_SECTOR_CENTRALIZER_DIMENSION = FLOQUET_ALPHA_ETA_SECTOR_CENTRALIZER_DIMENSION
 DEFECT_BETA_COMPATIBLE_CENTRALIZER_DIMENSION = FLOQUET_ALPHA_COMPATIBLE_CENTRALIZER_DIMENSION
-DEFECT_BETA_COMPATIBLE_J_VARIETY_DIMENSION = FLOQUET_ALPHA_COMPATIBLE_J_VARIETY_DIMENSION
+DEFECT_BETA_COMPATIBLE_J_MODULI_DIMENSION = FLOQUET_ALPHA_COMPATIBLE_J_MODULI_DIMENSION
 
 
 @dataclass(frozen=True)
@@ -71,10 +71,11 @@ class DefectBetaCertificate:
     central_idempotent_ranks: tuple[int, ...]
     complementary_rank_6_4_pairs: int
     lower_rank_central_idempotents: int
+    generated_j_moduli_dimension: int | None
     omega_sector_centralizer_dimension: int
     i_sector_centralizer_dimension: int
     compatible_centralizer_dimension: int
-    compatible_j_variety_dimension: int
+    compatible_j_moduli_dimension: int
     strict_compatible_j_forced: bool
     compatible_j_solved: bool
     beta_monodromy_passed: bool
@@ -301,10 +302,15 @@ def defect_beta_certificate(candidate: DefectBetaCandidate) -> DefectBetaCertifi
         central_idempotent_ranks=tuple(item.rank for item in verdict.central_idempotents),
         complementary_rank_6_4_pairs=verdict.complementary_rank_6_4_pairs,
         lower_rank_central_idempotents=len(verdict.lower_rank_central_idempotents),
+        generated_j_moduli_dimension=verdict.generated_j_moduli_dimension,
         omega_sector_centralizer_dimension=DEFECT_BETA_OMEGA_SECTOR_CENTRALIZER_DIMENSION,
         i_sector_centralizer_dimension=DEFECT_BETA_I_SECTOR_CENTRALIZER_DIMENSION,
         compatible_centralizer_dimension=verdict.compatible_centralizer_dimension,
-        compatible_j_variety_dimension=DEFECT_BETA_COMPATIBLE_J_VARIETY_DIMENSION,
+        compatible_j_moduli_dimension=(
+            verdict.compatible_j_moduli_dimension
+            if verdict.compatible_j_moduli_dimension is not None
+            else DEFECT_BETA_COMPATIBLE_J_MODULI_DIMENSION
+        ),
         strict_compatible_j_forced=verdict.forced_j_found,
         compatible_j_solved=verdict.compatible_j_solved,
         beta_monodromy_passed=beta_monodromy_passed,

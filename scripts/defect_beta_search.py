@@ -45,12 +45,13 @@ def _certificate_to_dict(certificate: DefectBetaCertificate) -> dict[str, object
         "central_idempotent_ranks": list(certificate.central_idempotent_ranks),
         "complementary_rank_6_4_pairs": certificate.complementary_rank_6_4_pairs,
         "lower_rank_central_idempotents": certificate.lower_rank_central_idempotents,
+        "generated_j_moduli_dimension": certificate.generated_j_moduli_dimension,
         "omega_sector_centralizer_dimension": (
             certificate.omega_sector_centralizer_dimension
         ),
         "i_sector_centralizer_dimension": certificate.i_sector_centralizer_dimension,
         "compatible_centralizer_dimension": certificate.compatible_centralizer_dimension,
-        "compatible_j_variety_dimension": certificate.compatible_j_variety_dimension,
+        "compatible_j_moduli_dimension": certificate.compatible_j_moduli_dimension,
         "strict_compatible_j_forced": certificate.strict_compatible_j_forced,
         "compatible_j_solved": certificate.compatible_j_solved,
         "beta_monodromy_passed": certificate.beta_monodromy_passed,
@@ -83,8 +84,9 @@ def main() -> int:
         "scaled_monodromy_certified_candidates": sum(
             certificate.scaled_monodromy_certified for certificate in certificates
         ),
+        "generated_j_moduli_dimension": certificates[0].generated_j_moduli_dimension,
         "compatible_centralizer_dimension": certificates[0].compatible_centralizer_dimension,
-        "compatible_j_variety_dimension": certificates[0].compatible_j_variety_dimension,
+        "compatible_j_moduli_dimension": certificates[0].compatible_j_moduli_dimension,
         "strict_compatible_j_forced_candidates": sum(
             certificate.strict_compatible_j_forced for certificate in certificates
         ),
@@ -110,8 +112,9 @@ def main() -> int:
             "scaled_monodromy_certified_candidates: "
             f"{payload['scaled_monodromy_certified_candidates']}"
         )
+        print(f"generated_j_moduli_dimension: {payload['generated_j_moduli_dimension']}")
         print(f"compatible_centralizer_dimension: {payload['compatible_centralizer_dimension']}")
-        print(f"compatible_j_variety_dimension: {payload['compatible_j_variety_dimension']}")
+        print(f"compatible_j_moduli_dimension: {payload['compatible_j_moduli_dimension']}")
         print(f"strict_compatible_j_forced_candidates: {payload['strict_compatible_j_forced_candidates']}")
         print(f"strict_bridge_candidates: {payload['strict_bridge_candidates']}")
         print(f"verdict_counts: {payload['verdict_counts']}")
@@ -128,7 +131,7 @@ def main() -> int:
                 f"scaled_cert={str(certificate.scaled_monodromy_certified).lower()}, "
                 f"center_ranks={list(certificate.central_idempotent_ranks)}, "
                 f"centralizer_dim={certificate.compatible_centralizer_dimension}, "
-                f"j_variety_dim={certificate.compatible_j_variety_dimension}, "
+                f"j_moduli_dim={certificate.compatible_j_moduli_dimension}, "
                 f"monodromy_j={str(certificate.beta_monodromy_passed).lower()}, "
                 f"strict_forced_j={str(certificate.strict_compatible_j_forced).lower()}, "
                 f"verdict={certificate.verdict}"

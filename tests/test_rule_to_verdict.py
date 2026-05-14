@@ -31,7 +31,9 @@ def test_minimal_period_four_rule_has_j_but_no_6_4_center() -> None:
     assert result.center_solved
     assert [item.rank for item in result.central_idempotents] == [0, 10]
     assert result.generated_j_solved
+    assert result.generated_j_moduli_dimension == 0
     assert len(result.generated_complex_structures) == 2
+    assert result.compatible_j_moduli_dimension is None
     assert result.complementary_rank_6_4_pairs == 0
     assert result.verdict == "falsified_no_rank_6_4_center"
     assert not result.pass_rule_to_bridge
@@ -53,7 +55,9 @@ def test_block_reflection_rule_finds_pair_but_not_forced_j() -> None:
     assert result.complementary_rank_6_4_pairs == 1
     assert result.lower_rank_central_idempotents == ()
     assert result.generated_j_solved
+    assert result.generated_j_moduli_dimension == 0
     assert len(result.generated_complex_structures) == 4
+    assert result.compatible_j_moduli_dimension is None
     assert not result.compatible_j_solved
     assert not result.forced_j_found
     assert result.verdict == "candidate_only_j_not_forced"
@@ -81,10 +85,13 @@ def test_result_serialization_is_stable() -> None:
 
     assert payload["rule_name"] == "minimal_period_four_clock_candidate"
     assert payload["exact_working_field"] == EXACT_WORKING_FIELD
+    assert payload["natural_eigenvalue_field"] == "QQ"
     assert payload["floquet_spectrum"] == [{"eigenvalue": "1", "multiplicity": 10}]
     assert payload["central_idempotent_ranks"] == [0, 10]
     assert payload["generated_j_solved"] is True
+    assert payload["generated_j_moduli_dimension"] == 0
     assert isinstance(payload["compatible_centralizer_dimension"], int)
+    assert payload["compatible_j_moduli_dimension"] is None
     assert payload["compatible_j_solved"] is False
     assert payload["pass_rule_to_bridge"] is False
     assert payload["load_bearing_qca_bridge"] is False
@@ -112,6 +119,7 @@ def test_rule_to_verdict_cli_json() -> None:
     assert payload["central_idempotent_ranks"] == [0, 4, 6, 10]
     assert payload["complementary_rank_6_4_pairs"] == 1
     assert isinstance(payload["compatible_centralizer_dimension"], int)
+    assert payload["compatible_j_moduli_dimension"] is None
     assert payload["forced_j_found"] is False
 
 

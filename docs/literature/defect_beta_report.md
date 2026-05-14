@@ -75,8 +75,9 @@ Current output:
 candidate_count: 10
 monodromy_candidates: 10
 scaled_monodromy_certified_candidates: 10
+generated_j_moduli_dimension: 0
 compatible_centralizer_dimension: 26
-compatible_j_variety_dimension: 9
+compatible_j_moduli_dimension: 9
 strict_compatible_j_forced_candidates: 0
 strict_bridge_candidates: 0
 verdict_counts: {'monodromy_j_produced_not_strictly_unique': 10}
@@ -96,8 +97,9 @@ central_idempotent_ranks = [0, 4, 6, 10]
 lower_rank_central_idempotents = 0
 scaled_monodromy_certified = true
 canonical_j_generated_by_monodromy = true
+generated_j_moduli_dimension = 0
 compatible_centralizer_dimension = 26
-compatible_j_variety_dimension = 9
+compatible_j_moduli_dimension = 9
 strict_compatible_j_forced = false
 ```
 

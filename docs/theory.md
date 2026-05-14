@@ -198,6 +198,9 @@ The theorem-standard decision is documented in
 [Floquet Alpha J Obstruction](literature/floquet_alpha_j_obstruction.md). The
 project must distinguish a canonical spectral/monodromy `J` from strict
 uniqueness of the full compatible-`J` variety.
+In the checker, strict forcedness is therefore a moduli condition:
+`compatible_j_moduli_dimension` must be `0` before finite candidate matching
+can prove `forced_j_found`.
 
 The second physical family is Defect-β, documented in
 [Defect Beta Report](literature/defect_beta_report.md). It computes

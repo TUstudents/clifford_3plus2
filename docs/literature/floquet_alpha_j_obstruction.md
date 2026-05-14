@@ -94,11 +94,16 @@ So the spectral-vs-strict gap is a roughly nine-parameter family of valid
 compatible `J'`, not a finite sign ambiguity. The checker reports:
 
 ```text
+generated_j_moduli_dimension = 0
 compatible_centralizer_dimension = 26
-compatible_j_variety_dimension = 9
+compatible_j_moduli_dimension = 9
 strict_compatible_j_forced = false
 pass_strict_rule_to_bridge = false
 ```
+
+The strict checker now treats forcedness as a moduli condition. A length-two
+candidate list is only meaningful after the compatible `J` moduli dimension has
+collapsed to `0`; parametric families are never accepted as forced.
 
 ## Decision
 

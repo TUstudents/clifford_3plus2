@@ -103,8 +103,9 @@ Current alpha-plus output:
 candidate_count: 10
 polarization_j_candidates: 10
 scaled_polarization_certified_candidates: 10
+generated_j_moduli_dimension: 0
 compatible_centralizer_dimension: 26
-compatible_j_variety_dimension: 9
+compatible_j_moduli_dimension: 9
 strict_compatible_j_forced_candidates: 0
 strict_bridge_candidates: 0
 verdict_counts: {'polarization_j_produced_not_strictly_unique': 10}
@@ -121,8 +122,9 @@ It still does not solve the bridge:
 
 ```text
 canonical_j_generated_by_floquet = true
+generated_j_moduli_dimension = 0
 compatible_centralizer_dimension = 26
-compatible_j_variety_dimension = 9
+compatible_j_moduli_dimension = 9
 strict_compatible_j_forced = false
 load_bearing_qca_bridge = false
 ```

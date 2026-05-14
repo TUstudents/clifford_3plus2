@@ -110,6 +110,7 @@ def main() -> int:
         print("Spinor-16 bookkeeping is intentionally outside this verdict.")
         print(f"rule_name: {payload['rule_name']}")
         print(f"exact_working_field: {payload['exact_working_field']}")
+        print(f"natural_eigenvalue_field: {payload['natural_eigenvalue_field']}")
         print(f"layer_count: {payload['layer_count']}")
         print(f"all_layers_real_orthogonal: {str(payload['all_layers_real_orthogonal']).lower()}")
         print(f"all_layers_local: {str(payload['all_layers_local']).lower()}")
@@ -124,9 +125,11 @@ def main() -> int:
             f"{len(payload['lower_rank_central_idempotents'])}"
         )
         print(f"generated_j_solved: {str(payload['generated_j_solved']).lower()}")
+        print(f"generated_j_moduli_dimension: {payload['generated_j_moduli_dimension']}")
         print(f"generated_complex_structures: {len(payload['generated_complex_structures'])}")
         print(f"compatible_centralizer_dimension: {payload['compatible_centralizer_dimension']}")
         print(f"compatible_j_solved: {str(payload['compatible_j_solved']).lower()}")
+        print(f"compatible_j_moduli_dimension: {payload['compatible_j_moduli_dimension']}")
         print(
             "compatible_complex_structure_count: "
             f"{payload['compatible_complex_structure_count']}"

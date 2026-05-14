@@ -93,13 +93,13 @@ floquet_alpha_rank_6_4_pair_candidates: 10
 floquet_alpha_plus_polarization_j_candidates: 10
 floquet_alpha_plus_scaled_polarization_certified_candidates: 10
 floquet_alpha_plus_compatible_centralizer_dimension: 26
-floquet_alpha_plus_compatible_j_variety_dimension: 9
+floquet_alpha_plus_compatible_j_moduli_dimension: 9
 floquet_alpha_plus_strict_bridge_candidates: 0
 floquet_alpha_bridge_candidates: 0
 defect_beta_monodromy_candidates: 10
 defect_beta_scaled_monodromy_certified_candidates: 10
 defect_beta_compatible_centralizer_dimension: 26
-defect_beta_compatible_j_variety_dimension: 9
+defect_beta_compatible_j_moduli_dimension: 9
 defect_beta_strict_bridge_candidates: 0
 branching_check_passed: true
 qca_split_audit_verdict: notation_only
@@ -894,8 +894,9 @@ Alpha-plus outcome:
 ```text
 polarization_j_candidates = 10
 scaled_polarization_certified_candidates = 10
+generated_j_moduli_dimension = 0
 compatible_centralizer_dimension = 26
-compatible_j_variety_dimension = 9
+compatible_j_moduli_dimension = 9
 strict_compatible_j_forced_candidates = 0
 strict_bridge_candidates = 0
 verdict_counts = {'polarization_j_produced_not_strictly_unique': 10}
@@ -944,8 +945,9 @@ Current outcome:
 ```text
 monodromy_candidates = 10
 scaled_monodromy_certified_candidates = 10
+generated_j_moduli_dimension = 0
 compatible_centralizer_dimension = 26
-compatible_j_variety_dimension = 9
+compatible_j_moduli_dimension = 9
 strict_compatible_j_forced_candidates = 0
 strict_bridge_candidates = 0
 verdict_counts = {'monodromy_j_produced_not_strictly_unique': 10}

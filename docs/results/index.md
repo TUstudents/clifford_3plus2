@@ -413,11 +413,14 @@ Unified rule-to-verdict minimal clock:
 
 ```text
 rule_name: minimal_period_four_clock_candidate
+natural_eigenvalue_field: QQ
 floquet_spectrum: [{'eigenvalue': '1', 'multiplicity': 10}]
 generated_algebra_dimension: 2
 center_dimension: 2
 central_idempotent_ranks: [0, 10]
+generated_j_moduli_dimension: 0
 generated_complex_structures: 2
+compatible_j_moduli_dimension: None
 forced_j_found: false
 pass_rule_to_bridge: false
 verdict: falsified_no_rank_6_4_center
@@ -428,14 +431,17 @@ Unified rule-to-verdict block reflection:
 
 ```text
 rule_name: clock_block_reflection_rule
+natural_eigenvalue_field: QQ(-I, I)
 generated_algebra_dimension: 4
 center_dimension: 4
 central_idempotent_ranks: [0, 4, 6, 10]
 complementary_rank_6_4_pairs: 1
 lower_rank_central_idempotents: 0
+generated_j_moduli_dimension: 0
 generated_complex_structures: 4
 compatible_centralizer_dimension: 26
 compatible_j_solved: false
+compatible_j_moduli_dimension: None
 forced_j_found: false
 pass_rule_to_bridge: false
 verdict: candidate_only_j_not_forced
@@ -474,8 +480,9 @@ It reports the strict compatible-J obstruction separately.
 candidate_count: 10
 polarization_j_candidates: 10
 scaled_polarization_certified_candidates: 10
+generated_j_moduli_dimension: 0
 compatible_centralizer_dimension: 26
-compatible_j_variety_dimension: 9
+compatible_j_moduli_dimension: 9
 strict_compatible_j_forced_candidates: 0
 strict_bridge_candidates: 0
 verdict_counts: {'polarization_j_produced_not_strictly_unique': 10}
@@ -490,8 +497,9 @@ It computes round-trip monodromy from wall transition functions.
 candidate_count: 10
 monodromy_candidates: 10
 scaled_monodromy_certified_candidates: 10
+generated_j_moduli_dimension: 0
 compatible_centralizer_dimension: 26
-compatible_j_variety_dimension: 9
+compatible_j_moduli_dimension: 9
 strict_compatible_j_forced_candidates: 0
 strict_bridge_candidates: 0
 verdict_counts: {'monodromy_j_produced_not_strictly_unique': 10}
