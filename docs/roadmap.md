@@ -920,8 +920,9 @@ docs/literature/defect_beta_report.md
 Family:
 
 ```text
-two mandatory wall-cycle transition functions
-round-trip monodromy computed as their product
+two distinct orientation-reversing wall-cycle transition functions
+clutching reflection C = diag(-I_5, I_5)
+round-trip monodromy computed by T_exit T_entry = H C C H = H^2
 three mode pairs with omega = exp(2 pi i / 3)
 two mode pairs with i
 ten defect-charge patterns enumerated
@@ -941,7 +942,7 @@ Interpretation:
 
 ```text
 Defect-beta confirms the same obstruction as Floquet-alpha-plus through a
-different physical mechanism: the spectral/monodromy data produce the coarse
+non-identical wall transitions: the spectral/monodromy data produce the coarse
 center and a canonical J, but strict compatible-J uniqueness is not proven.
 ```
 

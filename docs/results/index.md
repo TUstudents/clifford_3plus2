@@ -579,9 +579,10 @@ quantized resonance layer. It produces the coarse `6+4` center in all ten
 patterns, without rank-one centers. Alpha-plus extracts a canonical
 spectral-polarization `J` from the same rule operator in all ten patterns, but
 strict compatible-commutant uniqueness still fails.
-Defect-beta reaches the same result through computed wall-cycle monodromy:
-coarse center and canonical monodromy `J` are present, but strict compatible
-`J` uniqueness remains open.
+Defect-beta now uses distinct orientation-reversing wall transitions whose
+product gives the monodromy by a clutching identity. It reaches the same
+spectral verdict: coarse center and canonical monodromy `J` are present, but
+strict compatible `J` uniqueness remains open.
 ```
 
 ## Active Roadmap Update

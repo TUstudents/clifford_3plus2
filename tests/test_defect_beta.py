@@ -9,9 +9,11 @@ import sympy as sp
 
 from clifford_3plus2_d5.algebra.matrices import identity
 from clifford_3plus2_d5.qca.defect_beta import (
+    defect_beta_clutching_reflection,
     defect_beta_candidates,
     defect_beta_canonical_j,
     defect_beta_certificate,
+    defect_beta_half_monodromy,
     defect_beta_monodromy_operator,
     defect_beta_spectral_projectors,
     defect_beta_transition_functions,
@@ -34,11 +36,18 @@ def test_defect_beta_enumerates_defect_charge_patterns() -> None:
 def test_defect_beta_monodromy_is_computed_from_transitions() -> None:
     candidate = defect_beta_candidates()[0]
     transitions = defect_beta_transition_functions(candidate)
+    clutching = defect_beta_clutching_reflection()
+    half_turn = defect_beta_half_monodromy(candidate)
     monodromy = identity(10)
     for transition in transitions:
         monodromy = transition.matrix * monodromy
 
     assert len(transitions) == 2
+    assert transitions[0].matrix != transitions[1].matrix
+    assert [transition.matrix.det() for transition in transitions] == [-1, -1]
+    assert clutching.det() == -1
+    assert clutching * clutching == identity(10)
+    assert monodromy == half_turn * half_turn
     assert sp.simplify(monodromy) == defect_beta_monodromy_operator(candidate)
     assert monodromy.T * monodromy == identity(10)
 
@@ -62,6 +71,10 @@ def test_defect_beta_reports_monodromy_j_and_strict_obstruction() -> None:
 
     assert certificate.transition_count == 2
     assert certificate.monodromy_computed_from_transitions
+    assert certificate.entry_exit_transitions_distinct
+    assert certificate.transition_determinants == (-1, -1)
+    assert certificate.clutching_reflection_determinant == -1
+    assert certificate.clutching_identity_passed
     assert certificate.omega_projector_rank == 6
     assert certificate.i_projector_rank == 4
     assert certificate.beta_monodromy_passed
@@ -93,6 +106,9 @@ def test_defect_beta_cli_single_pattern() -> None:
 
     assert payload["candidate_count"] == 1
     assert payload["monodromy_candidates"] == 1
+    assert payload["results"][0]["entry_exit_transitions_distinct"] is True
+    assert payload["results"][0]["transition_determinants"] == [-1, -1]
+    assert payload["results"][0]["clutching_identity_passed"] is True
     assert payload["strict_compatible_j_forced_candidates"] == 0
     assert payload["strict_bridge_candidates"] == 0
     assert payload["verdict_counts"] == {

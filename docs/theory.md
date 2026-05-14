@@ -200,9 +200,10 @@ uniqueness of the full compatible-`J` variety.
 
 The second physical family is Defect-β, documented in
 [Defect Beta Report](literature/defect_beta_report.md). It computes
-round-trip monodromy from wall-cycle transition functions. All ten defect
-charge patterns produce the same coarse center and canonical monodromy `J`;
-the same strict compatible-commutant obstruction remains.
+round-trip monodromy from two distinct orientation-reversing wall-cycle
+transition functions. All ten defect charge patterns produce the same coarse
+center and canonical monodromy `J`; the same strict compatible-commutant
+obstruction remains.
 
 ## Load-Bearing Conditions
 

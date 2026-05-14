@@ -15,6 +15,10 @@ def _certificate_to_dict(certificate: DefectBetaCertificate) -> dict[str, object
         "candidate_name": certificate.candidate_name,
         "transition_count": certificate.transition_count,
         "monodromy_computed_from_transitions": certificate.monodromy_computed_from_transitions,
+        "entry_exit_transitions_distinct": certificate.entry_exit_transitions_distinct,
+        "transition_determinants": list(certificate.transition_determinants),
+        "clutching_reflection_determinant": certificate.clutching_reflection_determinant,
+        "clutching_identity_passed": certificate.clutching_identity_passed,
         "omega_projector_rank": certificate.omega_projector_rank,
         "i_projector_rank": certificate.i_projector_rank,
         "spectral_projectors_are_idempotent": certificate.spectral_projectors_are_idempotent,
@@ -87,6 +91,8 @@ def main() -> int:
                 "candidate: "
                 f"{certificate.candidate_name}, "
                 f"transitions={certificate.transition_count}, "
+                f"distinct_transitions={str(certificate.entry_exit_transitions_distinct).lower()}, "
+                f"transition_dets={list(certificate.transition_determinants)}, "
                 f"omega_i_ranks=({certificate.omega_projector_rank},"
                 f"{certificate.i_projector_rank}), "
                 f"center_ranks={list(certificate.central_idempotent_ranks)}, "

@@ -29,10 +29,30 @@ T_entry
 T_exit
 ```
 
-Their product is the monodromy:
+They are distinct orientation-reversing wall-chart maps. The implementation
+uses the clutching reflection:
+
+```text
+C = diag(-I_5, I_5)
+C^2 = I
+det(C) = -1
+```
+
+and a half-monodromy `H`:
+
+```text
+T_entry = C H
+T_exit = H C
+T_entry != T_exit
+det(T_entry) = det(T_exit) = -1
+```
+
+Their product is the monodromy by the wall clutching identity:
 
 ```text
 M_defect = T_exit T_entry
+         = H C C H
+         = H^2
 ```
 
 The search enumerates the ten choices of which three mode pairs carry the
@@ -59,6 +79,9 @@ Each candidate has:
 
 ```text
 transition_count = 2
+entry_exit_transitions_distinct = true
+transition_determinants = [-1, -1]
+clutching_identity_passed = true
 omega_projector_rank = 6
 i_projector_rank = 4
 central_idempotent_ranks = [0, 4, 6, 10]
@@ -70,9 +93,10 @@ strict_compatible_j_forced = false
 ## Interpretation
 
 Defect-β confirms that the α+ obstruction is not an artifact of Floquet
-notation. A computed monodromy can produce the same coarse `6+4` central
-idempotent lattice and a canonical spectral `J`, but the strict compatible
-commutant still does not collapse to `±J`.
+notation. It is not merely the old identical-half factorization: the entry and
+exit transitions are different orientation-reversing wall maps. The computed
+monodromy still has the same spectral data as Floquet-α, so the same strict
+compatible-commutant obstruction remains.
 
 The bridge remains non-load-bearing:
 

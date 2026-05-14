@@ -29,6 +29,10 @@ class DefectBetaCertificate:
     candidate_name: str
     transition_count: int
     monodromy_computed_from_transitions: bool
+    entry_exit_transitions_distinct: bool
+    transition_determinants: tuple[int, ...]
+    clutching_reflection_determinant: int
+    clutching_identity_passed: bool
     omega_projector_rank: int
     i_projector_rank: int
     spectral_projectors_are_idempotent: bool
@@ -68,27 +72,48 @@ def defect_beta_candidates() -> tuple[DefectBetaCandidate, ...]:
     return tuple(candidates)
 
 
-def defect_beta_transition_functions(
-    candidate: DefectBetaCandidate,
-) -> tuple[RuleLayerInput, ...]:
-    """Return wall-cycle transitions whose product is the defect monodromy."""
+def defect_beta_clutching_reflection() -> sp.Matrix:
+    """Return the orientation-reversing wall chart change C.
 
+    The reflection flips the clock-x half of the real carrier. It satisfies
+    C^2 = I and conjugates every pair rotation to its inverse, so entry and
+    exit can live in different wall cosets while their product is a monodromy.
+    """
+
+    reflection = identity(10)
+    for index in range(5):
+        reflection[index, index] = -1
+    return reflection
+
+
+def defect_beta_half_monodromy(candidate: DefectBetaCandidate) -> sp.Matrix:
     half_turn = identity(10)
     for mode in candidate.omega_modes:
         half_turn = pair_rotation(mode, ALPHA_PHASE / 2) * half_turn
     for mode in candidate.i_modes:
         half_turn = pair_rotation(mode, ETA_PHASE / 2) * half_turn
-    half_turn = _simplify_matrix(half_turn)
+    return _simplify_matrix(half_turn)
+
+
+def defect_beta_transition_functions(
+    candidate: DefectBetaCandidate,
+) -> tuple[RuleLayerInput, ...]:
+    """Return wall-cycle transitions whose product is the defect monodromy."""
+
+    half_turn = defect_beta_half_monodromy(candidate)
+    clutching = defect_beta_clutching_reflection()
+    entry = _simplify_matrix(clutching * half_turn)
+    exit = _simplify_matrix(half_turn * clutching)
     return (
         RuleLayerInput(
             name=f"{candidate.name}_wall_entry",
-            matrix=half_turn,
+            matrix=entry,
             support=(0, 1),
             locality_radius=1,
         ),
         RuleLayerInput(
             name=f"{candidate.name}_wall_exit",
-            matrix=half_turn,
+            matrix=exit,
             support=(1, 0),
             locality_radius=1,
         ),
@@ -148,6 +173,16 @@ def defect_beta_rule_to_verdict(
 
 def defect_beta_certificate(candidate: DefectBetaCandidate) -> DefectBetaCertificate:
     verdict = defect_beta_rule_to_verdict(candidate)
+    transitions = defect_beta_transition_functions(candidate)
+    half_turn = defect_beta_half_monodromy(candidate)
+    clutching = defect_beta_clutching_reflection()
+    computed_monodromy = identity(10)
+    for transition in transitions:
+        computed_monodromy = transition.matrix * computed_monodromy
+    clutching_identity_passed = (
+        _simplify_matrix(clutching * clutching - identity(10)) == sp.zeros(10)
+        and _simplify_matrix(computed_monodromy - half_turn * half_turn) == sp.zeros(10)
+    )
     omega_projector, i_projector = defect_beta_spectral_projectors(candidate)
     canonical_j = defect_beta_canonical_j(candidate)
     one = identity(10)
@@ -167,7 +202,11 @@ def defect_beta_certificate(candidate: DefectBetaCandidate) -> DefectBetaCertifi
         commutator(canonical_j, i_projector)
     )
     beta_monodromy_passed = (
-        len(defect_beta_transition_functions(candidate)) == 2
+        len(transitions) == 2
+        and transitions[0].matrix != transitions[1].matrix
+        and all(transition.matrix.det() == -1 for transition in transitions)
+        and clutching.det() == -1
+        and clutching_identity_passed
         and spectral_projectors_are_idempotent
         and spectral_projectors_are_complementary
         and omega_projector.rank() == 6
@@ -180,8 +219,12 @@ def defect_beta_certificate(candidate: DefectBetaCandidate) -> DefectBetaCertifi
     )
     return DefectBetaCertificate(
         candidate_name=candidate.name,
-        transition_count=len(defect_beta_transition_functions(candidate)),
+        transition_count=len(transitions),
         monodromy_computed_from_transitions=True,
+        entry_exit_transitions_distinct=transitions[0].matrix != transitions[1].matrix,
+        transition_determinants=tuple(int(transition.matrix.det()) for transition in transitions),
+        clutching_reflection_determinant=int(clutching.det()),
+        clutching_identity_passed=clutching_identity_passed,
         omega_projector_rank=omega_projector.rank(),
         i_projector_rank=i_projector.rank(),
         spectral_projectors_are_idempotent=spectral_projectors_are_idempotent,
