@@ -48,7 +48,7 @@ Verification:
 
 ```text
 ruff: passed
-pytest: 212 passed
+pytest: 213 passed
 ```
 
 Real carrier check:
@@ -625,8 +625,9 @@ quantized resonance layer. It produces the coarse `6+4` center in all ten
 patterns, without rank-one centers. Alpha-plus extracts a canonical
 spectral-polarization `J` from the same rule operator in all ten patterns, but
 the global compatible centralizer has dimension 26 with a 9-dimensional
-compatible-`J` family. The local compatible search shrinks this to four
-discrete local `J` choices, so strict uniqueness still fails.
+compatible-`J` family. The rule-generated local-center search already finds
+four discrete `J` choices, so strict uniqueness fails without claiming to
+exhaust every on-site local `J in M_10(R)`.
 The literal commuting cycle/swap second layer reduces the compatible
 centralizer to dimension 10 but generates rank-2 central projectors, so the
 no-locking guardrail rejects it.

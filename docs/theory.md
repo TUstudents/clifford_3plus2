@@ -212,8 +212,10 @@ project must distinguish a canonical spectral/monodromy `J` from strict
 uniqueness of the full compatible-`J` variety.
 In the checker, strict forcedness is therefore a local moduli condition:
 `local_compatible_j_moduli_dimension` must be `0` before finite candidate
-matching can prove `forced_j_found`. For α/β this local moduli dimension is
-zero, but there are still four local compatible `J` choices rather than `±J`.
+matching can prove `forced_j_found`. The `local_compatible_*` fields search
+the rule-generated local center, not all on-site local operators. For α this
+rule-generated local center already contains four compatible `J` choices
+rather than `±J`, so the rule does not single out a unique complex structure.
 
 The literal commuting second-layer repair has also been checked for Floquet-α:
 a mandatory real-orthogonal layer that cycles the three alpha modes and swaps

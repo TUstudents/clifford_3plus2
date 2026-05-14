@@ -515,10 +515,11 @@ def rule_to_verdict(
         if solved_compatible_j_moduli_dimension is not None
         else estimated_compatible_j_moduli_dimension
     )
-    # The current finite-cell model has no tensor basis for arbitrary
-    # radius-r lattice operators. The certified local compatible subspace is
-    # therefore the center of the rule-generated local algebra; the full
-    # M_10(R) centralizer above remains a diagnostic only.
+    # This is intentionally not "all local on-site operators." For a radius-0
+    # one-cell rule, all on-site local operators would be M_10(R). The
+    # falsifier used here is narrower: solve J inside the rule-generated local
+    # center. If that subalgebra already produces multiple J choices, the rule
+    # has not singled out one.
     local_compatible_basis = center
     (
         local_compatible_j_solved,

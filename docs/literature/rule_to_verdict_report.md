@@ -109,16 +109,23 @@ with the Floquet eigenvalue field reported separately. The Floquet-α and
 Defect-β certificates specialize that to `QQ(zeta_12)`, with the real matrices
 living in `QQ(sqrt(3))`.
 
-The checker records the full compatible centralizer as a diagnostic, but the
-strict forcedness test is local. In the current one-cell matrix model, the
-local compatible basis is the center of the rule-generated local algebra, not
-the full `M_10(R)` centralizer. The forcedness condition requires the local
-compatible `J` moduli dimension to be exactly zero before any finite candidate
-comparison is allowed. The nonlinear `J` equations are solved exactly only when
-the generated algebra or compatible basis is below the configured solve bound.
-When the full compatible centralizer is too large, the checker reports
+The checker records the full compatible centralizer as a diagnostic. The
+`local_compatible_*` fields are more limited than their name suggests: they
+search the center of the rule-generated local algebra. They do not enumerate
+all on-site local operators. For a radius-0 one-cell rule, all on-site local
+operators would be `M_10(R)`, not the rule-generated center. Thus
+`local_compatible_complex_structure_count = 4` means the rule's own local
+algebra already produces four `J` candidates; there may be more compatible
+on-site `J in M_10(R)`. This is a falsifier for uniqueness, not a certificate
+that all local compatible `J`s have been exhausted.
+
+The forcedness condition requires this rule-generated local `J` moduli
+dimension to be exactly zero before any finite candidate comparison is allowed.
+The nonlinear `J` equations are solved exactly only when the generated algebra
+or compatible basis is below the configured solve bound. When the full
+compatible centralizer is too large, the checker reports
 `compatible_j_solved: false` for that diagnostic solve but can still solve the
-local compatible problem.
+rule-generated local problem.
 
 The reported full-compatible `compatible_j_moduli_dimension` may fall back to
 a heuristic only in the single-generator semisimple case. That estimate counts
@@ -130,9 +137,9 @@ This is intentional. A large compatible centralizer is precisely the current
 failure mode: the rule has not selected a unique complex structure.
 For the one-layer Floquet-α family this dimension is `26`, not a small finite
 sign ambiguity, and its compatible `J` moduli dimension is heuristically
-reported as `9`. After locality restriction, the local compatible operator
-dimension is `4`, with four discrete local compatible complex structures. That
-is local but still not unique.
+reported as `9`. In the rule-generated local center, the operator dimension is
+`4`, with four discrete rule-generated local complex structures. That already
+fails uniqueness, without claiming to enumerate every on-site local `J`.
 
 ## Interpretation
 

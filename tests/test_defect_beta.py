@@ -10,8 +10,6 @@ import sympy as sp
 from clifford_3plus2_d5.algebra.matrices import identity
 from clifford_3plus2_d5.qca.defect_beta import (
     DEFECT_BETA_EXACT_WORKING_FIELD,
-    DEFECT_BETA_I_SECTOR_CENTRALIZER_DIMENSION,
-    DEFECT_BETA_OMEGA_SECTOR_CENTRALIZER_DIMENSION,
     DEFECT_BETA_SCALED_RELATION,
     defect_beta_clutching_reflection,
     defect_beta_candidates,
@@ -109,14 +107,8 @@ def test_defect_beta_reports_monodromy_j_and_strict_obstruction() -> None:
     assert certificate.scaled_monodromy_certified
     assert certificate.normalized_j_requires_sqrt3
     assert certificate.generated_j_moduli_dimension == 0
-    assert (
-        certificate.omega_sector_centralizer_dimension
-        == DEFECT_BETA_OMEGA_SECTOR_CENTRALIZER_DIMENSION
-    )
-    assert (
-        certificate.i_sector_centralizer_dimension
-        == DEFECT_BETA_I_SECTOR_CENTRALIZER_DIMENSION
-    )
+    assert certificate.omega_sector_centralizer_dimension == 18
+    assert certificate.i_sector_centralizer_dimension == 8
     assert certificate.compatible_centralizer_dimension == 13
     assert certificate.compatible_j_moduli_dimension is None
     assert certificate.locality_radius_bound == 1

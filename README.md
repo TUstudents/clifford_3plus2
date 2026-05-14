@@ -370,11 +370,12 @@ The strict obstruction is not a four-sign ambiguity. In both α and β, the
 compatible centralizer is `M_3(C) ⊕ M_2(C)` of real dimension `26`, and the
 compatible orthogonal complex structures contain a 9-dimensional
 `U(3)/O(3) × U(2)/O(2)` family.
-The checker now treats `forced_j_found` as a local moduli statement: finite
-candidate matching is considered only after
-`local_compatible_j_moduli_dimension = 0`. For α/β locality shrinks the
-compatible space to dimension `4`, but four local compatible `J`s remain, so
-strict forcedness still fails.
+The checker treats `forced_j_found` as a rule-generated local-algebra
+statement: finite candidate matching is considered only after
+`local_compatible_j_moduli_dimension = 0`. For α, the rule-generated local
+center has dimension `4` and already produces four `J` candidates. This does
+not enumerate all on-site local `J in M_10(R)`; it is a falsifier showing that
+the rule's own algebra has not singled out a unique `±J`.
 
 ## QCA Input Contract
 

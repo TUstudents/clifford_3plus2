@@ -11,12 +11,9 @@ from clifford_3plus2_d5.algebra.matrices import identity
 from clifford_3plus2_d5.qca.floquet_alpha import (
     ALPHA_PHASE,
     ETA_PHASE,
-    FLOQUET_ALPHA_ALPHA_SECTOR_CENTRALIZER_DIMENSION,
-    FLOQUET_ALPHA_COMPATIBLE_CENTRALIZER_DIMENSION,
-    FLOQUET_ALPHA_COMPATIBLE_J_MODULI_DIMENSION,
     FLOQUET_ALPHA_EXACT_WORKING_FIELD,
-    FLOQUET_ALPHA_ETA_SECTOR_CENTRALIZER_DIMENSION,
     FLOQUET_ALPHA_SCALED_RELATION,
+    floquet_alpha_compatible_centralizer_dimension,
     floquet_alpha_cycle_swap_operator,
     floquet_alpha_cycle_swap_rule_to_verdict,
     floquet_alpha_candidates,
@@ -25,6 +22,7 @@ from clifford_3plus2_d5.qca.floquet_alpha import (
     floquet_alpha_polarization_certificate,
     floquet_alpha_rule_to_verdict,
     floquet_alpha_scaled_alpha_operator,
+    floquet_alpha_sector_centralizer_dimensions,
     floquet_alpha_second_layer_certificate,
     floquet_alpha_spectral_projectors,
     pair_rotation,
@@ -82,6 +80,19 @@ def test_floquet_alpha_generates_coarse_center_without_rank_one() -> None:
     assert result.verdict == "candidate_only_j_not_forced"
 
 
+def test_floquet_alpha_computes_centralizer_and_moduli_for_all_patterns() -> None:
+    for candidate in floquet_alpha_candidates():
+        result = floquet_alpha_rule_to_verdict(candidate)
+        alpha_dimension, eta_dimension = floquet_alpha_sector_centralizer_dimensions(candidate)
+
+        assert alpha_dimension == 18
+        assert eta_dimension == 8
+        assert floquet_alpha_compatible_centralizer_dimension(candidate) == 26
+        assert result.compatible_centralizer_dimension == alpha_dimension + eta_dimension
+        assert result.compatible_centralizer_dimension == 26
+        assert result.compatible_j_moduli_dimension == 9
+
+
 def test_floquet_alpha_spectral_projectors_produce_canonical_j() -> None:
     candidate = floquet_alpha_candidates()[0]
     alpha_projector, eta_projector = floquet_alpha_spectral_projectors(candidate)
@@ -114,22 +125,10 @@ def test_floquet_alpha_plus_reports_polarization_j_and_strict_obstruction() -> N
     assert certificate.scaled_polarization_certified
     assert certificate.normalized_j_requires_sqrt3
     assert certificate.generated_j_moduli_dimension == 0
-    assert (
-        certificate.alpha_sector_centralizer_dimension
-        == FLOQUET_ALPHA_ALPHA_SECTOR_CENTRALIZER_DIMENSION
-    )
-    assert (
-        certificate.eta_sector_centralizer_dimension
-        == FLOQUET_ALPHA_ETA_SECTOR_CENTRALIZER_DIMENSION
-    )
-    assert (
-        certificate.compatible_centralizer_dimension
-        == FLOQUET_ALPHA_COMPATIBLE_CENTRALIZER_DIMENSION
-    )
-    assert (
-        certificate.compatible_j_moduli_dimension
-        == FLOQUET_ALPHA_COMPATIBLE_J_MODULI_DIMENSION
-    )
+    assert certificate.alpha_sector_centralizer_dimension == 18
+    assert certificate.eta_sector_centralizer_dimension == 8
+    assert certificate.compatible_centralizer_dimension == 26
+    assert certificate.compatible_j_moduli_dimension == 9
     assert certificate.locality_radius_bound == 0
     assert certificate.local_compatible_operator_dimension == 4
     assert certificate.local_compatible_j_solved

@@ -137,7 +137,7 @@ so the transition-pair rule is algebraically distinct from the one-layer
 Floquet rule. Running the checker on `(T_entry, T_exit)` gives generated
 algebra dimension `8`, center dimension `2`, and compatible centralizer
 dimension `13`. It still does not force `J`: the local compatible center has
-dimension `2` and contains no compatible complex structures.
+dimension `2` and contains no rule-generated compatible complex structures.
 
 So β remains a useful regression target for transition-pair plumbing, but it
 is not a load-bearing independent route. A genuine β route must use source

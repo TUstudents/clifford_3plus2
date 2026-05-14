@@ -21,10 +21,6 @@ ALPHA_PHASE = sp.Rational(2, 3) * sp.pi
 ETA_PHASE = sp.Rational(1, 2) * sp.pi
 FLOQUET_ALPHA_EXACT_WORKING_FIELD = "QQ(zeta_12); real entries in QQ(sqrt(3))"
 FLOQUET_ALPHA_SCALED_RELATION = "K_alpha=(2U+I)P_alpha, K_alpha^2=-3P_alpha"
-FLOQUET_ALPHA_ALPHA_SECTOR_CENTRALIZER_DIMENSION = 18
-FLOQUET_ALPHA_ETA_SECTOR_CENTRALIZER_DIMENSION = 8
-FLOQUET_ALPHA_COMPATIBLE_CENTRALIZER_DIMENSION = 26
-FLOQUET_ALPHA_COMPATIBLE_J_MODULI_DIMENSION = 9
 
 
 @dataclass(frozen=True)
@@ -66,7 +62,7 @@ class FloquetAlphaPolarizationCertificate:
     alpha_sector_centralizer_dimension: int
     eta_sector_centralizer_dimension: int
     compatible_centralizer_dimension: int
-    compatible_j_moduli_dimension: int
+    compatible_j_moduli_dimension: int | None
     locality_radius_bound: int
     local_compatible_operator_dimension: int
     local_compatible_j_solved: bool
@@ -195,6 +191,30 @@ def floquet_alpha_spectral_projectors(
     return alpha_projector, eta_projector
 
 
+def _complex_sector_centralizer_dimension(projector: sp.Matrix) -> int:
+    rank = projector.rank()
+    if rank % 2:
+        raise ValueError("real spectral projector rank must be even")
+    complex_rank = rank // 2
+    return 2 * complex_rank * complex_rank
+
+
+def floquet_alpha_sector_centralizer_dimensions(
+    candidate: FloquetAlphaCandidate,
+) -> tuple[int, int]:
+    alpha_projector, eta_projector = floquet_alpha_spectral_projectors(candidate)
+    return (
+        _complex_sector_centralizer_dimension(alpha_projector),
+        _complex_sector_centralizer_dimension(eta_projector),
+    )
+
+
+def floquet_alpha_compatible_centralizer_dimension(
+    candidate: FloquetAlphaCandidate,
+) -> int:
+    return sum(floquet_alpha_sector_centralizer_dimensions(candidate))
+
+
 def floquet_alpha_canonical_j(candidate: FloquetAlphaCandidate) -> sp.Matrix:
     """Return the normalized complex structure over ``QQ(sqrt(3))``."""
 
@@ -282,6 +302,9 @@ def floquet_alpha_second_layer_certificate(
     v_operator = v_layer.matrix
     alpha_projector, eta_projector = floquet_alpha_spectral_projectors(candidate)
     rule_result = floquet_alpha_cycle_swap_rule_to_verdict(candidate)
+    alpha_compatible_centralizer_dimension = floquet_alpha_compatible_centralizer_dimension(
+        candidate
+    )
     one = identity(10)
 
     alpha_fixed_projector = _simplify_matrix(
@@ -319,7 +342,7 @@ def floquet_alpha_second_layer_certificate(
         no_locking_guardrail_passed=not lower_rank_projector_ranks,
         compatible_centralizer_collapsed=(
             rule_result.compatible_centralizer_dimension
-            < FLOQUET_ALPHA_COMPATIBLE_CENTRALIZER_DIMENSION
+            < alpha_compatible_centralizer_dimension
         ),
         pass_strict_rule_to_bridge=rule_result.pass_rule_to_bridge,
     )
@@ -330,6 +353,9 @@ def floquet_alpha_polarization_certificate(
 ) -> FloquetAlphaPolarizationCertificate:
     verdict = floquet_alpha_rule_to_verdict(candidate)
     alpha_projector, eta_projector = floquet_alpha_spectral_projectors(candidate)
+    alpha_sector_dimension, eta_sector_dimension = (
+        floquet_alpha_sector_centralizer_dimensions(candidate)
+    )
     scaled_alpha = floquet_alpha_scaled_alpha_operator(candidate)
     eta_j = _simplify_matrix(floquet_alpha_operator(candidate) * eta_projector)
     canonical_j = floquet_alpha_canonical_j(candidate)
@@ -399,14 +425,10 @@ def floquet_alpha_polarization_certificate(
         complementary_rank_6_4_pairs=verdict.complementary_rank_6_4_pairs,
         lower_rank_central_idempotents=len(verdict.lower_rank_central_idempotents),
         generated_j_moduli_dimension=verdict.generated_j_moduli_dimension,
-        alpha_sector_centralizer_dimension=FLOQUET_ALPHA_ALPHA_SECTOR_CENTRALIZER_DIMENSION,
-        eta_sector_centralizer_dimension=FLOQUET_ALPHA_ETA_SECTOR_CENTRALIZER_DIMENSION,
+        alpha_sector_centralizer_dimension=alpha_sector_dimension,
+        eta_sector_centralizer_dimension=eta_sector_dimension,
         compatible_centralizer_dimension=verdict.compatible_centralizer_dimension,
-        compatible_j_moduli_dimension=(
-            verdict.compatible_j_moduli_dimension
-            if verdict.compatible_j_moduli_dimension is not None
-            else FLOQUET_ALPHA_COMPATIBLE_J_MODULI_DIMENSION
-        ),
+        compatible_j_moduli_dimension=verdict.compatible_j_moduli_dimension,
         locality_radius_bound=verdict.locality_radius_bound,
         local_compatible_operator_dimension=verdict.local_compatible_operator_dimension,
         local_compatible_j_solved=verdict.local_compatible_j_solved,

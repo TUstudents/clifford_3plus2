@@ -11,25 +11,16 @@ from clifford_3plus2_d5.algebra.matrices import commutator, identity, is_zero_ma
 from clifford_3plus2_d5.qca.floquet_alpha import (
     ALPHA_PHASE,
     ETA_PHASE,
-    FLOQUET_ALPHA_ALPHA_SECTOR_CENTRALIZER_DIMENSION,
-    FLOQUET_ALPHA_COMPATIBLE_CENTRALIZER_DIMENSION,
-    FLOQUET_ALPHA_COMPATIBLE_J_MODULI_DIMENSION,
     FLOQUET_ALPHA_EXACT_WORKING_FIELD,
-    FLOQUET_ALPHA_ETA_SECTOR_CENTRALIZER_DIMENSION,
     FloquetAlphaCandidate,
     floquet_alpha_operator,
+    floquet_alpha_sector_centralizer_dimensions,
     pair_rotation,
 )
 from clifford_3plus2_d5.qca.rule_verdict import RuleLayerInput, RuleToVerdictResult, rule_to_verdict
 
 DEFECT_BETA_EXACT_WORKING_FIELD = FLOQUET_ALPHA_EXACT_WORKING_FIELD
 DEFECT_BETA_SCALED_RELATION = "K_omega=(2M+I)P_omega, K_omega^2=-3P_omega"
-DEFECT_BETA_OMEGA_SECTOR_CENTRALIZER_DIMENSION = (
-    FLOQUET_ALPHA_ALPHA_SECTOR_CENTRALIZER_DIMENSION
-)
-DEFECT_BETA_I_SECTOR_CENTRALIZER_DIMENSION = FLOQUET_ALPHA_ETA_SECTOR_CENTRALIZER_DIMENSION
-DEFECT_BETA_COMPATIBLE_CENTRALIZER_DIMENSION = FLOQUET_ALPHA_COMPATIBLE_CENTRALIZER_DIMENSION
-DEFECT_BETA_COMPATIBLE_J_MODULI_DIMENSION = FLOQUET_ALPHA_COMPATIBLE_J_MODULI_DIMENSION
 
 
 @dataclass(frozen=True)
@@ -245,6 +236,9 @@ def defect_beta_certificate(candidate: DefectBetaCandidate) -> DefectBetaCertifi
         candidate.omega_modes,
         candidate.i_modes,
     )
+    omega_sector_dimension, i_sector_dimension = (
+        floquet_alpha_sector_centralizer_dimensions(matching_alpha)
+    )
     clutching = defect_beta_clutching_reflection()
     computed_monodromy = identity(10)
     for transition in transitions:
@@ -347,8 +341,8 @@ def defect_beta_certificate(candidate: DefectBetaCandidate) -> DefectBetaCertifi
         complementary_rank_6_4_pairs=verdict.complementary_rank_6_4_pairs,
         lower_rank_central_idempotents=len(verdict.lower_rank_central_idempotents),
         generated_j_moduli_dimension=verdict.generated_j_moduli_dimension,
-        omega_sector_centralizer_dimension=DEFECT_BETA_OMEGA_SECTOR_CENTRALIZER_DIMENSION,
-        i_sector_centralizer_dimension=DEFECT_BETA_I_SECTOR_CENTRALIZER_DIMENSION,
+        omega_sector_centralizer_dimension=omega_sector_dimension,
+        i_sector_centralizer_dimension=i_sector_dimension,
         compatible_centralizer_dimension=verdict.compatible_centralizer_dimension,
         compatible_j_moduli_dimension=verdict.compatible_j_moduli_dimension,
         locality_radius_bound=verdict.locality_radius_bound,

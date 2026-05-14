@@ -147,11 +147,13 @@ orthogonal complex structures form a continuous family of dimension
 `dim U(3)/O(3) + dim U(2)/O(2) = 6 + 3 = 9`. Alpha-plus is therefore progress
 on rule-produced `J`, but not a strict uniqueness proof.
 
-After imposing the current locality restriction, the compatible search is run
-inside the rule-generated local center. That shrinks the compatible operator
-space from dimension `26` to `4` and collapses the moduli dimension to `0`,
-but still leaves four local compatible complex structures rather than a unique
-`±J`.
+The `local_compatible_*` fields are a rule-generated local-center falsifier,
+not a complete search over all on-site local operators. For radius-0 α, all
+on-site local operators would be `M_10(R)`. The checker instead asks whether
+the rule's own local algebra singles out `J`. It does not: inside the
+rule-generated local center the operator dimension is `4`, the moduli
+dimension is `0`, and there are four rule-generated local complex structures
+rather than a unique `±J`.
 
 The next pressure is to decide whether the physical theorem accepts this
 spectral-polarization `J` as forced by the rule, or whether a stricter

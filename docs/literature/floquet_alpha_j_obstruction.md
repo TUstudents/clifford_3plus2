@@ -106,11 +106,12 @@ pass_strict_rule_to_bridge = false
 ```
 
 The strict checker now treats forcedness as a local moduli condition. A
-length-two candidate list is only meaningful after the local compatible `J`
-moduli dimension has collapsed to `0`; parametric families are never accepted
-as forced. In Floquet-α, locality removes the continuous family but still
-leaves four local compatible complex structures, so the strict bridge remains
-false.
+length-two candidate list is only meaningful after the rule-generated local
+`J` moduli dimension has collapsed to `0`; parametric families are never
+accepted as forced. In Floquet-α, the rule-generated local center already
+contains four compatible complex structures. This does not enumerate all
+on-site local `J in M_10(R)`; it is enough to show that the rule's own algebra
+has not singled out a unique `±J`.
 
 ## Decision
 
@@ -128,8 +129,8 @@ The current bridge remains non-load-bearing under the strict standard.
 Under the spectral standard, Floquet-α solves the algebraic `J` and coarse
 center problems but still needs a source-backed microscopic reason why the
 oriented spectral branch is mandatory. Under the strict standard, the next
-candidate must physically eliminate the remaining four local compatible
-complex structures down to `±J`.
+candidate must make the rule-generated local algebra select only `±J`, without
+using the forbidden lower-rank central projectors.
 
 ## Commuting Second-Layer Dilemma
 

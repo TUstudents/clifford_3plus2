@@ -932,9 +932,10 @@ operator K_alpha = (2U+I)P_alpha with K_alpha^2 = -3P_alpha over QQ(zeta_12);
 the normalized J_alpha is derived afterward over QQ(sqrt(3)). It still does
 not pass the strict rule-to-verdict bridge criterion because the
 compatible centralizer is M_3(C) plus M_2(C), real dimension 26, with a
-9-dimensional compatible-J family. The local compatible search shrinks this to
-a 4-dimensional operator space with four discrete local J choices, so
-strict forcedness still fails.
+9-dimensional compatible-J family. The rule-generated local-center search
+already finds a 4-dimensional operator space with four discrete J choices, so
+strict forcedness fails without claiming to exhaust every on-site local
+operator in M_10(R).
 ```
 
 Alpha cycle/swap second-layer outcome:
