@@ -32,6 +32,9 @@ uv run python scripts/explore_rule_space.py --check --output-dir data/exploratio
 uv run python scripts/discover_projectors.py --check --mode unseeded --expect-verdict not_found --output-dir data/exploration
 uv run python scripts/discover_projectors.py --check --mode sanity-seeded --expect-verdict projector_pair_found --output-dir /tmp/e2_sanity
 uv run python scripts/discover_projectors.py --check --mode block-reflection-candidate --expect-verdict projector_pair_found --output-dir /tmp/e2_block
+uv run python scripts/rule_to_verdict.py --case minimal-period-four --expect-verdict falsified_no_rank_6_4_center
+uv run python scripts/rule_to_verdict.py --case clock-block-reflection --expect-verdict candidate_only_j_not_forced
+uv run python scripts/rule_to_verdict.py --case clock-rank-one-color-reflection --expect-verdict falsified_rank_one_center
 uv run python scripts/branching_check.py --check
 uv run python scripts/qca_split_audit.py --check --expect-verdict notation_only
 uv run python scripts/qca_split_audit.py --json --expect-verdict notation_only
@@ -41,7 +44,7 @@ Verification:
 
 ```text
 ruff: passed
-pytest: 190 passed
+pytest: 196 passed
 ```
 
 Real carrier check:
@@ -403,6 +406,49 @@ discovery_check_passed: true
 load_bearing_qca_bridge: false
 ```
 
+Unified rule-to-verdict minimal clock:
+
+```text
+rule_name: minimal_period_four_clock_candidate
+floquet_spectrum: [{'eigenvalue': '1', 'multiplicity': 10}]
+generated_algebra_dimension: 2
+center_dimension: 2
+central_idempotent_ranks: [0, 10]
+generated_complex_structures: 2
+forced_j_found: false
+pass_rule_to_bridge: false
+verdict: falsified_no_rank_6_4_center
+load_bearing_qca_bridge: false
+```
+
+Unified rule-to-verdict block reflection:
+
+```text
+rule_name: clock_block_reflection_rule
+generated_algebra_dimension: 4
+center_dimension: 4
+central_idempotent_ranks: [0, 4, 6, 10]
+complementary_rank_6_4_pairs: 1
+lower_rank_central_idempotents: 0
+generated_complex_structures: 4
+compatible_j_solved: false
+forced_j_found: false
+pass_rule_to_bridge: false
+verdict: candidate_only_j_not_forced
+load_bearing_qca_bridge: false
+```
+
+Unified rule-to-verdict rank-one reflection:
+
+```text
+rule_name: clock_rank_one_color_reflection_rule
+central_idempotent_ranks: [0, 2, 8, 10]
+lower_rank_central_idempotents: 1
+pass_rule_to_bridge: false
+verdict: falsified_rank_one_center
+load_bearing_qca_bridge: false
+```
+
 Branching check:
 
 ```text
@@ -482,6 +528,10 @@ E1 performs bounded rule-space exploration. It scans 170 exact words, finds
 E2 performs bounded unseeded projector discovery. It scans 1924 exact algebra
 elements across 6 primitive sets, finds zero complementary `6+4` projector
 pairs, and records three unsafe rank-2 projector candidates.
+The unified rule-to-verdict checker now collapses the real physics criterion
+into one interface. Current controls are negative: minimal clock has no
+`6+4` center, block reflection has the center but does not force `J`, and
+rank-one reflection is falsified by a lower central idempotent.
 ```
 
 ## Active Roadmap Update

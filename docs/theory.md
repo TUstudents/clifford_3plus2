@@ -176,6 +176,13 @@ rank-one variants are rejected by no-locking. The next physics input must
 therefore create `3` versus `2` asymmetry before projector discovery, for
 example through Floquet polarization or defect monodromy.
 
+The collapsed rule-to-verdict checker is documented in
+[Rule-To-Verdict Report](literature/rule_to_verdict_report.md). It evaluates
+finite-depth layer data directly: Floquet spectrum, generated algebra center,
+central idempotent lattice, rule-generated complex structures, and the single
+bridge-candidate boolean. This is the main interface for new microscopic
+candidate families.
+
 ## Load-Bearing Conditions
 
 The bridge becomes nontrivial only if QCA data supplies all of the following:

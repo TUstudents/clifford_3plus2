@@ -1,0 +1,550 @@
+"""One-pass finite-depth rule to bridge verdict checker."""
+
+from __future__ import annotations
+
+from collections.abc import Sequence
+from dataclasses import dataclass
+from itertools import product
+from typing import Literal
+
+import sympy as sp
+
+from clifford_3plus2_d5.algebra.commutants import matrix_span_rank
+from clifford_3plus2_d5.algebra.matrices import commutator, identity, is_zero_matrix
+from clifford_3plus2_d5.qca.gates import is_real_matrix, is_real_orthogonal
+from clifford_3plus2_d5.qca.layers import QCAUpdate, layer_operator
+
+
+RuleVerdict = Literal[
+    "bridge_candidate",
+    "falsified_no_rank_6_4_center",
+    "falsified_rank_one_center",
+    "candidate_only_j_not_forced",
+    "not_solved",
+]
+
+
+@dataclass(frozen=True)
+class RuleLayerInput:
+    name: str
+    matrix: sp.Matrix
+    support: tuple[int, ...] = (0,)
+    locality_radius: int = 0
+
+
+@dataclass(frozen=True)
+class CentralIdempotent:
+    expression: tuple[tuple[str, sp.Expr], ...]
+    matrix: sp.Matrix
+    rank: int
+
+
+@dataclass(frozen=True)
+class ComplexStructureCandidate:
+    expression: tuple[tuple[str, sp.Expr], ...]
+    matrix: sp.Matrix
+    source: Literal["generated_algebra", "compatible_centralizer"]
+
+
+@dataclass(frozen=True)
+class RuleToVerdictResult:
+    rule_name: str
+    layer_count: int
+    all_layers_real_orthogonal: bool
+    all_layers_local: bool
+    floquet_operator: sp.Matrix
+    floquet_spectrum: tuple[tuple[str, int], ...]
+    generated_algebra_dimension: int
+    center_dimension: int
+    center_solved: bool
+    central_idempotents: tuple[CentralIdempotent, ...]
+    complementary_rank_6_4_pairs: int
+    lower_rank_central_idempotents: tuple[CentralIdempotent, ...]
+    generated_j_solved: bool
+    generated_complex_structures: tuple[ComplexStructureCandidate, ...]
+    compatible_j_solved: bool
+    compatible_complex_structures: tuple[ComplexStructureCandidate, ...]
+    forced_j_found: bool
+    rank_6_4_pair_commutes_with_forced_j: bool
+    pass_rule_to_bridge: bool
+    verdict: RuleVerdict
+    load_bearing_qca_bridge: bool = False
+
+
+def _flatten(matrix: sp.Matrix) -> sp.Matrix:
+    return sp.Matrix(matrix.rows * matrix.cols, 1, list(matrix))
+
+
+def _matrix_from_flat(vector: sp.Matrix, dimension: int) -> sp.Matrix:
+    return sp.Matrix(dimension, dimension, list(vector))
+
+
+def _append_if_independent(basis: list[sp.Matrix], candidate: sp.Matrix) -> bool:
+    if not basis:
+        basis.append(candidate)
+        return True
+    if matrix_span_rank([*basis, candidate]) > matrix_span_rank(basis):
+        basis.append(candidate)
+        return True
+    return False
+
+
+def _validate_layers(layers: Sequence[RuleLayerInput], *, dimension: int) -> None:
+    if not layers:
+        raise ValueError("at least one rule layer is required")
+    for layer in layers:
+        if layer.matrix.shape != (dimension, dimension):
+            msg = f"layer {layer.name!r} is not {dimension}x{dimension}"
+            raise ValueError(msg)
+
+
+def _layer_is_local(layer: RuleLayerInput) -> bool:
+    if not layer.support or any(site < 0 for site in layer.support):
+        return False
+    return layer.locality_radius >= max(layer.support) - min(layer.support)
+
+
+def floquet_operator(layers: Sequence[RuleLayerInput], *, dimension: int = 10) -> sp.Matrix:
+    result = identity(dimension)
+    for layer in layers:
+        result = layer.matrix * result
+    return result
+
+
+def generated_algebra_basis(
+    generators: Sequence[sp.Matrix],
+    *,
+    dimension: int = 10,
+) -> tuple[sp.Matrix, ...]:
+    basis: list[sp.Matrix] = []
+    for matrix in (identity(dimension), *generators):
+        _append_if_independent(basis, matrix)
+
+    changed = True
+    while changed and len(basis) < dimension * dimension:
+        changed = False
+        current = tuple(basis)
+        for left, right in product(current, current):
+            changed = _append_if_independent(basis, left * right) or changed
+            if len(basis) == dimension * dimension:
+                return tuple(basis)
+    return tuple(basis)
+
+
+def center_basis_of_algebra(
+    algebra_basis: Sequence[sp.Matrix],
+    *,
+    dimension: int = 10,
+) -> tuple[sp.Matrix, ...]:
+    variables = sp.symbols(f"z0:{len(algebra_basis)}")
+    candidate = sp.zeros(dimension)
+    for variable, basis_matrix in zip(variables, algebra_basis, strict=True):
+        candidate += variable * basis_matrix
+
+    equations = [
+        value
+        for basis_matrix in algebra_basis
+        for value in commutator(candidate, basis_matrix)
+    ]
+    coefficient_matrix, _ = sp.linear_eq_to_matrix(equations, variables)
+    center = []
+    for vector in coefficient_matrix.nullspace():
+        matrix = sp.zeros(dimension)
+        for coefficient, basis_matrix in zip(vector, algebra_basis, strict=True):
+            matrix += coefficient * basis_matrix
+        center.append(matrix)
+    return tuple(center)
+
+
+def centralizer_basis(
+    generators: Sequence[sp.Matrix],
+    *,
+    dimension: int = 10,
+) -> tuple[sp.Matrix, ...]:
+    variables = sp.symbols(f"x0:{dimension * dimension}")
+    candidate = sp.Matrix(dimension, dimension, variables)
+    equations = [
+        value
+        for generator in generators
+        for value in commutator(candidate, generator)
+    ]
+    coefficient_matrix, _ = sp.linear_eq_to_matrix(equations, variables)
+    return tuple(
+        _matrix_from_flat(vector, dimension)
+        for vector in coefficient_matrix.nullspace()
+    )
+
+
+def _basis_expression(
+    coefficients: Sequence[sp.Expr],
+    prefix: str,
+) -> tuple[tuple[str, sp.Expr], ...]:
+    return tuple(
+        (f"{prefix}_{index}", coefficient)
+        for index, coefficient in enumerate(coefficients)
+        if coefficient != 0
+    )
+
+
+def _solve_matrix_equations(
+    basis: Sequence[sp.Matrix],
+    matrix_equation: sp.Matrix,
+    *,
+    variables: Sequence[sp.Symbol],
+) -> tuple[dict[sp.Symbol, sp.Expr], ...]:
+    equations = tuple(
+        sp.expand(value)
+        for value in matrix_equation
+        if sp.expand(value) != 0
+    )
+    if not equations:
+        return ({variable: sp.Integer(0) for variable in variables},)
+    solutions = sp.solve(equations, tuple(variables), dict=True)
+    complete_solutions = []
+    for solution in solutions:
+        if all(variable in solution for variable in variables):
+            complete_solutions.append(solution)
+    return tuple(complete_solutions)
+
+
+def solve_central_idempotents(
+    center_basis: Sequence[sp.Matrix],
+    *,
+    max_center_dimension: int = 8,
+    dimension: int = 10,
+) -> tuple[bool, tuple[CentralIdempotent, ...]]:
+    if len(center_basis) > max_center_dimension:
+        return False, ()
+
+    variables = sp.symbols(f"c0:{len(center_basis)}")
+    candidate = sp.zeros(dimension)
+    for variable, basis_matrix in zip(variables, center_basis, strict=True):
+        candidate += variable * basis_matrix
+
+    solutions = _solve_matrix_equations(
+        center_basis,
+        candidate * candidate - candidate,
+        variables=variables,
+    )
+    idempotents: list[CentralIdempotent] = []
+    seen: set[tuple[sp.Expr, ...]] = set()
+    for solution in solutions:
+        coefficients = tuple(sp.simplify(solution[variable]) for variable in variables)
+        matrix = sp.zeros(dimension)
+        for coefficient, basis_matrix in zip(coefficients, center_basis, strict=True):
+            matrix += coefficient * basis_matrix
+        if not is_real_matrix(matrix):
+            continue
+        key = tuple(sp.simplify(value) for value in matrix)
+        if key in seen:
+            continue
+        seen.add(key)
+        idempotents.append(
+            CentralIdempotent(
+                expression=_basis_expression(coefficients, "center"),
+                matrix=matrix,
+                rank=matrix.rank(),
+            )
+        )
+    return True, tuple(sorted(idempotents, key=lambda item: (item.rank, str(item.expression))))
+
+
+def solve_complex_structures_in_basis(
+    basis: Sequence[sp.Matrix],
+    *,
+    source: Literal["generated_algebra", "compatible_centralizer"],
+    max_basis_dimension: int = 8,
+    dimension: int = 10,
+) -> tuple[bool, tuple[ComplexStructureCandidate, ...]]:
+    if len(basis) > max_basis_dimension:
+        return False, ()
+
+    variables = sp.symbols(f"j0:{len(basis)}")
+    candidate = sp.zeros(dimension)
+    for variable, basis_matrix in zip(variables, basis, strict=True):
+        candidate += variable * basis_matrix
+
+    equations = (candidate * candidate + identity(dimension)).col_join(
+        candidate.T * candidate - identity(dimension)
+    )
+    solutions = _solve_matrix_equations(basis, equations, variables=variables)
+    candidates: list[ComplexStructureCandidate] = []
+    seen: set[tuple[sp.Expr, ...]] = set()
+    for solution in solutions:
+        coefficients = tuple(sp.simplify(solution[variable]) for variable in variables)
+        matrix = sp.zeros(dimension)
+        for coefficient, basis_matrix in zip(coefficients, basis, strict=True):
+            matrix += coefficient * basis_matrix
+        if not is_real_matrix(matrix):
+            continue
+        key = tuple(sp.simplify(value) for value in matrix)
+        if key in seen:
+            continue
+        seen.add(key)
+        candidates.append(
+            ComplexStructureCandidate(
+                expression=_basis_expression(coefficients, source),
+                matrix=matrix,
+                source=source,
+            )
+        )
+    return True, tuple(candidates)
+
+
+def _complementary_rank_6_4_pairs(
+    idempotents: Sequence[CentralIdempotent],
+    *,
+    dimension: int = 10,
+) -> tuple[tuple[CentralIdempotent, CentralIdempotent], ...]:
+    pairs = []
+    for rank_6 in (item for item in idempotents if item.rank == 6):
+        for rank_4 in (item for item in idempotents if item.rank == 4):
+            if (
+                rank_6.matrix + rank_4.matrix == identity(dimension)
+                and rank_6.matrix * rank_4.matrix == sp.zeros(dimension)
+                and rank_4.matrix * rank_6.matrix == sp.zeros(dimension)
+            ):
+                pairs.append((rank_6, rank_4))
+    return tuple(pairs)
+
+
+def _lower_rank_idempotents_inside_pairs(
+    idempotents: Sequence[CentralIdempotent],
+    pairs: Sequence[tuple[CentralIdempotent, CentralIdempotent]],
+) -> tuple[CentralIdempotent, ...]:
+    bad: list[CentralIdempotent] = []
+    seen: set[tuple[sp.Expr, ...]] = set()
+    for candidate in idempotents:
+        if candidate.rank == 0 or candidate.rank == 10:
+            continue
+        if candidate.rank < 4:
+            key = tuple(candidate.matrix)
+            if key not in seen:
+                seen.add(key)
+                bad.append(candidate)
+            continue
+        if candidate.rank == 6:
+            continue
+        for rank_6, rank_4 in pairs:
+            if candidate.matrix == rank_6.matrix or candidate.matrix == rank_4.matrix:
+                continue
+            inside_rank_6 = candidate.matrix * rank_6.matrix == candidate.matrix
+            inside_rank_4 = candidate.matrix * rank_4.matrix == candidate.matrix
+            if inside_rank_6 or inside_rank_4:
+                key = tuple(candidate.matrix)
+                if key not in seen:
+                    seen.add(key)
+                    bad.append(candidate)
+    return tuple(bad)
+
+
+def _forced_j(
+    generated: Sequence[ComplexStructureCandidate],
+    compatible: Sequence[ComplexStructureCandidate],
+    *,
+    compatible_solved: bool,
+) -> bool:
+    if not generated or not compatible_solved or len(compatible) != 2:
+        return False
+    for candidate in generated:
+        candidate_pair = (candidate.matrix, -candidate.matrix)
+        if all(any(option == item.matrix for option in candidate_pair) for item in compatible):
+            return True
+    return False
+
+
+def _pair_commutes_with_forced_j(
+    pairs: Sequence[tuple[CentralIdempotent, CentralIdempotent]],
+    generated: Sequence[ComplexStructureCandidate],
+    *,
+    forced_j_found: bool,
+) -> bool:
+    if not forced_j_found:
+        return False
+    return any(
+        is_zero_matrix(commutator(j_candidate.matrix, rank_6.matrix))
+        and is_zero_matrix(commutator(j_candidate.matrix, rank_4.matrix))
+        for rank_6, rank_4 in pairs
+        for j_candidate in generated
+    )
+
+
+def rule_to_verdict(
+    layers: Sequence[RuleLayerInput],
+    *,
+    rule_name: str = "anonymous_rule",
+    max_center_solve_dimension: int = 8,
+    max_j_solve_dimension: int = 8,
+    dimension: int = 10,
+) -> RuleToVerdictResult:
+    _validate_layers(layers, dimension=dimension)
+    layer_matrices = tuple(layer.matrix for layer in layers)
+    floquet = floquet_operator(layers, dimension=dimension)
+    algebra = generated_algebra_basis(layer_matrices, dimension=dimension)
+    center = center_basis_of_algebra(algebra, dimension=dimension)
+    center_solved, idempotents = solve_central_idempotents(
+        center,
+        max_center_dimension=max_center_solve_dimension,
+        dimension=dimension,
+    )
+    rank_pairs = _complementary_rank_6_4_pairs(idempotents, dimension=dimension)
+    lower_rank = _lower_rank_idempotents_inside_pairs(idempotents, rank_pairs)
+
+    generated_j_solved, generated_j = solve_complex_structures_in_basis(
+        algebra,
+        source="generated_algebra",
+        max_basis_dimension=max_j_solve_dimension,
+        dimension=dimension,
+    )
+    compatible_basis = centralizer_basis(layer_matrices, dimension=dimension)
+    compatible_j_solved, compatible_j = solve_complex_structures_in_basis(
+        compatible_basis,
+        source="compatible_centralizer",
+        max_basis_dimension=max_j_solve_dimension,
+        dimension=dimension,
+    )
+    forced_j_found = _forced_j(
+        generated_j,
+        compatible_j,
+        compatible_solved=compatible_j_solved,
+    )
+    pair_commutes = _pair_commutes_with_forced_j(
+        rank_pairs,
+        generated_j,
+        forced_j_found=forced_j_found,
+    )
+    pass_rule = bool(
+        center_solved
+        and generated_j_solved
+        and compatible_j_solved
+        and rank_pairs
+        and not lower_rank
+        and forced_j_found
+        and pair_commutes
+    )
+
+    if pass_rule:
+        verdict: RuleVerdict = "bridge_candidate"
+    elif not center_solved or not generated_j_solved:
+        verdict = "not_solved"
+    elif lower_rank:
+        verdict = "falsified_rank_one_center"
+    elif not rank_pairs:
+        verdict = "falsified_no_rank_6_4_center"
+    else:
+        verdict = "candidate_only_j_not_forced"
+
+    return RuleToVerdictResult(
+        rule_name=rule_name,
+        layer_count=len(layers),
+        all_layers_real_orthogonal=all(
+            is_real_matrix(layer.matrix) and is_real_orthogonal(layer.matrix)
+            for layer in layers
+        ),
+        all_layers_local=all(_layer_is_local(layer) for layer in layers),
+        floquet_operator=floquet,
+        floquet_spectrum=tuple(
+            sorted((str(value), multiplicity) for value, multiplicity in floquet.eigenvals().items())
+        ),
+        generated_algebra_dimension=len(algebra),
+        center_dimension=len(center),
+        center_solved=center_solved,
+        central_idempotents=idempotents,
+        complementary_rank_6_4_pairs=len(rank_pairs),
+        lower_rank_central_idempotents=lower_rank,
+        generated_j_solved=generated_j_solved,
+        generated_complex_structures=generated_j,
+        compatible_j_solved=compatible_j_solved,
+        compatible_complex_structures=compatible_j,
+        forced_j_found=forced_j_found,
+        rank_6_4_pair_commutes_with_forced_j=pair_commutes,
+        pass_rule_to_bridge=pass_rule,
+        verdict=verdict,
+    )
+
+
+def layers_from_update(update: QCAUpdate) -> tuple[RuleLayerInput, ...]:
+    return tuple(
+        RuleLayerInput(
+            name=layer.name,
+            matrix=layer_operator(layer),
+            support=tuple(
+                site
+                for gate in layer.gates
+                for site in gate.support
+            )
+            or (0,),
+            locality_radius=max((gate.locality_radius for gate in layer.gates), default=0),
+        )
+        for layer in update.layers
+    )
+
+
+def rule_to_verdict_from_update(update: QCAUpdate) -> RuleToVerdictResult:
+    return rule_to_verdict(layers_from_update(update), rule_name=update.name)
+
+
+def _idempotent_to_dict(idempotent: CentralIdempotent) -> dict[str, object]:
+    return {
+        "expression": [
+            {"basis": name, "coefficient": str(coefficient)}
+            for name, coefficient in idempotent.expression
+        ],
+        "rank": idempotent.rank,
+    }
+
+
+def _complex_structure_to_dict(candidate: ComplexStructureCandidate) -> dict[str, object]:
+    return {
+        "expression": [
+            {"basis": name, "coefficient": str(coefficient)}
+            for name, coefficient in candidate.expression
+        ],
+        "source": candidate.source,
+    }
+
+
+def result_to_dict(result: RuleToVerdictResult) -> dict[str, object]:
+    return {
+        "rule_name": result.rule_name,
+        "layer_count": result.layer_count,
+        "all_layers_real_orthogonal": result.all_layers_real_orthogonal,
+        "all_layers_local": result.all_layers_local,
+        "floquet_spectrum": [
+            {"eigenvalue": value, "multiplicity": multiplicity}
+            for value, multiplicity in result.floquet_spectrum
+        ],
+        "generated_algebra_dimension": result.generated_algebra_dimension,
+        "center_dimension": result.center_dimension,
+        "center_solved": result.center_solved,
+        "central_idempotents": [
+            _idempotent_to_dict(idempotent)
+            for idempotent in result.central_idempotents
+        ],
+        "central_idempotent_ranks": [
+            idempotent.rank for idempotent in result.central_idempotents
+        ],
+        "complementary_rank_6_4_pairs": result.complementary_rank_6_4_pairs,
+        "lower_rank_central_idempotents": [
+            _idempotent_to_dict(idempotent)
+            for idempotent in result.lower_rank_central_idempotents
+        ],
+        "generated_j_solved": result.generated_j_solved,
+        "generated_complex_structures": [
+            _complex_structure_to_dict(candidate)
+            for candidate in result.generated_complex_structures
+        ],
+        "compatible_j_solved": result.compatible_j_solved,
+        "compatible_complex_structure_count": len(result.compatible_complex_structures),
+        "compatible_complex_structures": [
+            _complex_structure_to_dict(candidate)
+            for candidate in result.compatible_complex_structures
+        ],
+        "forced_j_found": result.forced_j_found,
+        "rank_6_4_pair_commutes_with_forced_j": (
+            result.rank_6_4_pair_commutes_with_forced_j
+        ),
+        "pass_rule_to_bridge": result.pass_rule_to_bridge,
+        "verdict": result.verdict,
+        "load_bearing_qca_bridge": result.load_bearing_qca_bridge,
+    }
