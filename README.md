@@ -36,7 +36,7 @@ floquet_alpha_search: coarse 6+4 center, scaled polarization J certificate
 floquet_alpha_second_layer: cycle/swap lock fails no-locking guardrail
 floquet_alpha_noncommuting: block-preserving signed twist under exploration
 floquet_alpha_noncommuting_completion: no lower center, still four J signs
-spatial_1d_alpha: sidecar winding prototype couples four J signs to global ±
+spatial_1d_alpha: finite-hop sidecar couples four J signs to global ±
 defect_beta_search: monodromy equals alpha; transition-pair rule still negative
 Spin(10) branching check: passes
 QCA load-bearing bridge: notation_only
@@ -405,9 +405,10 @@ load_bearing_qca_bridge: false
 ```
 
 `scripts/spatial_1d_alpha_search.py` is a Route-2 sidecar prototype. It does
-not replace `rule_to_verdict`; it checks exact period-12 root-of-unity spatial
-transport data and asks whether coprime alpha/eta windings couple the remaining
-four block-sign choices to global `±J`:
+not replace `rule_to_verdict`; it checks exact finite-hop spatial transfer
+data that reconstructs a period-12 root-of-unity symbol, then asks whether
+coprime alpha/eta windings couple the remaining four block-sign choices to
+global `±J`:
 
 ```text
 candidate_count: 1
@@ -423,6 +424,12 @@ orientation_choices_after_transport: 2
 sign_coupled_to_global_pm: true
 strict_bridge_candidates: 0
 route_label: spatial_signs_coupled_to_global_pm
+local_hopping_term_count: 2
+local_hopping_shifts: [3, 4]
+local_hopping_mode_windings: [4, 4, 4, 3, 3]
+local_hopping_reconstructs_transfer_on_samples: true
+local_hopping_orientation_choices_after_transport: 2
+local_hopping_route_label: spatial_local_hopping_signs_coupled
 load_bearing_qca_bridge: false
 ```
 

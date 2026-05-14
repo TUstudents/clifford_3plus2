@@ -5,11 +5,16 @@ import json
 
 from clifford_3plus2_d5.qca.spatial_1d import (
     Spatial1DAlphaCertificate,
+    Spatial1DLocalHoppingCertificate,
     spatial_1d_alpha_certificate,
+    spatial_1d_local_hopping_certificate,
 )
 
 
-def _certificate_to_dict(certificate: Spatial1DAlphaCertificate) -> dict[str, object]:
+def _certificate_to_dict(
+    certificate: Spatial1DAlphaCertificate,
+    local_hopping: Spatial1DLocalHoppingCertificate,
+) -> dict[str, object]:
     return {
         "family": "spatial_1d_alpha",
         "rule_name": certificate.rule_name,
@@ -46,6 +51,42 @@ def _certificate_to_dict(certificate: Spatial1DAlphaCertificate) -> dict[str, ob
         "strict_bridge_candidates": certificate.strict_bridge_candidates,
         "route_label": certificate.route_label,
         "load_bearing_qca_bridge": certificate.load_bearing_qca_bridge,
+        "local_hopping": _local_hopping_to_dict(local_hopping),
+    }
+
+
+def _local_hopping_to_dict(
+    certificate: Spatial1DLocalHoppingCertificate,
+) -> dict[str, object]:
+    return {
+        "hopping_term_count": certificate.hopping_term_count,
+        "hopping_shifts": list(certificate.hopping_shifts),
+        "hopping_locality_radius": certificate.hopping_locality_radius,
+        "mode_windings": list(certificate.mode_windings),
+        "computed_alpha_winding": certificate.computed_alpha_winding,
+        "computed_eta_winding": certificate.computed_eta_winding,
+        "computed_winding_gcd": certificate.computed_winding_gcd,
+        "computed_winding_lcm": certificate.computed_winding_lcm,
+        "reconstructs_transfer_on_samples": certificate.reconstructs_transfer_on_samples,
+        "transfer_unitary_on_samples": certificate.transfer_unitary_on_samples,
+        "coarse_6_4_band_split": certificate.coarse_6_4_band_split,
+        "orientation_choices_before_transport": (
+            certificate.orientation_choices_before_transport
+        ),
+        "orientation_choices_after_transport": (
+            certificate.orientation_choices_after_transport
+        ),
+        "orientation_orbits": [
+            {
+                "alpha_sign": orbit.alpha_sign,
+                "eta_sign": orbit.eta_sign,
+                "transport_allowed": orbit.transport_allowed,
+            }
+            for orbit in certificate.orientation_orbits
+        ],
+        "sign_coupled_to_global_pm": certificate.sign_coupled_to_global_pm,
+        "route_label": certificate.route_label,
+        "load_bearing_qca_bridge": certificate.load_bearing_qca_bridge,
     }
 
 
@@ -62,7 +103,8 @@ def main() -> int:
     args = parser.parse_args()
 
     certificate = spatial_1d_alpha_certificate()
-    payload = _certificate_to_dict(certificate)
+    local_hopping = spatial_1d_local_hopping_certificate()
+    payload = _certificate_to_dict(certificate, local_hopping)
 
     if args.json:
         print(json.dumps(payload, indent=2, sort_keys=True))
@@ -99,6 +141,18 @@ def main() -> int:
         )
         print(f"strict_bridge_candidates: {certificate.strict_bridge_candidates}")
         print(f"route_label: {certificate.route_label}")
+        print(f"local_hopping_term_count: {local_hopping.hopping_term_count}")
+        print(f"local_hopping_shifts: {list(local_hopping.hopping_shifts)}")
+        print(f"local_hopping_mode_windings: {list(local_hopping.mode_windings)}")
+        print(
+            "local_hopping_reconstructs_transfer_on_samples: "
+            f"{str(local_hopping.reconstructs_transfer_on_samples).lower()}"
+        )
+        print(
+            "local_hopping_orientation_choices_after_transport: "
+            f"{local_hopping.orientation_choices_after_transport}"
+        )
+        print(f"local_hopping_route_label: {local_hopping.route_label}")
         print(f"load_bearing_qca_bridge: {str(certificate.load_bearing_qca_bridge).lower()}")
         for orbit in certificate.orientation_orbits:
             print(
@@ -119,6 +173,16 @@ def main() -> int:
             and certificate.sign_coupled_to_global_pm
             and certificate.strict_bridge_candidates == 0
             and certificate.route_label == "spatial_signs_coupled_to_global_pm"
+            and local_hopping.hopping_shifts == (3, 4)
+            and local_hopping.mode_windings == (4, 4, 4, 3, 3)
+            and local_hopping.computed_alpha_winding == 4
+            and local_hopping.computed_eta_winding == 3
+            and local_hopping.computed_winding_gcd == 1
+            and local_hopping.computed_winding_lcm == certificate.period
+            and local_hopping.reconstructs_transfer_on_samples
+            and local_hopping.orientation_choices_after_transport == 2
+            and local_hopping.sign_coupled_to_global_pm
+            and local_hopping.route_label == "spatial_local_hopping_signs_coupled"
             and not certificate.load_bearing_qca_bridge
         )
         if not check_passed:

@@ -52,7 +52,7 @@ Verification:
 
 ```text
 ruff: passed
-pytest: 223 passed
+pytest: 225 passed
 ```
 
 Real carrier check:
@@ -515,6 +515,36 @@ explicit_lower_rank_projector_ranks: [2, 2, 2]
 load_bearing_qca_bridge: false
 ```
 
+Spatial 1D sidecar search:
+
+```text
+candidate_count: 1
+unitary_candidates: 1
+coarse_6_4_band_candidates: 1
+period: 12
+alpha_winding: 4
+eta_winding: 3
+winding_gcd: 1
+winding_lcm: 12
+locality_radius: 4
+sample_count: 12
+transfer_unitary_on_samples: true
+alpha_projector_rank: 6
+eta_projector_rank: 4
+orientation_choices_before_transport: 4
+orientation_choices_after_transport: 2
+sign_coupled_to_global_pm: true
+strict_bridge_candidates: 0
+route_label: spatial_signs_coupled_to_global_pm
+local_hopping_term_count: 2
+local_hopping_shifts: [3, 4]
+local_hopping_mode_windings: [4, 4, 4, 3, 3]
+local_hopping_reconstructs_transfer_on_samples: true
+local_hopping_orientation_choices_after_transport: 2
+local_hopping_route_label: spatial_local_hopping_signs_coupled
+load_bearing_qca_bridge: false
+```
+
 Defect-beta search:
 
 ```text
@@ -635,6 +665,12 @@ exhaust every on-site local `J in M_10(R)`.
 The literal commuting cycle/swap second layer reduces the compatible
 centralizer to dimension 10 but generates rank-2 central projectors, so the
 no-locking guardrail rejects it.
+The noncommuting Floquet-alpha signed twist keeps the coarse center and removes
+the continuous compatible-`J` family, but the finite compatible `J` choices
+are not rule-generated/local. The spatial 1D sidecar is the current Route-2
+follow-up: two explicit finite hopping terms reconstruct the period-12
+transfer and couple the independent alpha/eta block signs down to global
+`±J`, while remaining non-load-bearing.
 Defect-beta is retained as a regression target but parked as a load-bearing
 route until rebuilt as a genuine higher-dimensional defect calculation. Its
 round-trip monodromy is exactly the matching Floquet-alpha operator. The

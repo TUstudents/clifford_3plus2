@@ -28,9 +28,18 @@ gcd(4,3) = 1
 lcm(4,3) = 12
 ```
 
-At each root `zeta_12^n`, the transfer matrix is a diagonal exact
-root-of-unity matrix on the ten real carrier coordinates. The alpha sector has
-rank `6`; the eta sector has rank `4`.
+The sidecar now includes explicit finite-hop Laurent data. The transfer is
+reconstructed from two local hopping terms:
+
+```text
+hop shift 4 on the three alpha mode-pairs
+hop shift 3 on the two eta mode-pairs
+mode_windings = [4,4,4,3,3]
+```
+
+At each root `zeta_12^n`, the reconstructed transfer matrix agrees exactly
+with the root-of-unity transfer. The alpha sector has rank `6`; the eta sector
+has rank `4`.
 
 The sidecar then applies the tested transport hypothesis: coprime alpha/eta
 windings around one shared spatial cycle allow only sign choices with the same
@@ -63,6 +72,12 @@ orientation_choices_after_transport: 2
 sign_coupled_to_global_pm: true
 strict_bridge_candidates: 0
 route_label: spatial_signs_coupled_to_global_pm
+local_hopping_term_count: 2
+local_hopping_shifts: [3, 4]
+local_hopping_mode_windings: [4, 4, 4, 3, 3]
+local_hopping_reconstructs_transfer_on_samples: true
+local_hopping_orientation_choices_after_transport: 2
+local_hopping_route_label: spatial_local_hopping_signs_coupled
 load_bearing_qca_bridge: false
 ```
 
@@ -83,7 +98,8 @@ alpha=-1, eta=+1
 ## Interpretation
 
 This is the first sidecar calculation that directly targets the remaining
-block-sign obstruction. In the prototype, spatial transport reduces the four
+block-sign obstruction. In the prototype, explicit finite-hop transfer data
+computes the alpha/eta windings, and spatial transport reduces the four
 on-site choices to global `±J`.
 
 The result should be read narrowly. It shows that the Route-2 mechanism has
@@ -91,6 +107,6 @@ the right combinatorial shape; it does not prove that a finite-depth real QCA
 generates the transfer rule, nor that the band projectors and `J` are forced by
 microscopic local gates.
 
-The next useful Route-2 step is to replace this diagonal root-of-unity transfer
-diagnostic with an explicit local hopping construction whose transfer matrix
-has the same sign-coupling invariant.
+The next useful Route-2 step is to promote this finite-radius hopping
+diagnostic into a genuine unitary local QCA layer model, rather than a
+standalone transfer-symbol sidecar.

@@ -268,9 +268,11 @@ that reduces those four choices to global `±J`.
 
 Route 2 is now represented by a spatial 1D sidecar. It does not alter the
 finite-depth on-site verdict checker. Instead it tests the remaining sign
-obstruction directly with a period-12 transfer prototype: alpha winding `4`,
-eta winding `3`, `gcd(4,3)=1`, and `lcm(4,3)=12`. Under the sidecar's shared
-spatial-orientation transport constraint, the four alpha/eta block-sign
+obstruction directly with finite-hop transfer data: shift `4` on the three
+alpha mode-pairs, shift `3` on the two eta mode-pairs, alpha winding `4`, eta
+winding `3`, `gcd(4,3)=1`, and `lcm(4,3)=12`. The reconstructed transfer
+matches the period-12 root-of-unity symbol on all samples. Under the sidecar's
+shared spatial-orientation transport constraint, the four alpha/eta block-sign
 choices reduce to the two global choices `(+,+)` and `(-,-)`. This has the
 right theorem shape for the missing topological mechanism, but it is not yet a
 microscopic QCA construction.

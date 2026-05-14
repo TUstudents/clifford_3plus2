@@ -128,6 +128,11 @@ spatial_1d_alpha_orientation_choices_before_transport: 4
 spatial_1d_alpha_orientation_choices_after_transport: 2
 spatial_1d_alpha_sign_coupled_to_global_pm: true
 spatial_1d_alpha_route_label: spatial_signs_coupled_to_global_pm
+spatial_1d_alpha_local_hopping_term_count: 2
+spatial_1d_alpha_local_hopping_shifts: [3, 4]
+spatial_1d_alpha_local_hopping_mode_windings: [4, 4, 4, 3, 3]
+spatial_1d_alpha_local_hopping_reconstructs_transfer: true
+spatial_1d_alpha_local_hopping_route_label: spatial_local_hopping_signs_coupled
 spatial_1d_alpha_strict_bridge_candidates: 0
 floquet_alpha_noncommuting_forced_j_candidates: 0
 floquet_alpha_noncommuting_strict_bridge_candidates: 0
@@ -1070,7 +1075,7 @@ only a global ±J remains.
 
 ## Spatial 1D Sidecar Route
 
-Status: sidecar diagnostic implemented; not load-bearing.
+Status: finite-hop sidecar diagnostic implemented; not load-bearing.
 
 Implementation:
 
@@ -1089,6 +1094,8 @@ alpha_winding = 4
 eta_winding = 3
 gcd(4,3) = 1
 lcm(4,3) = 12
+local_hopping_shifts = [3,4]
+mode_windings = [4,4,4,3,3]
 ```
 
 Current outcome:
@@ -1100,20 +1107,25 @@ coarse_6_4_band_candidates = 1
 orientation_choices_before_transport = 4
 orientation_choices_after_transport = 2
 sign_coupled_to_global_pm = true
+local_hopping_reconstructs_transfer_on_samples = true
+local_hopping_orientation_choices_after_transport = 2
 strict_bridge_candidates = 0
 route_label = spatial_signs_coupled_to_global_pm
+local_hopping_route_label = spatial_local_hopping_signs_coupled
 load_bearing_qca_bridge = false
 ```
 
 Interpretation:
 
 ```text
-This tests the Route-2 idea in the smallest exact setting. The sidecar
-root-of-unity transfer rule has the right sign-coupling shape: one spatial
-period-12 cycle reduces independent alpha/eta orientations to global ±J. It
-does not yet prove a finite-depth real QCA generates this transfer rule. The
-next Route-2 task is to replace the diagonal transfer diagnostic with an
-explicit local hopping construction carrying the same invariant.
+This tests the Route-2 idea in the smallest exact setting. The sidecar now
+uses two finite hopping terms, at shifts `4` on the three alpha mode-pairs and
+`3` on the two eta mode-pairs, whose Laurent transfer reconstructs the
+period-12 root-of-unity symbol on all samples. The resulting spatial cycle has
+the right sign-coupling shape: independent alpha/eta orientations reduce to
+global ±J. It does not yet prove a finite-depth real QCA generates this
+transfer rule. The next Route-2 task is to promote the finite-radius hopping
+diagnostic into a genuine unitary local QCA layer model.
 ```
 
 ## Defect-Beta Transition-Pair Family
