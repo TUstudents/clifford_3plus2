@@ -120,13 +120,19 @@ When the full compatible centralizer is too large, the checker reports
 `compatible_j_solved: false` for that diagnostic solve but can still solve the
 local compatible problem.
 
+The reported full-compatible `compatible_j_moduli_dimension` may fall back to
+a heuristic only in the single-generator semisimple case. That estimate counts
+paired complex eigenspaces and is used for one-layer α-style diagnostics; it is
+not a general multi-layer moduli computation. Multi-layer rules report
+`None` unless the nonlinear solve computes a dimension directly.
+
 This is intentional. A large compatible centralizer is precisely the current
 failure mode: the rule has not selected a unique complex structure.
-For the Floquet-α and Defect-β families this dimension is `26`, not a small
-finite sign ambiguity, and their compatible `J` moduli dimension is reported
-as `9`. After locality restriction, the local compatible operator dimension is
-`4`, with four discrete local compatible complex structures. That is local but
-still not unique.
+For the one-layer Floquet-α family this dimension is `26`, not a small finite
+sign ambiguity, and its compatible `J` moduli dimension is heuristically
+reported as `9`. After locality restriction, the local compatible operator
+dimension is `4`, with four discrete local compatible complex structures. That
+is local but still not unique.
 
 ## Interpretation
 
@@ -146,5 +152,7 @@ reduces the centralizer but generates lower-rank central projectors, so it is a
 negative no-locking result rather than a bridge witness.
 
 The second replacement family is [Defect Beta](defect_beta_report.md). It
-computes round-trip monodromy from wall-cycle transition functions and reaches
-the same verdict shape as Alpha-plus.
+computes round-trip monodromy from wall-cycle transition functions. Its
+monodromy is exactly the matching Floquet-α operator, so the checker now runs
+the actual noncommuting transition pair as the β rule; that pair remains
+`candidate_only_j_not_forced`.

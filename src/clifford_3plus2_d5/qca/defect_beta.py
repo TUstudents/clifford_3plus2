@@ -16,6 +16,8 @@ from clifford_3plus2_d5.qca.floquet_alpha import (
     FLOQUET_ALPHA_COMPATIBLE_J_MODULI_DIMENSION,
     FLOQUET_ALPHA_EXACT_WORKING_FIELD,
     FLOQUET_ALPHA_ETA_SECTOR_CENTRALIZER_DIMENSION,
+    FloquetAlphaCandidate,
+    floquet_alpha_operator,
     pair_rotation,
 )
 from clifford_3plus2_d5.qca.rule_verdict import RuleLayerInput, RuleToVerdictResult, rule_to_verdict
@@ -48,10 +50,15 @@ class DefectBetaCertificate:
     exact_working_field: str
     transition_count: int
     monodromy_computed_from_transitions: bool
+    monodromy_equals_matching_floquet_alpha: bool
     entry_exit_transitions_distinct: bool
+    transition_functions_commute: bool
     transition_determinants: tuple[int, ...]
     clutching_reflection_determinant: int
     clutching_identity_passed: bool
+    rule_generated_algebra_dimension: int
+    rule_center_dimension: int
+    rule_center_solved: bool
     omega_projector_rank: int
     i_projector_rank: int
     spectral_projectors_are_idempotent: bool
@@ -75,7 +82,7 @@ class DefectBetaCertificate:
     omega_sector_centralizer_dimension: int
     i_sector_centralizer_dimension: int
     compatible_centralizer_dimension: int
-    compatible_j_moduli_dimension: int
+    compatible_j_moduli_dimension: int | None
     locality_radius_bound: int
     local_compatible_operator_dimension: int
     local_compatible_j_solved: bool
@@ -208,6 +215,20 @@ def defect_beta_rule_to_verdict(
     max_j_solve_dimension: int = 8,
 ) -> RuleToVerdictResult:
     return rule_to_verdict(
+        defect_beta_transition_functions(candidate),
+        rule_name=f"{candidate.name}_transition_pair",
+        max_center_solve_dimension=max_center_solve_dimension,
+        max_j_solve_dimension=max_j_solve_dimension,
+    )
+
+
+def defect_beta_monodromy_rule_to_verdict(
+    candidate: DefectBetaCandidate,
+    *,
+    max_center_solve_dimension: int = 8,
+    max_j_solve_dimension: int = 8,
+) -> RuleToVerdictResult:
+    return rule_to_verdict(
         (defect_beta_monodromy_layer(candidate),),
         rule_name=candidate.name,
         max_center_solve_dimension=max_center_solve_dimension,
@@ -219,6 +240,11 @@ def defect_beta_certificate(candidate: DefectBetaCandidate) -> DefectBetaCertifi
     verdict = defect_beta_rule_to_verdict(candidate)
     transitions = defect_beta_transition_functions(candidate)
     monodromy_core = defect_beta_monodromy_core(candidate)
+    matching_alpha = FloquetAlphaCandidate(
+        candidate.pattern_index,
+        candidate.omega_modes,
+        candidate.i_modes,
+    )
     clutching = defect_beta_clutching_reflection()
     computed_monodromy = identity(10)
     for transition in transitions:
@@ -284,10 +310,23 @@ def defect_beta_certificate(candidate: DefectBetaCandidate) -> DefectBetaCertifi
         exact_working_field=DEFECT_BETA_EXACT_WORKING_FIELD,
         transition_count=len(transitions),
         monodromy_computed_from_transitions=True,
+        monodromy_equals_matching_floquet_alpha=(
+            _simplify_matrix(
+                defect_beta_monodromy_operator(candidate)
+                - floquet_alpha_operator(matching_alpha)
+            )
+            == sp.zeros(10)
+        ),
         entry_exit_transitions_distinct=transitions[0].matrix != transitions[1].matrix,
+        transition_functions_commute=is_zero_matrix(
+            commutator(transitions[0].matrix, transitions[1].matrix)
+        ),
         transition_determinants=tuple(int(transition.matrix.det()) for transition in transitions),
         clutching_reflection_determinant=int(clutching.det()),
         clutching_identity_passed=clutching_identity_passed,
+        rule_generated_algebra_dimension=verdict.generated_algebra_dimension,
+        rule_center_dimension=verdict.center_dimension,
+        rule_center_solved=verdict.center_solved,
         omega_projector_rank=omega_projector.rank(),
         i_projector_rank=i_projector.rank(),
         spectral_projectors_are_idempotent=spectral_projectors_are_idempotent,
@@ -311,11 +350,7 @@ def defect_beta_certificate(candidate: DefectBetaCandidate) -> DefectBetaCertifi
         omega_sector_centralizer_dimension=DEFECT_BETA_OMEGA_SECTOR_CENTRALIZER_DIMENSION,
         i_sector_centralizer_dimension=DEFECT_BETA_I_SECTOR_CENTRALIZER_DIMENSION,
         compatible_centralizer_dimension=verdict.compatible_centralizer_dimension,
-        compatible_j_moduli_dimension=(
-            verdict.compatible_j_moduli_dimension
-            if verdict.compatible_j_moduli_dimension is not None
-            else DEFECT_BETA_COMPATIBLE_J_MODULI_DIMENSION
-        ),
+        compatible_j_moduli_dimension=verdict.compatible_j_moduli_dimension,
         locality_radius_bound=verdict.locality_radius_bound,
         local_compatible_operator_dimension=verdict.local_compatible_operator_dimension,
         local_compatible_j_solved=verdict.local_compatible_j_solved,
@@ -327,9 +362,5 @@ def defect_beta_certificate(candidate: DefectBetaCandidate) -> DefectBetaCertifi
         compatible_j_solved=verdict.compatible_j_solved,
         beta_monodromy_passed=beta_monodromy_passed,
         pass_strict_rule_to_bridge=verdict.pass_rule_to_bridge,
-        verdict=(
-            "monodromy_j_produced_not_strictly_unique"
-            if beta_monodromy_passed and not verdict.pass_rule_to_bridge
-            else verdict.verdict
-        ),
+        verdict=verdict.verdict,
     )

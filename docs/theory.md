@@ -246,10 +246,12 @@ The second physical family is Defect-β, documented in
 [Defect Beta Report](literature/defect_beta_report.md). It computes
 round-trip monodromy from two distinct orientation-reversing wall-cycle
 transition functions. All ten defect charge patterns produce the same coarse
-center and canonical monodromy `J`; the same strict compatible-commutant
-obstruction remains with centralizer dimension `26`, not a finite sign
-ambiguity. It is now parked as a load-bearing route until it is rebuilt as a
-genuine higher-dimensional defect calculation.
+center and canonical monodromy `J`, but that monodromy is exactly the matching
+Floquet-α operator. The checker now evaluates β on the actual noncommuting
+transition pair `(T_entry, T_exit)`, which has generated algebra dimension `8`
+and compatible centralizer dimension `13`, but still does not force `J`.
+It is parked as a load-bearing route until rebuilt as a genuine
+higher-dimensional defect calculation.
 
 ## Load-Bearing Conditions
 

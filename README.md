@@ -34,7 +34,7 @@ unseeded_projector_discovery: no complementary 6+4 pair
 rule_to_verdict_check: unified negative interface with exact field and J-moduli metadata
 floquet_alpha_search: coarse 6+4 center, scaled polarization J certificate
 floquet_alpha_second_layer: cycle/swap lock fails no-locking guardrail
-defect_beta_search: monodromy 6+4 center, scaled monodromy J certificate
+defect_beta_search: monodromy equals alpha; transition-pair rule still negative
 Spin(10) branching check: passes
 QCA load-bearing bridge: notation_only
 ```
@@ -337,21 +337,28 @@ idempotents. The no-locking guardrail rejects the resulting rank-2 projectors.
 `scripts/defect_beta_search.py` computes round-trip monodromy from wall
 transition functions. It is retained as a regression target, but parked as a
 load-bearing route until rebuilt as a genuine higher-dimensional defect
-calculation. It reproduces the same obstruction:
+calculation. Its monodromy is exactly the matching Floquet-α operator, so the
+actual β rule verdict is now computed from the noncommuting entry/exit
+transition pair:
 
 ```text
 monodromy_candidates: 10
 scaled_monodromy_certified_candidates: 10
+monodromy_equals_matching_floquet_alpha: true
+transition_functions_commute: false
+rule_generated_algebra_dimension: 8
+rule_center_dimension: 2
+rule_center_solved: true
 generated_j_moduli_dimension: 0
-compatible_centralizer_dimension: 26
-compatible_j_moduli_dimension: 9
-locality_radius_bound: 0
-local_compatible_operator_dimension: 4
-local_compatible_j_moduli_dimension: 0
-local_compatible_complex_structure_count: 4
+compatible_centralizer_dimension: 13
+compatible_j_moduli_dimension: None
+locality_radius_bound: 1
+local_compatible_operator_dimension: 2
+local_compatible_j_moduli_dimension: None
+local_compatible_complex_structure_count: 0
 strict_compatible_j_forced_candidates: 0
 strict_bridge_candidates: 0
-verdict_counts: {'monodromy_j_produced_not_strictly_unique': 10}
+verdict_counts: {'candidate_only_j_not_forced': 10}
 load_bearing_qca_bridge: false
 ```
 

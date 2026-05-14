@@ -252,7 +252,13 @@ def _natural_eigenvalue_field_label(eigenvalues: Sequence[sp.Expr]) -> str:
 def _compatible_j_moduli_dimension_from_single_generator(
     generator: sp.Matrix,
 ) -> int | None:
-    """Estimate orthogonal compatible-J moduli from repeated spectral sectors."""
+    """HEURISTIC: estimate compatible-J moduli for one semisimple generator.
+
+    This spectral orbit count is only correct for a single semisimple
+    generator with all non-real eigenvalues paired by complex conjugation.
+    Multi-layer rules and non-semisimple cases must report ``None`` unless the
+    polynomial solve computes a dimension directly.
+    """
 
     eigenvals = generator.eigenvals()
     seen: set[sp.Expr] = set()

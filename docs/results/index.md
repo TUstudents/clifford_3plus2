@@ -514,21 +514,26 @@ load_bearing_qca_bridge: false
 Defect-beta search:
 
 ```text
-This searches the defect-beta monodromy primitive family.
-It computes round-trip monodromy from wall transition functions.
+This searches defect-beta using the entry/exit transition-pair rule.
+It also records that the round-trip monodromy equals Floquet-alpha.
 candidate_count: 10
 monodromy_candidates: 10
 scaled_monodromy_certified_candidates: 10
+monodromy_equals_matching_floquet_alpha: true
+transition_functions_commute: false
+rule_generated_algebra_dimension: 8
+rule_center_dimension: 2
+rule_center_solved: true
 generated_j_moduli_dimension: 0
-compatible_centralizer_dimension: 26
-compatible_j_moduli_dimension: 9
-locality_radius_bound: 0
-local_compatible_operator_dimension: 4
-local_compatible_j_moduli_dimension: 0
-local_compatible_complex_structure_count: 4
+compatible_centralizer_dimension: 13
+compatible_j_moduli_dimension: None
+locality_radius_bound: 1
+local_compatible_operator_dimension: 2
+local_compatible_j_moduli_dimension: None
+local_compatible_complex_structure_count: 0
 strict_compatible_j_forced_candidates: 0
 strict_bridge_candidates: 0
-verdict_counts: {'monodromy_j_produced_not_strictly_unique': 10}
+verdict_counts: {'candidate_only_j_not_forced': 10}
 load_bearing_qca_bridge: false
 ```
 
@@ -627,9 +632,10 @@ centralizer to dimension 10 but generates rank-2 central projectors, so the
 no-locking guardrail rejects it.
 Defect-beta is retained as a regression target but parked as a load-bearing
 route until rebuilt as a genuine higher-dimensional defect calculation. Its
-current monodromy route reaches the same spectral verdict: coarse center and
-canonical monodromy `J` are present, but strict compatible `J` uniqueness fails
-for the same local four-choice ambiguity.
+round-trip monodromy is exactly the matching Floquet-alpha operator. The
+noncommuting transition-pair rule has a distinct generated algebra
+(dimension 8, compatible centralizer dimension 13), but still does not force
+`J`.
 ```
 
 ## Active Roadmap Update

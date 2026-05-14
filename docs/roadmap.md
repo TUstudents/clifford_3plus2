@@ -107,11 +107,15 @@ floquet_alpha_second_layer_strict_bridge_candidates: 0
 floquet_alpha_bridge_candidates: 0
 defect_beta_monodromy_candidates: 10
 defect_beta_scaled_monodromy_certified_candidates: 10
-defect_beta_compatible_centralizer_dimension: 26
-defect_beta_compatible_j_moduli_dimension: 9
-defect_beta_local_compatible_operator_dimension: 4
-defect_beta_local_compatible_j_moduli_dimension: 0
-defect_beta_local_compatible_complex_structure_count: 4
+defect_beta_monodromy_equals_matching_floquet_alpha: true
+defect_beta_transition_functions_commute: false
+defect_beta_rule_generated_algebra_dimension: 8
+defect_beta_rule_center_dimension: 2
+defect_beta_compatible_centralizer_dimension: 13
+defect_beta_compatible_j_moduli_dimension: null
+defect_beta_local_compatible_operator_dimension: 2
+defect_beta_local_compatible_j_moduli_dimension: null
+defect_beta_local_compatible_complex_structure_count: 0
 defect_beta_strict_bridge_candidates: 0
 branching_check_passed: true
 qca_split_audit_verdict: notation_only
@@ -960,7 +964,7 @@ semisimple lock whose spectral projectors are available inside the generated
 rule algebra. The proposition is stated in [Theory](theory.md).
 ```
 
-## Defect-Beta Monodromy Family
+## Defect-Beta Transition-Pair Family
 
 Status: implemented but parked; monodromy center and canonical `J` found, but
 strict compatible-commutant uniqueness still fails. It is retained as a
@@ -992,28 +996,35 @@ Current outcome:
 ```text
 monodromy_candidates = 10
 scaled_monodromy_certified_candidates = 10
+monodromy_equals_matching_floquet_alpha = true
+transition_functions_commute = false
+rule_generated_algebra_dimension = 8
+rule_center_dimension = 2
+rule_center_solved = true
 generated_j_moduli_dimension = 0
-compatible_centralizer_dimension = 26
-compatible_j_moduli_dimension = 9
-locality_radius_bound = 0
-local_compatible_operator_dimension = 4
-local_compatible_j_moduli_dimension = 0
-local_compatible_complex_structure_count = 4
+compatible_centralizer_dimension = 13
+compatible_j_moduli_dimension = None
+locality_radius_bound = 1
+local_compatible_operator_dimension = 2
+local_compatible_j_moduli_dimension = None
+local_compatible_complex_structure_count = 0
 strict_compatible_j_forced_candidates = 0
 strict_bridge_candidates = 0
-verdict_counts = {'monodromy_j_produced_not_strictly_unique': 10}
+verdict_counts = {'candidate_only_j_not_forced': 10}
 load_bearing_qca_bridge = false
 ```
 
 Interpretation:
 
 ```text
-Defect-beta confirms the same obstruction as Floquet-alpha-plus through a
-non-identical wall transitions: the spectral/monodromy data produce the coarse
-center and a canonical J. The global compatible centralizer is again
-26-dimensional with a 9-dimensional compatible-J family; the local compatible
-search removes the continuous family but still leaves four discrete local J
-choices, so strict compatible-J uniqueness fails.
+Defect-beta is redundant with Floquet-alpha at the monodromy level:
+the round-trip monodromy equals the matching alpha Floquet operator. The
+transition-pair rule is nevertheless distinct because the wall entry and exit
+maps do not commute. Feeding `(T_entry, T_exit)` into the checker gives a
+different algebra, with generated dimension 8 and compatible centralizer
+dimension 13, but it still does not force J. β remains parked until rebuilt as
+a genuine higher-dimensional defect calculation whose transition algebra
+supplies independent microscopic structure.
 ```
 
 ## Phase 9: Family Number Status

@@ -16,10 +16,17 @@ def _certificate_to_dict(certificate: DefectBetaCertificate) -> dict[str, object
         "exact_working_field": certificate.exact_working_field,
         "transition_count": certificate.transition_count,
         "monodromy_computed_from_transitions": certificate.monodromy_computed_from_transitions,
+        "monodromy_equals_matching_floquet_alpha": (
+            certificate.monodromy_equals_matching_floquet_alpha
+        ),
         "entry_exit_transitions_distinct": certificate.entry_exit_transitions_distinct,
+        "transition_functions_commute": certificate.transition_functions_commute,
         "transition_determinants": list(certificate.transition_determinants),
         "clutching_reflection_determinant": certificate.clutching_reflection_determinant,
         "clutching_identity_passed": certificate.clutching_identity_passed,
+        "rule_generated_algebra_dimension": certificate.rule_generated_algebra_dimension,
+        "rule_center_dimension": certificate.rule_center_dimension,
+        "rule_center_solved": certificate.rule_center_solved,
         "omega_projector_rank": certificate.omega_projector_rank,
         "i_projector_rank": certificate.i_projector_rank,
         "spectral_projectors_are_idempotent": certificate.spectral_projectors_are_idempotent,
@@ -73,7 +80,9 @@ def _certificate_to_dict(certificate: DefectBetaCertificate) -> dict[str, object
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Search the defect-beta monodromy family.")
+    parser = argparse.ArgumentParser(
+        description="Search defect-beta using the entry/exit transition-pair rule."
+    )
     parser.add_argument("--json", action="store_true", help="Emit machine-readable JSON only.")
     parser.add_argument("--check", action="store_true", help="Exit nonzero if beta search fails.")
     parser.add_argument("--pattern-index", type=int, help="Run a single defect-charge pattern.")
@@ -95,6 +104,13 @@ def main() -> int:
         "scaled_monodromy_certified_candidates": sum(
             certificate.scaled_monodromy_certified for certificate in certificates
         ),
+        "monodromy_equals_matching_floquet_alpha": (
+            certificates[0].monodromy_equals_matching_floquet_alpha
+        ),
+        "transition_functions_commute": certificates[0].transition_functions_commute,
+        "rule_generated_algebra_dimension": certificates[0].rule_generated_algebra_dimension,
+        "rule_center_dimension": certificates[0].rule_center_dimension,
+        "rule_center_solved": certificates[0].rule_center_solved,
         "generated_j_moduli_dimension": certificates[0].generated_j_moduli_dimension,
         "compatible_centralizer_dimension": certificates[0].compatible_centralizer_dimension,
         "compatible_j_moduli_dimension": certificates[0].compatible_j_moduli_dimension,
@@ -125,14 +141,28 @@ def main() -> int:
     if args.json:
         print(json.dumps(payload, indent=2, sort_keys=True))
     else:
-        print("This searches the defect-beta monodromy primitive family.")
-        print("It computes round-trip monodromy from wall transition functions.")
+        print("This searches defect-beta using the entry/exit transition-pair rule.")
+        print("It also records that the round-trip monodromy equals Floquet-alpha.")
         print(f"candidate_count: {payload['candidate_count']}")
         print(f"monodromy_candidates: {payload['monodromy_candidates']}")
         print(
             "scaled_monodromy_certified_candidates: "
             f"{payload['scaled_monodromy_certified_candidates']}"
         )
+        print(
+            "monodromy_equals_matching_floquet_alpha: "
+            f"{str(payload['monodromy_equals_matching_floquet_alpha']).lower()}"
+        )
+        print(
+            "transition_functions_commute: "
+            f"{str(payload['transition_functions_commute']).lower()}"
+        )
+        print(
+            "rule_generated_algebra_dimension: "
+            f"{payload['rule_generated_algebra_dimension']}"
+        )
+        print(f"rule_center_dimension: {payload['rule_center_dimension']}")
+        print(f"rule_center_solved: {str(payload['rule_center_solved']).lower()}")
         print(f"generated_j_moduli_dimension: {payload['generated_j_moduli_dimension']}")
         print(f"compatible_centralizer_dimension: {payload['compatible_centralizer_dimension']}")
         print(f"compatible_j_moduli_dimension: {payload['compatible_j_moduli_dimension']}")
@@ -159,7 +189,12 @@ def main() -> int:
                 f"{certificate.candidate_name}, "
                 f"transitions={certificate.transition_count}, "
                 f"distinct_transitions={str(certificate.entry_exit_transitions_distinct).lower()}, "
+                f"commuting_transitions={str(certificate.transition_functions_commute).lower()}, "
                 f"transition_dets={list(certificate.transition_determinants)}, "
+                f"monodromy_equals_alpha="
+                f"{str(certificate.monodromy_equals_matching_floquet_alpha).lower()}, "
+                f"rule_alg_dim={certificate.rule_generated_algebra_dimension}, "
+                f"rule_center_dim={certificate.rule_center_dimension}, "
                 f"omega_i_ranks=({certificate.omega_projector_rank},"
                 f"{certificate.i_projector_rank}), "
                 f"scaled_cert={str(certificate.scaled_monodromy_certified).lower()}, "
