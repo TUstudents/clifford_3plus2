@@ -141,6 +141,9 @@ abstract E1 primitives; it exposes one mandatory quantized resonance layer per
 candidate. Alpha-plus also extracts a canonical spectral-polarization `J` from
 that layer, while the strict rule-to-verdict checker continues to report that
 compatible `J` is not unique after the local restriction.
+The literal commuting cycle/swap second-layer repair is also checked there; it
+reduces the centralizer but generates lower-rank central projectors, so it is a
+negative no-locking result rather than a bridge witness.
 
 The second replacement family is [Defect Beta](defect_beta_report.md). It
 computes round-trip monodromy from wall-cycle transition functions and reaches

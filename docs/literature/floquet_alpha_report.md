@@ -47,6 +47,7 @@ five mode pairs carry the alpha phase.
 ```bash
 uv run python scripts/floquet_alpha_search.py --check
 uv run python scripts/floquet_alpha_plus_search.py --check
+uv run python scripts/floquet_alpha_second_layer_search.py --check
 ```
 
 Current output:
@@ -155,3 +156,45 @@ but still leaves four local compatible complex structures rather than a unique
 The next pressure is to decide whether the physical theorem accepts this
 spectral-polarization `J` as forced by the rule, or whether a stricter
 microscopic constraint must eliminate the remaining local discrete ambiguity.
+
+## Cycle/Swap Second-Layer Check
+
+The proposed next strict-standard move was to add a second mandatory layer
+`V` that commutes with `U`, cycles the three alpha mode-pairs, and swaps the
+two eta mode-pairs:
+
+```text
+[U,V] = 0
+V^3 P_alpha = P_alpha
+V^2 P_eta = P_eta
+```
+
+This is now implemented as a checked negative via
+[`scripts/floquet_alpha_second_layer_search.py`](../../scripts/floquet_alpha_second_layer_search.py).
+
+Current output:
+
+```text
+commuting_second_layer_candidates: 10
+order_certified_candidates: 10
+compatible_centralizer_collapsed_candidates: 10
+generated_algebra_dimension: 10
+center_dimension: 10
+compatible_centralizer_dimension: 10
+explicit_lower_rank_projector_ranks: [2, 2, 2]
+no_locking_guardrail_passed_candidates: 0
+strict_bridge_candidates: 0
+load_bearing_qca_bridge: false
+```
+
+The layer succeeds at being mandatory, local, real-orthogonal, commuting with
+`U`, and reducing the compatible centralizer from `26` to `10`. It does not
+reach the bridge. Since `U` and `V` commute, the generated algebra is
+commutative; non-scalar spectral data of `V` inside the alpha/eta blocks
+produce central idempotents. The explicit projectors include three rank-2
+witnesses, so the no-locking guardrail rejects the rule.
+
+This corrects the naive target count. A 3-cycle on the complex alpha block has
+three characters, so its centralizer in `M_3(C)` has complex dimension `3`,
+not `2`; together with the eta swap block this gives real dimension `10`, not
+`8`.

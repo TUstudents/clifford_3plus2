@@ -33,6 +33,7 @@ rule_space_exploration: no forced survivors
 unseeded_projector_discovery: no complementary 6+4 pair
 rule_to_verdict_check: unified negative interface with exact field and J-moduli metadata
 floquet_alpha_search: coarse 6+4 center, scaled polarization J certificate
+floquet_alpha_second_layer: cycle/swap lock fails no-locking guardrail
 defect_beta_search: monodromy 6+4 center, scaled monodromy J certificate
 Spin(10) branching check: passes
 QCA load-bearing bridge: notation_only
@@ -313,9 +314,30 @@ The load-bearing α certificate is exact over `QQ(zeta_12)`: it verifies
 `K_alpha = (2U+I)P_alpha` and `K_alpha^2 = -3P_alpha` before deriving the
 normalized `J_alpha = K_alpha/sqrt(3)`.
 
+`scripts/floquet_alpha_second_layer_search.py` checks the proposed commuting
+cycle/swap lock layer:
+
+```text
+commuting_second_layer_candidates: 10
+order_certified_candidates: 10
+compatible_centralizer_collapsed_candidates: 10
+generated_algebra_dimension: 10
+center_dimension: 10
+compatible_centralizer_dimension: 10
+explicit_lower_rank_projector_ranks: [2, 2, 2]
+no_locking_guardrail_passed_candidates: 0
+strict_bridge_candidates: 0
+load_bearing_qca_bridge: false
+```
+
+This is a checked negative. The layer does reduce the compatible centralizer,
+but because it commutes with `U`, its spectral projectors are central
+idempotents. The no-locking guardrail rejects the resulting rank-2 projectors.
+
 `scripts/defect_beta_search.py` computes round-trip monodromy from wall
-transition functions. It reproduces the same obstruction through a different
-physical route:
+transition functions. It is retained as a regression target, but parked as a
+load-bearing route until rebuilt as a genuine higher-dimensional defect
+calculation. It reproduces the same obstruction:
 
 ```text
 monodromy_candidates: 10
@@ -394,6 +416,7 @@ uv run python scripts/rule_to_verdict.py --case clock-block-reflection --expect-
 uv run python scripts/rule_to_verdict.py --case clock-rank-one-color-reflection --expect-verdict falsified_rank_one_center
 uv run python scripts/floquet_alpha_search.py --check
 uv run python scripts/floquet_alpha_plus_search.py --check
+uv run python scripts/floquet_alpha_second_layer_search.py --check
 uv run python scripts/defect_beta_search.py --check
 uv run python scripts/branching_check.py --check
 uv run python scripts/qca_split_audit.py --check --expect-verdict notation_only

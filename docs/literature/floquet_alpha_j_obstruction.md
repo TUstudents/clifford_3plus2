@@ -130,3 +130,32 @@ center problems but still needs a source-backed microscopic reason why the
 oriented spectral branch is mandatory. Under the strict standard, the next
 candidate must physically eliminate the remaining four local compatible
 complex structures down to `±J`.
+
+## Commuting Second-Layer Dilemma
+
+The literal second-layer move has now been checked: add a mandatory real
+orthogonal layer `V` with `[U,V]=0`, a 3-cycle on the alpha modes, and a swap
+on the eta modes. It collapses the compatible centralizer from `26` to `10`,
+but fails the bridge:
+
+```text
+generated_algebra_dimension = 10
+center_dimension = 10
+compatible_centralizer_dimension = 10
+explicit_lower_rank_projector_ranks = [2, 2, 2]
+no_locking_guardrail_passed = false
+pass_strict_rule_to_bridge = false
+```
+
+The obstruction is structural. If a commuting real-orthogonal layer is
+non-scalar inside a spectral block of `U`, its spectral projectors are
+polynomials in `V`; because `[U,V]=0`, those projectors are central in the
+rule-generated algebra. Therefore any such layer that actually breaks the
+within-block centralizer also creates lower-rank central idempotents inside the
+coarse `6+4` blocks. If `V` avoids those lower projectors, it is scalar on the
+blocks and cannot reduce the compatible centralizer.
+
+So the strict route cannot be "add any commuting semisimple lock." The next
+candidate must break the compatible-`J` ambiguity without making the lock's
+within-block spectral projectors available as rule-generated central
+idempotents.

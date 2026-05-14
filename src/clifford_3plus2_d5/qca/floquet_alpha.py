@@ -10,7 +10,11 @@ import sympy as sp
 
 from clifford_3plus2_d5.algebra.matrices import commutator, is_zero_matrix
 from clifford_3plus2_d5.algebra.matrices import identity
-from clifford_3plus2_d5.qca.rule_verdict import RuleLayerInput, RuleToVerdictResult, rule_to_verdict
+from clifford_3plus2_d5.qca.rule_verdict import (
+    RuleLayerInput,
+    RuleToVerdictResult,
+    rule_to_verdict,
+)
 
 
 ALPHA_PHASE = sp.Rational(2, 3) * sp.pi
@@ -76,6 +80,26 @@ class FloquetAlphaPolarizationCertificate:
     load_bearing_qca_bridge: bool = False
 
 
+@dataclass(frozen=True)
+class FloquetAlphaSecondLayerCertificate:
+    candidate_name: str
+    second_layer_name: str
+    u_v_commute: bool
+    second_layer_real_orthogonal: bool
+    alpha_cycle_order_certified: bool
+    eta_swap_order_certified: bool
+    generated_algebra_dimension: int
+    center_dimension: int
+    compatible_centralizer_dimension: int
+    rule_center_solved: bool
+    rule_verdict: str
+    explicit_lower_rank_projector_ranks: tuple[int, ...]
+    no_locking_guardrail_passed: bool
+    compatible_centralizer_collapsed: bool
+    pass_strict_rule_to_bridge: bool
+    load_bearing_qca_bridge: bool = False
+
+
 def _simplify_matrix(matrix: sp.Matrix) -> sp.Matrix:
     return matrix.applyfunc(sp.simplify)
 
@@ -103,6 +127,51 @@ def floquet_alpha_operator(candidate: FloquetAlphaCandidate) -> sp.Matrix:
     for mode in candidate.eta_modes:
         operator = pair_rotation(mode, ETA_PHASE) * operator
     return sp.simplify(operator)
+
+
+def mode_pair_permutation_operator(
+    mode_mapping: dict[int, int],
+    *,
+    dimension: int = 10,
+) -> sp.Matrix:
+    if set(mode_mapping) != set(mode_mapping.values()):
+        raise ValueError("mode mapping must be a permutation of its support")
+    if not all(0 <= mode < dimension // 2 for mode in mode_mapping):
+        raise ValueError("mode index out of range")
+
+    matrix = identity(dimension)
+    half_dimension = dimension // 2
+    for source in mode_mapping:
+        matrix[source, source] = 0
+        matrix[source + half_dimension, source + half_dimension] = 0
+    for source, target in mode_mapping.items():
+        matrix[target, source] = 1
+        matrix[target + half_dimension, source + half_dimension] = 1
+    return matrix
+
+
+def floquet_alpha_cycle_swap_operator(candidate: FloquetAlphaCandidate) -> sp.Matrix:
+    """Cycle the three alpha mode-pairs and swap the two eta mode-pairs."""
+
+    mode_mapping: dict[int, int] = {}
+    for source, target in zip(
+        candidate.alpha_modes,
+        (*candidate.alpha_modes[1:], candidate.alpha_modes[0]),
+        strict=True,
+    ):
+        mode_mapping[source] = target
+    for source, target in zip(candidate.eta_modes, reversed(candidate.eta_modes), strict=True):
+        mode_mapping[source] = target
+    return mode_pair_permutation_operator(mode_mapping)
+
+
+def floquet_alpha_cycle_swap_layer(candidate: FloquetAlphaCandidate) -> RuleLayerInput:
+    return RuleLayerInput(
+        name=f"{candidate.name}_cycle_swap_lock",
+        matrix=floquet_alpha_cycle_swap_operator(candidate),
+        support=(0,),
+        locality_radius=0,
+    )
 
 
 def floquet_alpha_spectral_projectors(
@@ -180,6 +249,79 @@ def floquet_alpha_rule_to_verdict(
         rule_name=candidate.name,
         max_center_solve_dimension=max_center_solve_dimension,
         max_j_solve_dimension=max_j_solve_dimension,
+    )
+
+
+def floquet_alpha_cycle_swap_rule_to_verdict(
+    candidate: FloquetAlphaCandidate,
+    *,
+    max_center_solve_dimension: int = 8,
+    max_j_solve_dimension: int = 8,
+) -> RuleToVerdictResult:
+    return rule_to_verdict(
+        (floquet_alpha_layer(candidate), floquet_alpha_cycle_swap_layer(candidate)),
+        rule_name=f"{candidate.name}_with_cycle_swap_lock",
+        max_center_solve_dimension=max_center_solve_dimension,
+        max_j_solve_dimension=max_j_solve_dimension,
+    )
+
+
+def _rank_if_idempotent(matrix: sp.Matrix) -> int | None:
+    simplified = _simplify_matrix(matrix)
+    if _simplify_matrix(simplified * simplified - simplified) != sp.zeros(10):
+        return None
+    return simplified.rank()
+
+
+def floquet_alpha_second_layer_certificate(
+    candidate: FloquetAlphaCandidate,
+) -> FloquetAlphaSecondLayerCertificate:
+    u_layer = floquet_alpha_layer(candidate)
+    v_layer = floquet_alpha_cycle_swap_layer(candidate)
+    u_operator = u_layer.matrix
+    v_operator = v_layer.matrix
+    alpha_projector, eta_projector = floquet_alpha_spectral_projectors(candidate)
+    rule_result = floquet_alpha_cycle_swap_rule_to_verdict(candidate)
+    one = identity(10)
+
+    alpha_fixed_projector = _simplify_matrix(
+        (one + v_operator + v_operator**2) * alpha_projector / 3
+    )
+    eta_symmetric_projector = _simplify_matrix((one + v_operator) * eta_projector / 2)
+    eta_antisymmetric_projector = _simplify_matrix((one - v_operator) * eta_projector / 2)
+    lower_rank_projector_ranks = tuple(
+        rank
+        for rank in (
+            _rank_if_idempotent(alpha_fixed_projector),
+            _rank_if_idempotent(eta_symmetric_projector),
+            _rank_if_idempotent(eta_antisymmetric_projector),
+        )
+        if rank is not None and rank < 4
+    )
+
+    return FloquetAlphaSecondLayerCertificate(
+        candidate_name=candidate.name,
+        second_layer_name=v_layer.name,
+        u_v_commute=is_zero_matrix(commutator(u_operator, v_operator)),
+        second_layer_real_orthogonal=v_operator.T * v_operator == one,
+        alpha_cycle_order_certified=(
+            _simplify_matrix((v_operator**3 - one) * alpha_projector) == sp.zeros(10)
+        ),
+        eta_swap_order_certified=(
+            _simplify_matrix((v_operator**2 - one) * eta_projector) == sp.zeros(10)
+        ),
+        generated_algebra_dimension=rule_result.generated_algebra_dimension,
+        center_dimension=rule_result.center_dimension,
+        compatible_centralizer_dimension=rule_result.compatible_centralizer_dimension,
+        rule_center_solved=rule_result.center_solved,
+        rule_verdict=rule_result.verdict,
+        explicit_lower_rank_projector_ranks=lower_rank_projector_ranks,
+        no_locking_guardrail_passed=not lower_rank_projector_ranks,
+        compatible_centralizer_collapsed=(
+            rule_result.compatible_centralizer_dimension
+            < FLOQUET_ALPHA_COMPATIBLE_CENTRALIZER_DIMENSION
+        ),
+        pass_strict_rule_to_bridge=rule_result.pass_rule_to_bridge,
     )
 
 

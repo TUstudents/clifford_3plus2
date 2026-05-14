@@ -1,6 +1,6 @@
 # Defect Beta Report
 
-Status: second physical primitive family implemented.
+Status: implemented but parked as a load-bearing route.
 
 This report records the Defect-β family implemented in
 [`src/clifford_3plus2_d5/qca/defect_beta.py`](../../src/clifford_3plus2_d5/qca/defect_beta.py)
@@ -9,9 +9,12 @@ and exposed by
 
 ## Purpose
 
-Defect-β is the topological comparison route to Floquet-α. Instead of
-declaring a block projector, it declares a wall cycle with transition functions
-in `O(10)` and computes the round-trip monodromy from their product.
+Defect-β is retained as a topological comparison route to Floquet-α. Instead
+of declaring a block projector, it declares a wall cycle with transition
+functions in `O(10)` and computes the round-trip monodromy from their product.
+After the commuting second-layer check, β is not treated as the active
+load-bearing path; it remains a regression target until it is rebuilt as a
+genuine higher-dimensional defect calculation.
 
 The intended spectral pattern is:
 

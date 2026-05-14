@@ -17,12 +17,15 @@ from clifford_3plus2_d5.qca.floquet_alpha import (
     FLOQUET_ALPHA_EXACT_WORKING_FIELD,
     FLOQUET_ALPHA_ETA_SECTOR_CENTRALIZER_DIMENSION,
     FLOQUET_ALPHA_SCALED_RELATION,
+    floquet_alpha_cycle_swap_operator,
+    floquet_alpha_cycle_swap_rule_to_verdict,
     floquet_alpha_candidates,
     floquet_alpha_canonical_j,
     floquet_alpha_operator,
     floquet_alpha_polarization_certificate,
     floquet_alpha_rule_to_verdict,
     floquet_alpha_scaled_alpha_operator,
+    floquet_alpha_second_layer_certificate,
     floquet_alpha_spectral_projectors,
     pair_rotation,
 )
@@ -142,6 +145,38 @@ def test_floquet_alpha_plus_reports_polarization_j_and_strict_obstruction() -> N
     assert not certificate.load_bearing_qca_bridge
 
 
+def test_floquet_alpha_cycle_swap_second_layer_is_a_checked_negative() -> None:
+    candidate = floquet_alpha_candidates()[0]
+    operator = floquet_alpha_cycle_swap_operator(candidate)
+    certificate = floquet_alpha_second_layer_certificate(candidate)
+
+    assert operator.T * operator == identity(10)
+    assert certificate.u_v_commute
+    assert certificate.second_layer_real_orthogonal
+    assert certificate.alpha_cycle_order_certified
+    assert certificate.eta_swap_order_certified
+    assert certificate.generated_algebra_dimension == 10
+    assert certificate.center_dimension == 10
+    assert certificate.compatible_centralizer_dimension == 10
+    assert certificate.compatible_centralizer_collapsed
+    assert certificate.explicit_lower_rank_projector_ranks == (2, 2, 2)
+    assert not certificate.no_locking_guardrail_passed
+    assert certificate.rule_verdict == "not_solved"
+    assert not certificate.pass_strict_rule_to_bridge
+    assert not certificate.load_bearing_qca_bridge
+
+
+def test_floquet_alpha_cycle_swap_verdict_refuses_large_center_by_default() -> None:
+    result = floquet_alpha_cycle_swap_rule_to_verdict(floquet_alpha_candidates()[0])
+
+    assert result.generated_algebra_dimension == 10
+    assert result.center_dimension == 10
+    assert not result.center_solved
+    assert result.compatible_centralizer_dimension == 10
+    assert result.verdict == "not_solved"
+    assert not result.pass_rule_to_bridge
+
+
 def test_floquet_alpha_cli_searches_all_patterns() -> None:
     result = subprocess.run(
         [
@@ -200,4 +235,32 @@ def test_floquet_alpha_plus_cli_searches_all_patterns() -> None:
     assert payload["verdict_counts"] == {
         "polarization_j_produced_not_strictly_unique": 10
     }
+    assert payload["load_bearing_qca_bridge"] is False
+
+
+def test_floquet_alpha_second_layer_cli_detects_no_locking_failure() -> None:
+    result = subprocess.run(
+        [
+            sys.executable,
+            "scripts/floquet_alpha_second_layer_search.py",
+            "--json",
+            "--check",
+        ],
+        cwd=ROOT,
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    payload = json.loads(result.stdout)
+
+    assert payload["candidate_count"] == 10
+    assert payload["commuting_second_layer_candidates"] == 10
+    assert payload["order_certified_candidates"] == 10
+    assert payload["compatible_centralizer_collapsed_candidates"] == 10
+    assert payload["no_locking_guardrail_passed_candidates"] == 0
+    assert payload["strict_bridge_candidates"] == 0
+    assert payload["generated_algebra_dimension"] == 10
+    assert payload["center_dimension"] == 10
+    assert payload["compatible_centralizer_dimension"] == 10
+    assert payload["explicit_lower_rank_projector_ranks"] == [2, 2, 2]
     assert payload["load_bearing_qca_bridge"] is False

@@ -203,13 +203,22 @@ In the checker, strict forcedness is therefore a local moduli condition:
 matching can prove `forced_j_found`. For α/β this local moduli dimension is
 zero, but there are still four local compatible `J` choices rather than `±J`.
 
+The literal commuting second-layer repair has also been checked for Floquet-α:
+a mandatory real-orthogonal layer that cycles the three alpha modes and swaps
+the two eta modes does commute with `U` and reduces the compatible centralizer
+to dimension `10`, but it generates rank-2 central projectors. This gives a
+new obstruction theorem: a commuting semisimple lock that is non-scalar inside
+the coarse blocks breaks the centralizer only by making lower-rank spectral
+idempotents available in the rule algebra. Such a lock fails no-locking.
+
 The second physical family is Defect-β, documented in
 [Defect Beta Report](literature/defect_beta_report.md). It computes
 round-trip monodromy from two distinct orientation-reversing wall-cycle
 transition functions. All ten defect charge patterns produce the same coarse
 center and canonical monodromy `J`; the same strict compatible-commutant
 obstruction remains with centralizer dimension `26`, not a finite sign
-ambiguity.
+ambiguity. It is now parked as a load-bearing route until it is rebuilt as a
+genuine higher-dimensional defect calculation.
 
 ## Load-Bearing Conditions
 

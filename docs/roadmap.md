@@ -98,6 +98,12 @@ floquet_alpha_plus_local_compatible_operator_dimension: 4
 floquet_alpha_plus_local_compatible_j_moduli_dimension: 0
 floquet_alpha_plus_local_compatible_complex_structure_count: 4
 floquet_alpha_plus_strict_bridge_candidates: 0
+floquet_alpha_second_layer_commuting_candidates: 10
+floquet_alpha_second_layer_center_dimension: 10
+floquet_alpha_second_layer_compatible_centralizer_dimension: 10
+floquet_alpha_second_layer_lower_rank_projector_ranks: [2, 2, 2]
+floquet_alpha_second_layer_no_locking_guardrail_passed_candidates: 0
+floquet_alpha_second_layer_strict_bridge_candidates: 0
 floquet_alpha_bridge_candidates: 0
 defect_beta_monodromy_candidates: 10
 defect_beta_scaled_monodromy_certified_candidates: 10
@@ -927,10 +933,39 @@ a 4-dimensional operator space with four discrete local J choices, so
 strict forcedness still fails.
 ```
 
+Alpha cycle/swap second-layer outcome:
+
+```text
+commuting_second_layer_candidates = 10
+order_certified_candidates = 10
+compatible_centralizer_collapsed_candidates = 10
+generated_algebra_dimension = 10
+center_dimension = 10
+compatible_centralizer_dimension = 10
+explicit_lower_rank_projector_ranks = [2, 2, 2]
+no_locking_guardrail_passed_candidates = 0
+strict_bridge_candidates = 0
+load_bearing_qca_bridge = false
+```
+
+Interpretation:
+
+```text
+The literal commuting cycle/swap lock is now a checked negative. It does
+reduce the compatible centralizer, but because it commutes with U its
+within-block spectral projectors are rule-generated central idempotents. The
+explicit rank-2 witnesses fail the no-locking guardrail. This upgrades the
+next theorem target: a successful second layer cannot be a commuting
+semisimple lock whose spectral projectors are available inside the generated
+rule algebra.
+```
+
 ## Defect-Beta Monodromy Family
 
-Status: implemented; monodromy center and canonical `J` found, but strict
-compatible-commutant uniqueness still fails.
+Status: implemented but parked; monodromy center and canonical `J` found, but
+strict compatible-commutant uniqueness still fails. It is retained as a
+regression target, not the active load-bearing route, until rebuilt as a
+genuine higher-dimensional defect calculation.
 
 Implementation:
 

@@ -37,6 +37,7 @@ uv run python scripts/rule_to_verdict.py --case clock-block-reflection --expect-
 uv run python scripts/rule_to_verdict.py --case clock-rank-one-color-reflection --expect-verdict falsified_rank_one_center
 uv run python scripts/floquet_alpha_search.py --check
 uv run python scripts/floquet_alpha_plus_search.py --check
+uv run python scripts/floquet_alpha_second_layer_search.py --check
 uv run python scripts/defect_beta_search.py --check
 uv run python scripts/branching_check.py --check
 uv run python scripts/qca_split_audit.py --check --expect-verdict notation_only
@@ -47,7 +48,7 @@ Verification:
 
 ```text
 ruff: passed
-pytest: 209 passed
+pytest: 212 passed
 ```
 
 Real carrier check:
@@ -493,6 +494,23 @@ verdict_counts: {'polarization_j_produced_not_strictly_unique': 10}
 load_bearing_qca_bridge: false
 ```
 
+Floquet-alpha cycle/swap second-layer search:
+
+```text
+This checks the literal Floquet-alpha commuting cycle/swap second layer.
+candidate_count: 10
+commuting_second_layer_candidates: 10
+order_certified_candidates: 10
+compatible_centralizer_collapsed_candidates: 10
+no_locking_guardrail_passed_candidates: 0
+strict_bridge_candidates: 0
+generated_algebra_dimension: 10
+center_dimension: 10
+compatible_centralizer_dimension: 10
+explicit_lower_rank_projector_ranks: [2, 2, 2]
+load_bearing_qca_bridge: false
+```
+
 Defect-beta search:
 
 ```text
@@ -604,11 +622,14 @@ spectral-polarization `J` from the same rule operator in all ten patterns, but
 the global compatible centralizer has dimension 26 with a 9-dimensional
 compatible-`J` family. The local compatible search shrinks this to four
 discrete local `J` choices, so strict uniqueness still fails.
-Defect-beta now uses distinct orientation-reversing wall transitions whose
-product gives the monodromy by a clutching identity. It reaches the same
-spectral verdict: coarse center and canonical monodromy `J` are present, but
-strict compatible `J` uniqueness fails for the same local four-choice
-ambiguity.
+The literal commuting cycle/swap second layer reduces the compatible
+centralizer to dimension 10 but generates rank-2 central projectors, so the
+no-locking guardrail rejects it.
+Defect-beta is retained as a regression target but parked as a load-bearing
+route until rebuilt as a genuine higher-dimensional defect calculation. Its
+current monodromy route reaches the same spectral verdict: coarse center and
+canonical monodromy `J` are present, but strict compatible `J` uniqueness fails
+for the same local four-choice ambiguity.
 ```
 
 ## Active Roadmap Update
