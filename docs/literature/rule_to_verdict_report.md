@@ -158,6 +158,14 @@ The literal commuting cycle/swap second-layer repair is also checked there; it
 reduces the centralizer but generates lower-rank central projectors, so it is a
 negative no-locking result rather than a bridge witness.
 
+The active Route-1 finite-dimensional exploration is now
+`floquet_alpha_noncommuting`: a block-preserving signed orientation twist with
+`[U1,U2] != 0`. The checker sees the actual noncommutative algebra
+`<U1,U2>`, not only the product Floquet. The representative preserves the
+coarse center and avoids lower-rank central projectors while reducing the
+compatible `J` problem to a finite set; it still fails because no
+rule-generated/local `J` is certified.
+
 The second replacement family is [Defect Beta](defect_beta_report.md). It
 computes round-trip monodromy from wall-cycle transition functions. Its
 monodromy is exactly the matching Floquet-α operator, so the checker now runs

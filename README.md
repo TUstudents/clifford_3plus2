@@ -34,6 +34,7 @@ unseeded_projector_discovery: no complementary 6+4 pair
 rule_to_verdict_check: unified negative interface with exact field and J-moduli metadata
 floquet_alpha_search: coarse 6+4 center, scaled polarization J certificate
 floquet_alpha_second_layer: cycle/swap lock fails no-locking guardrail
+floquet_alpha_noncommuting: block-preserving signed twist under exploration
 defect_beta_search: monodromy equals alpha; transition-pair rule still negative
 Spin(10) branching check: passes
 QCA load-bearing bridge: notation_only
@@ -334,6 +335,27 @@ This is a checked negative. The layer does reduce the compatible centralizer,
 but because it commutes with `U`, its spectral projectors are central
 idempotents. The no-locking guardrail rejects the resulting rank-2 projectors.
 
+`scripts/floquet_alpha_noncommuting_search.py` starts the viable Route-1
+escape: a block-preserving signed orientation twist `U2` with `[U1,U2] != 0`.
+The representative twist preserves the coarse alpha/eta projectors, keeps the
+rank `6+4` central pair without lower-rank central idempotents, and reduces
+compatible `J` to a finite zero-dimensional set. It still does not pass the
+strict bridge because the current checker cannot certify the compatible `J` as
+rule-generated/local:
+
+```text
+candidate_count: 1
+noncommuting_candidates: 1
+block_preserving_candidates: 1
+coarse_center_preserved_candidates: 1
+compatible_j_zero_dimensional_candidates: 1
+forced_j_candidates: 0
+strict_bridge_candidates: 0
+best_compatible_centralizer_dimension: 6
+route_label_counts: {'coarse_center_preserved_compatible_j_not_rule_generated': 1}
+load_bearing_qca_bridge: false
+```
+
 `scripts/defect_beta_search.py` computes round-trip monodromy from wall
 transition functions. It is retained as a regression target, but parked as a
 load-bearing route until rebuilt as a genuine higher-dimensional defect
@@ -425,6 +447,7 @@ uv run python scripts/rule_to_verdict.py --case clock-rank-one-color-reflection 
 uv run python scripts/floquet_alpha_search.py --check
 uv run python scripts/floquet_alpha_plus_search.py --check
 uv run python scripts/floquet_alpha_second_layer_search.py --check
+uv run python scripts/floquet_alpha_noncommuting_search.py --check
 uv run python scripts/defect_beta_search.py --check
 uv run python scripts/branching_check.py --check
 uv run python scripts/qca_split_audit.py --check --expect-verdict notation_only

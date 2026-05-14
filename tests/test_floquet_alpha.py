@@ -27,6 +27,11 @@ from clifford_3plus2_d5.qca.floquet_alpha import (
     floquet_alpha_spectral_projectors,
     pair_rotation,
 )
+from clifford_3plus2_d5.qca.floquet_alpha_noncommuting import (
+    floquet_alpha_noncommuting_candidates,
+    floquet_alpha_noncommuting_mode_mapping,
+    floquet_alpha_noncommuting_twist_operator,
+)
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -176,6 +181,26 @@ def test_floquet_alpha_cycle_swap_verdict_refuses_large_center_by_default() -> N
     assert not result.pass_rule_to_bridge
 
 
+def test_floquet_alpha_noncommuting_twist_is_viable_route_input() -> None:
+    candidate = floquet_alpha_noncommuting_candidates(pattern_index=0)[0]
+    u1 = floquet_alpha_operator(candidate.pattern)
+    u2 = floquet_alpha_noncommuting_twist_operator(candidate)
+    alpha_projector, eta_projector = floquet_alpha_spectral_projectors(candidate.pattern)
+
+    assert candidate.orientation_signs == (1, 1, -1, 1, -1)
+    assert floquet_alpha_noncommuting_mode_mapping(candidate) == {
+        0: 1,
+        1: 2,
+        2: 0,
+        3: 4,
+        4: 3,
+    }
+    assert u2.T * u2 == identity(10)
+    assert sp.simplify(u2 * alpha_projector * u2.T - alpha_projector) == sp.zeros(10)
+    assert sp.simplify(u2 * eta_projector * u2.T - eta_projector) == sp.zeros(10)
+    assert u1 * u2 != u2 * u1
+
+
 def test_floquet_alpha_cli_searches_all_patterns() -> None:
     result = subprocess.run(
         [
@@ -263,3 +288,45 @@ def test_floquet_alpha_second_layer_cli_detects_no_locking_failure() -> None:
     assert payload["compatible_centralizer_dimension"] == 10
     assert payload["explicit_lower_rank_projector_ranks"] == [2, 2, 2]
     assert payload["load_bearing_qca_bridge"] is False
+
+
+def test_floquet_alpha_noncommuting_cli_checks_representative_route() -> None:
+    result = subprocess.run(
+        [
+            sys.executable,
+            "scripts/floquet_alpha_noncommuting_search.py",
+            "--json",
+            "--check",
+            "--pattern-index",
+            "0",
+        ],
+        cwd=ROOT,
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    payload = json.loads(result.stdout)
+
+    assert payload["family"] == "floquet_alpha_noncommuting"
+    assert payload["candidate_count"] == 1
+    assert payload["noncommuting_candidates"] == 1
+    assert payload["block_preserving_candidates"] == 1
+    assert payload["coarse_center_preserved_candidates"] == 1
+    assert payload["compatible_j_zero_dimensional_candidates"] == 1
+    assert payload["forced_j_candidates"] == 0
+    assert payload["strict_bridge_candidates"] == 0
+    assert payload["best_compatible_centralizer_dimension"] == 6
+    assert payload["route_label_counts"] == {
+        "coarse_center_preserved_compatible_j_not_rule_generated": 1
+    }
+    assert payload["load_bearing_qca_bridge"] is False
+
+    result_payload = payload["results"][0]
+    assert result_payload["center_dimension"] == 3
+    assert result_payload["central_idempotent_ranks"] == [0, 4, 6, 10]
+    assert result_payload["compatible_centralizer_dimension"] == 6
+    assert result_payload["compatible_j_moduli_dimension"] == 0
+    assert result_payload["compatible_complex_structure_count"] == 4
+    assert result_payload["local_compatible_operator_dimension"] == 3
+    assert result_payload["local_compatible_complex_structure_count"] == 0
+    assert result_payload["rule_verdict"] == "not_solved"

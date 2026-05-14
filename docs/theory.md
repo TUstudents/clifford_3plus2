@@ -244,6 +244,17 @@ the layer is scalar on each coarse block it cannot collapse the compatible
 centralizer; if it is non-scalar, the proposition produces a lower-rank
 central idempotent inside a coarse block.
 
+The active escape from this proposition is a noncommuting, block-preserving
+second layer. The first exact representative is the Floquet-alpha signed twist:
+`U2` is a signed alpha 3-cycle plus eta swap with hidden orientation signs.
+It satisfies `[U1,U2] != 0` while preserving `P_alpha` and `P_eta`, so the
+generated algebra is noncommutative and the commuting no-locking proof does
+not apply. The checker reports central idempotent ranks `[0,4,6,10]`, no
+lower-rank central idempotents, compatible centralizer dimension `6`, and a
+zero-dimensional compatible-`J` set. It still fails the strict bridge because
+the compatible `J` is not certified as rule-generated/local. This is the
+current finite-dimensional laboratory for the missing microscopic primitive.
+
 The second physical family is Defect-β, documented in
 [Defect Beta Report](literature/defect_beta_report.md). It computes
 round-trip monodromy from two distinct orientation-reversing wall-cycle

@@ -200,3 +200,42 @@ This corrects the naive target count. A 3-cycle on the complex alpha block has
 three characters, so its centralizer in `M_3(C)` has complex dimension `3`,
 not `2`; together with the eta swap block this gives real dimension `10`, not
 `8`.
+
+## Noncommuting Signed-Twist Route
+
+The viable next finite-dimensional route is now implemented as
+[`src/clifford_3plus2_d5/qca/floquet_alpha_noncommuting.py`](../../src/clifford_3plus2_d5/qca/floquet_alpha_noncommuting.py)
+and
+[`scripts/floquet_alpha_noncommuting_search.py`](../../scripts/floquet_alpha_noncommuting_search.py).
+It keeps the alpha/eta blocks fixed but adds a signed orientation twist `U2`
+with `[U1,U2] != 0`. The representative exact twist uses only `0, +1, -1`
+entries: a 3-cycle on the alpha mode-pairs, a swap on the eta mode-pairs, and
+hidden signs `(+, +, -, +, -)` in the representative pattern.
+
+Current representative output:
+
+```text
+candidate_count: 1
+noncommuting_candidates: 1
+block_preserving_candidates: 1
+coarse_center_preserved_candidates: 1
+compatible_j_zero_dimensional_candidates: 1
+forced_j_candidates: 0
+strict_bridge_candidates: 0
+best_compatible_centralizer_dimension: 6
+route_label_counts: {'coarse_center_preserved_compatible_j_not_rule_generated': 1}
+load_bearing_qca_bridge: false
+```
+
+The important point is that this is not the known commuting no-locking
+failure. The signed twist preserves `P_alpha` and `P_eta`, does not commute
+with the Floquet layer, keeps the central idempotent ranks `[0, 4, 6, 10]`,
+and does not create lower-rank central idempotents. It also collapses the
+compatible `J` variety to a zero-dimensional finite set with compatible
+centralizer dimension `6`.
+
+The remaining failure is sharper: the strict checker does not find a
+rule-generated/local `J`. The route label is therefore
+`coarse_center_preserved_compatible_j_not_rule_generated`, not
+`bridge_candidate`. This is the active finite-dimensional laboratory for the
+next microscopic mechanism.

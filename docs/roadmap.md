@@ -104,6 +104,13 @@ floquet_alpha_second_layer_compatible_centralizer_dimension: 10
 floquet_alpha_second_layer_lower_rank_projector_ranks: [2, 2, 2]
 floquet_alpha_second_layer_no_locking_guardrail_passed_candidates: 0
 floquet_alpha_second_layer_strict_bridge_candidates: 0
+floquet_alpha_noncommuting_candidate_count: 1
+floquet_alpha_noncommuting_block_preserving_candidates: 1
+floquet_alpha_noncommuting_coarse_center_preserved_candidates: 1
+floquet_alpha_noncommuting_compatible_centralizer_dimension: 6
+floquet_alpha_noncommuting_compatible_j_moduli_dimension: 0
+floquet_alpha_noncommuting_forced_j_candidates: 0
+floquet_alpha_noncommuting_strict_bridge_candidates: 0
 floquet_alpha_bridge_candidates: 0
 defect_beta_monodromy_candidates: 10
 defect_beta_scaled_monodromy_certified_candidates: 10
@@ -963,6 +970,42 @@ explicit rank-2 witnesses fail the no-locking guardrail. This upgrades the
 next theorem target: a successful second layer cannot be a commuting
 semisimple lock whose spectral projectors are available inside the generated
 rule algebra. The proposition is stated in [Theory](theory.md).
+```
+
+Noncommuting signed-twist route:
+
+```text
+src/clifford_3plus2_d5/qca/floquet_alpha_noncommuting.py
+scripts/floquet_alpha_noncommuting_search.py
+tests/test_floquet_alpha.py
+```
+
+Representative outcome:
+
+```text
+candidate_count = 1
+noncommuting_candidates = 1
+block_preserving_candidates = 1
+coarse_center_preserved_candidates = 1
+compatible_j_zero_dimensional_candidates = 1
+forced_j_candidates = 0
+strict_bridge_candidates = 0
+best_compatible_centralizer_dimension = 6
+route_label = coarse_center_preserved_compatible_j_not_rule_generated
+load_bearing_qca_bridge = false
+```
+
+Interpretation:
+
+```text
+This is the active Route-1 laboratory. The signed orientation twist preserves
+the alpha/eta projectors but does not commute with the Floquet layer, so the
+commuting second-layer no-go does not apply. It keeps the coarse [0,4,6,10]
+central idempotent lattice and avoids lower-rank central projectors. The
+compatible J variety is zero-dimensional, but the current strict checker does
+not certify a rule-generated/local J. The next microscopic move must supply
+that missing local J source without reintroducing lower-rank central
+idempotents.
 ```
 
 ## Defect-Beta Transition-Pair Family

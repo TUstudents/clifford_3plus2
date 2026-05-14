@@ -161,3 +161,34 @@ candidate must break the compatible-`J` ambiguity without making the lock's
 within-block spectral projectors available as rule-generated central
 idempotents. The formal proposition and proof are recorded in
 [Theory](../theory.md).
+
+## Active Noncommuting Route
+
+The next checked route is no longer a commuting lock. The new
+`floquet_alpha_noncommuting` family adds a block-preserving signed orientation
+twist `U2` with `[U1,U2] != 0`. It preserves the alpha/eta spectral projectors
+as subspaces, so the coarse `6+4` split remains available, but the generated
+rule algebra is noncommutative and the commuting-layer no-locking proposition
+does not apply.
+
+Representative result:
+
+```text
+generated_algebra_dimension = 22
+center_dimension = 3
+central_idempotent_ranks = [0, 4, 6, 10]
+compatible_centralizer_dimension = 6
+compatible_j_moduli_dimension = 0
+compatible_complex_structure_count = 4
+local_compatible_operator_dimension = 3
+local_compatible_complex_structure_count = 0
+forced_j_found = false
+pass_strict_rule_to_bridge = false
+route_label = coarse_center_preserved_compatible_j_not_rule_generated
+```
+
+This is progress but not a bridge witness. It escapes the structural
+commuting no-go and avoids lower-rank central projectors, while reducing the
+compatible `J` variety to finite signs. The remaining gap is exactly the
+missing microscopic primitive: the compatible `J` is not yet certified as a
+rule-generated local element.
