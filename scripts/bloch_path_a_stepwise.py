@@ -25,6 +25,10 @@ from clifford_3plus2_d5.qca.rule_verdict import (
     solve_central_idempotents,
     solve_complex_structures_from_idempotent_splitting,
 )
+from clifford_3plus2_d5.qca.projected_centralizer import (
+    ProjectedCentralizerPairDiagnostic,
+    projected_centralizer_pair_diagnostics,
+)
 from clifford_3plus2_d5.qca.spatial_1d import SpatialHoppingTerm
 
 
@@ -67,6 +71,7 @@ class StepwiseResult:
     compatible_j_count: int | None
     compatible_j_sign_shape: str | None
     bridge_j_status: str | None
+    projected_centralizer_pairs: tuple[ProjectedCentralizerPairDiagnostic, ...]
     route_label: str
     elapsed_seconds: float
 
@@ -325,6 +330,26 @@ def _bridge_j_status(
     return "j_status_unclassified"
 
 
+def _projected_centralizer_summary(
+    pairs: tuple[ProjectedCentralizerPairDiagnostic, ...],
+) -> str:
+    if not pairs:
+        return "not_checked"
+    pair_summaries = []
+    for pair in pairs:
+        block_summaries = []
+        for block in pair.blocks:
+            block_summaries.append(
+                "rank"
+                f"{block.projector_rank}:"
+                f"{block.classification}"
+                f"/dim{block.projected_dimension}"
+                f"/components{list(block.primitive_component_types)}"
+            )
+        pair_summaries.append(";".join(block_summaries))
+    return "|".join(pair_summaries)
+
+
 def evaluate_candidate(
     candidate: StepwiseCandidate,
     *,
@@ -334,6 +359,7 @@ def evaluate_candidate(
     include_centralizer: bool,
     include_idempotents: bool,
     include_j_solve: bool,
+    include_projected_centralizer: bool,
 ) -> StepwiseResult:
     start = time.perf_counter()
     layer = _layer_for_candidate(candidate)
@@ -363,17 +389,29 @@ def evaluate_candidate(
     compatible_j_moduli_dimension = None
     compatible_j_count = None
     compatible_j_sign_shape = None
+    projected_centralizer_pairs: tuple[ProjectedCentralizerPairDiagnostic, ...] = ()
     center = ()
     compatible_basis = ()
-    if (include_center or include_j_solve) and closure.closed:
+    idempotents = ()
+    if (include_center or include_j_solve or include_projected_centralizer) and closure.closed:
         center = center_basis_of_algebra(closure.basis)
         center_dimension = len(center)
-        if include_idempotents or include_j_solve:
+        if include_idempotents or include_j_solve or include_projected_centralizer:
             center_solved, idempotents = solve_central_idempotents(center)
             idempotent_ranks = tuple(item.rank for item in idempotents)
-    if (include_centralizer or include_j_solve) and closure.closed:
+    if (include_centralizer or include_j_solve or include_projected_centralizer) and closure.closed:
         compatible_basis = centralizer_basis(samples)
         compatible_centralizer_dimension = len(compatible_basis)
+    if (
+        include_projected_centralizer
+        and closure.closed
+        and center_solved
+        and compatible_basis
+    ):
+        projected_centralizer_pairs = projected_centralizer_pair_diagnostics(
+            compatible_basis,
+            idempotents,
+        )
     if include_j_solve and closure.closed:
         generated_j_solved, generated_j_moduli_dimension, generated_j = (
             solve_complex_structures_from_idempotent_splitting(
@@ -428,6 +466,7 @@ def evaluate_candidate(
             compatible_count=compatible_j_count,
             compatible_shape=compatible_j_sign_shape,
         ),
+        projected_centralizer_pairs=projected_centralizer_pairs,
         route_label=_label_result(
             closed=closure.closed,
             algebra_dimension=len(closure.basis),
@@ -439,7 +478,7 @@ def evaluate_candidate(
 
 
 def _evaluate_for_pool(
-    args: tuple[StepwiseCandidate, int, bool, bool, bool, bool, bool],
+    args: tuple[StepwiseCandidate, int, bool, bool, bool, bool, bool, bool],
 ) -> StepwiseResult:
     (
         candidate,
@@ -449,6 +488,7 @@ def _evaluate_for_pool(
         include_centralizer,
         include_idempotents,
         include_j_solve,
+        include_projected_centralizer,
     ) = args
     return evaluate_candidate(
         candidate,
@@ -458,6 +498,7 @@ def _evaluate_for_pool(
         include_centralizer=include_centralizer,
         include_idempotents=include_idempotents,
         include_j_solve=include_j_solve,
+        include_projected_centralizer=include_projected_centralizer,
     )
 
 
@@ -479,6 +520,7 @@ def main() -> int:
     parser.add_argument("--centralizer", action="store_true")
     parser.add_argument("--idempotents", action="store_true")
     parser.add_argument("--j-solve", action="store_true")
+    parser.add_argument("--projected-centralizer", action="store_true")
     parser.add_argument("--json", action="store_true")
     parser.add_argument("--check", action="store_true")
     args = parser.parse_args()
@@ -494,7 +536,16 @@ def main() -> int:
         raise ValueError("jobs must be positive")
 
     closure_args = [
-        (candidate, args.max_algebra_dim, args.seed_guardrail, False, False, False, False)
+        (
+            candidate,
+            args.max_algebra_dim,
+            args.seed_guardrail,
+            False,
+            False,
+            False,
+            False,
+            False,
+        )
         for candidate in candidates
     ]
     if args.jobs == 1:
@@ -521,6 +572,7 @@ def main() -> int:
             args.centralizer,
             args.idempotents,
             args.j_solve,
+            args.projected_centralizer,
         )
         for candidate in detailed_targets
     ]
@@ -580,6 +632,7 @@ def main() -> int:
                 f"compatible_j_solved={result.compatible_j_solved}, "
                 f"compatible_j={result.compatible_j_count}, "
                 f"j_status={result.bridge_j_status}, "
+                f"projected={_projected_centralizer_summary(result.projected_centralizer_pairs)}, "
                 f"label={result.route_label}, "
                 f"time={result.elapsed_seconds:.3f}s"
             )
