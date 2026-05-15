@@ -1,11 +1,17 @@
 # Bloch Path-A Report
 
-Status: sampled Bloch sidecar implemented; no unseeded bridge candidate.
+Status: stepwise projector-free Bloch search finds a coarse center but no
+compatible `J`; no unseeded bridge candidate.
 
-This report records the first Path-A checker implemented in
+This report records the Path-A checkers implemented in
 [`src/clifford_3plus2_d5/qca/bloch_rule.py`](../../src/clifford_3plus2_d5/qca/bloch_rule.py)
-and exposed by
-[`scripts/bloch_path_a_search.py`](../../scripts/bloch_path_a_search.py).
+and exposed by two CLIs:
+
+- [`scripts/bloch_path_a_stepwise.py`](../../scripts/bloch_path_a_stepwise.py):
+  the headline calculation for projector-free monomial-hop candidates.
+- [`scripts/bloch_path_a_search.py`](../../scripts/bloch_path_a_search.py):
+  a capped legacy/regression scan that still reports `not_solved` at algebra
+  cap `16`.
 
 ## Purpose
 
@@ -40,13 +46,12 @@ already generates the coarse projectors.
 ## Command
 
 ```bash
-uv run python scripts/bloch_path_a_search.py --check
-uv run python scripts/bloch_path_a_search.py --check --jobs 2
 uv run python scripts/bloch_path_a_stepwise.py --max-candidates 6 --max-algebra-dim 48 --jobs 2 --check
-uv run python scripts/bloch_path_a_stepwise.py --max-candidates 1 --max-algebra-dim 48 --center-top 1 --idempotents --centralizer --j-solve --check
+uv run python scripts/bloch_path_a_stepwise.py --max-candidates 6 --max-algebra-dim 48 --center-top 6 --idempotents --centralizer --j-solve --jobs 4 --check
+uv run python scripts/bloch_path_a_search.py --check
 ```
 
-Current output:
+Legacy capped scan output:
 
 ```text
 candidate_count: 6
@@ -63,6 +68,10 @@ projector_free_rule_generated_algebra_dimension: 16
 projector_free_rule_generated_algebra_closed: false
 projector_free_rule_pass_rule_to_bridge: false
 ```
+
+This output is intentionally retained as a regression check, but it is not the
+physics headline: `projector_free_rule_generated_algebra_dimension = 16` means
+the old default stopped at the closure cap.
 
 Focused performance probe after the algebra-kernel optimization:
 
@@ -116,29 +125,31 @@ path_a_projector_free_cycle_combined:
   verdict = not_solved
 ```
 
-Stepwise projector-free closure search:
+Stepwise projector-free detailed search:
 
 ```text
 max_candidates = 6
 max_algebra_dim = 48
-jobs = 2
+center_top = 6
+jobs = 4
 
 closed_count = 6
+coarse_6_4_count = 6
 all six closed at generated_algebra_dimension = 34
-base candidate center_dimension = 4
-base candidate central_idempotent_ranks = [0,4,6,10]
-base candidate compatible_centralizer_dimension = 4
-base candidate generated_j_count = 0
-base candidate compatible_j_count = 0
-base candidate bridge_j_status = no_rule_generated_j
+all six have center_dimension = 4
+all six have central_idempotent_ranks = [0,4,6,10]
+all six have compatible_centralizer_dimension = 4
+all six have generated_j_count = 0
+all six have compatible_j_count = 0
+all six have bridge_j_status = no_rule_generated_j
 ```
 
 This is the first non-seeded Path-A positive structural result. The
 projector-free monomial-hop family does not blow up to full `M_10`; it closes
-to a structured 34-dimensional algebra and, for the base candidate, has the
-coarse central idempotent lattice. The bounded split-center `J` solver now
-settles the base candidate negatively: neither the rule-generated center nor
-the compatible centralizer contains a real orthogonal `J` with `J^2 = -I`.
+to a structured 34-dimensional algebra and has the coarse central idempotent
+lattice. The bounded split-center `J` solver settles the sampled family
+negatively: neither the rule-generated center nor the compatible centralizer
+contains a real orthogonal `J` with `J^2 = -I`.
 This is a sharper obstruction than the previous unresolved generic solve.
 
 ## Interpretation
@@ -156,8 +167,8 @@ The first Path-A result is therefore:
 ```text
 seeded topological shape: yes
 unseeded projector-free closure: yes, dimension 34
-unseeded coarse 6+4 center: yes for the base candidate
-rule-generated J(k) section: no for the base candidate
+unseeded coarse 6+4 center: yes for six sampled candidates
+rule-generated J(k) section: no for six sampled candidates
 projector-free combined verdict: coarse-center hit, no generated J
 strict bridge: no
 ```

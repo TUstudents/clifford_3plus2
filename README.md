@@ -41,7 +41,7 @@ floquet_alpha_noncommuting_completion: no lower center, still four J signs
 spatial_1d_alpha: local-QCA sidecar couples four J signs to global ±
 spatial_1d_combined: Route 1 + Route 2 gives ± shape, still no rule-generated J
 spatial_1d_unseeded: no bridge candidate; seeded projector-shift rejected
-bloch_path_a: projector-free monomial hops close at dim 34; no generated J
+bloch_path_a: six projector-free monomial hops close at dim 34; no compatible J
 perf_probe: focused algebra-kernel timing for Bloch computational boundary
 defect_beta_search: monodromy equals alpha; transition-pair rule still negative
 Spin(10) branching check: passes
@@ -654,7 +654,7 @@ uv run python scripts/rule_to_verdict.py --case clock-block-reflection --expect-
 uv run python scripts/rule_to_verdict.py --case clock-rank-one-color-reflection --expect-verdict falsified_rank_one_center
 uv run python scripts/perf_probe.py --max-algebra-dim 16
 uv run python scripts/bloch_path_a_stepwise.py --max-candidates 6 --max-algebra-dim 48 --jobs 2 --check
-uv run python scripts/bloch_path_a_stepwise.py --max-candidates 1 --max-algebra-dim 48 --center-top 1 --idempotents --centralizer --j-solve --check
+uv run python scripts/bloch_path_a_stepwise.py --max-candidates 6 --max-algebra-dim 48 --center-top 6 --idempotents --centralizer --j-solve --jobs 4 --check
 uv run python scripts/floquet_alpha.py --check
 uv run python scripts/floquet_alpha.py --variant plus --check
 uv run python scripts/floquet_alpha.py --variant time-reversal --check

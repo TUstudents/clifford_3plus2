@@ -609,7 +609,7 @@ candidate: unseeded_mode_5_cycle_shift, center_ranks=[0, 2, 4, 4, 6, 6, 8, 10], 
 candidate: spatial_1d_alpha_projector_shift_qca, witnesses=['shift_3:P_eta', 'shift_4:P_alpha'], route=unseeded_spatial_seeded_coefficient_rejected
 ```
 
-Bloch Path-A search:
+Bloch Path-A legacy capped search:
 
 ```text
 candidate_count: 6
@@ -627,7 +627,12 @@ projector_free_rule_pass_rule_to_bridge: false
 load_bearing_qca_bridge: false
 ```
 
-Bloch Path-A stepwise projector-free search:
+The capped search is retained as a regression/sanity check. Its
+`projector_free_rule_generated_algebra_dimension: 16` line means the default
+projector-free verdict stopped at the algebra cap; it is not the current
+physics result.
+
+Bloch Path-A stepwise projector-free headline search:
 
 ```text
 uv run python scripts/bloch_path_a_stepwise.py --max-candidates 6 --max-algebra-dim 48 --jobs 2 --check
@@ -643,20 +648,24 @@ candidate: path_a_projector_free_p0_c12403_s44343, dim=34, closed=true, center=N
 candidate: path_a_projector_free_p0_c12403_s44334, dim=34, closed=true, center=None, ranks=[], label=closes_center_not_checked
 ```
 
-Follow-up staged calculation on the base projector-free candidate:
+Detailed staged calculation on the first six projector-free candidates:
 
 ```text
-uv run python scripts/bloch_path_a_stepwise.py --max-candidates 1 --max-algebra-dim 48 --center-top 1 --idempotents --centralizer --j-solve --check
+uv run python scripts/bloch_path_a_stepwise.py --max-candidates 6 --max-algebra-dim 48 --center-top 6 --idempotents --centralizer --j-solve --jobs 4 --check
 
-generated_algebra_dimension: 34
-generated_algebra_closed: true
-center_dimension: 4
-central_idempotent_ranks: [0,4,6,10]
-compatible_centralizer_dimension: 4
-generated_j_count: 0
-compatible_j_count: 0
-bridge_j_status: no_rule_generated_j
-route_label: closes_coarse_6_4_center
+candidate_count: 6
+closed_count: 6
+coarse_6_4_count: 6
+all six candidates:
+  generated_algebra_dimension: 34
+  generated_algebra_closed: true
+  center_dimension: 4
+  central_idempotent_ranks: [0,4,6,10]
+  compatible_centralizer_dimension: 4
+  generated_j_count: 0
+  compatible_j_count: 0
+  bridge_j_status: no_rule_generated_j
+  route_label: closes_coarse_6_4_center
 ```
 
 Defect-beta search:
@@ -813,11 +822,12 @@ The main `rule_to_verdict` path now also samples Bloch symbols as a single
 joint algebra. Its first projector-free combined Route-1/Route-2 candidate
 uses source-mode shifts `(4,4,4,3,3)` without raw `P_alpha/P_eta`
 coefficients. Raising the closure cap shows this was a real structured
-candidate, not a dead computational boundary: the base candidate closes at
-dimension `34`, has center dimension `4`, and its central idempotent ranks are
-`[0,4,6,10]`. Six nearby projector-free monomial-hop variants close to the
-same algebra dimension. The bounded split-center `J` solver settles the base
-candidate negatively: generated and compatible `J` counts are both `0`. The
+candidate, not a dead computational boundary: six nearby projector-free
+monomial-hop variants close at dimension `34`, have center dimension `4`, and
+share central idempotent ranks `[0,4,6,10]`. They also share the same
+centralizer/J profile. The bounded
+split-center `J` solver settles this finite sampled family negatively:
+generated and compatible `J` counts are both `0` for all six candidates. The
 remaining search gap is therefore not the coarse center, but a microscopic
 unseeded hopping primitive whose structured algebra also carries a complex
 structure.

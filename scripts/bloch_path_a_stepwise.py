@@ -322,26 +322,39 @@ def main() -> int:
         with ProcessPoolExecutor(max_workers=args.jobs) as executor:
             closure_results = tuple(executor.map(_evaluate_for_pool, closure_args))
 
-    detailed_by_name = {}
+    detailed_targets = []
     for result in closure_results:
-        if len(detailed_by_name) >= args.center_top:
+        if len(detailed_targets) >= args.center_top:
             break
         if not result.generated_algebra_closed:
             continue
-        candidate = StepwiseCandidate(
-            pattern_index=result.pattern_index,
-            cycle=result.cycle,
-            source_shifts=result.source_shifts,
+        detailed_targets.append(
+            StepwiseCandidate(
+                pattern_index=result.pattern_index,
+                cycle=result.cycle,
+                source_shifts=result.source_shifts,
+            )
         )
-        detailed = evaluate_candidate(
+
+    detailed_args = [
+        (
             candidate,
-            max_algebra_dim=args.max_algebra_dim,
-            include_center=True,
-            include_centralizer=args.centralizer,
-            include_idempotents=args.idempotents,
-            include_j_solve=args.j_solve,
+            args.max_algebra_dim,
+            True,
+            args.centralizer,
+            args.idempotents,
+            args.j_solve,
         )
-        detailed_by_name[result.name] = detailed
+        for candidate in detailed_targets
+    ]
+    if not detailed_args:
+        detailed_results = ()
+    elif args.jobs == 1:
+        detailed_results = tuple(_evaluate_for_pool(item) for item in detailed_args)
+    else:
+        with ProcessPoolExecutor(max_workers=args.jobs) as executor:
+            detailed_results = tuple(executor.map(_evaluate_for_pool, detailed_args))
+    detailed_by_name = {result.name: result for result in detailed_results}
 
     results = tuple(detailed_by_name.get(result.name, result) for result in closure_results)
     payload = {

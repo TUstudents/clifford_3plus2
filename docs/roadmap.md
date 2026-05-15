@@ -1245,9 +1245,16 @@ bloch_path_a_topological_pm_candidates = 4
 bloch_path_a_rule_generated_j_section_candidates = 0
 bloch_path_a_strict_bridge_candidates = 0
 bloch_path_a_route_label = bloch_path_a_seeded_shape_only
-projector_free_rule_verdict = not_solved
-projector_free_rule_generated_algebra_dimension = 16
-projector_free_rule_generated_algebra_closed = false
+legacy_capped_projector_free_rule_verdict = not_solved
+legacy_capped_projector_free_rule_generated_algebra_dimension = 16
+legacy_capped_projector_free_rule_generated_algebra_closed = false
+stepwise_projector_free_candidate_count = 6
+stepwise_projector_free_generated_algebra_dimension = 34
+stepwise_projector_free_center_dimension = 4
+stepwise_projector_free_central_idempotent_ranks = [0,4,6,10]
+stepwise_projector_free_compatible_centralizer_dimension = 4
+stepwise_projector_free_generated_j_count = 0
+stepwise_projector_free_compatible_j_count = 0
 load_bearing_qca_bridge = false
 ```
 
@@ -1281,22 +1288,20 @@ This guardrail must also be strengthened from an obvious diagonal-projector
 check to an algebraic check: reject candidates whose coefficient algebra
 generates `P_alpha` or `P_eta`, even if those projectors are hidden as
 polynomials in non-projector layer coefficients.
-The Bloch Path-A checker implements that algebraic guardrail and evaluates
-sampled root-of-unity Bloch symbols. Its first candidate family reports the
-expected boundary: seeded rules keep the `(4,3)` topological shape but are
-rejected, while the unseeded full-shift starters do not produce a stable
-rank-`(6,4)` band split or a rule-generated `J(k)` section.
+The legacy capped Bloch Path-A checker implements that algebraic guardrail and
+evaluates sampled root-of-unity Bloch symbols. Its default projector-free
+verdict stops at generated algebra dimension `16`, so its `not_solved` result
+is a cap boundary/regression check rather than the physics headline.
 The main `rule_to_verdict` interface now also supports a Bloch-period mode
 that forms the joint sampled algebra `R<T(zeta^j)>`. The first projector-free
 combined Route-1/Route-2 layer uses partial monomial hops with source shifts
 `(4,4,4,3,3)` and on-site update `U2 U1`; it avoids raw projector
-coefficients. Raising the algebra cap closes this candidate at dimension `34`;
-the staged center calculation gives center dimension `4`, central idempotent
-ranks `[0,4,6,10]`, and compatible centralizer dimension `4`. The first six
-projector-free monomial-hop variants all close at dimension `34`. The bounded
-split-center `J` solver gives `generated_j_count = 0` and
-`compatible_j_count = 0` for the base candidate. The active gap is therefore a
-new microscopic hopping primitive that carries `J`, not the coarse center.
+coefficients. The stepwise checker raises the algebra cap to `48` and closes
+the first six projector-free monomial-hop variants at dimension `34`. All six
+have center dimension `4`, central idempotent ranks `[0,4,6,10]`, compatible
+centralizer dimension `4`, `generated_j_count = 0`, and
+`compatible_j_count = 0`. The active gap is therefore a new microscopic
+hopping primitive that carries `J`, not the coarse center.
 ```
 
 ## Defect-Beta Transition-Pair Family
