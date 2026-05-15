@@ -1382,6 +1382,16 @@ are non-coarse, not `C`-factor counterexamples: two variants have
 remaining dim-22 tail case is an idempotent-solver bottleneck. The next
 engineering need for broader scans is therefore targeted center-idempotent
 extraction, not deeper blind enumeration.
+Operational full-scan strategy: use the stepwise scanner as a resumable
+classifier, not a one-shot script. First run `--count-only --all-candidates` to
+record the candidate space (`240` monomial-hop candidates per Floquet pattern,
+`960` polynomial-hop candidates per pattern). Then run classifier-only slices
+with `--cache-file`, `--resume`, `--stream`, `--progress-every`, and
+`--summary-json`; reserve `--j-solve` for survivors that already have
+rank-`(6,4)` centers and a projected `C` factor. The per-stage timings from the
+pilot runs show that center/idempotent extraction dominates the runtime, so the
+next performance target is a faster idempotent extractor for commutative or
+low-dimensional centers.
 The first polynomial-hop extension keeps exact Laurent orthogonality by mixing
 two mode edges with a finite-order rational reflection. It does not produce a
 bridge candidate in the current exact checker: the first checked mixed

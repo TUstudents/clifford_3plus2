@@ -3,10 +3,12 @@ from __future__ import annotations
 import argparse
 import json
 import time
+from collections import Counter
 from collections.abc import Sequence
 from concurrent.futures import FIRST_COMPLETED, Future, ProcessPoolExecutor, as_completed, wait
 from dataclasses import asdict, dataclass
 from itertools import combinations, permutations
+from pathlib import Path
 
 import sympy as sp
 
@@ -27,6 +29,7 @@ from clifford_3plus2_d5.qca.rule_verdict import (
     solve_complex_structures_from_idempotent_splitting,
 )
 from clifford_3plus2_d5.qca.projected_centralizer import (
+    ProjectedCentralizerBlockDiagnostic,
     ProjectedCentralizerPairDiagnostic,
     projected_centralizer_pair_diagnostics,
 )
@@ -75,6 +78,13 @@ class StepwiseResult:
     projected_centralizer_pairs: tuple[ProjectedCentralizerPairDiagnostic, ...]
     route_label: str
     elapsed_seconds: float
+    stage_seconds: tuple[tuple[str, float], ...]
+
+
+SCANNER_VERSION = "bloch_path_a_stepwise_v4"
+DEFAULT_BLOCH_PERIOD = 12
+MAX_CYCLES = 24
+MAX_SHIFT_ASSIGNMENTS = 10
 
 
 def _five_cycles(limit: int) -> tuple[tuple[int, ...], ...]:
@@ -97,6 +107,35 @@ def _shift_assignments(limit: int) -> tuple[tuple[int, ...], ...]:
         if len(assignments) >= limit:
             break
     return tuple(assignments)
+
+
+def _available_count(requested: int, maximum: int) -> int:
+    return min(requested, maximum)
+
+
+def candidate_space_total(
+    *,
+    family: str,
+    pattern_count: int,
+    cycle_count: int,
+    shift_count: int,
+) -> int:
+    cycles = _five_cycles(_available_count(cycle_count, MAX_CYCLES))
+    shifts = _shift_assignments(_available_count(shift_count, MAX_SHIFT_ASSIGNMENTS))
+    if family == "monomial-hop":
+        return pattern_count * len(cycles) * len(shifts)
+    if family != "polynomial-hop":
+        raise ValueError(f"unknown family: {family}")
+    total = 0
+    for _pattern_index in range(pattern_count):
+        for cycle in cycles:
+            for source_shifts in shifts:
+                edges_by_shift = _edges_by_shift(cycle, source_shifts)
+                for shift in (3, 4):
+                    edge_count = len(edges_by_shift.get(shift, ()))
+                    if edge_count >= 2:
+                        total += edge_count * (edge_count - 1) // 2
+    return total
 
 
 def stepwise_candidates(
@@ -215,6 +254,51 @@ def _candidate_name(candidate: StepwiseCandidate) -> str:
     if candidate.family == "polynomial-hop":
         return f"path_a_polynomial_hop_p{candidate.pattern_index}_{candidate.name_suffix}"
     raise ValueError(f"unknown candidate family: {candidate.family}")
+
+
+def _candidate_identity(candidate: StepwiseCandidate) -> dict[str, object]:
+    return {
+        "family": candidate.family,
+        "pattern_index": candidate.pattern_index,
+        "cycle": list(candidate.cycle),
+        "source_shifts": list(candidate.source_shifts),
+        "polynomial_terms": [
+            [shift, [[source, target] for source, target in edges]]
+            for shift, edges in candidate.polynomial_terms
+        ],
+        "mixes_by_shift": [
+            [shift, [left, right]] for shift, (left, right) in candidate.mixes_by_shift
+        ],
+        "name_suffix": candidate.name_suffix,
+    }
+
+
+def _cache_key(
+    candidate: StepwiseCandidate,
+    *,
+    max_algebra_dim: int,
+    include_seed_guardrail: bool,
+    include_center: bool,
+    include_centralizer: bool,
+    include_idempotents: bool,
+    include_j_solve: bool,
+    include_projected_centralizer: bool,
+) -> str:
+    payload = {
+        "version": SCANNER_VERSION,
+        "candidate": _candidate_identity(candidate),
+        "bloch_period": DEFAULT_BLOCH_PERIOD,
+        "max_algebra_dim": max_algebra_dim,
+        "stages": {
+            "seed_guardrail": include_seed_guardrail,
+            "center": include_center,
+            "centralizer": include_centralizer,
+            "idempotents": include_idempotents,
+            "j_solve": include_j_solve,
+            "projected_centralizer": include_projected_centralizer,
+        },
+    }
+    return json.dumps(payload, sort_keys=True, separators=(",", ":"))
 
 
 def _label_result(
@@ -359,6 +443,40 @@ def _has_complex_projected_factor(result: StepwiseResult) -> bool:
     )
 
 
+def _is_split_real_projected(result: StepwiseResult) -> bool:
+    if not result.projected_centralizer_pairs:
+        return False
+    return all(
+        block.classification == "split_real"
+        for pair in result.projected_centralizer_pairs
+        for block in pair.blocks
+    )
+
+
+def _classify_result(result: StepwiseResult) -> str:
+    if result.seed_guardrail_checked and not result.seed_guardrail_passed:
+        return "seeded_rejected"
+    if not result.generated_algebra_closed:
+        return "cap_exceeded"
+    if result.center_solved is False:
+        return "solver_bottleneck"
+    if result.central_idempotent_ranks and not (
+        4 in result.central_idempotent_ranks and 6 in result.central_idempotent_ranks
+    ):
+        return "non_coarse"
+    if result.center_dimension is not None and not result.central_idempotent_ranks:
+        return "solver_bottleneck"
+    if _has_complex_projected_factor(result):
+        return "c_factor"
+    if _is_split_real_projected(result):
+        return "split_real"
+    if result.projected_centralizer_pairs:
+        return "projected_unclassified"
+    if result.route_label == "closes_coarse_6_4_center":
+        return "coarse_unclassified"
+    return result.route_label
+
+
 def _format_result_line(result: StepwiseResult) -> str:
     seeded = (
         str(not result.seed_guardrail_passed).lower()
@@ -381,8 +499,233 @@ def _format_result_line(result: StepwiseResult) -> str:
         f"compatible_j={result.compatible_j_count}, "
         f"j_status={result.bridge_j_status}, "
         f"projected={_projected_centralizer_summary(result.projected_centralizer_pairs)}, "
+        f"class={_classify_result(result)}, "
         f"label={result.route_label}, "
         f"time={result.elapsed_seconds:.3f}s"
+    )
+
+
+def _block_from_dict(payload: dict[str, object]) -> ProjectedCentralizerBlockDiagnostic:
+    return ProjectedCentralizerBlockDiagnostic(
+        projector_rank=int(payload["projector_rank"]),
+        projected_dimension=int(payload["projected_dimension"]),
+        multiplication_table_solved=bool(payload["multiplication_table_solved"]),
+        commutative=bool(payload["commutative"]),
+        idempotents_solved=bool(payload["idempotents_solved"]),
+        idempotent_ranks=tuple(int(item) for item in payload["idempotent_ranks"]),  # type: ignore[index]
+        primitive_component_dimensions=tuple(
+            int(item) for item in payload["primitive_component_dimensions"]  # type: ignore[index]
+        ),
+        primitive_component_types=tuple(
+            str(item) for item in payload["primitive_component_types"]  # type: ignore[index]
+        ),
+        primitive_components_sum_to_projector=bool(
+            payload["primitive_components_sum_to_projector"]
+        ),
+        contains_complex_factor=bool(payload["contains_complex_factor"]),
+        classification=str(payload["classification"]),
+    )
+
+
+def _pair_from_dict(payload: dict[str, object]) -> ProjectedCentralizerPairDiagnostic:
+    return ProjectedCentralizerPairDiagnostic(
+        pair_ranks=tuple(int(item) for item in payload["pair_ranks"]),  # type: ignore[index]
+        blocks=tuple(
+            _block_from_dict(block) for block in payload["blocks"]  # type: ignore[index]
+        ),
+    )
+
+
+def _result_from_dict(payload: dict[str, object]) -> StepwiseResult:
+    return StepwiseResult(
+        name=str(payload["name"]),
+        family=str(payload["family"]),
+        pattern_index=int(payload["pattern_index"]),
+        cycle=tuple(int(item) for item in payload["cycle"]),  # type: ignore[index]
+        source_shifts=tuple(int(item) for item in payload["source_shifts"]),  # type: ignore[index]
+        seed_guardrail_checked=bool(payload["seed_guardrail_checked"]),
+        seed_guardrail_passed=bool(payload["seed_guardrail_passed"]),
+        raw_seed_witnesses=tuple(str(item) for item in payload["raw_seed_witnesses"]),  # type: ignore[index]
+        algebraic_seed_witnesses=tuple(
+            str(item) for item in payload["algebraic_seed_witnesses"]  # type: ignore[index]
+        ),
+        coefficient_algebra_dimension=(
+            None
+            if payload["coefficient_algebra_dimension"] is None
+            else int(payload["coefficient_algebra_dimension"])
+        ),
+        laurent_orthogonal=bool(payload["laurent_orthogonal"]),
+        generated_algebra_dimension=int(payload["generated_algebra_dimension"]),
+        generated_algebra_closed=bool(payload["generated_algebra_closed"]),
+        center_dimension=(
+            None if payload["center_dimension"] is None else int(payload["center_dimension"])
+        ),
+        center_solved=(
+            None if payload["center_solved"] is None else bool(payload["center_solved"])
+        ),
+        compatible_centralizer_dimension=(
+            None
+            if payload["compatible_centralizer_dimension"] is None
+            else int(payload["compatible_centralizer_dimension"])
+        ),
+        central_idempotent_ranks=tuple(
+            int(item) for item in payload["central_idempotent_ranks"]  # type: ignore[index]
+        ),
+        generated_j_solved=(
+            None
+            if payload["generated_j_solved"] is None
+            else bool(payload["generated_j_solved"])
+        ),
+        generated_j_moduli_dimension=(
+            None
+            if payload["generated_j_moduli_dimension"] is None
+            else int(payload["generated_j_moduli_dimension"])
+        ),
+        generated_j_count=(
+            None if payload["generated_j_count"] is None else int(payload["generated_j_count"])
+        ),
+        generated_j_sign_shape=(
+            None
+            if payload["generated_j_sign_shape"] is None
+            else str(payload["generated_j_sign_shape"])
+        ),
+        compatible_j_solved=(
+            None
+            if payload["compatible_j_solved"] is None
+            else bool(payload["compatible_j_solved"])
+        ),
+        compatible_j_moduli_dimension=(
+            None
+            if payload["compatible_j_moduli_dimension"] is None
+            else int(payload["compatible_j_moduli_dimension"])
+        ),
+        compatible_j_count=(
+            None
+            if payload["compatible_j_count"] is None
+            else int(payload["compatible_j_count"])
+        ),
+        compatible_j_sign_shape=(
+            None
+            if payload["compatible_j_sign_shape"] is None
+            else str(payload["compatible_j_sign_shape"])
+        ),
+        bridge_j_status=(
+            None if payload["bridge_j_status"] is None else str(payload["bridge_j_status"])
+        ),
+        projected_centralizer_pairs=tuple(
+            _pair_from_dict(pair) for pair in payload["projected_centralizer_pairs"]  # type: ignore[index]
+        ),
+        route_label=str(payload["route_label"]),
+        elapsed_seconds=float(payload["elapsed_seconds"]),
+        stage_seconds=tuple(
+            (str(stage), float(seconds))
+            for stage, seconds in payload.get("stage_seconds", ())  # type: ignore[union-attr]
+        ),
+    )
+
+
+def _load_cache(path: Path | None) -> dict[str, StepwiseResult]:
+    if path is None or not path.exists():
+        return {}
+    cache: dict[str, StepwiseResult] = {}
+    for line in path.read_text().splitlines():
+        if not line.strip():
+            continue
+        try:
+            payload = json.loads(line)
+            key = str(payload["cache_key"])
+            cache[key] = _result_from_dict(payload["result"])
+        except (KeyError, TypeError, ValueError, json.JSONDecodeError):
+            continue
+    return cache
+
+
+def _append_cache(path: Path | None, cache_key: str, result: StepwiseResult) -> None:
+    if path is None:
+        return
+    path.parent.mkdir(parents=True, exist_ok=True)
+    payload = {
+        "cache_key": cache_key,
+        "scanner_version": SCANNER_VERSION,
+        "result": asdict(result),
+    }
+    with path.open("a", encoding="utf-8") as handle:
+        handle.write(json.dumps(payload, sort_keys=True) + "\n")
+
+
+def _stage_average_seconds(results: Sequence[StepwiseResult]) -> dict[str, float]:
+    totals: dict[str, float] = {}
+    counts: dict[str, int] = {}
+    for result in results:
+        for stage, seconds in result.stage_seconds:
+            totals[stage] = totals.get(stage, 0.0) + seconds
+            counts[stage] = counts.get(stage, 0) + 1
+    return {
+        stage: round(total / counts[stage], 6)
+        for stage, total in sorted(totals.items())
+        if counts[stage]
+    }
+
+
+def _summary_payload(
+    results: Sequence[StepwiseResult],
+    *,
+    total_candidates: int,
+    selected_count: int,
+    cached_count: int,
+    elapsed_seconds: float,
+) -> dict[str, object]:
+    class_counter = Counter(_classify_result(result) for result in results)
+    slowest = sorted(results, key=lambda item: item.elapsed_seconds, reverse=True)[:5]
+    rate = len(results) / elapsed_seconds if elapsed_seconds > 0 else 0.0
+    pending = max(selected_count - len(results), 0)
+    eta = pending / rate if rate > 0 else None
+    return {
+        "scanner_version": SCANNER_VERSION,
+        "total_candidate_space": total_candidates,
+        "selected_count": selected_count,
+        "completed_count": len(results),
+        "cached_count": cached_count,
+        "pending_count": pending,
+        "elapsed_seconds": round(elapsed_seconds, 3),
+        "candidates_per_second": round(rate, 6),
+        "eta_seconds": None if eta is None else round(eta, 3),
+        "class_counts": dict(sorted(class_counter.items())),
+        "stage_average_seconds": _stage_average_seconds(results),
+        "slowest_candidates": [
+            {
+                "name": item.name,
+                "elapsed_seconds": round(item.elapsed_seconds, 3),
+                "class": _classify_result(item),
+                "ranks": list(item.central_idempotent_ranks),
+            }
+            for item in slowest
+        ],
+    }
+
+
+def _format_progress(
+    *,
+    completed: int,
+    total: int,
+    cached_count: int,
+    start: float,
+    results: Sequence[StepwiseResult],
+) -> str:
+    elapsed = time.perf_counter() - start
+    rate = completed / elapsed if elapsed > 0 else 0.0
+    pending = max(total - completed, 0)
+    eta = pending / rate if rate > 0 else None
+    class_counts = Counter(_classify_result(result) for result in results)
+    eta_text = "unknown" if eta is None else f"{eta:.1f}s"
+    return (
+        "progress: "
+        f"completed={completed}/{total}, "
+        f"cached={cached_count}, "
+        f"pending={pending}, "
+        f"rate={rate:.4f}/s, "
+        f"eta={eta_text}, "
+        f"classes={dict(sorted(class_counts.items()))}"
     )
 
 
@@ -398,21 +741,45 @@ def evaluate_candidate(
     include_projected_centralizer: bool,
 ) -> StepwiseResult:
     start = time.perf_counter()
+    stage_seconds: list[tuple[str, float]] = []
+
+    def record_stage(stage: str, stage_start: float) -> None:
+        stage_seconds.append((stage, time.perf_counter() - stage_start))
+
+    stage_start = time.perf_counter()
     layer = _layer_for_candidate(candidate)
+    record_stage("layer", stage_start)
+
     seed_guardrail_passed = True
     raw_seed_witnesses: tuple[str, ...] = ()
     algebraic_seed_witnesses: tuple[str, ...] = ()
     coefficient_algebra_dimension = None
     if include_seed_guardrail:
+        stage_start = time.perf_counter()
         (
             seed_guardrail_passed,
             raw_seed_witnesses,
             algebraic_seed_witnesses,
             coefficient_algebra_dimension,
         ) = _seed_guardrail_for_layer(layer)
-    laurent_orthogonal = bloch_layer_laurent_orthogonal(_as_bloch_layer(layer))
-    samples = bloch_floquet_operators((layer,), bloch_period=12)
+        record_stage("seed_guardrail", stage_start)
+
+    stage_start = time.perf_counter()
+    bloch_layer = _as_bloch_layer(layer)
+    record_stage("bloch_layer", stage_start)
+
+    stage_start = time.perf_counter()
+    laurent_orthogonal = bloch_layer_laurent_orthogonal(bloch_layer)
+    record_stage("laurent", stage_start)
+
+    stage_start = time.perf_counter()
+    samples = bloch_floquet_operators((layer,), bloch_period=DEFAULT_BLOCH_PERIOD)
+    record_stage("bloch_samples", stage_start)
+
+    stage_start = time.perf_counter()
     closure = generated_algebra_closure(samples, max_dimension=max_algebra_dim)
+    record_stage("closure", stage_start)
+
     center_dimension = None
     center_solved = None
     compatible_centralizer_dimension = None
@@ -431,31 +798,40 @@ def evaluate_candidate(
     idempotents = ()
     has_rank_6_4_blocks = False
     if (include_center or include_j_solve or include_projected_centralizer) and closure.closed:
+        stage_start = time.perf_counter()
         center = center_basis_of_algebra(closure.basis)
         center_dimension = len(center)
+        record_stage("center_basis", stage_start)
         if include_idempotents or include_j_solve or include_projected_centralizer:
+            stage_start = time.perf_counter()
             center_solved, idempotents = solve_central_idempotents(center)
             idempotent_ranks = tuple(item.rank for item in idempotents)
             has_rank_6_4_blocks = 4 in idempotent_ranks and 6 in idempotent_ranks
+            record_stage("idempotents", stage_start)
     needs_compatible_basis = (
         include_centralizer
         or include_j_solve
         or (include_projected_centralizer and has_rank_6_4_blocks)
     )
     if needs_compatible_basis and closure.closed:
+        stage_start = time.perf_counter()
         compatible_basis = centralizer_basis(samples)
         compatible_centralizer_dimension = len(compatible_basis)
+        record_stage("centralizer", stage_start)
     if (
         include_projected_centralizer
         and closure.closed
         and center_solved
         and compatible_basis
     ):
+        stage_start = time.perf_counter()
         projected_centralizer_pairs = projected_centralizer_pair_diagnostics(
             compatible_basis,
             idempotents,
         )
+        record_stage("projected_centralizer", stage_start)
     if include_j_solve and closure.closed:
+        stage_start = time.perf_counter()
         generated_j_solved, generated_j_moduli_dimension, generated_j = (
             solve_complex_structures_from_idempotent_splitting(
                 center,
@@ -474,6 +850,7 @@ def evaluate_candidate(
         )
         compatible_j_count = len(compatible_j)
         compatible_j_sign_shape = _j_sign_shape(tuple(item.matrix for item in compatible_j))
+        record_stage("j_solve", stage_start)
 
     return StepwiseResult(
         name=layer.name,
@@ -517,61 +894,118 @@ def evaluate_candidate(
             idempotent_ranks=idempotent_ranks,
         ),
         elapsed_seconds=time.perf_counter() - start,
+        stage_seconds=tuple((stage, round(seconds, 6)) for stage, seconds in stage_seconds),
     )
 
 
+EvalArgs = tuple[StepwiseCandidate, int, bool, bool, bool, bool, bool, bool]
+CachedEvalArgs = tuple[str, EvalArgs]
+
+
 def _evaluate_many(
-    work_items: Sequence[tuple[StepwiseCandidate, int, bool, bool, bool, bool, bool, bool]],
+    work_items: Sequence[CachedEvalArgs],
     *,
     jobs: int,
+    chunk_size: int,
     stream: bool,
     stop_on_complex_factor: bool,
-) -> tuple[StepwiseResult, ...]:
+    cache: dict[str, StepwiseResult],
+    cache_file: Path | None,
+    use_cache: bool,
+    progress_every: int,
+) -> tuple[tuple[StepwiseResult, ...], int]:
     if not work_items:
-        return ()
-    if jobs == 1:
-        results = []
-        for item in work_items:
-            result = _evaluate_for_pool(item)
-            results.append(result)
-            if stream:
-                print(_format_result_line(result), flush=True)
-            if stop_on_complex_factor and _has_complex_projected_factor(result):
-                break
-        return tuple(results)
+        return (), 0
 
+    start = time.perf_counter()
+    cached_count = 0
     indexed_results: dict[int, StepwiseResult] = {}
-    stopped_early = False
-    with ProcessPoolExecutor(max_workers=jobs) as executor:
-        future_by_index: dict[Future[StepwiseResult], int] = {
-            executor.submit(_evaluate_for_pool, item): index
-            for index, item in enumerate(work_items)
-        }
-        pending = set(future_by_index)
-        while pending:
-            if stream or stop_on_complex_factor:
-                done, pending = wait(pending, return_when=FIRST_COMPLETED)
-            else:
-                done = set(as_completed(pending))
-                pending = set()
-            for future in done:
-                index = future_by_index[future]
-                result = future.result()
-                indexed_results[index] = result
-                if stream:
-                    print(_format_result_line(result), flush=True)
-                if stop_on_complex_factor and _has_complex_projected_factor(result):
-                    stopped_early = True
-            if stopped_early:
-                for future in pending:
-                    future.cancel()
-                executor.shutdown(cancel_futures=True)
+    pending_items: list[tuple[int, str, EvalArgs]] = []
+    for index, (cache_key, item) in enumerate(work_items):
+        if use_cache and cache_key in cache:
+            indexed_results[index] = cache[cache_key]
+            cached_count += 1
+        else:
+            pending_items.append((index, cache_key, item))
+
+    completed = len(indexed_results)
+    if progress_every > 0 and completed:
+        print(
+            _format_progress(
+                completed=completed,
+                total=len(work_items),
+                cached_count=cached_count,
+                start=start,
+                results=tuple(indexed_results.values()),
+            ),
+            flush=True,
+        )
+
+    def store_result(index: int, cache_key: str, result: StepwiseResult) -> bool:
+        indexed_results[index] = result
+        cache[cache_key] = result
+        _append_cache(cache_file, cache_key, result)
+        if stream:
+            print(_format_result_line(result), flush=True)
+        completed_now = len(indexed_results)
+        if progress_every > 0 and (
+            completed_now == len(work_items) or completed_now % progress_every == 0
+        ):
+            print(
+                _format_progress(
+                    completed=completed_now,
+                    total=len(work_items),
+                    cached_count=cached_count,
+                    start=start,
+                    results=tuple(indexed_results.values()),
+                ),
+                flush=True,
+            )
+        return stop_on_complex_factor and _has_complex_projected_factor(result)
+
+    if jobs == 1:
+        for index, cache_key, item in pending_items:
+            result = _evaluate_for_pool(item)
+            if store_result(index, cache_key, result):
                 break
-    return tuple(indexed_results[index] for index in sorted(indexed_results))
+        return tuple(indexed_results[index] for index in sorted(indexed_results)), cached_count
+
+    stopped_early = False
+    effective_chunk_size = chunk_size if chunk_size > 0 else len(pending_items)
+    for chunk_start in range(0, len(pending_items), effective_chunk_size):
+        if stopped_early:
+            break
+        chunk = pending_items[chunk_start : chunk_start + effective_chunk_size]
+        with ProcessPoolExecutor(max_workers=jobs) as executor:
+            future_by_index: dict[Future[StepwiseResult], int] = {}
+            cache_key_by_future: dict[Future[StepwiseResult], str] = {}
+            for index, cache_key, item in chunk:
+                future = executor.submit(_evaluate_for_pool, item)
+                future_by_index[future] = index
+                cache_key_by_future[future] = cache_key
+            pending = set(future_by_index)
+            while pending:
+                if stream or stop_on_complex_factor:
+                    done, pending = wait(pending, return_when=FIRST_COMPLETED)
+                else:
+                    done = set(as_completed(pending))
+                    pending = set()
+                for future in done:
+                    index = future_by_index[future]
+                    cache_key = cache_key_by_future[future]
+                    result = future.result()
+                    if store_result(index, cache_key, result):
+                        stopped_early = True
+                if stopped_early:
+                    for future in pending:
+                        future.cancel()
+                    executor.shutdown(cancel_futures=True)
+                    break
+    return tuple(indexed_results[index] for index in sorted(indexed_results)), cached_count
 
 
 def _evaluate_for_pool(
-    args: tuple[StepwiseCandidate, int, bool, bool, bool, bool, bool, bool],
+    args: EvalArgs,
 ) -> StepwiseResult:
     (
         candidate,
@@ -606,9 +1040,14 @@ def main() -> int:
     parser.add_argument("--cycle-count", type=int, default=3)
     parser.add_argument("--shift-count", type=int, default=3)
     parser.add_argument("--max-candidates", type=int, default=6)
+    parser.add_argument("--limit", type=int, default=None)
     parser.add_argument("--start-index", type=int, default=0)
+    parser.add_argument("--all-candidates", action="store_true")
+    parser.add_argument("--count-only", action="store_true")
+    parser.add_argument("--dry-run", action="store_true")
     parser.add_argument("--max-algebra-dim", type=int, default=48)
     parser.add_argument("--jobs", type=int, default=1)
+    parser.add_argument("--chunk-size", type=int, default=0)
     parser.add_argument("--seed-guardrail", action="store_true")
     parser.add_argument("--center-top", type=int, default=0)
     parser.add_argument("--centralizer", action="store_true")
@@ -617,28 +1056,75 @@ def main() -> int:
     parser.add_argument("--projected-centralizer", action="store_true")
     parser.add_argument("--stream", action="store_true")
     parser.add_argument("--stop-on-complex-factor", action="store_true")
+    parser.add_argument("--cache-file", type=Path, default=None)
+    parser.add_argument("--resume", action="store_true")
+    parser.add_argument("--progress-every", type=int, default=0)
+    parser.add_argument("--summary-json", type=Path, default=None)
     parser.add_argument("--json", action="store_true")
     parser.add_argument("--check", action="store_true")
     args = parser.parse_args()
 
     if args.start_index < 0:
         raise ValueError("start-index must be nonnegative")
+    if args.limit is not None and args.limit < 0:
+        raise ValueError("limit must be nonnegative")
+    total_candidates = candidate_space_total(
+        family=args.family,
+        pattern_count=args.pattern_count,
+        cycle_count=args.cycle_count,
+        shift_count=args.shift_count,
+    )
+    if args.all_candidates:
+        requested_count = max(total_candidates - args.start_index, 0)
+    elif args.limit is not None:
+        requested_count = args.limit
+    else:
+        requested_count = args.max_candidates
     candidates = stepwise_candidates(
         family=args.family,
         pattern_count=args.pattern_count,
         cycle_count=args.cycle_count,
         shift_count=args.shift_count,
-        max_candidates=args.start_index + args.max_candidates,
+        max_candidates=args.start_index + requested_count,
     )[args.start_index :]
     if args.jobs <= 0:
         raise ValueError("jobs must be positive")
+    if args.chunk_size < 0:
+        raise ValueError("chunk-size must be nonnegative")
+
+    run_start = time.perf_counter()
+    cache = _load_cache(args.cache_file) if args.resume else {}
+
+    if args.count_only or args.dry_run:
+        payload = {
+            "scanner_version": SCANNER_VERSION,
+            "family": args.family,
+            "total_candidate_space": total_candidates,
+            "start_index": args.start_index,
+            "selected_count": len(candidates),
+            "candidate_names": [_candidate_name(candidate) for candidate in candidates]
+            if args.dry_run
+            else [],
+        }
+        if args.json:
+            print(json.dumps(payload, indent=2, sort_keys=True))
+        else:
+            print(f"family: {args.family}")
+            print(f"total_candidate_space: {total_candidates}")
+            print(f"start_index: {args.start_index}")
+            print(f"selected_count: {len(candidates)}")
+            if args.dry_run:
+                for index, candidate in enumerate(candidates, start=args.start_index):
+                    print(f"candidate[{index}]: {_candidate_name(candidate)}")
+        return 0
 
     if args.center_top >= len(candidates):
         closure_results = ()
         detailed_targets = list(candidates)
     else:
-        closure_args = [
-            (
+        closure_work_items = []
+        for candidate in candidates:
+            eval_args = (
                 candidate,
                 args.max_algebra_dim,
                 args.seed_guardrail,
@@ -648,13 +1134,31 @@ def main() -> int:
                 False,
                 False,
             )
-            for candidate in candidates
-        ]
-        closure_results = _evaluate_many(
-            closure_args,
+            closure_work_items.append(
+                (
+                    _cache_key(
+                        candidate,
+                        max_algebra_dim=args.max_algebra_dim,
+                        include_seed_guardrail=args.seed_guardrail,
+                        include_center=False,
+                        include_centralizer=False,
+                        include_idempotents=False,
+                        include_j_solve=False,
+                        include_projected_centralizer=False,
+                    ),
+                    eval_args,
+                )
+            )
+        closure_results, _closure_cached_count = _evaluate_many(
+            closure_work_items,
             jobs=args.jobs,
+            chunk_size=args.chunk_size,
             stream=args.stream and not args.json,
             stop_on_complex_factor=False,
+            cache=cache,
+            cache_file=args.cache_file,
+            use_cache=args.resume,
+            progress_every=args.progress_every,
         )
 
         candidate_by_name = {_candidate_name(candidate): candidate for candidate in candidates}
@@ -666,8 +1170,9 @@ def main() -> int:
                 continue
             detailed_targets.append(candidate_by_name[result.name])
 
-    detailed_args = [
-        (
+    detailed_work_items = []
+    for candidate in detailed_targets:
+        eval_args = (
             candidate,
             args.max_algebra_dim,
             args.seed_guardrail,
@@ -677,13 +1182,31 @@ def main() -> int:
             args.j_solve,
             args.projected_centralizer,
         )
-        for candidate in detailed_targets
-    ]
-    detailed_results = _evaluate_many(
-        detailed_args,
+        detailed_work_items.append(
+            (
+                _cache_key(
+                    candidate,
+                    max_algebra_dim=args.max_algebra_dim,
+                    include_seed_guardrail=args.seed_guardrail,
+                    include_center=True,
+                    include_centralizer=args.centralizer,
+                    include_idempotents=args.idempotents,
+                    include_j_solve=args.j_solve,
+                    include_projected_centralizer=args.projected_centralizer,
+                ),
+                eval_args,
+            )
+        )
+    detailed_results, detailed_cached_count = _evaluate_many(
+        detailed_work_items,
         jobs=args.jobs,
+        chunk_size=args.chunk_size,
         stream=args.stream and not args.json,
         stop_on_complex_factor=args.stop_on_complex_factor,
+        cache=cache,
+        cache_file=args.cache_file,
+        use_cache=args.resume,
+        progress_every=args.progress_every,
     )
     detailed_by_name = {result.name: result for result in detailed_results}
 
@@ -691,7 +1214,19 @@ def main() -> int:
         results = tuple(detailed_by_name.get(result.name, result) for result in closure_results)
     else:
         results = detailed_results
+    elapsed_seconds = time.perf_counter() - run_start
+    summary = _summary_payload(
+        results,
+        total_candidates=total_candidates,
+        selected_count=len(candidates),
+        cached_count=detailed_cached_count,
+        elapsed_seconds=elapsed_seconds,
+    )
     payload = {
+        "scanner_version": SCANNER_VERSION,
+        "total_candidate_space": total_candidates,
+        "start_index": args.start_index,
+        "selected_count": len(candidates),
         "candidate_count": len(results),
         "closed_count": sum(result.generated_algebra_closed for result in results),
         "seed_guardrail_checked": args.seed_guardrail,
@@ -702,20 +1237,31 @@ def main() -> int:
         "coarse_6_4_count": sum(
             result.route_label == "closes_coarse_6_4_center" for result in results
         ),
+        "summary": summary,
         "results": [asdict(result) for result in results],
     }
+    if args.summary_json is not None:
+        args.summary_json.parent.mkdir(parents=True, exist_ok=True)
+        args.summary_json.write_text(json.dumps(summary, indent=2, sort_keys=True))
 
     if args.json:
         print(json.dumps(payload, indent=2, sort_keys=True))
     else:
         print("This runs a stepwise projector-free Bloch Path-A search.")
         print(f"family: {args.family}")
+        print(f"scanner_version: {SCANNER_VERSION}")
+        print(f"total_candidate_space: {total_candidates}")
+        print(f"start_index: {args.start_index}")
+        print(f"selected_count: {len(candidates)}")
         print(f"candidate_count: {payload['candidate_count']}")
+        print(f"cached_count: {summary['cached_count']}")
         print(f"closed_count: {payload['closed_count']}")
         print(f"seed_guardrail_checked: {str(args.seed_guardrail).lower()}")
         print(f"seed_guardrail_rejections: {payload['seed_guardrail_rejections']}")
         print(f"laurent_orthogonal_count: {payload['laurent_orthogonal_count']}")
         print(f"coarse_6_4_count: {payload['coarse_6_4_count']}")
+        print(f"class_counts: {summary['class_counts']}")
+        print(f"stage_average_seconds: {summary['stage_average_seconds']}")
         if not args.stream:
             for result in results:
                 print(_format_result_line(result))

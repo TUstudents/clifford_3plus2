@@ -998,6 +998,13 @@ same eight coarse split-real hits, plus three additional non-coarse tail
 candidates with ranks `[0,2,8,10]`, `[0,2,8,10]`, and an unsolved
 10-dimensional center. The remaining dim-22 tail candidate exposes an
 idempotent-solver bottleneck rather than a `C`-factor counterexample.
+The scanner is now a resumable timed classifier. It reports exact search-space
+cardinality before execution: one Floquet pattern has `24 * 10 = 240`
+monomial-hop candidates, while the current polynomial-hop extension has `960`
+candidates per pattern. JSONL cache/resume is keyed by candidate identity,
+scanner version, Bloch period, max algebra dimension, and enabled stages.
+Per-candidate timing shows the active bottleneck is center/idempotent
+extraction on survivors, not Laurent checking or Bloch sampling.
 Defect-beta is retained as a regression target but parked as a load-bearing
 route until rebuilt as a genuine higher-dimensional defect calculation. Its
 round-trip monodromy is exactly the matching Floquet-alpha operator. The

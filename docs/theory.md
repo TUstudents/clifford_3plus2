@@ -482,6 +482,16 @@ completed tail candidates are non-coarse rather than `C`-factor
 counterexamples; the remaining dim-22 tail case is a center-idempotent solver
 bottleneck.
 
+Brute-force classification convention. The scan target is now operationally
+separated from the theorem statement. For one Floquet pattern the monomial-hop
+class has `24` five-cycles times `10` source-shift assignments, hence `240`
+candidates; the current polynomial-hop extension has `960` candidates per
+pattern. The scanner records per-stage timings and caches JSONL results by
+candidate identity and enabled stages. A full scan should therefore be run as a
+resumable classifier for projected `C` factors, with `J` solving deferred until
+a candidate has already produced both a rank-`(6,4)` center and a projected
+complex factor.
+
 Conjectural Proposition 4b (coprime monomial-hop incompatibility). Let
 `T(z) = sum_s M_s z^s` be a projector-free 1D Bloch rule on `R^10` whose
 coefficients `M_s` are partial real-orthogonal monomial hops. Suppose the
