@@ -1192,6 +1192,30 @@ physics target is a mechanism that couples the alpha/eta orientation signs so
 only a global ±J remains.
 ```
 
+Move 3 tested whether those four choices could be accepted under a relaxed
+gauge-equivalence standard instead of the strict rule-generated `±J` standard.
+The answer is negative for Route 1. The four choices split into two classes
+modulo global `J -> -J`; intrinsic branching tables match only because each
+`J` is allowed to relabel its own holomorphic directions. The non-global
+block-sign class does not preserve the fixed SM hypercharge table, and no
+rule-generated normalizer orbit connecting the classes is certified:
+
+```text
+uv run python scripts/gauge_equivalence_check.py --check
+
+compatible_j_count = 4
+global_pm_orbit_count = 2
+intrinsic_branching_tables_match = true
+fixed_sm_branching_tables_match_mod_global_pm = false
+relaxed_standard_supported = false
+verdict = strict_standard_required
+```
+
+So the gauge-equivalence standard is not accepted as a shortcut. A future rule
+may still provide a real microscopic normalizer action, but Route 1's current
+block-sign ambiguity remains an obstruction under the project's active
+criterion.
+
 ## Spatial 1D Sidecar Route
 
 Status: finite-radius local-QCA sidecar implemented; not load-bearing.

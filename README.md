@@ -38,6 +38,7 @@ floquet_alpha_second_layer: cycle/swap lock fails no-locking guardrail
 floquet_alpha_noncommuting: on-site block-preserving escape closed
 floquet_alpha_noncommuting_exhaustive: generated J hits exist, none in no-locking shape
 floquet_alpha_noncommuting_completion: no lower center, still four J signs
+gauge_equivalence_check: Route-1 block signs still require strict standard
 spatial_1d_alpha: local-QCA sidecar couples four J signs to global ±
 spatial_1d_combined: Route 1 + Route 2 gives ± shape, still no rule-generated J
 spatial_1d_unseeded: no bridge candidate; seeded projector-shift rejected
@@ -673,6 +674,7 @@ uv run python scripts/floquet_alpha.py --variant noncommuting --check
 uv run python scripts/floquet_alpha.py --variant noncommuting-gap --check
 uv run python scripts/floquet_alpha.py --variant noncommuting-exhaustive --check
 uv run python scripts/floquet_alpha.py --variant noncommuting-completion --check
+uv run python scripts/gauge_equivalence_check.py --check
 uv run python scripts/spatial_1d_alpha_search.py --check
 uv run python scripts/spatial_1d_alpha_search.py --variant combined --check
 uv run python scripts/spatial_1d_unseeded_search.py --check

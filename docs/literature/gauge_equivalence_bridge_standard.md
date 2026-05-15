@@ -1,7 +1,7 @@
 # Gauge-Equivalence Bridge Standard
 
-Status: working standard proposal; not yet accepted as the main theorem
-criterion.
+Status: checked on the Route-1 finite `J` set; not accepted as the main
+theorem criterion.
 
 ## Question
 
@@ -74,8 +74,60 @@ If this fails, strict forcedness remains the only accepted target.
 
 ## Next Implementation
 
-1. Extract the finite compatible `J` set from the Route-1 noncommuting result.
-2. Compute the rule-generated normalizer action on that finite set.
-3. Re-run the spinor branching table for each `J`.
-4. Accept the relaxed standard only if the normalizer action has one orbit
-   modulo global sign and the branching tables are identical.
+Implemented as:
+
+```text
+src/clifford_3plus2_d5/gauge_equivalence.py
+scripts/gauge_equivalence_check.py
+tests/test_gauge_equivalence.py
+```
+
+The checker separates two statements that are easy to conflate:
+
+```text
+intrinsic labels: each compatible J can be labeled as C^3 plus C^2 and gives
+  the textbook Lambda^even(C^5) table;
+fixed SM data: the block-sign relation must preserve the already-fixed
+  hypercharge table and the SM commutant, modulo only the global +/-J
+  identification.
+```
+
+Result:
+
+```text
+uv run python scripts/gauge_equivalence_check.py --check
+
+compatible_j_count: 4
+global_pm_orbit_count: 2
+intrinsic_branching_tables_match: true
+fixed_sm_branching_tables_match_mod_global_pm: false
+rule_generated_normalizer_orbit_certified: false
+relaxed_standard_supported: false
+strict_standard_required: true
+verdict: strict_standard_required
+load_bearing_qca_bridge: false
+```
+
+The four signs split into two classes modulo global `J -> -J`:
+
+```text
+global class (1, 1):
+  (+,+,-,+,-)
+  (-,-,+,-,+)
+
+global class (1, -1):
+  (+,+,-,-,+)
+  (-,-,+,+,-)
+```
+
+The intrinsic branching tables match because each `J` is allowed to relabel
+its own holomorphic directions. That is bookkeeping. The fixed SM table does
+not match for the non-global block-sign class: the weak-block Hodge flip sends
+`N_2` to `2 - N_2`, which exchanges sectors with different fixed hypercharge,
+and the color-block representative changes even chirality. No rule-generated
+normalizer orbit connecting the two global classes is certified.
+
+Conclusion: Route 1 does not become a load-bearing bridge under the proposed
+gauge-equivalence relaxation. The project keeps the strict standard as the
+active theorem criterion unless a future microscopic rule supplies an actual
+normalizer action preserving the fixed SM data.

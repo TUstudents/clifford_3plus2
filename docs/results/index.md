@@ -47,6 +47,7 @@ uv run python scripts/floquet_alpha.py --variant noncommuting --check
 uv run python scripts/floquet_alpha.py --variant noncommuting-gap --check
 uv run python scripts/floquet_alpha.py --variant noncommuting-exhaustive --check
 uv run python scripts/floquet_alpha.py --variant noncommuting-completion --check
+uv run python scripts/gauge_equivalence_check.py --check
 uv run python scripts/spatial_1d_alpha_search.py --check
 uv run python scripts/spatial_1d_alpha_search.py --variant combined --check
 uv run python scripts/spatial_1d_unseeded_search.py --check
@@ -609,6 +610,27 @@ candidate: unseeded_mode_5_cycle_shift, center_ranks=[0, 2, 4, 4, 6, 6, 8, 10], 
 candidate: spatial_1d_alpha_projector_shift_qca, witnesses=['shift_3:P_eta', 'shift_4:P_alpha'], route=unseeded_spatial_seeded_coefficient_rejected
 ```
 
+Gauge-equivalence Route-1 standard check:
+
+```text
+uv run python scripts/gauge_equivalence_check.py --check
+
+compatible_j_count: 4
+global_pm_orbit_count: 2
+intrinsic_branching_tables_match: true
+fixed_sm_branching_tables_match_mod_global_pm: false
+rule_generated_normalizer_orbit_certified: false
+relaxed_standard_supported: false
+strict_standard_required: true
+verdict: strict_standard_required
+load_bearing_qca_bridge: false
+
+pattern: index=0, pair_signs=(+,+,-,+,-), block_flips=(alpha=1,eta=1), global_pm_class=(1, 1), direct_even_chirality=true, direct_fixed_hypercharge_preserved=true, global_pm_fixed_hypercharge_preserved=true
+pattern: index=1, pair_signs=(+,+,-,-,+), block_flips=(alpha=1,eta=-1), global_pm_class=(1, -1), direct_even_chirality=true, direct_fixed_hypercharge_preserved=false, global_pm_fixed_hypercharge_preserved=false
+pattern: index=2, pair_signs=(-,-,+,+,-), block_flips=(alpha=-1,eta=1), global_pm_class=(1, -1), direct_even_chirality=false, direct_fixed_hypercharge_preserved=false, global_pm_fixed_hypercharge_preserved=false
+pattern: index=3, pair_signs=(-,-,+,-,+), block_flips=(alpha=-1,eta=-1), global_pm_class=(1, 1), direct_even_chirality=false, direct_fixed_hypercharge_preserved=false, global_pm_fixed_hypercharge_preserved=true
+```
+
 Bloch Path-A mixed-panel search:
 
 ```text
@@ -918,6 +940,11 @@ zero generated-`J` hits in the no-locking shape and zero bridge candidates.
 This is now the third no-go proposition: block-preserving noncommuting on-site
 locking cannot supply a rule-generated `J` while preserving no-locking and the
 SM commutant.
+The Move-3 gauge-equivalence check rejects the proposed shortcut for the
+Route-1 four-sign set. The intrinsic branching tables agree, but the signs
+split into two global-`±J` classes; the non-global class does not preserve the
+fixed SM hypercharge table, and no rule-generated normalizer orbit is
+certified. The active criterion therefore remains strict rule-generated `±J`.
 The combined Route-1/Route-2 sidecar composes the noncommuting on-site update
 with the `(4,3)` winding hops. It reaches the topological `±J` shape
 (`4` compatible signs reduced to `2` transported signs), but the joint rule
