@@ -98,10 +98,12 @@ Result:
 uv run python scripts/gauge_equivalence_check.py --check
 
 compatible_j_count: 4
+standard_scope: fixed_su3_su2_u1_hypercharge_no_charge_conjugation
 global_pm_orbit_count: 2
 intrinsic_branching_tables_match: true
 fixed_sm_branching_tables_match_mod_global_pm: false
 rule_generated_normalizer_orbit_certified: false
+charge_conjugation_orbit_checked: false
 relaxed_standard_supported: false
 strict_standard_required: true
 verdict: strict_standard_required
@@ -131,3 +133,8 @@ Conclusion: Route 1 does not become a load-bearing bridge under the proposed
 gauge-equivalence relaxation. The project keeps the strict standard as the
 active theorem criterion unless a future microscopic rule supplies an actual
 normalizer action preserving the fixed SM data.
+
+Scope note: this is the fixed `SU(3) x SU(2) x U(1)` hypercharge standard. It
+does not test a broader outer-automorphism or charge-conjugation relaxation. A
+future rule with a microscopic charge-conjugation primitive would need a
+separate certificate.

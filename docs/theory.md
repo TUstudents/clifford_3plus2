@@ -348,6 +348,37 @@ rule-generated central `J` forces lower central locking, full internal
 addressability, or effective commutativity. These are exactly the remaining
 on-site block-preserving cases.
 
+Proposition 5 (Route-1 SM-inequivalence of compatible `J` orbits). The four
+compatible orthogonal complex structures of the Route-1 noncommuting
+signed-twist algebra are not one Standard-Model-equivalence class under the
+fixed `SU(3) x SU(2) x U(1)` data. They split into two global `±J` classes
+under independent alpha/eta block-sign flips. The eta-block flip sends
+`N_2 -> 2 - N_2` and does not preserve the fixed hypercharge table
+`Y = -N_3/3 + N_2/2`. The alpha-block flip sends `N_3 -> 3 - N_3` and changes
+even chirality. Therefore the Route-1 compatible `J` set cannot be accepted as
+a single gauge-equivalence class, and the strict global `{±J}` standard cannot
+be relaxed for this family.
+
+Proof. The four Route-1 compatible pair-orientation signs are
+`(+,+,-,+,-)`, `(+,+,-,-,+)`, `(-,-,+,+,-)`, and `(-,-,+,-,+)`. Modulo the
+global replacement `J -> -J`, these form two classes: the block-aligned class
+`(alpha, eta) = (1,1)` and the non-global class `(alpha, eta) = (1,-1)`. If
+each `J` is allowed to relabel its own holomorphic directions, the textbook
+`Lambda^even(C^3 plus C^2)` branching table is recovered in every case; that
+is only intrinsic bookkeeping. With the already-fixed Standard Model
+identification, the eta flip applies the Hodge complement on the weak block,
+so a sector with occupation `N_2` is mapped to one with occupation `2 - N_2`.
+The fixed hypercharge changes from `-N_3/3 + N_2/2` to
+`-N_3/3 + 1 - N_2/2`, which is not the same table. The alpha flip applies a
+Hodge complement on a three-dimensional block and reverses even/odd chirality.
+The implemented certificate
+`uv run python scripts/gauge_equivalence_check.py --check` records
+`compatible_j_count = 4`, `global_pm_orbit_count = 2`,
+`intrinsic_branching_tables_match = true`, and
+`fixed_sm_branching_tables_match_mod_global_pm = false`. No rule-generated
+normalizer orbit connecting the two global classes is certified. Hence the
+gauge-equivalence relaxation fails for Route 1.
+
 Route 2 is now represented by a spatial 1D sidecar. It does not alter the
 finite-depth on-site verdict checker. Instead it tests the remaining sign
 obstruction with a finite-radius local QCA layer whose Laurent symbol is

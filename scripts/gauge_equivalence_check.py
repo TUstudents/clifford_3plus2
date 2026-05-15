@@ -34,6 +34,7 @@ def main() -> int:
     else:
         print("This checks whether Route-1 compatible J signs satisfy the relaxed standard.")
         print(f"candidate_name: {certificate.candidate_name}")
+        print(f"standard_scope: {certificate.standard_scope}")
         print(f"compatible_j_count: {certificate.compatible_j_count}")
         print(f"global_pm_orbit_count: {certificate.global_pm_orbit_count}")
         print(
@@ -47,6 +48,10 @@ def main() -> int:
         print(
             "rule_generated_normalizer_orbit_certified: "
             f"{str(certificate.rule_generated_normalizer_orbit_certified).lower()}"
+        )
+        print(
+            "charge_conjugation_orbit_checked: "
+            f"{str(certificate.charge_conjugation_orbit_checked).lower()}"
         )
         print(f"relaxed_standard_supported: {str(certificate.relaxed_standard_supported).lower()}")
         print(f"strict_standard_required: {str(certificate.strict_standard_required).lower()}")
@@ -73,6 +78,7 @@ def main() -> int:
         and certificate.intrinsic_branching_tables_match
         and not certificate.fixed_sm_branching_tables_match_mod_global_pm
         and not certificate.rule_generated_normalizer_orbit_certified
+        and not certificate.charge_conjugation_orbit_checked
         and not certificate.relaxed_standard_supported
         and certificate.strict_standard_required
         and certificate.verdict == "strict_standard_required"

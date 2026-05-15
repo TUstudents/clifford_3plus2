@@ -1,4 +1,9 @@
-"""Gauge-equivalence checks for Route-1 compatible J sign choices."""
+"""Gauge-equivalence checks for Route-1 compatible J sign choices.
+
+This module checks the fixed-SM-data version of the relaxed standard. It does
+not certify a broader equivalence that uses an outer Spin(10) automorphism or a
+microscopic charge-conjugation primitive.
+"""
 
 from __future__ import annotations
 
@@ -39,11 +44,13 @@ class GaugeEquivalentJPattern:
 @dataclass(frozen=True)
 class GaugeEquivalenceCertificate:
     candidate_name: str
+    standard_scope: str
     compatible_j_count: int
     global_pm_orbit_count: int
     intrinsic_branching_tables_match: bool
     fixed_sm_branching_tables_match_mod_global_pm: bool
     rule_generated_normalizer_orbit_certified: bool
+    charge_conjugation_orbit_checked: bool
     relaxed_standard_supported: bool
     strict_standard_required: bool
     verdict: str
@@ -192,11 +199,13 @@ def route1_gauge_equivalence_certificate(
     )
     return GaugeEquivalenceCertificate(
         candidate_name=candidate.name,
+        standard_scope="fixed_su3_su2_u1_hypercharge_no_charge_conjugation",
         compatible_j_count=len(patterns),
         global_pm_orbit_count=len(global_classes),
         intrinsic_branching_tables_match=intrinsic_match,
         fixed_sm_branching_tables_match_mod_global_pm=fixed_match,
         rule_generated_normalizer_orbit_certified=rule_orbit_certified,
+        charge_conjugation_orbit_checked=False,
         relaxed_standard_supported=relaxed_supported,
         strict_standard_required=not relaxed_supported,
         verdict=verdict,

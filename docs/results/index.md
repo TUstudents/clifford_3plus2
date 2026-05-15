@@ -6,6 +6,16 @@ This is a historical result bundle. Current validation convention is documented
 in [Project Conventions](../project_conventions.md): full `uv run pytest -q` is
 a slow archival suite, while normal work uses Ruff plus focused route checks.
 
+## Current Move Summary
+
+| Move | Family | Status | Verdict |
+| --- | --- | --- | --- |
+| Move 1 | Polynomial Bloch hops | Algebra cap exceeded at `64`; first tractable candidate is algebraically seeded | computational boundary |
+| Move 2 | Two-site forward/inverse uniform carrier | Seed guardrail passes; center ranks `(0,20)` only | no effective coarse split |
+| Move 2 | Two-site forward/inverse winding-`4,3` carrier | Exact Laurent identity; coefficient algebra recovers embedded `P_alpha/P_eta` | seeded |
+| Move 2 | Two-site split-step uniform sublattice swap | Coefficient algebra closes at `20`, sampled algebra closes at `10`, center solve hits dim-`10` cap | center bottleneck |
+| Move 3 | Route-1 gauge equivalence | Four compatible `J`s split into two global-`±J` classes; fixed SM table not preserved | strict standard required |
+
 Commands:
 
 ```bash
@@ -616,10 +626,12 @@ Gauge-equivalence Route-1 standard check:
 uv run python scripts/gauge_equivalence_check.py --check
 
 compatible_j_count: 4
+standard_scope: fixed_su3_su2_u1_hypercharge_no_charge_conjugation
 global_pm_orbit_count: 2
 intrinsic_branching_tables_match: true
 fixed_sm_branching_tables_match_mod_global_pm: false
 rule_generated_normalizer_orbit_certified: false
+charge_conjugation_orbit_checked: false
 relaxed_standard_supported: false
 strict_standard_required: true
 verdict: strict_standard_required

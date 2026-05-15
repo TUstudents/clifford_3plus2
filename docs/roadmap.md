@@ -1204,9 +1204,11 @@ rule-generated normalizer orbit connecting the classes is certified:
 uv run python scripts/gauge_equivalence_check.py --check
 
 compatible_j_count = 4
+standard_scope = fixed_su3_su2_u1_hypercharge_no_charge_conjugation
 global_pm_orbit_count = 2
 intrinsic_branching_tables_match = true
 fixed_sm_branching_tables_match_mod_global_pm = false
+charge_conjugation_orbit_checked = false
 relaxed_standard_supported = false
 verdict = strict_standard_required
 ```
@@ -1214,7 +1216,9 @@ verdict = strict_standard_required
 So the gauge-equivalence standard is not accepted as a shortcut. A future rule
 may still provide a real microscopic normalizer action, but Route 1's current
 block-sign ambiguity remains an obstruction under the project's active
-criterion.
+criterion. This check intentionally does not cover a hypothetical microscopic
+charge-conjugation primitive; that would be a separate outer-automorphism
+standard.
 
 ## Spatial 1D Sidecar Route
 
