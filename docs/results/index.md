@@ -980,7 +980,10 @@ split-center `J` solver settles this finite sampled family negatively:
 generated and compatible `J` counts are both `0` for all six candidates. The
 remaining search gap is therefore not the coarse center, but a microscopic
 unseeded hopping primitive whose structured algebra also carries a complex
-structure.
+structure. Proposition 4b remains conjectural: the attempted general proof
+needs an additional invariant showing that projected compatible centralizers
+for coprime monomial-hop rules are split real algebras and never acquire an
+orthogonal `C` factor.
 Defect-beta is retained as a regression target but parked as a load-bearing
 route until rebuilt as a genuine higher-dimensional defect calculation. Its
 round-trip monodromy is exactly the matching Floquet-alpha operator. The

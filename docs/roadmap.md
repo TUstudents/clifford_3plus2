@@ -1362,11 +1362,13 @@ the first six projector-free monomial-hop variants at dimension `34`. All six
 have center dimension `4`, central idempotent ranks `[0,4,6,10]`, compatible
 centralizer dimension `4`, `generated_j_count = 0`, and
 `compatible_j_count = 0`. Theory records this as Proposition 4a and names the
-broader Proposition 4b conjecture: projector-free monomial hops with winding
-multiset `(4,4,4,3,3)` may be structurally unable to carry a compatible real
-orthogonal complex structure. The active gap is therefore either a proof of
-that monomial-hop obstruction or a new microscopic hopping primitive that
-carries `J`, not the coarse center.
+broader Proposition 4b conjecture for coprime projector-free monomial hops. The
+current proof attempt does not promote 4b to a theorem: the implemented
+coefficients are `U_local E_s`, and the coarse projectors are outputs of the
+joint sampled algebra, so block-scalar root-of-unity action cannot be assumed.
+The active gap is the missing invariant that projected compatible centralizers
+remain split real algebras with no orthogonal `C` factor, or a new microscopic
+hopping primitive that carries `J`, not the coarse center.
 The first polynomial-hop extension keeps exact Laurent orthogonality by mixing
 two mode edges with a finite-order rational reflection. It does not produce a
 bridge candidate in the current exact checker: the first checked mixed
