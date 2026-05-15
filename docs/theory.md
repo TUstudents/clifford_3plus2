@@ -278,11 +278,15 @@ leaves four rule-local compatible complex structures. The residual obstruction
 is the independent alpha/eta block sign: the strict bridge needs a mechanism
 that reduces those four choices to global `±J`.
 
-Proposition 3 (block-preserving noncommuting locking obstruction). Let
-`U1, U2 in O(10)` be block-preserving real-orthogonal layers:
-`[Ui, P_alpha] = [Ui, P_eta] = 0`. Let `A = R<U1,U2>` and assume
-`[U1,U2] != 0`. If `A` contains a central complex structure
-`J in Z(A)` with `J^2 = -I`, then at least one of the following holds:
+Proposition 3 (Floquet-alpha block-preserving noncommuting locking
+obstruction). Let `U1, U2 in O(10)` be block-preserving real-orthogonal
+layers, `[Ui, P_alpha] = [Ui, P_eta] = 0`, and assume `[U1,U2] != 0`.
+Assume also that `U1` is Floquet-alpha type: after passing to the natural
+spectral complex structure, `U1|_{P_alpha}` is one complex scalar on
+`C^3` and `U1|_{P_eta}` is one complex scalar on `C^2` (equivalently, one
+irreducible real quadratic spectral factor per coarse block). Let
+`A = R<U1,U2>`. If `A` contains a central complex structure `J in Z(A)` with
+`J^2 = -I`, then at least one of the following holds:
 
 1. `A` contains a central idempotent strictly inside `P_alpha` or `P_eta`,
    so the no-locking guardrail fails.
@@ -292,10 +296,10 @@ Proposition 3 (block-preserving noncommuting locking obstruction). Let
 3. The supposedly noncommuting layers are block scalars and commute on the
    coarse blocks, contradicting the intended noncommuting escape.
 
-In particular, no block-preserving on-site rule on a single ten-dimensional
-carrier can satisfy both a rule-generated central compatible `J` and the
-no-locking guardrail while keeping the geometric gate algebra in the Standard
-Model commutant.
+In particular, no Floquet-alpha-type block-preserving on-site rule on a single
+ten-dimensional carrier can satisfy both a rule-generated central compatible
+`J` and the no-locking guardrail while keeping the geometric gate algebra in
+the Standard Model commutant.
 
 Proof. Since `J in Z(A)` and `J^2 = -I`, restriction to the alpha block gives
 `J_alpha in Z(A|_{P_alpha})` with `J_alpha^2 = -P_alpha`; hence
@@ -331,9 +335,8 @@ bridge_candidate_count = 0
 ```
 
 Corollary 3.1 (on-site bridge closure). On a single ten-dimensional on-site
-carrier, no finite-depth real-orthogonal rule whose layers each preserve the
-candidate `(P_alpha, P_eta)` split can simultaneously satisfy all three
-strict bridge requirements:
+carrier, the Floquet-alpha block-preserving class cannot simultaneously
+satisfy all three strict bridge requirements:
 
 1. a coarse rank-`(6,4)` center with no lower-rank refinement;
 2. a geometric gate algebra contained in `C P_alpha ⊕ C P_eta`;
@@ -343,10 +346,13 @@ strict bridge requirements:
 Proof. The E1/E2 obstruction closes the coarse symmetric primitive class. The
 commuting second-layer proposition closes commuting non-scalar locks, because
 they generate lower-rank central projectors. The block-preserving
-noncommuting proposition above closes the on-site noncommuting escape: a
-rule-generated central `J` forces lower central locking, full internal
-addressability, or effective commutativity. These are exactly the remaining
-on-site block-preserving cases.
+noncommuting proposition above closes the Floquet-alpha-type on-site
+noncommuting escape: a rule-generated central `J` forces lower central
+locking, full internal addressability, or effective commutativity. This closes
+the on-site block-preserving classes actually used by the Floquet-alpha search
+and exhaustive signed-twist witness; it does not claim to classify arbitrary
+block-preserving on-site rules outside the one-quadratic-factor-per-block
+hypothesis.
 
 Proposition 5 (Route-1 SM-inequivalence of compatible `J` orbits). The four
 compatible orthogonal complex structures of the Route-1 noncommuting
@@ -377,7 +383,11 @@ The implemented certificate
 `intrinsic_branching_tables_match = true`, and
 `fixed_sm_branching_tables_match_mod_global_pm = false`. No rule-generated
 normalizer orbit connecting the two global classes is certified. Hence the
-gauge-equivalence relaxation fails for Route 1.
+fixed-`SU(3) x SU(2) x U(1)` gauge-equivalence relaxation fails for Route 1.
+The load-bearing negative is the hypercharge mismatch. A broader relaxation
+using a microscopic charge-conjugation or outer Spin(10) automorphism is not
+checked here and would require a separate rule-generated normalizer
+certificate.
 
 Route 2 is now represented by a spatial 1D sidecar. It does not alter the
 finite-depth on-site verdict checker. Instead it tests the remaining sign
@@ -447,16 +457,22 @@ summand it solves `(uP + vx)^2 = -P` analytically via
 `u = -bv/2`, `v^2 = -1/(a + b^2/4)`, then filters candidates by realness and
 orthogonality. The command
 `uv run python scripts/bloch_path_a_stepwise.py --max-candidates 6 --max-algebra-dim 48 --center-top 6 --idempotents --centralizer --j-solve --jobs 4 --check`
-certifies the four numbered outputs for all six candidates.
+certifies the four numbered outputs for all six candidates and explicitly
+reports `generated_j_solved = True` and `compatible_j_solved = True` with both
+candidate counts equal to `0`. Thus the negative `J` result is solved-empty,
+not a solver timeout.
 
-Conjectural Proposition 4b (projector-free monomial-hop incompatibility). Let
-`T(z) = sum_s M_s z^s` be a 1D Bloch rule on `R^10` whose coefficients `M_s`
-are partial real-orthogonal monomial hops, with per-mode winding multiset
-`(4,4,4,3,3)`, and whose coefficient algebra does not already generate
-`P_alpha` or `P_eta`. If the joint sampled algebra
-`A = R<T(zeta^0),...,T(zeta^11)>` produces the coarse rank-`(6,4)` center,
-then its compatible centralizer is commutative on each coarse spectral block
-and admits no real orthogonal complex structure.
+Conjectural Proposition 4b (coprime monomial-hop incompatibility). Let
+`T(z) = sum_s M_s z^s` be a projector-free 1D Bloch rule on `R^10` whose
+coefficients `M_s` are partial real-orthogonal monomial hops. Suppose the
+effective coarse blocks, if produced by the joint sampled algebra, carry
+constant per-block winding numbers `w_alpha` on the rank-6 block and `w_eta`
+on the rank-4 block, with `gcd(w_alpha, w_eta) = 1`, and suppose the
+coefficient algebra does not already generate `P_alpha` or `P_eta`. If the
+joint sampled algebra `A = R<T(zeta^0),...,T(zeta^(L-1))>` for
+`L = lcm(w_alpha, w_eta)` produces the coarse rank-`(6,4)` center, then its
+compatible centralizer should be commutative on each coarse spectral block and
+should admit no real orthogonal complex structure.
 
 Equivalently, the natural projector-free monomial-hop class can force the
 coarse center but not the microscopic `J`. The obstruction is stronger than
@@ -464,17 +480,20 @@ the Route-1 centralizer gap: in Route 1 the compatible `J` set is finite and
 non-empty but disjoint from the rule algebra; here the compatible `J` set is
 empty already in the joint centralizer.
 
-Proof target. On each momentum slice the monomial hops produce eigenvalues
-`zeta^(j w)` with `w in {3,4}`. Restricted to a coarse block, the joint algebra
-is expected to be a small commutative real algebra generated by root-of-unity
-phases acting on identical channels. A commutative real algebra of dimension
-too small to supply a complex scalar on every channel cannot contain an
-operator `J_block` with `J_block^2 = -P_block` unless its image is already a
-copy of `C` acting through a fixed complex structure. The monomial-hop rule
-does not generate that fixed complex structure without importing data outside
-the projector-free class. The proof should make this Wedderburn/representation
-argument precise and identify the exact hypotheses under which the six
-checked candidates exhaust the general mechanism.
+Proof target. On each momentum slice the monomial hops produce root-of-unity
+phases `zeta^(j w_alpha)` and `zeta^(j w_eta)` on the two effective blocks.
+The coprime winding hypothesis is the physical sign-coupling mechanism from
+Route 2, not just the particular witnessed multiset `(4,4,4,3,3)`. Restricted
+to a coarse block, the joint algebra is expected to be a small commutative real
+algebra generated by root-of-unity phases acting on identical channels. A
+commutative real algebra of dimension too small to supply a complex scalar on
+every channel cannot contain an operator `J_block` with `J_block^2 = -P_block`
+unless its image is already a copy of `C` acting through a fixed complex
+structure. The monomial-hop rule does not generate that fixed complex
+structure without importing data outside the projector-free class. The proof
+should make this Wedderburn/representation argument precise and identify the
+extra hypotheses under which the six checked `(w_alpha,w_eta)=(4,3)`
+candidates represent the general coprime monomial-hop mechanism.
 
 That negative `J` test is the correct next target, not a reason to abandon
 Route 2. The seeded transfer `T(z) = P_alpha z^4 + P_eta z^3` is the target
@@ -493,8 +512,27 @@ center and canonical monodromy `J`, but that monodromy is exactly the matching
 Floquet-α operator. The checker now evaluates β on the actual noncommuting
 transition pair `(T_entry, T_exit)`, which has generated algebra dimension `8`
 and compatible centralizer dimension `13`, but still does not force `J`.
-It is parked as a load-bearing route until rebuilt as a genuine
-higher-dimensional defect calculation.
+It should not remain as an ambiguous parked route. If the project converges to
+the obstruction write-up, β should be archived as a tested notation-only
+sidecar. If Proposition 4b fails and the project continues bridge search,
+β should be rebuilt as a genuine non-translation-invariant wall/defect QCA
+with different alpha patterns on the two sides and rule-generated transition
+data.
+
+## Write-Up Readiness
+
+The project is ready for the obstruction write-up only when:
+
+1. Propositions 1, 2, 3, 4a, and 5 have independently readable proofs with
+   hypotheses no broader than the implemented or proved class.
+2. Every empirical witness has one documented `uv run ... --check` command at
+   the current git revision.
+3. Claims are tagged by status: structurally closed for Propositions 1-3,
+   empirically witnessed for 4a, conjectural for 4b, and theorem-standard
+   decision for 5.
+4. A two-page paper outline exists with section names, page budget, theorem
+   placement, and open mechanisms: translation-symmetry-breaking defects,
+   boundaries, and higher-dimensional QCAs.
 
 ## Load-Bearing Conditions
 

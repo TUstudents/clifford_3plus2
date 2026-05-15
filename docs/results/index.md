@@ -699,7 +699,9 @@ all six candidates:
   center_dimension: 4
   central_idempotent_ranks: [0,4,6,10]
   compatible_centralizer_dimension: 4
+  generated_j_solved: true
   generated_j_count: 0
+  compatible_j_solved: true
   compatible_j_count: 0
   bridge_j_status: no_rule_generated_j
   route_label: closes_coarse_6_4_center

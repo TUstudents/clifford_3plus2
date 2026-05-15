@@ -218,7 +218,9 @@ all six closed at generated_algebra_dimension = 34
 all six have center_dimension = 4
 all six have central_idempotent_ranks = [0,4,6,10]
 all six have compatible_centralizer_dimension = 4
+all six have generated_j_solved = true
 all six have generated_j_count = 0
+all six have compatible_j_solved = true
 all six have compatible_j_count = 0
 all six have bridge_j_status = no_rule_generated_j
 ```
