@@ -240,7 +240,7 @@ idempotents. The formal proposition and proof are recorded in
 
 ## Active Noncommuting Route
 
-The next checked route is no longer a commuting lock. The new
+The next checked route is no longer a commuting lock. The
 `floquet_alpha_noncommuting` family adds a block-preserving signed orientation
 twist `U2` with `[U1,U2] != 0`. It preserves the alpha/eta spectral projectors
 as subspaces, so the coarse `6+4` split remains available, but the generated
@@ -316,6 +316,11 @@ witnesses: the hits leave the no-locking shape, while the `240` candidates
 with the strict cycle/swap non-locking shape have no generated compatible
 `J`. The representative is therefore not an isolated accident; the finite
 signed-twist class is exhausted at the current strict standard.
+
+This is now recorded in [Theory](../theory.md) as the third numbered no-go:
+the block-preserving noncommuting locking obstruction. Together with the
+E1/E2 obstruction and the commuting second-layer obstruction, it closes the
+single-site on-site bridge problem for layer-by-layer split-preserving rules.
 
 The minimal completion experiment answers the next fork. If one of these
 finite compatible `J`s is declared as a third mandatory layer `W`, no lower

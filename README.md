@@ -35,7 +35,7 @@ rule_to_verdict_check: unified negative interface with exact field and J-moduli 
 floquet_alpha: canonical CLI for alpha variants; coarse 6+4 center found
 floquet_alpha_time_reversal: declared K reduces J moduli 9->3, not ±J
 floquet_alpha_second_layer: cycle/swap lock fails no-locking guardrail
-floquet_alpha_noncommuting: block-preserving signed twist under exploration
+floquet_alpha_noncommuting: on-site block-preserving escape closed
 floquet_alpha_noncommuting_exhaustive: generated J hits exist, none in no-locking shape
 floquet_alpha_noncommuting_completion: no lower center, still four J signs
 spatial_1d_alpha: local-QCA sidecar couples four J signs to global ±
@@ -45,6 +45,13 @@ defect_beta_search: monodromy equals alpha; transition-pair rule still negative
 Spin(10) branching check: passes
 QCA load-bearing bridge: notation_only
 ```
+
+The on-site block-preserving bridge problem is now closed by three no-go
+propositions in `docs/theory.md`: E1/E2 coarse primitive obstruction,
+commuting second-layer no-locking obstruction, and block-preserving
+noncommuting locking obstruction. The active search has moved to spatial or
+defect mechanisms that do not preserve the candidate split layer-by-layer on a
+single site.
 
 ## Active Theorem Target
 

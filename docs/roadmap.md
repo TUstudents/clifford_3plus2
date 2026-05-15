@@ -16,6 +16,13 @@ It is accepted only if microscopic real QCA data force a local complex
 structure `J`, a structural `3+2` split, and a geometric gate algebra that
 cannot resolve individual color or weak axes.
 
+The on-site block-preserving bridge problem is now closed. The three no-go
+propositions in [Theory Summary](theory.md) rule out the remaining
+single-site layer-by-layer split-preserving routes: coarse symmetric
+primitives, commuting locks, and block-preserving noncommuting locks. The
+active route must therefore use spatial/defect data that do not merely act as
+an on-site block-preserving algebra on `R^10`.
+
 ## Source Documents
 
 - [README](../README.md): project boundary, commands, and current status.
@@ -114,6 +121,7 @@ floquet_alpha_second_layer_no_locking_guardrail_passed_candidates: 0
 floquet_alpha_second_layer_strict_bridge_candidates: 0
 floquet_alpha_noncommuting_candidate_count: 1
 floquet_alpha_noncommuting_block_preserving_candidates: 1
+floquet_alpha_noncommuting_on_site_bridge_closed: true
 floquet_alpha_noncommuting_coarse_center_preserved_candidates: 1
 floquet_alpha_noncommuting_compatible_centralizer_dimension: 6
 floquet_alpha_noncommuting_compatible_j_moduli_dimension: 0
@@ -201,7 +209,10 @@ Meaning:
 - Route 1 is the cleanest finite-dimensional result so far: it escapes the
   commuting no-go, preserves `[0,4,6,10]`, makes compatible `J`
   zero-dimensional with four candidates, and fails only because none of those
-  candidates lies in the generated algebra or rule-local center.
+  candidates lies in the generated algebra or rule-local center. The
+  exhaustive signed-twist scan turns this into the third no-go: generated `J`
+  hits exist only outside the no-locking shape, so the on-site
+  block-preserving bridge is closed.
 
 ## Enhanced Theorem Target
 

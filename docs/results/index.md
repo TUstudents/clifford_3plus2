@@ -746,6 +746,9 @@ The exhaustive discrete Route-1 scan is now checked as a focused result:
 `3840` signed-twist candidates reduce to `96` exact symmetry classes. It finds
 `720` generated-compatible-`J` hits, including `240` minimal four-`J` hits, but
 zero generated-`J` hits in the no-locking shape and zero bridge candidates.
+This is now the third no-go proposition: block-preserving noncommuting on-site
+locking cannot supply a rule-generated `J` while preserving no-locking and the
+SM commutant.
 The combined Route-1/Route-2 sidecar composes the noncommuting on-site update
 with the `(4,3)` winding hops. It reaches the topological `±J` shape
 (`4` compatible signs reduced to `2` transported signs), but the joint rule

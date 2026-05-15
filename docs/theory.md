@@ -278,41 +278,75 @@ leaves four rule-local compatible complex structures. The residual obstruction
 is the independent alpha/eta block sign: the strict bridge needs a mechanism
 that reduces those four choices to global `±J`.
 
-Proposition (implemented route obstruction). In the implemented finite-route
-families checked so far, the strict bridge failure has been reduced to
-rule-generation/locality of `J`. More precisely:
+Proposition (block-preserving noncommuting locking obstruction). Let
+`U1, U2 in O(10)` be block-preserving real-orthogonal layers:
+`[Ui, P_alpha] = [Ui, P_eta] = 0`. Let `A = R<U1,U2>` and assume
+`[U1,U2] != 0`. If `A` contains a central complex structure
+`J in Z(A)` with `J^2 = -I`, then at least one of the following holds:
 
-1. The time-reversal sidecar reduces the full compatible-`J` moduli estimate
-   from `9` to `3`, but `K` is declared rather than generated and the
-   compatible-`J` family is still positive-dimensional.
-2. The noncommuting signed twist preserves the coarse `[0,4,6,10]` central
-   idempotent lattice, creates no lower-rank central idempotents, and reduces
-   compatible `J` to a finite four-element set, but none of those four `J`
-   candidates lies in the generated algebra or rule-local center.
-3. Exhausting the discrete block-preserving signed-twist class produces
-   generated compatible `J` hits (`720` candidates, including `240` minimal
-   four-`J` hits), but every such hit fails the no-locking shape. The strict
-   cycle/swap non-locking subclass has `240` candidates and zero
-   generated-compatible-`J` hits.
-4. The completion experiment declares one finite compatible `J` as a third
-   layer and still creates no lower-rank central idempotents, but the
-   rule-local center continues to admit four compatible `J` choices rather
-   than one global `±J` orbit.
+1. `A` contains a central idempotent strictly inside `P_alpha` or `P_eta`,
+   so the no-locking guardrail fails.
+2. On a coarse block, `A` acts as the full internal addressability algebra,
+   for example `A|_{P_alpha} = M_3(C)` or `A|_{P_eta} = M_2(C)`, so the
+   geometric gate algebra is larger than `C P_alpha ⊕ C P_eta`.
+3. The supposedly noncommuting layers are block scalars and commute on the
+   coarse blocks, contradicting the intended noncommuting escape.
 
-Therefore the current obstruction is not the coarse `6+4` center and, in the
-noncommuting route, not continuous compatible-`J` moduli. It is the
-centralizer gap `Cent_R / Z(A_R)`: compatible orientations exist in the joint
-centralizer, but the rule algebra does not yet generate them as local data.
-The missing microscopic primitive must produce the compatible orientation as
-rule-local data and must reduce the remaining four block-sign choices to
-global `±J`.
+In particular, no block-preserving on-site rule on a single ten-dimensional
+carrier can satisfy both a rule-generated central compatible `J` and the
+no-locking guardrail while keeping the geometric gate algebra in the Standard
+Model commutant.
 
-Proof. Each statement is the exact output of the implemented route diagnostics:
-`scripts/floquet_alpha.py --variant time-reversal`,
-`scripts/floquet_alpha.py --variant noncommuting`,
-`scripts/floquet_alpha.py --variant noncommuting-gap`,
-`scripts/floquet_alpha.py --variant noncommuting-exhaustive`, and
-`scripts/floquet_alpha.py --variant noncommuting-completion`.
+Proof. Since `J in Z(A)` and `J^2 = -I`, restriction to the alpha block gives
+`J_alpha in Z(A|_{P_alpha})` with `J_alpha^2 = -P_alpha`; hence
+`Z(A|_{P_alpha})` contains a copy of `C`. By Wedderburn, the finite-dimensional
+real algebra `A|_{P_alpha}` decomposes into central simple summands
+`⊕_i M_{n_i}(D_i)`. In the block-preserving signed-twist class under study,
+acting faithfully on the real six-dimensional space `P_alpha R^10 ~= C^3`
+leaves only two admissible shapes if no lower central idempotent is allowed.
+
+If there is more than one summand, the center contains a nontrivial central
+idempotent below `P_alpha`, with rank strictly between `0` and `6`. This is
+case 1. If there is one summand, the center containing `C` forces a complex
+central simple action. On `C^3`, the options are scalar `C` or full
+`M_3(C)`: the scalar case makes `U2|_{P_alpha}` a complex block scalar, while
+the full case is exactly internal addressability on the alpha block. The same
+argument applies on the eta block, with scalar `C` or `M_2(C)`. If both blocks
+are scalar, the layers commute blockwise, giving case 3. If either block is
+full matrix algebra, the SM commutant condition fails, giving case 2. Thus any
+attempt to make `J` central and rule-generated in a block-preserving on-site
+noncommuting rule falls into central locking, full addressability, or
+commutativity.
+
+The exhaustive discrete signed-twist run is the implemented finite witness for
+this proposition's pressure point. It scans `3840` block-preserving twists,
+reduces them to `96` exact symmetry classes, and finds `720`
+generated-compatible-`J` hits, including `240` minimal four-`J` hits. None of
+those hits occurs in the no-locking shape:
+
+```text
+no_locking_shape_candidates = 240
+no_locking_shape_j_in_generated_algebra_candidates = 0
+bridge_candidate_count = 0
+```
+
+Corollary (on-site bridge closure). On a single ten-dimensional on-site
+carrier, no finite-depth real-orthogonal rule whose layers each preserve the
+candidate `(P_alpha, P_eta)` split can simultaneously satisfy all three
+strict bridge requirements:
+
+1. a coarse rank-`(6,4)` center with no lower-rank refinement;
+2. a geometric gate algebra contained in `C P_alpha ⊕ C P_eta`;
+3. a compatible complex structure `J` generated by the rule, unique up to
+   global `±J` gauge.
+
+Proof. The E1/E2 obstruction closes the coarse symmetric primitive class. The
+commuting second-layer proposition closes commuting non-scalar locks, because
+they generate lower-rank central projectors. The block-preserving
+noncommuting proposition above closes the on-site noncommuting escape: a
+rule-generated central `J` forces lower central locking, full internal
+addressability, or effective commutativity. These are exactly the remaining
+on-site block-preserving cases.
 
 Route 2 is now represented by a spatial 1D sidecar. It does not alter the
 finite-depth on-site verdict checker. Instead it tests the remaining sign
