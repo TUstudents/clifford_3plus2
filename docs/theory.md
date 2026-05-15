@@ -277,6 +277,9 @@ alpha/eta block-sign choices reduce to the two global choices `(+,+)` and
 `(-,-)`. This has the right theorem shape for the missing topological
 mechanism, but it is not yet load-bearing because the coarse projectors appear
 as input coefficients rather than being generated microscopically.
+The first unseeded Route-2 scan makes that boundary explicit: block-blind
+finite-radius layers do not produce a bridge candidate, and the working
+projector-shift layer is rejected by the seeded-coefficient guardrail.
 
 The second physical family is Defect-β, documented in
 [Defect Beta Report](literature/defect_beta_report.md). It computes

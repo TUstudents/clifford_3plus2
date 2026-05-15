@@ -21,6 +21,7 @@ from clifford_3plus2_d5.qca.spatial_1d import (
     spatial_1d_alpha_certificate,
     spatial_1d_local_hopping_certificate,
     spatial_1d_local_qca_certificate,
+    spatial_1d_unseeded_search_summary,
     spatial_alpha_local_qca_layer,
     spatial_alpha_prototype,
     spatial_orientation_orbits,
@@ -175,6 +176,32 @@ def test_spatial_1d_local_qca_certificate_reports_exact_local_rule() -> None:
     assert not certificate.load_bearing_qca_bridge
 
 
+def test_spatial_1d_unseeded_search_rejects_seeded_projector_shift() -> None:
+    summary = spatial_1d_unseeded_search_summary()
+
+    assert summary.candidate_count == 4
+    assert summary.unseeded_candidate_count == 3
+    assert summary.seeded_guardrail_rejections == 1
+    assert summary.laurent_orthogonal_candidates == 4
+    assert summary.unseeded_coarse_6_4_center_candidates == 0
+    assert summary.unseeded_sign_coupled_candidates == 0
+    assert summary.unseeded_strict_bridge_candidates == 0
+    assert summary.lower_rank_center_rejections == 1
+    assert summary.route_label == "unseeded_spatial_no_bridge_candidates"
+    assert not summary.load_bearing_qca_bridge
+
+    by_name = {candidate.candidate_name: candidate for candidate in summary.candidates}
+    assert by_name["unseeded_uniform_identity_shift"].central_idempotent_ranks == (0, 10)
+    assert by_name["unseeded_uniform_clock_shift"].central_idempotent_ranks == (0, 10)
+    assert by_name["unseeded_mode_5_cycle_shift"].lower_rank_central_idempotents == 2
+    seeded = by_name["spatial_1d_alpha_projector_shift_qca"]
+    assert not seeded.seeded_coefficient_guardrail_passed
+    assert seeded.seeded_coefficient_witnesses == ("shift_3:P_eta", "shift_4:P_alpha")
+    assert seeded.coarse_6_4_center_pair
+    assert seeded.sign_coupled_to_global_pm
+    assert seeded.route_label == "unseeded_spatial_seeded_coefficient_rejected"
+
+
 def test_spatial_1d_alpha_cli_check() -> None:
     result = subprocess.run(
         [
@@ -227,3 +254,37 @@ def test_spatial_1d_alpha_cli_check() -> None:
         == "spatial_local_qca_signs_coupled_not_load_bearing"
     )
     assert payload["local_qca"]["load_bearing_qca_bridge"] is False
+
+
+def test_spatial_1d_unseeded_cli_check() -> None:
+    result = subprocess.run(
+        [
+            sys.executable,
+            "scripts/spatial_1d_unseeded_search.py",
+            "--json",
+            "--check",
+        ],
+        cwd=ROOT,
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    payload = json.loads(result.stdout)
+
+    assert payload["family"] == "spatial_1d_unseeded"
+    assert payload["candidate_count"] == 4
+    assert payload["unseeded_candidate_count"] == 3
+    assert payload["seeded_guardrail_rejections"] == 1
+    assert payload["unseeded_coarse_6_4_center_candidates"] == 0
+    assert payload["unseeded_sign_coupled_candidates"] == 0
+    assert payload["unseeded_strict_bridge_candidates"] == 0
+    assert payload["lower_rank_center_rejections"] == 1
+    assert payload["route_label"] == "unseeded_spatial_no_bridge_candidates"
+    assert payload["load_bearing_qca_bridge"] is False
+
+    by_name = {candidate["candidate_name"]: candidate for candidate in payload["candidates"]}
+    seeded = by_name["spatial_1d_alpha_projector_shift_qca"]
+    assert seeded["seeded_coefficient_guardrail_passed"] is False
+    assert seeded["seeded_coefficient_witnesses"] == ["shift_3:P_eta", "shift_4:P_alpha"]
+    assert seeded["central_idempotent_ranks"] == [0, 4, 6, 10]
+    assert seeded["sign_coupled_to_global_pm"] is True

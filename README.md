@@ -37,6 +37,7 @@ floquet_alpha_second_layer: cycle/swap lock fails no-locking guardrail
 floquet_alpha_noncommuting: block-preserving signed twist under exploration
 floquet_alpha_noncommuting_completion: no lower center, still four J signs
 spatial_1d_alpha: local-QCA sidecar couples four J signs to global ±
+spatial_1d_unseeded: no bridge candidate; seeded projector-shift rejected
 defect_beta_search: monodromy equals alpha; transition-pair rule still negative
 Spin(10) branching check: passes
 QCA load-bearing bridge: notation_only
@@ -447,6 +448,24 @@ local_qca_route_label: spatial_local_qca_signs_coupled_not_load_bearing
 load_bearing_qca_bridge: false
 ```
 
+`scripts/spatial_1d_unseeded_search.py` starts the unseeded Route-2 search.
+It scans conservative block-blind finite-radius QCA layers, then includes the
+projector-shift layer above as a guardrail case that must be rejected because
+its coefficients already contain `P_alpha/P_eta`:
+
+```text
+candidate_count: 4
+unseeded_candidate_count: 3
+seeded_guardrail_rejections: 1
+laurent_orthogonal_candidates: 4
+unseeded_coarse_6_4_center_candidates: 0
+unseeded_sign_coupled_candidates: 0
+unseeded_strict_bridge_candidates: 0
+lower_rank_center_rejections: 1
+route_label: unseeded_spatial_no_bridge_candidates
+load_bearing_qca_bridge: false
+```
+
 `scripts/defect_beta_search.py` computes round-trip monodromy from wall
 transition functions. It is retained as a regression target, but parked as a
 load-bearing route until rebuilt as a genuine higher-dimensional defect
@@ -542,6 +561,7 @@ uv run python scripts/floquet_alpha_noncommuting_search.py --check
 uv run python scripts/floquet_alpha_noncommuting_j_gap.py --check
 uv run python scripts/floquet_alpha_noncommuting_completion.py --check
 uv run python scripts/spatial_1d_alpha_search.py --check
+uv run python scripts/spatial_1d_unseeded_search.py --check
 uv run python scripts/defect_beta_search.py --check
 uv run python scripts/branching_check.py --check
 uv run python scripts/qca_split_audit.py --check --expect-verdict notation_only

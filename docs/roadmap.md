@@ -139,6 +139,12 @@ spatial_1d_alpha_local_qca_laurent_orthogonal: true
 spatial_1d_alpha_local_qca_central_idempotent_ranks: [0, 4, 6, 10]
 spatial_1d_alpha_local_qca_lower_rank_central_idempotents: 0
 spatial_1d_alpha_local_qca_route_label: spatial_local_qca_signs_coupled_not_load_bearing
+spatial_1d_unseeded_candidate_count: 4
+spatial_1d_unseeded_guardrail_rejections: 1
+spatial_1d_unseeded_coarse_6_4_center_candidates: 0
+spatial_1d_unseeded_sign_coupled_candidates: 0
+spatial_1d_unseeded_strict_bridge_candidates: 0
+spatial_1d_unseeded_route_label: unseeded_spatial_no_bridge_candidates
 spatial_1d_alpha_strict_bridge_candidates: 0
 floquet_alpha_noncommuting_forced_j_candidates: 0
 floquet_alpha_noncommuting_strict_bridge_candidates: 0
@@ -1088,6 +1094,7 @@ Implementation:
 ```text
 src/clifford_3plus2_d5/qca/spatial_1d.py
 scripts/spatial_1d_alpha_search.py
+scripts/spatial_1d_unseeded_search.py
 tests/test_spatial_1d.py
 docs/literature/spatial_1d_report.md
 ```
@@ -1125,6 +1132,12 @@ strict_bridge_candidates = 0
 route_label = spatial_signs_coupled_to_global_pm
 local_hopping_route_label = spatial_local_hopping_signs_coupled
 local_qca_route_label = spatial_local_qca_signs_coupled_not_load_bearing
+unseeded_candidate_count = 4
+unseeded_guardrail_rejections = 1
+unseeded_coarse_6_4_center_candidates = 0
+unseeded_sign_coupled_candidates = 0
+unseeded_strict_bridge_candidates = 0
+unseeded_route_label = unseeded_spatial_no_bridge_candidates
 load_bearing_qca_bridge = false
 ```
 
@@ -1141,6 +1154,10 @@ to global ±J. It still is not a load-bearing bridge because `P_alpha/P_eta`
 enter as the layer coefficients rather than being derived from more primitive
 microscopic gates. The next Route-2 task is to factor or replace this
 projector-shift layer with microscopic local gates that do not seed the answer.
+The first unseeded scan checks three block-blind finite-radius layers plus the
+seeded projector-shift guardrail. The unseeded layers either have no coarse
+`6+4` center or generate lower-rank central idempotents; the seeded layer is
+correctly rejected because its coefficients are exactly `P_alpha/P_eta`.
 ```
 
 ## Defect-Beta Transition-Pair Family

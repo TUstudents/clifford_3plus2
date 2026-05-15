@@ -5,7 +5,9 @@ Status: sidecar Route-2 local-QCA prototype implemented.
 This report records the exact 1D local-QCA sidecar implemented in
 [`src/clifford_3plus2_d5/qca/spatial_1d.py`](../../src/clifford_3plus2_d5/qca/spatial_1d.py)
 and exposed by
-[`scripts/spatial_1d_alpha_search.py`](../../scripts/spatial_1d_alpha_search.py).
+[`scripts/spatial_1d_alpha_search.py`](../../scripts/spatial_1d_alpha_search.py)
+and
+[`scripts/spatial_1d_unseeded_search.py`](../../scripts/spatial_1d_unseeded_search.py).
 
 ## Purpose
 
@@ -126,3 +128,31 @@ projectors still enter as layer coefficients.
 
 The next useful Route-2 step is to factor or replace this projector-shift QCA
 with microscopic local gates that do not seed the coarse split.
+
+## Unseeded Scan
+
+The first unseeded scan applies that guardrail directly:
+
+```bash
+uv run python scripts/spatial_1d_unseeded_search.py --check
+```
+
+Current output:
+
+```text
+candidate_count: 4
+unseeded_candidate_count: 3
+seeded_guardrail_rejections: 1
+laurent_orthogonal_candidates: 4
+unseeded_coarse_6_4_center_candidates: 0
+unseeded_sign_coupled_candidates: 0
+unseeded_strict_bridge_candidates: 0
+lower_rank_center_rejections: 1
+route_label: unseeded_spatial_no_bridge_candidates
+load_bearing_qca_bridge: false
+```
+
+Interpretation: three block-blind finite-radius QCA layers are genuinely
+unseeded but do not produce a bridge candidate. The projector-shift layer is
+included as a regression guardrail and is rejected because its coefficients
+are exactly `P_eta` and `P_alpha`.

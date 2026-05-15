@@ -42,6 +42,7 @@ uv run python scripts/floquet_alpha_noncommuting_search.py --check
 uv run python scripts/floquet_alpha_noncommuting_j_gap.py --check
 uv run python scripts/floquet_alpha_noncommuting_completion.py --check
 uv run python scripts/spatial_1d_alpha_search.py --check
+uv run python scripts/spatial_1d_unseeded_search.py --check
 uv run python scripts/defect_beta_search.py --check
 uv run python scripts/branching_check.py --check
 uv run python scripts/qca_split_audit.py --check --expect-verdict notation_only
@@ -52,7 +53,7 @@ Verification:
 
 ```text
 ruff: passed
-pytest: 227 passed
+pytest: 229 passed
 ```
 
 Real carrier check:
@@ -559,6 +560,25 @@ local_qca_route_label: spatial_local_qca_signs_coupled_not_load_bearing
 load_bearing_qca_bridge: false
 ```
 
+Spatial 1D unseeded search:
+
+```text
+candidate_count: 4
+unseeded_candidate_count: 3
+seeded_guardrail_rejections: 1
+laurent_orthogonal_candidates: 4
+unseeded_coarse_6_4_center_candidates: 0
+unseeded_sign_coupled_candidates: 0
+unseeded_strict_bridge_candidates: 0
+lower_rank_center_rejections: 1
+route_label: unseeded_spatial_no_bridge_candidates
+load_bearing_qca_bridge: false
+candidate: unseeded_uniform_identity_shift, center_ranks=[0, 10], route=unseeded_spatial_no_coarse_6_4_center
+candidate: unseeded_uniform_clock_shift, center_ranks=[0, 10], route=unseeded_spatial_no_coarse_6_4_center
+candidate: unseeded_mode_5_cycle_shift, center_ranks=[0, 2, 4, 4, 6, 6, 8, 10], route=unseeded_spatial_lower_rank_center_rejected
+candidate: spatial_1d_alpha_projector_shift_qca, witnesses=['shift_3:P_eta', 'shift_4:P_alpha'], route=unseeded_spatial_seeded_coefficient_rejected
+```
+
 Defect-beta search:
 
 ```text
@@ -686,6 +706,10 @@ follow-up: an explicit finite-radius local QCA layer satisfies exact Laurent
 orthogonality, reconstructs the period-12 transfer, and couples independent
 alpha/eta block signs down to global `±J`, while remaining non-load-bearing
 because the coarse projectors are still supplied as coefficients.
+The unseeded spatial scan makes the remaining gap concrete: conservative
+block-blind finite-radius layers do not produce a bridge candidate, and the
+working projector-shift layer is rejected when seeded coefficients are
+forbidden.
 Defect-beta is retained as a regression target but parked as a load-bearing
 route until rebuilt as a genuine higher-dimensional defect calculation. Its
 round-trip monodromy is exactly the matching Floquet-alpha operator. The

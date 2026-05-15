@@ -9,6 +9,10 @@ from math import gcd, lcm
 import sympy as sp
 
 from clifford_3plus2_d5.algebra.matrices import identity
+from clifford_3plus2_d5.algebra.real_carrier import (
+    clock_complex_structure,
+    split_projectors_3_2,
+)
 from clifford_3plus2_d5.qca.gates import is_real_matrix
 from clifford_3plus2_d5.qca.rule_verdict import (
     center_basis_of_algebra,
@@ -142,6 +146,50 @@ class Spatial1DLocalQCACertificate:
     load_bearing_qca_bridge: bool = False
 
 
+@dataclass(frozen=True)
+class Spatial1DUnseededCandidateCertificate:
+    candidate_name: str
+    layer_name: str
+    qca_shifts: tuple[int, ...]
+    qca_locality_radius: int
+    finite_radius: bool
+    coefficient_matrices_real: bool
+    laurent_orthogonal: bool
+    seeded_coefficient_guardrail_passed: bool
+    seeded_coefficient_witnesses: tuple[str, ...]
+    coefficient_algebra_dimension: int
+    coefficient_center_dimension: int
+    central_idempotent_ranks: tuple[int, ...]
+    lower_rank_central_idempotents: int
+    coarse_6_4_center_pair: bool
+    mode_windings: tuple[int, ...]
+    computed_alpha_winding: int | None
+    computed_eta_winding: int | None
+    computed_winding_gcd: int | None
+    computed_winding_lcm: int | None
+    orientation_choices_before_transport: int
+    orientation_choices_after_transport: int
+    sign_coupled_to_global_pm: bool
+    strict_bridge_candidate: bool
+    route_label: str
+    load_bearing_qca_bridge: bool = False
+
+
+@dataclass(frozen=True)
+class Spatial1DUnseededSearchSummary:
+    candidate_count: int
+    unseeded_candidate_count: int
+    seeded_guardrail_rejections: int
+    laurent_orthogonal_candidates: int
+    unseeded_coarse_6_4_center_candidates: int
+    unseeded_sign_coupled_candidates: int
+    unseeded_strict_bridge_candidates: int
+    lower_rank_center_rejections: int
+    route_label: str
+    candidates: tuple[Spatial1DUnseededCandidateCertificate, ...]
+    load_bearing_qca_bridge: bool = False
+
+
 def spatial_alpha_prototype() -> SpatialTransferRule1D:
     """Return the first root-of-unity 1D sidecar prototype.
 
@@ -199,6 +247,55 @@ def spatial_alpha_local_qca_layer(
         period=rule.period,
         dimension=rule.dimension,
         terms=local_hopping_terms(rule),
+    )
+
+
+def _mode_permutation_matrix(permutation: tuple[int, ...]) -> sp.Matrix:
+    mode_count = len(permutation)
+    matrix = sp.zeros(2 * mode_count)
+    for source, target in enumerate(permutation):
+        matrix[target, source] = 1
+        matrix[target + mode_count, source + mode_count] = 1
+    return matrix
+
+
+def spatial_1d_unseeded_candidate_layers(
+    rule: SpatialTransferRule1D | None = None,
+) -> tuple[SpatialLocalQCALayer1D, ...]:
+    """Return the first conservative unseeded spatial candidate family.
+
+    The first three candidates are block-blind finite-radius QCA layers. The
+    final projector-shift layer is deliberately included as a seeded guardrail:
+    the search should reject it even though its sign-coupling diagnostic works.
+    """
+
+    rule = rule if rule is not None else spatial_alpha_prototype()
+    dimension = rule.dimension
+    return (
+        SpatialLocalQCALayer1D(
+            name="unseeded_uniform_identity_shift",
+            period=rule.period,
+            dimension=dimension,
+            terms=(SpatialHoppingTerm(shift=1, matrix=identity(dimension)),),
+        ),
+        SpatialLocalQCALayer1D(
+            name="unseeded_uniform_clock_shift",
+            period=rule.period,
+            dimension=dimension,
+            terms=(SpatialHoppingTerm(shift=1, matrix=clock_complex_structure()),),
+        ),
+        SpatialLocalQCALayer1D(
+            name="unseeded_mode_5_cycle_shift",
+            period=rule.period,
+            dimension=dimension,
+            terms=(
+                SpatialHoppingTerm(
+                    shift=1,
+                    matrix=_mode_permutation_matrix((1, 2, 3, 4, 0)),
+                ),
+            ),
+        ),
+        spatial_alpha_local_qca_layer(rule),
     )
 
 
@@ -521,6 +618,175 @@ def _coefficient_center_diagnostics(
     lower_rank_count = sum(rank not in (0, 4, 6, 10) for rank in ranks)
     coarse_pair = ranks == (0, 4, 6, 10)
     return len(algebra), len(center), ranks, lower_rank_count, coarse_pair
+
+
+def _is_obvious_seed_projector(matrix: sp.Matrix) -> bool:
+    if matrix == sp.zeros(matrix.rows) or matrix == identity(matrix.rows):
+        return False
+    if matrix * matrix != matrix:
+        return False
+    if matrix != matrix.T:
+        return False
+    if any(value not in (0, 1) for value in matrix):
+        return False
+    rank = matrix.rank()
+    return 0 < rank < matrix.rows
+
+
+def _seeded_coefficient_witnesses(
+    layer: SpatialLocalQCALayer1D,
+) -> tuple[str, ...]:
+    p_alpha, p_eta = split_projectors_3_2()
+    witnesses = []
+    for term in layer.terms:
+        if term.matrix == p_alpha:
+            witnesses.append(f"shift_{term.shift}:P_alpha")
+        elif term.matrix == p_eta:
+            witnesses.append(f"shift_{term.shift}:P_eta")
+        elif _is_obvious_seed_projector(term.matrix):
+            witnesses.append(
+                f"shift_{term.shift}:diagonal_projector_rank_{term.matrix.rank()}"
+            )
+    return tuple(witnesses)
+
+
+def _spatial_unseeded_candidate_certificate(
+    layer: SpatialLocalQCALayer1D,
+    rule: SpatialTransferRule1D,
+) -> Spatial1DUnseededCandidateCertificate:
+    windings = mode_windings_from_terms(layer.terms, mode_count=rule.mode_count)
+    alpha_winding = _common_sector_winding(windings, rule.alpha_modes) if windings else None
+    eta_winding = _common_sector_winding(windings, rule.eta_modes) if windings else None
+    winding_gcd = (
+        gcd(abs(alpha_winding), abs(eta_winding))
+        if alpha_winding is not None and eta_winding is not None
+        else None
+    )
+    winding_lcm = (
+        lcm(abs(alpha_winding), abs(eta_winding))
+        if alpha_winding is not None and eta_winding is not None
+        else None
+    )
+    orientation_orbits = spatial_orientation_orbits_from_windings(
+        alpha_winding=alpha_winding,
+        eta_winding=eta_winding,
+        period=rule.period,
+    )
+    allowed_count = sum(orbit.transport_allowed for orbit in orientation_orbits)
+    sign_coupled = allowed_count == 2 and all(
+        orbit.alpha_sign == orbit.eta_sign
+        for orbit in orientation_orbits
+        if orbit.transport_allowed
+    )
+    (
+        coefficient_algebra_dimension,
+        coefficient_center_dimension,
+        central_idempotent_ranks,
+        lower_rank_central_idempotents,
+        coarse_pair,
+    ) = _coefficient_center_diagnostics(layer)
+    finite_radius = bool(layer.terms) and layer.locality_radius < rule.period
+    coefficient_matrices_real = all(is_real_matrix(term.matrix) for term in layer.terms)
+    laurent_orthogonal = local_qca_laurent_orthogonal(layer)
+    seeded_witnesses = _seeded_coefficient_witnesses(layer)
+    seeded_guardrail_passed = not seeded_witnesses
+    strict_bridge = (
+        finite_radius
+        and coefficient_matrices_real
+        and laurent_orthogonal
+        and seeded_guardrail_passed
+        and coarse_pair
+        and lower_rank_central_idempotents == 0
+        and sign_coupled
+    )
+
+    if not finite_radius:
+        route_label = "unseeded_spatial_not_finite_radius"
+    elif not coefficient_matrices_real:
+        route_label = "unseeded_spatial_not_real"
+    elif not laurent_orthogonal:
+        route_label = "unseeded_spatial_not_laurent_orthogonal"
+    elif not seeded_guardrail_passed:
+        route_label = "unseeded_spatial_seeded_coefficient_rejected"
+    elif lower_rank_central_idempotents:
+        route_label = "unseeded_spatial_lower_rank_center_rejected"
+    elif not coarse_pair:
+        route_label = "unseeded_spatial_no_coarse_6_4_center"
+    elif not sign_coupled:
+        route_label = "unseeded_spatial_no_sign_coupling"
+    else:
+        route_label = "unseeded_spatial_bridge_candidate"
+
+    return Spatial1DUnseededCandidateCertificate(
+        candidate_name=layer.name,
+        layer_name=layer.name,
+        qca_shifts=tuple(term.shift for term in layer.terms),
+        qca_locality_radius=layer.locality_radius,
+        finite_radius=finite_radius,
+        coefficient_matrices_real=coefficient_matrices_real,
+        laurent_orthogonal=laurent_orthogonal,
+        seeded_coefficient_guardrail_passed=seeded_guardrail_passed,
+        seeded_coefficient_witnesses=seeded_witnesses,
+        coefficient_algebra_dimension=coefficient_algebra_dimension,
+        coefficient_center_dimension=coefficient_center_dimension,
+        central_idempotent_ranks=central_idempotent_ranks,
+        lower_rank_central_idempotents=lower_rank_central_idempotents,
+        coarse_6_4_center_pair=coarse_pair,
+        mode_windings=windings,
+        computed_alpha_winding=alpha_winding,
+        computed_eta_winding=eta_winding,
+        computed_winding_gcd=winding_gcd,
+        computed_winding_lcm=winding_lcm,
+        orientation_choices_before_transport=len(orientation_orbits),
+        orientation_choices_after_transport=allowed_count,
+        sign_coupled_to_global_pm=sign_coupled,
+        strict_bridge_candidate=strict_bridge,
+        route_label=route_label,
+    )
+
+
+def spatial_1d_unseeded_search_summary(
+    rule: SpatialTransferRule1D | None = None,
+) -> Spatial1DUnseededSearchSummary:
+    rule = rule if rule is not None else spatial_alpha_prototype()
+    candidates = tuple(
+        _spatial_unseeded_candidate_certificate(layer, rule)
+        for layer in spatial_1d_unseeded_candidate_layers(rule)
+    )
+    unseeded = tuple(
+        candidate
+        for candidate in candidates
+        if candidate.seeded_coefficient_guardrail_passed
+    )
+    unseeded_strict_count = sum(candidate.strict_bridge_candidate for candidate in unseeded)
+    route_label = (
+        "unseeded_spatial_bridge_candidate_found"
+        if unseeded_strict_count
+        else "unseeded_spatial_no_bridge_candidates"
+    )
+    return Spatial1DUnseededSearchSummary(
+        candidate_count=len(candidates),
+        unseeded_candidate_count=len(unseeded),
+        seeded_guardrail_rejections=sum(
+            not candidate.seeded_coefficient_guardrail_passed
+            for candidate in candidates
+        ),
+        laurent_orthogonal_candidates=sum(
+            candidate.laurent_orthogonal for candidate in candidates
+        ),
+        unseeded_coarse_6_4_center_candidates=sum(
+            candidate.coarse_6_4_center_pair for candidate in unseeded
+        ),
+        unseeded_sign_coupled_candidates=sum(
+            candidate.sign_coupled_to_global_pm for candidate in unseeded
+        ),
+        unseeded_strict_bridge_candidates=unseeded_strict_count,
+        lower_rank_center_rejections=sum(
+            candidate.lower_rank_central_idempotents > 0 for candidate in unseeded
+        ),
+        route_label=route_label,
+        candidates=candidates,
+    )
 
 
 def spatial_1d_local_qca_certificate(
