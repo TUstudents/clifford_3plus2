@@ -325,6 +325,12 @@ alpha/eta block-sign choices reduce to the two global choices `(+,+)` and
 `(-,-)`. This has the right theorem shape for the missing topological
 mechanism, but it is not yet load-bearing because the coarse projectors appear
 as input coefficients rather than being generated microscopically.
+The combined Route-1/Route-2 sidecar tests the direct synthesis
+`T(z) = (U2 U1)(P_alpha z^4 + P_eta z^3)`. It reaches the topological shape:
+the Route-1 finite four-`J` set is reduced by spatial transport to two global
+signs, and those two signs commute with the sampled Bloch symbols. It still
+does not satisfy strict forcedness because the joint rule algebra generates
+zero transported `J` elements.
 The first unseeded Route-2 scan makes that boundary explicit: block-blind
 finite-radius layers do not produce a bridge candidate, and the working
 projector-shift layer is rejected by the seeded-coefficient guardrail.

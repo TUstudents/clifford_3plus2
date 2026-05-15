@@ -19,6 +19,8 @@ from clifford_3plus2_d5.qca.spatial_1d import (
     mode_windings_from_hopping,
     root_of_unity,
     spatial_1d_alpha_certificate,
+    spatial_1d_combined_local_qca_layer,
+    spatial_1d_combined_route_certificate,
     spatial_1d_local_hopping_certificate,
     spatial_1d_local_qca_certificate,
     spatial_1d_unseeded_search_summary,
@@ -176,6 +178,37 @@ def test_spatial_1d_local_qca_certificate_reports_exact_local_rule() -> None:
     assert not certificate.load_bearing_qca_bridge
 
 
+def test_spatial_1d_combined_route_couples_signs_without_generating_j() -> None:
+    layer = spatial_1d_combined_local_qca_layer()
+    certificate = spatial_1d_combined_route_certificate()
+
+    assert layer.name == "spatial_1d_route1_route2_combined_qca"
+    assert tuple(term.shift for term in layer.terms) == (3, 4)
+    assert local_qca_laurent_orthogonal(layer)
+    assert local_qca_symbol_unitary_on_samples(layer)
+    assert certificate.qca_shifts == (3, 4)
+    assert certificate.finite_radius
+    assert certificate.coefficient_matrices_real
+    assert certificate.laurent_orthogonal
+    assert certificate.symbol_unitary_on_samples
+    assert certificate.onsite_generated_algebra_dimension == 22
+    assert certificate.onsite_center_dimension == 3
+    assert certificate.onsite_central_idempotent_ranks == (0, 4, 6, 10)
+    assert certificate.onsite_lower_rank_central_idempotents == 0
+    assert certificate.onsite_compatible_j_count == 4
+    assert certificate.transported_compatible_j_count == 2
+    assert certificate.transported_j_commute_on_samples
+    assert certificate.sign_coupled_to_global_pm
+    assert certificate.coefficient_algebra_dimension == 8
+    assert certificate.coefficient_algebra_generates_alpha_eta_projectors
+    assert certificate.joint_rule_algebra_dimension == 22
+    assert certificate.joint_rule_generated_transported_j_count == 0
+    assert certificate.topological_pm_shape_candidate
+    assert not certificate.strict_bridge_candidate
+    assert certificate.route_label == "combined_route_signs_coupled_but_j_not_rule_generated"
+    assert not certificate.load_bearing_qca_bridge
+
+
 def test_spatial_1d_unseeded_search_rejects_seeded_projector_shift() -> None:
     summary = spatial_1d_unseeded_search_summary()
 
@@ -254,6 +287,39 @@ def test_spatial_1d_alpha_cli_check() -> None:
         == "spatial_local_qca_signs_coupled_not_load_bearing"
     )
     assert payload["local_qca"]["load_bearing_qca_bridge"] is False
+
+
+def test_spatial_1d_combined_cli_check() -> None:
+    result = subprocess.run(
+        [
+            sys.executable,
+            "scripts/spatial_1d_alpha_search.py",
+            "--variant",
+            "combined",
+            "--json",
+            "--check",
+        ],
+        cwd=ROOT,
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    payload = json.loads(result.stdout)
+
+    assert payload["family"] == "spatial_1d_route1_route2_combined"
+    assert payload["qca_shifts"] == [3, 4]
+    assert payload["laurent_orthogonal"] is True
+    assert payload["symbol_unitary_on_samples"] is True
+    assert payload["onsite_central_idempotent_ranks"] == [0, 4, 6, 10]
+    assert payload["onsite_compatible_j_count"] == 4
+    assert payload["transported_compatible_j_count"] == 2
+    assert payload["transported_j_commute_on_samples"] is True
+    assert payload["coefficient_algebra_generates_alpha_eta_projectors"] is True
+    assert payload["joint_rule_generated_transported_j_count"] == 0
+    assert payload["topological_pm_shape_candidate"] is True
+    assert payload["strict_bridge_candidate"] is False
+    assert payload["route_label"] == "combined_route_signs_coupled_but_j_not_rule_generated"
+    assert payload["load_bearing_qca_bridge"] is False
 
 
 def test_spatial_1d_unseeded_cli_check() -> None:

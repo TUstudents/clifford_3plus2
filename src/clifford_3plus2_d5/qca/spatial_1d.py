@@ -14,6 +14,19 @@ from clifford_3plus2_d5.algebra.real_carrier import (
     split_projectors_3_2,
 )
 from clifford_3plus2_d5.qca.gates import is_real_matrix
+from clifford_3plus2_d5.qca.floquet_alpha import (
+    floquet_alpha_operator,
+    floquet_alpha_spectral_projectors,
+)
+from clifford_3plus2_d5.qca.floquet_alpha_noncommuting import (
+    _compatible_pair_orientation_sign_choices,
+    _qgenerated_algebra_basis,
+    _qmatrix_from_sympy,
+    _qmatrix_in_span,
+    floquet_alpha_noncommuting_candidates,
+    floquet_alpha_noncommuting_twist_operator,
+    pair_orientation_j_operator,
+)
 from clifford_3plus2_d5.qca.rule_verdict import (
     center_basis_of_algebra,
     generated_algebra_basis,
@@ -190,6 +203,37 @@ class Spatial1DUnseededSearchSummary:
     load_bearing_qca_bridge: bool = False
 
 
+@dataclass(frozen=True)
+class Spatial1DCombinedRouteCertificate:
+    rule_name: str
+    onsite_candidate_name: str
+    layer_name: str
+    period: int
+    qca_term_count: int
+    qca_shifts: tuple[int, ...]
+    qca_locality_radius: int
+    finite_radius: bool
+    coefficient_matrices_real: bool
+    laurent_orthogonal: bool
+    symbol_unitary_on_samples: bool
+    onsite_generated_algebra_dimension: int
+    onsite_center_dimension: int
+    onsite_central_idempotent_ranks: tuple[int, ...]
+    onsite_lower_rank_central_idempotents: int
+    onsite_compatible_j_count: int
+    transported_compatible_j_count: int
+    transported_j_commute_on_samples: bool
+    sign_coupled_to_global_pm: bool
+    coefficient_algebra_dimension: int
+    coefficient_algebra_generates_alpha_eta_projectors: bool
+    joint_rule_algebra_dimension: int
+    joint_rule_generated_transported_j_count: int
+    topological_pm_shape_candidate: bool
+    strict_bridge_candidate: bool
+    route_label: str
+    load_bearing_qca_bridge: bool = False
+
+
 def spatial_alpha_prototype() -> SpatialTransferRule1D:
     """Return the first root-of-unity 1D sidecar prototype.
 
@@ -247,6 +291,31 @@ def spatial_alpha_local_qca_layer(
         period=rule.period,
         dimension=rule.dimension,
         terms=local_hopping_terms(rule),
+    )
+
+
+def spatial_1d_combined_local_qca_layer(
+    rule: SpatialTransferRule1D | None = None,
+) -> SpatialLocalQCALayer1D:
+    """Return Route-1 on-site update composed with Route-2 winding hops."""
+
+    rule = rule if rule is not None else spatial_alpha_prototype()
+    candidate = floquet_alpha_noncommuting_candidates(pattern_index=0)[0]
+    u1 = floquet_alpha_operator(candidate.pattern)
+    u2 = floquet_alpha_noncommuting_twist_operator(candidate)
+    u_local = sp.simplify(u2 * u1)
+    p_alpha, p_eta = floquet_alpha_spectral_projectors(candidate.pattern)
+    return SpatialLocalQCALayer1D(
+        name="spatial_1d_route1_route2_combined_qca",
+        period=rule.period,
+        dimension=rule.dimension,
+        terms=(
+            SpatialHoppingTerm(shift=rule.eta_winding, matrix=sp.simplify(u_local * p_eta)),
+            SpatialHoppingTerm(
+                shift=rule.alpha_winding,
+                matrix=sp.simplify(u_local * p_alpha),
+            ),
+        ),
     )
 
 
@@ -399,6 +468,8 @@ def local_qca_symbol_reconstructs_transfer(
 
 
 def local_qca_symbol_unitary_on_samples(layer: SpatialLocalQCALayer1D) -> bool:
+    if local_qca_laurent_orthogonal(layer):
+        return True
     one = identity(layer.dimension)
     for sample in range(layer.period):
         symbol = local_qca_symbol_at_root(layer, sample)
@@ -648,6 +719,149 @@ def _seeded_coefficient_witnesses(
                 f"shift_{term.shift}:diagonal_projector_rank_{term.matrix.rank()}"
             )
     return tuple(witnesses)
+
+
+def _matrix_in_qsqrt3_span(matrix: sp.Matrix, basis: tuple[tuple[tuple[sp.Rational, sp.Rational], ...], ...]) -> bool:
+    return _qmatrix_in_span(_qmatrix_from_sympy(matrix), basis)
+
+
+def _relative_block_flips(
+    *,
+    candidate_signs: tuple[int, ...],
+    compatible_signs: tuple[int, ...],
+    alpha_modes: tuple[int, ...],
+    eta_modes: tuple[int, ...],
+) -> tuple[int | None, int | None]:
+    alpha_flips = {compatible_signs[mode] * candidate_signs[mode] for mode in alpha_modes}
+    eta_flips = {compatible_signs[mode] * candidate_signs[mode] for mode in eta_modes}
+    return (
+        next(iter(alpha_flips)) if len(alpha_flips) == 1 else None,
+        next(iter(eta_flips)) if len(eta_flips) == 1 else None,
+    )
+
+
+def _spatial_transport_allows_compatible_signs(
+    *,
+    candidate_signs: tuple[int, ...],
+    compatible_signs: tuple[int, ...],
+    alpha_modes: tuple[int, ...],
+    eta_modes: tuple[int, ...],
+) -> bool:
+    alpha_flip, eta_flip = _relative_block_flips(
+        candidate_signs=candidate_signs,
+        compatible_signs=compatible_signs,
+        alpha_modes=alpha_modes,
+        eta_modes=eta_modes,
+    )
+    return alpha_flip is not None and eta_flip is not None and alpha_flip == eta_flip
+
+
+def spatial_1d_combined_route_certificate(
+    rule: SpatialTransferRule1D | None = None,
+) -> Spatial1DCombinedRouteCertificate:
+    rule = rule if rule is not None else spatial_alpha_prototype()
+    candidate = floquet_alpha_noncommuting_candidates(pattern_index=0)[0]
+    layer = spatial_1d_combined_local_qca_layer(rule)
+    u1 = floquet_alpha_operator(candidate.pattern)
+    u2 = floquet_alpha_noncommuting_twist_operator(candidate)
+    p_alpha, p_eta = floquet_alpha_spectral_projectors(candidate.pattern)
+    compatible_signs = _compatible_pair_orientation_sign_choices(candidate)
+    transported_signs = tuple(
+        signs
+        for signs in compatible_signs
+        if _spatial_transport_allows_compatible_signs(
+            candidate_signs=candidate.orientation_signs,
+            compatible_signs=signs,
+            alpha_modes=candidate.pattern.alpha_modes,
+            eta_modes=candidate.pattern.eta_modes,
+        )
+    )
+    coefficient_qbasis_solved, coefficient_qbasis = _qgenerated_algebra_basis(
+        tuple(_qmatrix_from_sympy(term.matrix) for term in layer.terms),
+        max_dimension=100,
+    )
+    joint_qbasis_solved, joint_qbasis = _qgenerated_algebra_basis(
+        tuple(_qmatrix_from_sympy(matrix) for matrix in (u1, u2, *(term.matrix for term in layer.terms))),
+        max_dimension=100,
+    )
+    generated_transported_j_count = (
+        sum(
+            _matrix_in_qsqrt3_span(pair_orientation_j_operator(signs), joint_qbasis)
+            for signs in transported_signs
+        )
+        if joint_qbasis_solved
+        else 0
+    )
+    coefficient_generates_projectors = (
+        coefficient_qbasis_solved
+        and _matrix_in_qsqrt3_span(p_alpha, coefficient_qbasis)
+        and _matrix_in_qsqrt3_span(p_eta, coefficient_qbasis)
+    )
+    onsite_algebra = generated_algebra_basis((u1, u2), dimension=rule.dimension)
+    onsite_center = center_basis_of_algebra(onsite_algebra, dimension=rule.dimension)
+    center_solved, onsite_idempotents = solve_central_idempotents(
+        onsite_center,
+        max_center_dimension=8,
+        dimension=rule.dimension,
+    )
+    onsite_ranks = tuple(item.rank for item in onsite_idempotents) if center_solved else ()
+    lower_rank_count = sum(rank not in (0, 4, 6, 10) for rank in onsite_ranks)
+    transported_commute = True
+    transported_matrices = tuple(pair_orientation_j_operator(signs) for signs in transported_signs)
+    for sample in range(rule.period):
+        symbol = local_qca_symbol_at_root(layer, sample)
+        for matrix in transported_matrices:
+            if sp.simplify(symbol * matrix - matrix * symbol) != sp.zeros(rule.dimension):
+                transported_commute = False
+    sign_coupled = len(transported_signs) == 2
+    topological_shape = (
+        layer.locality_radius < rule.period
+        and local_qca_laurent_orthogonal(layer)
+        and local_qca_symbol_unitary_on_samples(layer)
+        and onsite_ranks == (0, 4, 6, 10)
+        and lower_rank_count == 0
+        and len(compatible_signs) == 4
+        and sign_coupled
+        and transported_commute
+    )
+    strict_bridge = topological_shape and generated_transported_j_count == 2
+
+    if not topological_shape:
+        route_label = "combined_route_shape_failed"
+    elif strict_bridge:
+        route_label = "combined_route_strict_bridge_candidate"
+    else:
+        route_label = "combined_route_signs_coupled_but_j_not_rule_generated"
+
+    return Spatial1DCombinedRouteCertificate(
+        rule_name=rule.name,
+        onsite_candidate_name=candidate.name,
+        layer_name=layer.name,
+        period=rule.period,
+        qca_term_count=len(layer.terms),
+        qca_shifts=tuple(term.shift for term in layer.terms),
+        qca_locality_radius=layer.locality_radius,
+        finite_radius=bool(layer.terms) and layer.locality_radius < rule.period,
+        coefficient_matrices_real=all(is_real_matrix(term.matrix) for term in layer.terms),
+        laurent_orthogonal=local_qca_laurent_orthogonal(layer),
+        symbol_unitary_on_samples=local_qca_symbol_unitary_on_samples(layer),
+        onsite_generated_algebra_dimension=len(onsite_algebra),
+        onsite_center_dimension=len(onsite_center),
+        onsite_central_idempotent_ranks=onsite_ranks,
+        onsite_lower_rank_central_idempotents=lower_rank_count,
+        onsite_compatible_j_count=len(compatible_signs),
+        transported_compatible_j_count=len(transported_signs),
+        transported_j_commute_on_samples=transported_commute,
+        sign_coupled_to_global_pm=sign_coupled,
+        coefficient_algebra_dimension=len(coefficient_qbasis) if coefficient_qbasis_solved else 0,
+        coefficient_algebra_generates_alpha_eta_projectors=coefficient_generates_projectors,
+        joint_rule_algebra_dimension=len(joint_qbasis) if joint_qbasis_solved else 0,
+        joint_rule_generated_transported_j_count=generated_transported_j_count,
+        topological_pm_shape_candidate=topological_shape,
+        strict_bridge_candidate=strict_bridge,
+        route_label=route_label,
+        load_bearing_qca_bridge=strict_bridge,
+    )
 
 
 def _spatial_unseeded_candidate_certificate(

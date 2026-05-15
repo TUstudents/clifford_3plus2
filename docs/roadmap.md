@@ -151,6 +151,12 @@ spatial_1d_alpha_local_qca_laurent_orthogonal: true
 spatial_1d_alpha_local_qca_central_idempotent_ranks: [0, 4, 6, 10]
 spatial_1d_alpha_local_qca_lower_rank_central_idempotents: 0
 spatial_1d_alpha_local_qca_route_label: spatial_local_qca_signs_coupled_not_load_bearing
+spatial_1d_combined_onsite_compatible_j_count: 4
+spatial_1d_combined_transported_compatible_j_count: 2
+spatial_1d_combined_joint_rule_generated_transported_j_count: 0
+spatial_1d_combined_topological_pm_shape_candidate: true
+spatial_1d_combined_strict_bridge_candidate: false
+spatial_1d_combined_route_label: combined_route_signs_coupled_but_j_not_rule_generated
 spatial_1d_unseeded_candidate_count: 4
 spatial_1d_unseeded_guardrail_rejections: 1
 spatial_1d_unseeded_coarse_6_4_center_candidates: 0
@@ -1195,6 +1201,11 @@ strict_bridge_candidates = 0
 route_label = spatial_signs_coupled_to_global_pm
 local_hopping_route_label = spatial_local_hopping_signs_coupled
 local_qca_route_label = spatial_local_qca_signs_coupled_not_load_bearing
+combined_transported_compatible_j_count = 2
+combined_joint_rule_generated_transported_j_count = 0
+combined_topological_pm_shape_candidate = true
+combined_strict_bridge_candidate = false
+combined_route_label = combined_route_signs_coupled_but_j_not_rule_generated
 unseeded_candidate_count = 4
 unseeded_guardrail_rejections = 1
 unseeded_coarse_6_4_center_candidates = 0
@@ -1221,6 +1232,11 @@ factor or replace this projector-shift layer with finite-radius hopping layers
 built from finite-order on-site primitives such as Floquet-alpha `U1`, the
 noncommuting signed twist `U2`, short products of them, and
 translation-protected real-orthogonal `O(10)` generators.
+The combined Route-1/Route-2 sidecar is sharper: Route 1 supplies the finite
+four-`J` compatible set and Route 2 reduces it to two transported signs, but
+the joint rule algebra still generates zero of those transported `J`s. The
+missing object is therefore a microscopic layer that makes the transported
+orientation rule-local, not only topologically admissible.
 The first unseeded scan checks three block-blind finite-radius layers plus the
 seeded projector-shift guardrail. The unseeded layers either have no coarse
 `6+4` center or generate lower-rank central idempotents; the seeded layer is

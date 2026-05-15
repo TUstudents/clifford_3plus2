@@ -5,9 +5,11 @@ import json
 
 from clifford_3plus2_d5.qca.spatial_1d import (
     Spatial1DAlphaCertificate,
+    Spatial1DCombinedRouteCertificate,
     Spatial1DLocalHoppingCertificate,
     Spatial1DLocalQCACertificate,
     spatial_1d_alpha_certificate,
+    spatial_1d_combined_route_certificate,
     spatial_1d_local_hopping_certificate,
     spatial_1d_local_qca_certificate,
 )
@@ -142,9 +144,60 @@ def _local_qca_to_dict(
     }
 
 
+def _combined_to_dict(
+    certificate: Spatial1DCombinedRouteCertificate,
+) -> dict[str, object]:
+    return {
+        "family": "spatial_1d_route1_route2_combined",
+        "rule_name": certificate.rule_name,
+        "onsite_candidate_name": certificate.onsite_candidate_name,
+        "layer_name": certificate.layer_name,
+        "period": certificate.period,
+        "qca_term_count": certificate.qca_term_count,
+        "qca_shifts": list(certificate.qca_shifts),
+        "qca_locality_radius": certificate.qca_locality_radius,
+        "finite_radius": certificate.finite_radius,
+        "coefficient_matrices_real": certificate.coefficient_matrices_real,
+        "laurent_orthogonal": certificate.laurent_orthogonal,
+        "symbol_unitary_on_samples": certificate.symbol_unitary_on_samples,
+        "onsite_generated_algebra_dimension": (
+            certificate.onsite_generated_algebra_dimension
+        ),
+        "onsite_center_dimension": certificate.onsite_center_dimension,
+        "onsite_central_idempotent_ranks": list(
+            certificate.onsite_central_idempotent_ranks
+        ),
+        "onsite_lower_rank_central_idempotents": (
+            certificate.onsite_lower_rank_central_idempotents
+        ),
+        "onsite_compatible_j_count": certificate.onsite_compatible_j_count,
+        "transported_compatible_j_count": certificate.transported_compatible_j_count,
+        "transported_j_commute_on_samples": certificate.transported_j_commute_on_samples,
+        "sign_coupled_to_global_pm": certificate.sign_coupled_to_global_pm,
+        "coefficient_algebra_dimension": certificate.coefficient_algebra_dimension,
+        "coefficient_algebra_generates_alpha_eta_projectors": (
+            certificate.coefficient_algebra_generates_alpha_eta_projectors
+        ),
+        "joint_rule_algebra_dimension": certificate.joint_rule_algebra_dimension,
+        "joint_rule_generated_transported_j_count": (
+            certificate.joint_rule_generated_transported_j_count
+        ),
+        "topological_pm_shape_candidate": certificate.topological_pm_shape_candidate,
+        "strict_bridge_candidate": certificate.strict_bridge_candidate,
+        "route_label": certificate.route_label,
+        "load_bearing_qca_bridge": certificate.load_bearing_qca_bridge,
+    }
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(
         description="Check the sidecar 1D spatial alpha winding prototype."
+    )
+    parser.add_argument(
+        "--variant",
+        choices=("alpha", "combined"),
+        default="alpha",
+        help="Spatial diagnostic variant to run. Defaults to the alpha sidecar.",
     )
     parser.add_argument("--json", action="store_true", help="Emit machine-readable JSON only.")
     parser.add_argument(
@@ -153,6 +206,80 @@ def main() -> int:
         help="Exit nonzero if the spatial sidecar diagnostics regress.",
     )
     args = parser.parse_args()
+
+    if args.variant == "combined":
+        certificate = spatial_1d_combined_route_certificate()
+        payload = _combined_to_dict(certificate)
+        if args.json:
+            print(json.dumps(payload, indent=2, sort_keys=True))
+        else:
+            print("This checks the combined Route-1 plus Route-2 spatial sidecar.")
+            print("It tests topological sign coupling and strict rule-generated J separately.")
+            print(f"rule_name: {certificate.rule_name}")
+            print(f"onsite_candidate_name: {certificate.onsite_candidate_name}")
+            print(f"layer_name: {certificate.layer_name}")
+            print(f"qca_shifts: {list(certificate.qca_shifts)}")
+            print(f"finite_radius: {str(certificate.finite_radius).lower()}")
+            print(f"laurent_orthogonal: {str(certificate.laurent_orthogonal).lower()}")
+            print(
+                "symbol_unitary_on_samples: "
+                f"{str(certificate.symbol_unitary_on_samples).lower()}"
+            )
+            print(
+                "onsite_central_idempotent_ranks: "
+                f"{list(certificate.onsite_central_idempotent_ranks)}"
+            )
+            print(f"onsite_compatible_j_count: {certificate.onsite_compatible_j_count}")
+            print(
+                "transported_compatible_j_count: "
+                f"{certificate.transported_compatible_j_count}"
+            )
+            print(
+                "transported_j_commute_on_samples: "
+                f"{str(certificate.transported_j_commute_on_samples).lower()}"
+            )
+            print(
+                "coefficient_algebra_generates_alpha_eta_projectors: "
+                f"{str(certificate.coefficient_algebra_generates_alpha_eta_projectors).lower()}"
+            )
+            print(f"joint_rule_algebra_dimension: {certificate.joint_rule_algebra_dimension}")
+            print(
+                "joint_rule_generated_transported_j_count: "
+                f"{certificate.joint_rule_generated_transported_j_count}"
+            )
+            print(
+                "topological_pm_shape_candidate: "
+                f"{str(certificate.topological_pm_shape_candidate).lower()}"
+            )
+            print(f"strict_bridge_candidate: {str(certificate.strict_bridge_candidate).lower()}")
+            print(f"route_label: {certificate.route_label}")
+            print(
+                "load_bearing_qca_bridge: "
+                f"{str(certificate.load_bearing_qca_bridge).lower()}"
+            )
+        if args.check:
+            check_passed = (
+                certificate.finite_radius
+                and certificate.coefficient_matrices_real
+                and certificate.laurent_orthogonal
+                and certificate.symbol_unitary_on_samples
+                and certificate.onsite_central_idempotent_ranks == (0, 4, 6, 10)
+                and certificate.onsite_lower_rank_central_idempotents == 0
+                and certificate.onsite_compatible_j_count == 4
+                and certificate.transported_compatible_j_count == 2
+                and certificate.transported_j_commute_on_samples
+                and certificate.sign_coupled_to_global_pm
+                and certificate.coefficient_algebra_generates_alpha_eta_projectors
+                and certificate.joint_rule_generated_transported_j_count == 0
+                and certificate.topological_pm_shape_candidate
+                and not certificate.strict_bridge_candidate
+                and certificate.route_label
+                == "combined_route_signs_coupled_but_j_not_rule_generated"
+                and not certificate.load_bearing_qca_bridge
+            )
+            if not check_passed:
+                return 1
+        return 0
 
     certificate = spatial_1d_alpha_certificate()
     local_hopping = spatial_1d_local_hopping_certificate()

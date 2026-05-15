@@ -48,6 +48,7 @@ uv run python scripts/floquet_alpha.py --variant noncommuting-gap --check
 uv run python scripts/floquet_alpha.py --variant noncommuting-exhaustive --check
 uv run python scripts/floquet_alpha.py --variant noncommuting-completion --check
 uv run python scripts/spatial_1d_alpha_search.py --check
+uv run python scripts/spatial_1d_alpha_search.py --variant combined --check
 uv run python scripts/spatial_1d_unseeded_search.py --check
 uv run python scripts/defect_beta_search.py --check
 uv run python scripts/branching_check.py --check
@@ -745,6 +746,11 @@ The exhaustive discrete Route-1 scan is now checked as a focused result:
 `3840` signed-twist candidates reduce to `96` exact symmetry classes. It finds
 `720` generated-compatible-`J` hits, including `240` minimal four-`J` hits, but
 zero generated-`J` hits in the no-locking shape and zero bridge candidates.
+The combined Route-1/Route-2 sidecar composes the noncommuting on-site update
+with the `(4,3)` winding hops. It reaches the topological `±J` shape
+(`4` compatible signs reduced to `2` transported signs), but the joint rule
+algebra still generates zero transported `J`s, so the strict bridge remains
+false.
 Defect-beta is retained as a regression target but parked as a load-bearing
 route until rebuilt as a genuine higher-dimensional defect calculation. Its
 round-trip monodromy is exactly the matching Floquet-alpha operator. The
