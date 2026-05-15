@@ -990,9 +990,14 @@ A follow-up classifier-only scan expands the check to eight candidates with
 `--cycle-count 4 --shift-count 4`; all eight close at dimension `34`, keep
 central idempotent ranks `[0,4,6,10]`, and again report rank-6 projected
 centralizer `R^3` plus rank-4 projected centralizer `R`, with no `C` factor.
-The attempted twelve-candidate scan exposed a runtime tail rather than a
-counterexample, so the stepwise script now skips the duplicate closure-only pass
-when `--center-top` covers every candidate.
+The stepwise script now supports streamed per-candidate output, candidate
+slicing, direct detailed evaluation when `--center-top` covers every candidate,
+and a projected-centralizer mode that skips compatible-centralizer work when no
+rank-`(6,4)` center is present. A streamed twelve-candidate probe produced the
+same eight coarse split-real hits, plus three additional non-coarse tail
+candidates with ranks `[0,2,8,10]`, `[0,2,8,10]`, and an unsolved
+10-dimensional center. The remaining dim-22 tail candidate exposes an
+idempotent-solver bottleneck rather than a `C`-factor counterexample.
 Defect-beta is retained as a regression target but parked as a load-bearing
 route until rebuilt as a genuine higher-dimensional defect calculation. Its
 round-trip monodromy is exactly the matching Floquet-alpha operator. The

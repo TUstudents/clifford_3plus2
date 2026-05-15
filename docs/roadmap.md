@@ -1375,9 +1375,13 @@ centralizer acquires a genuine `C` factor carrying `J`.
 An expanded classifier-only scan over the first eight variants
 (`--cycle-count 4 --shift-count 4`) found no counterexample: all eight still
 close at dimension `34` with projected centralizers `R^3` and `R`. The
-twelve-candidate expansion currently hits a runtime tail, so the next
-engineering need for broader scans is streaming/cached candidate evaluation,
-not deeper blind enumeration.
+twelve-candidate expansion now streams per-candidate results and skips
+compatible-centralizer work for non-`6+4` centers. Its completed tail results
+are non-coarse, not `C`-factor counterexamples: two variants have
+`[0,2,8,10]` centers and one has an unsolved 10-dimensional center. The one
+remaining dim-22 tail case is an idempotent-solver bottleneck. The next
+engineering need for broader scans is therefore targeted center-idempotent
+extraction, not deeper blind enumeration.
 The first polynomial-hop extension keeps exact Laurent orthogonality by mixing
 two mode edges with a finite-order rational reflection. It does not produce a
 bridge candidate in the current exact checker: the first checked mixed

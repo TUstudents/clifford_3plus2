@@ -3,7 +3,8 @@ from __future__ import annotations
 import argparse
 import json
 import time
-from concurrent.futures import ProcessPoolExecutor
+from collections.abc import Sequence
+from concurrent.futures import FIRST_COMPLETED, Future, ProcessPoolExecutor, as_completed, wait
 from dataclasses import asdict, dataclass
 from itertools import combinations, permutations
 
@@ -350,6 +351,41 @@ def _projected_centralizer_summary(
     return "|".join(pair_summaries)
 
 
+def _has_complex_projected_factor(result: StepwiseResult) -> bool:
+    return any(
+        block.contains_complex_factor
+        for pair in result.projected_centralizer_pairs
+        for block in pair.blocks
+    )
+
+
+def _format_result_line(result: StepwiseResult) -> str:
+    seeded = (
+        str(not result.seed_guardrail_passed).lower()
+        if result.seed_guardrail_checked
+        else "unchecked"
+    )
+    return (
+        "candidate: "
+        f"{result.name}, "
+        f"seeded={seeded}, "
+        f"laurent={str(result.laurent_orthogonal).lower()}, "
+        f"dim={result.generated_algebra_dimension}, "
+        f"closed={str(result.generated_algebra_closed).lower()}, "
+        f"center={result.center_dimension}, "
+        f"centralizer={result.compatible_centralizer_dimension}, "
+        f"ranks={list(result.central_idempotent_ranks)}, "
+        f"generated_j_solved={result.generated_j_solved}, "
+        f"generated_j={result.generated_j_count}, "
+        f"compatible_j_solved={result.compatible_j_solved}, "
+        f"compatible_j={result.compatible_j_count}, "
+        f"j_status={result.bridge_j_status}, "
+        f"projected={_projected_centralizer_summary(result.projected_centralizer_pairs)}, "
+        f"label={result.route_label}, "
+        f"time={result.elapsed_seconds:.3f}s"
+    )
+
+
 def evaluate_candidate(
     candidate: StepwiseCandidate,
     *,
@@ -393,13 +429,20 @@ def evaluate_candidate(
     center = ()
     compatible_basis = ()
     idempotents = ()
+    has_rank_6_4_blocks = False
     if (include_center or include_j_solve or include_projected_centralizer) and closure.closed:
         center = center_basis_of_algebra(closure.basis)
         center_dimension = len(center)
         if include_idempotents or include_j_solve or include_projected_centralizer:
             center_solved, idempotents = solve_central_idempotents(center)
             idempotent_ranks = tuple(item.rank for item in idempotents)
-    if (include_centralizer or include_j_solve or include_projected_centralizer) and closure.closed:
+            has_rank_6_4_blocks = 4 in idempotent_ranks and 6 in idempotent_ranks
+    needs_compatible_basis = (
+        include_centralizer
+        or include_j_solve
+        or (include_projected_centralizer and has_rank_6_4_blocks)
+    )
+    if needs_compatible_basis and closure.closed:
         compatible_basis = centralizer_basis(samples)
         compatible_centralizer_dimension = len(compatible_basis)
     if (
@@ -477,6 +520,56 @@ def evaluate_candidate(
     )
 
 
+def _evaluate_many(
+    work_items: Sequence[tuple[StepwiseCandidate, int, bool, bool, bool, bool, bool, bool]],
+    *,
+    jobs: int,
+    stream: bool,
+    stop_on_complex_factor: bool,
+) -> tuple[StepwiseResult, ...]:
+    if not work_items:
+        return ()
+    if jobs == 1:
+        results = []
+        for item in work_items:
+            result = _evaluate_for_pool(item)
+            results.append(result)
+            if stream:
+                print(_format_result_line(result), flush=True)
+            if stop_on_complex_factor and _has_complex_projected_factor(result):
+                break
+        return tuple(results)
+
+    indexed_results: dict[int, StepwiseResult] = {}
+    stopped_early = False
+    with ProcessPoolExecutor(max_workers=jobs) as executor:
+        future_by_index: dict[Future[StepwiseResult], int] = {
+            executor.submit(_evaluate_for_pool, item): index
+            for index, item in enumerate(work_items)
+        }
+        pending = set(future_by_index)
+        while pending:
+            if stream or stop_on_complex_factor:
+                done, pending = wait(pending, return_when=FIRST_COMPLETED)
+            else:
+                done = set(as_completed(pending))
+                pending = set()
+            for future in done:
+                index = future_by_index[future]
+                result = future.result()
+                indexed_results[index] = result
+                if stream:
+                    print(_format_result_line(result), flush=True)
+                if stop_on_complex_factor and _has_complex_projected_factor(result):
+                    stopped_early = True
+            if stopped_early:
+                for future in pending:
+                    future.cancel()
+                executor.shutdown(cancel_futures=True)
+                break
+    return tuple(indexed_results[index] for index in sorted(indexed_results))
+
+
 def _evaluate_for_pool(
     args: tuple[StepwiseCandidate, int, bool, bool, bool, bool, bool, bool],
 ) -> StepwiseResult:
@@ -513,6 +606,7 @@ def main() -> int:
     parser.add_argument("--cycle-count", type=int, default=3)
     parser.add_argument("--shift-count", type=int, default=3)
     parser.add_argument("--max-candidates", type=int, default=6)
+    parser.add_argument("--start-index", type=int, default=0)
     parser.add_argument("--max-algebra-dim", type=int, default=48)
     parser.add_argument("--jobs", type=int, default=1)
     parser.add_argument("--seed-guardrail", action="store_true")
@@ -521,17 +615,21 @@ def main() -> int:
     parser.add_argument("--idempotents", action="store_true")
     parser.add_argument("--j-solve", action="store_true")
     parser.add_argument("--projected-centralizer", action="store_true")
+    parser.add_argument("--stream", action="store_true")
+    parser.add_argument("--stop-on-complex-factor", action="store_true")
     parser.add_argument("--json", action="store_true")
     parser.add_argument("--check", action="store_true")
     args = parser.parse_args()
 
+    if args.start_index < 0:
+        raise ValueError("start-index must be nonnegative")
     candidates = stepwise_candidates(
         family=args.family,
         pattern_count=args.pattern_count,
         cycle_count=args.cycle_count,
         shift_count=args.shift_count,
-        max_candidates=args.max_candidates,
-    )
+        max_candidates=args.start_index + args.max_candidates,
+    )[args.start_index :]
     if args.jobs <= 0:
         raise ValueError("jobs must be positive")
 
@@ -552,11 +650,12 @@ def main() -> int:
             )
             for candidate in candidates
         ]
-        if args.jobs == 1:
-            closure_results = tuple(_evaluate_for_pool(item) for item in closure_args)
-        else:
-            with ProcessPoolExecutor(max_workers=args.jobs) as executor:
-                closure_results = tuple(executor.map(_evaluate_for_pool, closure_args))
+        closure_results = _evaluate_many(
+            closure_args,
+            jobs=args.jobs,
+            stream=args.stream and not args.json,
+            stop_on_complex_factor=False,
+        )
 
         candidate_by_name = {_candidate_name(candidate): candidate for candidate in candidates}
         detailed_targets = []
@@ -580,13 +679,12 @@ def main() -> int:
         )
         for candidate in detailed_targets
     ]
-    if not detailed_args:
-        detailed_results = ()
-    elif args.jobs == 1:
-        detailed_results = tuple(_evaluate_for_pool(item) for item in detailed_args)
-    else:
-        with ProcessPoolExecutor(max_workers=args.jobs) as executor:
-            detailed_results = tuple(executor.map(_evaluate_for_pool, detailed_args))
+    detailed_results = _evaluate_many(
+        detailed_args,
+        jobs=args.jobs,
+        stream=args.stream and not args.json,
+        stop_on_complex_factor=args.stop_on_complex_factor,
+    )
     detailed_by_name = {result.name: result for result in detailed_results}
 
     if closure_results:
@@ -618,31 +716,9 @@ def main() -> int:
         print(f"seed_guardrail_rejections: {payload['seed_guardrail_rejections']}")
         print(f"laurent_orthogonal_count: {payload['laurent_orthogonal_count']}")
         print(f"coarse_6_4_count: {payload['coarse_6_4_count']}")
-        for result in results:
-            seeded = (
-                str(not result.seed_guardrail_passed).lower()
-                if result.seed_guardrail_checked
-                else "unchecked"
-            )
-            print(
-                "candidate: "
-                f"{result.name}, "
-                f"seeded={seeded}, "
-                f"laurent={str(result.laurent_orthogonal).lower()}, "
-                f"dim={result.generated_algebra_dimension}, "
-                f"closed={str(result.generated_algebra_closed).lower()}, "
-                f"center={result.center_dimension}, "
-                f"centralizer={result.compatible_centralizer_dimension}, "
-                f"ranks={list(result.central_idempotent_ranks)}, "
-                f"generated_j_solved={result.generated_j_solved}, "
-                f"generated_j={result.generated_j_count}, "
-                f"compatible_j_solved={result.compatible_j_solved}, "
-                f"compatible_j={result.compatible_j_count}, "
-                f"j_status={result.bridge_j_status}, "
-                f"projected={_projected_centralizer_summary(result.projected_centralizer_pairs)}, "
-                f"label={result.route_label}, "
-                f"time={result.elapsed_seconds:.3f}s"
-            )
+        if not args.stream:
+            for result in results:
+                print(_format_result_line(result))
 
     if args.check:
         if not results or any(result.generated_algebra_dimension <= 0 for result in results):

@@ -470,14 +470,17 @@ solved-empty, not a solver timeout, and the finite witness already has the
 split-real shape required by Conditional Lemma 4b.1.
 
 Follow-up counterexample scan. The command
-`uv run python scripts/bloch_path_a_stepwise.py --max-candidates 8 --cycle-count 4 --shift-count 4 --max-algebra-dim 48 --center-top 8 --centralizer --idempotents --projected-centralizer --jobs 4 --check`
+`uv run python scripts/bloch_path_a_stepwise.py --max-candidates 8 --cycle-count 4 --shift-count 4 --max-algebra-dim 48 --center-top 8 --idempotents --projected-centralizer --jobs 4 --check`
 extends the projected-centralizer diagnostic to eight variants. All eight
 close at algebra dimension `34`, keep central idempotent ranks `[0,4,6,10]`,
 and report the same split-real projected centralizers `R^3` and `R`. This does
 not enlarge the full `J`-solve witness in Proposition 4a, but it gives
 additional exact evidence for the invariant needed by Proposition 4b. The
-larger twelve-candidate expansion currently runs into a slow exact-closure
-tail, so broader scans should use streaming or cached candidate evaluation.
+larger twelve-candidate expansion can now stream per-candidate output and skip
+compatible-centralizer work when no rank-`(6,4)` center is present. The
+completed tail candidates are non-coarse rather than `C`-factor
+counterexamples; the remaining dim-22 tail case is a center-idempotent solver
+bottleneck.
 
 Conjectural Proposition 4b (coprime monomial-hop incompatibility). Let
 `T(z) = sum_s M_s z^s` be a projector-free 1D Bloch rule on `R^10` whose
