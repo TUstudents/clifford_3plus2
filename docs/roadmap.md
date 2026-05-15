@@ -192,6 +192,12 @@ polynomial_hop_laurent_orthogonal_count: 6
 polynomial_hop_closed_count_at_dim16: 0
 polynomial_hop_first_candidate_closed_at_dim64: false
 polynomial_hop_first_candidate_seed_guardrail_rejected: true
+two_site_uniform_seed_guardrail_passed: true
+two_site_uniform_central_idempotent_ranks: [0, 20]
+two_site_uniform_effective_rank_6_4_pairs: 0
+two_site_winding_4_3_seed_guardrail_passed: false
+two_site_winding_4_3_central_idempotent_ranks: [0, 20]
+two_site_winding_4_3_effective_rank_6_4_pairs: 0
 spatial_1d_alpha_strict_bridge_candidates: 0
 floquet_alpha_noncommuting_forced_j_candidates: 0
 floquet_alpha_noncommuting_strict_bridge_candidates: 0
@@ -1275,6 +1281,12 @@ polynomial_hop_laurent_orthogonal_count = 6
 polynomial_hop_closed_count_at_dim16 = 0
 polynomial_hop_first_candidate_closed_at_dim64 = false
 polynomial_hop_first_candidate_seed_guardrail_rejected = true
+two_site_uniform_seed_guardrail_passed = true
+two_site_uniform_central_idempotent_ranks = [0,20]
+two_site_uniform_effective_rank_6_4_pairs = 0
+two_site_winding_4_3_seed_guardrail_passed = false
+two_site_winding_4_3_central_idempotent_ranks = [0,20]
+two_site_winding_4_3_effective_rank_6_4_pairs = 0
 load_bearing_qca_bridge = false
 ```
 
@@ -1334,6 +1346,11 @@ coefficient exceeds algebra dimension `64`, and the seed guardrail rejects
 that candidate algebraically. This moves the active Path-A target to the
 two-site Bloch carrier design, while the gauge-equivalence bridge standard is
 tracked as a separate theorem-standard decision.
+The first two-site carrier implementation doubles the Bloch cell to `R^20`.
+The guardrail-passing uniform variant has only a trivial center. The
+Path-A-shaped `(4,3)` winding variant is exact and closes at generated algebra
+dimension `8`, but its coefficient algebra recovers embedded
+`P_alpha/P_eta`, so it is rejected before it can count as an unseeded bridge.
 ```
 
 ## Defect-Beta Transition-Pair Family

@@ -1,7 +1,6 @@
 # Two-Site Bloch Carrier Design
 
-Status: design note for the next Path-A architecture; not implemented as a
-bridge checker yet.
+Status: first bounded two-site checker implemented; no bridge candidate.
 
 ## Purpose
 
@@ -17,7 +16,7 @@ both jobs. A two-site carrier lets the Bloch symbol act on a doubled cell
 `R^20`, with the physical `R^10` object recovered by a band projection rather
 than placed directly in the coefficient algebra.
 
-## Candidate Form
+## Implemented Candidate Form
 
 Use a two-sublattice unit cell:
 
@@ -36,14 +35,27 @@ T(z)^T T(z) = I_20
 T(z) T(z)^T = I_20
 ```
 
-The first bounded class should use nearest-neighbor split-step blocks:
+The implemented first bounded class is a bipartite forward/inverse carrier:
 
 ```text
-A_0, D_0: finite-order on-site real orthogonal layers
-B_-, B_0, C_0, C_+: partial orthogonal hopping blocks
+T(z) =
+  [ 0         H(z)       ]
+  [ H(z^-1)^T  0         ]
+
+H(z) = sum_s E_s z^s
 ```
 
-No coefficient may equal, or algebraically generate, `P_alpha` or `P_eta`.
+where the `E_s` are projector-free monomial mode-hop matrices. Two variants
+are exposed:
+
+```text
+uniform: shifts (1,1,1,1,1)
+winding-4-3: shifts (4,4,4,3,3)
+```
+
+Both pass exact Laurent orthogonality. The uniform variant is a guardrail
+sanity check. The winding variant has the Path-A `(4,3)` shape but fails the
+coefficient-algebra seed guardrail.
 
 ## Verdict Projection
 
@@ -60,17 +72,70 @@ rank `(6,4)` pair on a `10`-dimensional effective band. This is deliberately
 different from the monomial-hop checker, where `P_alpha/P_eta` live directly
 on one site.
 
-## Implementation Steps
+## Implementation
 
-1. Add a `dimension=20` Bloch-rule path to `rule_to_verdict`.
-2. Add a two-site candidate builder with exact Laurent orthogonality checks
-   before closure.
-3. Add a guarded projection routine that reports both raw `R^20` idempotent
-   ranks and effective `R^10` band ranks.
-4. Reuse the existing bounded idempotent-splitting `J` solver only after the
-   effective `(6,4)` pair is identified.
-5. Keep the seed guardrail on coefficient algebra, not on derived spectral band
-   projectors.
+```text
+src/clifford_3plus2_d5/qca/two_site_bloch.py
+scripts/bloch_two_site.py
+tests/test_two_site_bloch.py
+```
+
+The certificate reports:
+
+```text
+raw R^20 central idempotent ranks
+sublattice A/B compressed ranks
+balanced effective ranks when the idempotent is block-diagonal and equal-rank
+coefficient-algebra seed guardrail against embedded P_alpha/P_eta
+```
+
+## Current Result
+
+Uniform guardrail sanity:
+
+```text
+uv run python scripts/bloch_two_site.py --variant uniform --check
+
+dimension: 20
+term_count: 2
+shifts: (1, -1)
+laurent_orthogonal: true
+seed_guardrail_passed: true
+coefficient_algebra_dimension: 4
+generated_algebra_dimension: 4
+generated_algebra_closed: true
+center_dimension: 1
+center_solved: true
+central_idempotent_ranks: (0, 20)
+effective_rank_6_4_pairs: 0
+route_label: two_site_trivial_center_no_effective_split
+```
+
+Path-A-shaped winding:
+
+```text
+uv run python scripts/bloch_two_site.py --variant winding-4-3 --check
+
+dimension: 20
+term_count: 4
+shifts: (3, 4, -3, -4)
+laurent_orthogonal: true
+seed_guardrail_passed: false
+coefficient_algebra_dimension: 8
+generated_algebra_dimension: 8
+generated_algebra_closed: true
+center_dimension: 2
+center_solved: true
+central_idempotent_ranks: (0, 20)
+effective_rank_6_4_pairs: 0
+route_label: two_site_seed_guardrail_rejected
+```
+
+Interpretation: doubling the carrier by itself does not solve Path A. The
+guardrail-passing uniform carrier has only a trivial center. The first
+`(4,3)` winding carrier is exact and computationally tame, but the coefficient
+algebra recovers embedded `P_alpha/P_eta` on one sublattice, so it is Route 2
+seeding in two-site language.
 
 ## Acceptance Boundary
 
@@ -88,3 +153,7 @@ explicitly accepts the remaining choices
 
 If the first bounded two-site class also produces an empty compatible-J set,
 that becomes the natural extension of Proposition 4.
+
+For the next Move-2 attempt, the winding data must be attached through a
+two-site coin or split-step layer whose coefficient algebra does not recover
+the coarse projector before the Bloch center is computed.

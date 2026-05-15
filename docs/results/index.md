@@ -702,6 +702,42 @@ seed_guardrail_checked: true
 seed_guardrail_rejections: 1
 ```
 
+Two-site Bloch carrier:
+
+```text
+uv run python scripts/bloch_two_site.py --variant uniform --check
+
+dimension: 20
+term_count: 2
+shifts: (1, -1)
+laurent_orthogonal: true
+seed_guardrail_passed: true
+coefficient_algebra_dimension: 4
+generated_algebra_dimension: 4
+generated_algebra_closed: true
+center_dimension: 1
+center_solved: true
+central_idempotent_ranks: (0, 20)
+effective_rank_6_4_pairs: 0
+route_label: two_site_trivial_center_no_effective_split
+
+uv run python scripts/bloch_two_site.py --variant winding-4-3 --check
+
+dimension: 20
+term_count: 4
+shifts: (3, 4, -3, -4)
+laurent_orthogonal: true
+seed_guardrail_passed: false
+coefficient_algebra_dimension: 8
+generated_algebra_dimension: 8
+generated_algebra_closed: true
+center_dimension: 2
+center_solved: true
+central_idempotent_ranks: (0, 20)
+effective_rank_6_4_pairs: 0
+route_label: two_site_seed_guardrail_rejected
+```
+
 Defect-beta search:
 
 ```text

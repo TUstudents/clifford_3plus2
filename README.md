@@ -43,6 +43,7 @@ spatial_1d_combined: Route 1 + Route 2 gives ± shape, still no rule-generated J
 spatial_1d_unseeded: no bridge candidate; seeded projector-shift rejected
 bloch_path_a: six projector-free monomial hops close at dim 34; no compatible J
 polynomial_bloch_hops: exact mixed coefficients exceed dim 64; no bridge candidate
+two_site_bloch: uniform carrier trivial; winding carrier seed-guardrail rejected
 perf_probe: focused algebra-kernel timing for Bloch computational boundary
 defect_beta_search: monodromy equals alpha; transition-pair rule still negative
 Spin(10) branching check: passes
@@ -660,6 +661,8 @@ uv run python scripts/bloch_path_a_stepwise.py --max-candidates 6 --max-algebra-
 uv run python scripts/bloch_path_a_stepwise.py --max-candidates 6 --max-algebra-dim 48 --center-top 6 --idempotents --centralizer --j-solve --jobs 4 --check
 uv run python scripts/bloch_path_a_stepwise.py --family polynomial-hop --max-candidates 6 --max-algebra-dim 16 --jobs 2 --check
 uv run python scripts/bloch_path_a_stepwise.py --family polynomial-hop --max-candidates 1 --max-algebra-dim 64 --check
+uv run python scripts/bloch_two_site.py --variant uniform --check
+uv run python scripts/bloch_two_site.py --variant winding-4-3 --check
 uv run python scripts/floquet_alpha.py --check
 uv run python scripts/floquet_alpha.py --variant plus --check
 uv run python scripts/floquet_alpha.py --variant time-reversal --check
