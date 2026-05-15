@@ -178,6 +178,16 @@ Meaning:
 - The QCA bridge has not passed.
 - No `data/qca_data.json` is present.
 - The project must not claim a geometry-to-D5 theorem yet.
+- The active obstruction is now concentrated in one gap: compatible `J`
+  candidates can be made finite, but they are not yet produced as a unique
+  global `±J` orbit by the rule-generated local algebra.
+- The successful/seeded witnesses preserve the coarse rank-`(6,4)` center
+  without lower-rank refinement; the unseeded spatial scan has not produced
+  such a witness and correctly rejects the seeded projector-shift layer.
+- Route 1 is the cleanest finite-dimensional result so far: it escapes the
+  commuting no-go, preserves `[0,4,6,10]`, makes compatible `J`
+  zero-dimensional with four candidates, and fails only because none of those
+  candidates lies in the generated algebra or rule-local center.
 
 ## Enhanced Theorem Target
 

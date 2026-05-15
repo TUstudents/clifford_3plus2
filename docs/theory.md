@@ -272,6 +272,33 @@ leaves four rule-local compatible complex structures. The residual obstruction
 is the independent alpha/eta block sign: the strict bridge needs a mechanism
 that reduces those four choices to global `±J`.
 
+Proposition (implemented route obstruction). In the implemented finite-route
+families checked so far, the strict bridge failure has been reduced to
+rule-generation/locality of `J`. More precisely:
+
+1. The time-reversal sidecar reduces the full compatible-`J` moduli estimate
+   from `9` to `3`, but `K` is declared rather than generated and the
+   compatible-`J` family is still positive-dimensional.
+2. The noncommuting signed twist preserves the coarse `[0,4,6,10]` central
+   idempotent lattice, creates no lower-rank central idempotents, and reduces
+   compatible `J` to a finite four-element set, but none of those four `J`
+   candidates lies in the generated algebra or rule-local center.
+3. The completion experiment declares one finite compatible `J` as a third
+   layer and still creates no lower-rank central idempotents, but the
+   rule-local center continues to admit four compatible `J` choices rather
+   than one global `±J` orbit.
+
+Therefore the current obstruction is not the coarse `6+4` center and, in the
+noncommuting route, not continuous compatible-`J` moduli. The missing
+microscopic primitive must produce the compatible orientation as rule-local
+data and must reduce the remaining four block-sign choices to global `±J`.
+
+Proof. Each statement is the exact output of the implemented route diagnostics:
+`scripts/floquet_alpha.py --variant time-reversal`,
+`scripts/floquet_alpha.py --variant noncommuting`,
+`scripts/floquet_alpha.py --variant noncommuting-gap`, and
+`scripts/floquet_alpha.py --variant noncommuting-completion`.
+
 Route 2 is now represented by a spatial 1D sidecar. It does not alter the
 finite-depth on-site verdict checker. Instead it tests the remaining sign
 obstruction with a finite-radius local QCA layer whose Laurent symbol is
