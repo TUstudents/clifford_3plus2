@@ -22,7 +22,7 @@ from clifford_3plus2_d5.qca.bloch_rule import (
 from clifford_3plus2_d5.qca.rule_verdict import (
     RuleLayerInput,
     bloch_floquet_operators,
-    center_basis_of_algebra,
+    center_basis_of_generated_algebra,
     centralizer_basis,
     generated_algebra_closure,
     solve_central_idempotents,
@@ -799,7 +799,7 @@ def evaluate_candidate(
     has_rank_6_4_blocks = False
     if (include_center or include_j_solve or include_projected_centralizer) and closure.closed:
         stage_start = time.perf_counter()
-        center = center_basis_of_algebra(closure.basis)
+        center = center_basis_of_generated_algebra(closure.basis, samples)
         center_dimension = len(center)
         record_stage("center_basis", stage_start)
         if include_idempotents or include_j_solve or include_projected_centralizer:

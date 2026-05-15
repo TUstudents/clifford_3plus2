@@ -1005,6 +1005,56 @@ candidates per pattern. JSONL cache/resume is keyed by candidate identity,
 scanner version, Bloch period, max algebra dimension, and enabled stages.
 Per-candidate timing shows the active bottleneck is center/idempotent
 extraction on survivors, not Laurent checking or Bloch sampling.
+
+Solver polish note, 2026-05-15:
+
+```text
+representative command:
+uv run python scripts/bloch_path_a_stepwise.py \
+  --max-candidates 1 --cycle-count 1 --shift-count 1 \
+  --max-algebra-dim 48 --center-top 1 \
+  --idempotents --centralizer --j-solve --projected-centralizer \
+  --jobs 1 --check
+
+result:
+generated_algebra_dimension: 34
+center_dimension: 4
+central_idempotent_ranks: [0,4,6,10]
+compatible_centralizer_dimension: 4
+generated_j_count: 0
+compatible_j_count: 0
+projected: rank6 split_real R^3; rank4 split_real R
+elapsed_seconds: 91.0
+
+stage_seconds:
+closure: 10.1
+center_basis: 28.4
+idempotents: 22.6
+centralizer: 5.3
+j_solve: 22.4
+projected_centralizer: 2.0
+```
+
+The center stage now uses generator-relative structure constants for the
+stepwise scanner instead of multiplying every pair in the closed algebra. On
+the same representative candidate, center extraction dropped from about `46s`
+to about `28s`. The central-idempotent solver also has a rational
+multiplication-table path for small commutative centers; algebraic-field Bloch
+centers fall back to the matrix-equation solver because coordinate reduction is
+slower there.
+
+Updated scan estimates from this single-candidate benchmark:
+
+| Scan mode | Candidate count | Serial estimate | 4-job estimate |
+| --- | ---: | ---: | ---: |
+| Monomial closure-only, one pattern | `240` | `~40 min` | `~10 min` |
+| Monomial detailed, one pattern | `240` | `~6 h` | `~1.5-2 h` |
+| Monomial detailed, ten patterns | `2400` | `~60 h` | `~15-20 h` |
+| Polynomial-hop bounded class | `960` per pattern | not stable | cap-boundary dominated |
+
+These estimates assume the dim-`34` survivor shape dominates. Dim-`22` and
+dim-`10` tail cases should be run through cached chunks first, because their
+center/idempotent profile differs from the coarse survivor path.
 Defect-beta is retained as a regression target but parked as a load-bearing
 route until rebuilt as a genuine higher-dimensional defect calculation. Its
 round-trip monodromy is exactly the matching Floquet-alpha operator. The

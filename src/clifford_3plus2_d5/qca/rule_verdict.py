@@ -286,6 +286,77 @@ def _center_basis_from_commutators(
     return tuple(center)
 
 
+def _center_basis_relative_to_generators_from_commutators(
+    algebra_basis: Sequence[sp.Matrix],
+    generators: Sequence[sp.Matrix],
+    *,
+    dimension: int,
+) -> tuple[sp.Matrix, ...]:
+    variables = sp.symbols(f"z0:{len(algebra_basis)}")
+    candidate = sp.zeros(dimension)
+    for variable, basis_matrix in zip(variables, algebra_basis, strict=True):
+        candidate += variable * basis_matrix
+
+    equations = [value for generator in generators for value in commutator(candidate, generator)]
+    coefficient_matrix, _ = sp.linear_eq_to_matrix(equations, variables)
+    center = []
+    for vector in coefficient_matrix.nullspace():
+        matrix = sp.zeros(dimension)
+        for coefficient, basis_matrix in zip(vector, algebra_basis, strict=True):
+            matrix += coefficient * basis_matrix
+        center.append(matrix)
+    return tuple(center)
+
+
+def _center_basis_relative_to_generators_from_structure_constants(
+    algebra_basis: Sequence[sp.Matrix],
+    generators: Sequence[sp.Matrix],
+    *,
+    dimension: int,
+) -> tuple[sp.Matrix, ...] | None:
+    coordinate_system = exact_matrix_span(algebra_basis)
+    if coordinate_system.rank != len(algebra_basis):
+        raise ValueError("algebra_basis must be linearly independent")
+
+    basis_size = len(algebra_basis)
+    variables = sp.symbols(f"z0:{basis_size}")
+    equations = []
+    for generator in generators:
+        product_differences: list[tuple[sp.Expr, ...]] = []
+        for basis_matrix in algebra_basis:
+            try:
+                right_coordinates = coordinate_system.coordinates(basis_matrix * generator)
+                left_coordinates = coordinate_system.coordinates(generator * basis_matrix)
+            except ValueError:
+                return None
+            if right_coordinates is None or left_coordinates is None:
+                return None
+            product_differences.append(
+                tuple(
+                    right - left
+                    for right, left in zip(right_coordinates, left_coordinates, strict=True)
+                )
+            )
+        for coordinate_index in range(basis_size):
+            equations.append(
+                sp.expand(
+                    sum(
+                        variables[basis_index] * product_differences[basis_index][coordinate_index]
+                        for basis_index in range(basis_size)
+                    )
+                )
+            )
+
+    coefficient_matrix, _ = sp.linear_eq_to_matrix(equations, variables)
+    center = []
+    for vector in coefficient_matrix.nullspace():
+        matrix = sp.zeros(dimension)
+        for coefficient, basis_matrix in zip(vector, algebra_basis, strict=True):
+            matrix += coefficient * basis_matrix
+        center.append(matrix)
+    return tuple(center)
+
+
 def _center_basis_from_structure_constants(
     algebra_basis: Sequence[sp.Matrix],
     *,
@@ -353,6 +424,35 @@ def center_basis_of_algebra(
     return _center_basis_from_commutators(algebra_basis, dimension=dimension)
 
 
+def center_basis_of_generated_algebra(
+    algebra_basis: Sequence[sp.Matrix],
+    generators: Sequence[sp.Matrix],
+    *,
+    dimension: int = 10,
+) -> tuple[sp.Matrix, ...]:
+    """Return ``Z(A)`` for ``A = <generators>`` with known basis ``algebra_basis``.
+
+    The generic center routine multiplies every pair of basis elements to build
+    structure constants. Scan candidates already carry the small generating set
+    used to close the algebra, so it is enough to solve ``[x, g_i] = 0`` inside
+    the known basis. This keeps the result exact while avoiding O(dim(A)^2)
+    coordinate reductions in brute-force scans.
+    """
+
+    center = _center_basis_relative_to_generators_from_structure_constants(
+        algebra_basis,
+        generators,
+        dimension=dimension,
+    )
+    if center is not None:
+        return center
+    return _center_basis_relative_to_generators_from_commutators(
+        algebra_basis,
+        generators,
+        dimension=dimension,
+    )
+
+
 def centralizer_basis(
     generators: Sequence[sp.Matrix],
     *,
@@ -386,6 +486,51 @@ def _solve_matrix_equations(
     if not equations:
         return ({variable: sp.Integer(0) for variable in variables},)
     solutions = sp.solve(equations, tuple(variables), dict=True)
+    complete_solutions = []
+    for solution in solutions:
+        if all(variable in solution for variable in variables):
+            complete_solutions.append(solution)
+    return tuple(complete_solutions)
+
+
+def _solve_idempotent_coordinate_equations(
+    basis: Sequence[sp.Matrix],
+    *,
+    variables: Sequence[sp.Symbol],
+) -> tuple[dict[sp.Symbol, sp.Expr], ...] | None:
+    if not all(sp.sympify(value).is_Rational is True for matrix in basis for value in matrix):
+        return None
+    coordinate_system = exact_matrix_span(basis)
+    if coordinate_system.rank != len(basis):
+        raise ValueError("basis must be linearly independent")
+
+    basis_size = len(basis)
+    product_coordinates: dict[tuple[int, int], tuple[sp.Expr, ...]] = {}
+    for left_index, left in enumerate(basis):
+        for right_index, right in enumerate(basis):
+            try:
+                coordinates = coordinate_system.coordinates(left * right)
+            except ValueError:
+                return None
+            if coordinates is None:
+                return None
+            product_coordinates[(left_index, right_index)] = coordinates
+
+    equations = []
+    for coordinate_index in range(basis_size):
+        equation = sum(
+            variables[left_index]
+            * variables[right_index]
+            * product_coordinates[(left_index, right_index)][coordinate_index]
+            for left_index in range(basis_size)
+            for right_index in range(basis_size)
+        ) - variables[coordinate_index]
+        expanded = sp.expand(equation)
+        if expanded != 0:
+            equations.append(expanded)
+    if not equations:
+        return ({variable: sp.Integer(0) for variable in variables},)
+    solutions = sp.solve(tuple(equations), tuple(variables), dict=True)
     complete_solutions = []
     for solution in solutions:
         if all(variable in solution for variable in variables):
@@ -465,11 +610,13 @@ def solve_central_idempotents(
     for variable, basis_matrix in zip(variables, center_basis, strict=True):
         candidate += variable * basis_matrix
 
-    solutions = _solve_matrix_equations(
-        center_basis,
-        candidate * candidate - candidate,
-        variables=variables,
-    )
+    solutions = _solve_idempotent_coordinate_equations(center_basis, variables=variables)
+    if solutions is None:
+        solutions = _solve_matrix_equations(
+            center_basis,
+            candidate * candidate - candidate,
+            variables=variables,
+        )
     idempotents: list[CentralIdempotent] = []
     seen: set[tuple[sp.Expr, ...]] = set()
     for solution in solutions:
@@ -545,11 +692,14 @@ def _independent_block_basis(
     basis: Sequence[sp.Matrix],
     projector: sp.Matrix,
 ) -> tuple[sp.Matrix, ...]:
-    span = IncrementalMatrixSpan(rows=projector.rows, cols=projector.cols)
-    span.add(projector)
-    block_basis = [projector]
+    candidates = [projector]
     for basis_matrix in basis:
         candidate = (projector * basis_matrix).applyfunc(sp.simplify)
+        candidates.append(candidate)
+
+    span = exact_matrix_span(tuple(candidates), add_matrices=False)
+    block_basis = []
+    for candidate in candidates:
         if span.add(candidate):
             block_basis.append(candidate)
     return tuple(block_basis)
@@ -602,19 +752,17 @@ def solve_complex_structures_from_idempotent_splitting(
     if not nontrivial_pairs:
         return False, None, ()
 
-    coordinate_system = IncrementalMatrixSpan(rows=dimension, cols=dimension)
-    for basis_matrix in basis:
-        if not coordinate_system.add(basis_matrix):
-            raise ValueError("basis must be linearly independent")
+    coordinate_system = exact_matrix_span(basis)
+    if coordinate_system.rank != len(basis):
+        raise ValueError("basis must be linearly independent")
 
     def block_solutions(projector: sp.Matrix) -> tuple[sp.Matrix, ...] | None:
         block_basis = _independent_block_basis(basis, projector)
         if len(block_basis) != 2:
             return None
-        block_span = IncrementalMatrixSpan(rows=dimension, cols=dimension)
-        for basis_matrix in block_basis:
-            if not block_span.add(basis_matrix):
-                raise ValueError("block_basis must be linearly independent")
+        block_span = exact_matrix_span(block_basis)
+        if block_span.rank != len(block_basis):
+            raise ValueError("block_basis must be linearly independent")
         coordinates = block_span.coordinates(
             (block_basis[1] * block_basis[1]).applyfunc(sp.simplify)
         )
