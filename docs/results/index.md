@@ -609,7 +609,7 @@ candidate: unseeded_mode_5_cycle_shift, center_ranks=[0, 2, 4, 4, 6, 6, 8, 10], 
 candidate: spatial_1d_alpha_projector_shift_qca, witnesses=['shift_3:P_eta', 'shift_4:P_alpha'], route=unseeded_spatial_seeded_coefficient_rejected
 ```
 
-Bloch Path-A legacy capped search:
+Bloch Path-A mixed-panel search:
 
 ```text
 candidate_count: 6
@@ -619,18 +619,21 @@ stable_6_4_band_candidates: 0
 topological_pm_candidates: 4
 rule_generated_j_section_candidates: 0
 strict_bridge_candidates: 0
-route_label: bloch_path_a_seeded_shape_only
+candidate_panel_route_label: bloch_path_a_seeded_shape_only
+route_label: bloch_path_a_projector_free_coarse_center_no_compatible_j
 projector_free_rule_verdict: not_solved
-projector_free_rule_generated_algebra_dimension: 16
-projector_free_rule_generated_algebra_closed: false
+projector_free_rule_generated_algebra_dimension: 34
+projector_free_rule_generated_algebra_closed: true
+projector_free_rule_central_idempotent_ranks: [0, 4, 6, 10]
+projector_free_rule_compatible_centralizer_dimension: 4
+projector_free_rule_compatible_complex_structure_count: 0
 projector_free_rule_pass_rule_to_bridge: false
 load_bearing_qca_bridge: false
 ```
 
-The capped search is retained as a regression/sanity check. Its
-`projector_free_rule_generated_algebra_dimension: 16` line means the default
-projector-free verdict stopped at the algebra cap; it is not the current
-physics result.
+The optional `--projector-free-max-algebra-dim 16` mode is retained as a
+regression/sanity check for the old cap boundary. The default mixed-panel
+search now reports the projector-free structural result directly.
 
 Bloch Path-A stepwise projector-free headline search:
 

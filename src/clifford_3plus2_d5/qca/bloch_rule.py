@@ -512,9 +512,9 @@ def bloch_path_a_projector_free_layer(
 
 def bloch_path_a_projector_free_rule_to_verdict(
     *,
-    max_generated_algebra_dimension: int | None = 16,
+    max_generated_algebra_dimension: int | None = 48,
     max_center_solve_dimension: int = 8,
-    max_j_solve_dimension: int = 8,
+    max_j_solve_dimension: int = 0,
 ) -> RuleToVerdictResult:
     return rule_to_verdict(
         (bloch_path_a_projector_free_combined_layer(),),

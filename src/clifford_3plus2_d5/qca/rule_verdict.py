@@ -584,12 +584,13 @@ def solve_complex_structures_from_idempotent_splitting(
 ) -> tuple[bool, int | None, tuple[ComplexStructureCandidate, ...]]:
     """Solve finite ``J`` choices from a two-block real center splitting.
 
-    This is the bounded Path-A path for a 4D algebra with complementary
-    central idempotents ``P`` and ``I-P`` and no lower-rank refinements. Each
-    projected summand must be a 2D real algebra. If ``x^2 = a P + b x`` in one
-    summand, then ``u P + v x`` squares to ``-P`` exactly when
-    ``u = -b v / 2`` and ``v^2 = -1 / (a + b^2/4)``. Combining the two signs
-    across the two summands gives the finite global candidates.
+    This is the bounded Path-A path for algebras with complementary central
+    idempotents ``P`` and ``I-P``. A one-dimensional projected summand has no
+    real solution to ``J^2 = -P`` and is reported as a solved zero-candidate
+    case. A two-dimensional projected summand is solved analytically: if
+    ``x^2 = a P + b x``, then ``u P + v x`` squares to ``-P`` exactly when
+    ``u = -b v / 2`` and ``v^2 = -1 / (a + b^2/4)``. Richer summands require a
+    different solver and are reported as unsupported.
     """
 
     nontrivial_pairs = []
@@ -600,10 +601,12 @@ def solve_complex_structures_from_idempotent_splitting(
     def same_matrix(left: sp.Matrix, right: sp.Matrix) -> bool:
         return (left - right).applyfunc(sp.simplify) == matrix_zero
 
-    for left in idempotents:
+    for left_index, left in enumerate(idempotents):
         if left.rank in (0, dimension):
             continue
-        for right in idempotents:
+        for right_index, right in enumerate(idempotents):
+            if right_index <= left_index:
+                continue
             if right.rank in (0, dimension) or left.rank + right.rank != dimension:
                 continue
             if (
@@ -643,18 +646,21 @@ def solve_complex_structures_from_idempotent_splitting(
 
     candidates: list[ComplexStructureCandidate] = []
     seen: set[tuple[sp.Expr, ...]] = set()
-    for left_projector, right_projector in nontrivial_pairs[:1]:
+    unsupported_pair_seen = False
+    for left_projector, right_projector in nontrivial_pairs:
         left_block_basis = _independent_block_basis(basis, left_projector)
         right_block_basis = _independent_block_basis(basis, right_projector)
         if len(left_block_basis) == 1 or len(right_block_basis) == 1:
-            return True, 0, ()
+            continue
         if len(left_block_basis) != 2 or len(right_block_basis) != 2:
-            return False, None, ()
+            unsupported_pair_seen = True
+            continue
 
         left_solutions = block_solutions(left_projector)
         right_solutions = block_solutions(right_projector)
         if left_solutions is None or right_solutions is None:
-            return False, None, ()
+            unsupported_pair_seen = True
+            continue
         for left_j in left_solutions:
             for right_j in right_solutions:
                 matrix = (left_j + right_j).applyfunc(sp.simplify)
@@ -678,6 +684,8 @@ def solve_complex_structures_from_idempotent_splitting(
                         source=source,
                     )
                 )
+    if unsupported_pair_seen and not candidates:
+        return False, None, ()
     return True, 0, tuple(candidates)
 
 
@@ -882,6 +890,17 @@ def rule_to_verdict(
         max_basis_dimension=max_j_solve_dimension,
         dimension=dimension,
     )
+    if bloch_period is not None and rank_pairs and not compatible_j_solved:
+        (
+            compatible_j_solved,
+            solved_compatible_j_moduli_dimension,
+            compatible_j,
+        ) = solve_complex_structures_from_idempotent_splitting(
+            compatible_basis,
+            idempotents,
+            source="compatible_centralizer",
+            dimension=dimension,
+        )
     estimated_compatible_j_moduli_dimension = (
         _compatible_j_moduli_dimension_from_single_generator(algebra_generators[0])
         if bloch_period is None and len(algebra_generators) == 1
@@ -908,6 +927,17 @@ def rule_to_verdict(
         max_basis_dimension=max_j_solve_dimension,
         dimension=dimension,
     )
+    if bloch_period is not None and rank_pairs and not local_compatible_j_solved:
+        (
+            local_compatible_j_solved,
+            local_compatible_j_moduli_dimension,
+            local_compatible_j,
+        ) = solve_complex_structures_from_idempotent_splitting(
+            local_compatible_basis,
+            idempotents,
+            source="local_compatible_center",
+            dimension=dimension,
+        )
     forced_j_found = _forced_j(
         generated_j,
         local_compatible_j,

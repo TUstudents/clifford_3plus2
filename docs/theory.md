@@ -370,10 +370,10 @@ finite-radius layers do not produce a bridge candidate, and the working
 projector-shift layer is rejected by the seeded-coefficient guardrail.
 The Bloch Path-A checker is the first version of the correct off-site verdict
 shape. It evaluates sampled root-of-unity Bloch symbols and rejects candidates
-whose coefficient algebra already generates `P_alpha` or `P_eta`. The legacy
-capped Path-A CLI still reports seeded topological shape only and leaves the
-projector-free rule at the algebra cap `16`; that is a regression check, not
-the current physics result.
+whose coefficient algebra already generates `P_alpha` or `P_eta`. Its mixed
+candidate panel still reports seeded topological shape only, while its default
+projector-free headline now reaches the dim-34 joint-algebra result. The old
+cap-16 projector-free mode is retained only as a regression check.
 The main `rule_to_verdict` checker now has the same Bloch-period mode:
 with `bloch_period = n`, it uses the joint algebra
 `R<T(zeta^0),...,T(zeta^(n-1))>` as the generated algebra. The stepwise

@@ -97,6 +97,8 @@ def test_bloch_path_a_cli_check() -> None:
             "scripts/bloch_path_a_search.py",
             "--json",
             "--check",
+            "--projector-free-max-algebra-dim",
+            "16",
         ],
         cwd=ROOT,
         check=True,
@@ -111,7 +113,8 @@ def test_bloch_path_a_cli_check() -> None:
     assert payload["unseeded_candidate_count"] == 2
     assert payload["topological_pm_candidates"] == 4
     assert payload["strict_bridge_candidates"] == 0
-    assert payload["route_label"] == "bloch_path_a_seeded_shape_only"
+    assert payload["candidate_panel_route_label"] == "bloch_path_a_seeded_shape_only"
+    assert payload["route_label"] == "bloch_path_a_projector_free_cap_boundary"
     assert payload["load_bearing_qca_bridge"] is False
     projector_free = payload["projector_free_rule_to_verdict"]
     assert projector_free["bloch_period"] == 12

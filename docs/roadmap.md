@@ -180,7 +180,8 @@ bloch_path_a_stable_6_4_band_candidates: 0
 bloch_path_a_topological_pm_candidates: 4
 bloch_path_a_rule_generated_j_section_candidates: 0
 bloch_path_a_strict_bridge_candidates: 0
-bloch_path_a_route_label: bloch_path_a_seeded_shape_only
+bloch_path_a_candidate_panel_route_label: bloch_path_a_seeded_shape_only
+bloch_path_a_route_label: bloch_path_a_projector_free_coarse_center_no_compatible_j
 spatial_1d_alpha_strict_bridge_candidates: 0
 floquet_alpha_noncommuting_forced_j_candidates: 0
 floquet_alpha_noncommuting_strict_bridge_candidates: 0
@@ -1244,10 +1245,14 @@ bloch_path_a_stable_6_4_band_candidates = 0
 bloch_path_a_topological_pm_candidates = 4
 bloch_path_a_rule_generated_j_section_candidates = 0
 bloch_path_a_strict_bridge_candidates = 0
-bloch_path_a_route_label = bloch_path_a_seeded_shape_only
-legacy_capped_projector_free_rule_verdict = not_solved
-legacy_capped_projector_free_rule_generated_algebra_dimension = 16
-legacy_capped_projector_free_rule_generated_algebra_closed = false
+bloch_path_a_candidate_panel_route_label = bloch_path_a_seeded_shape_only
+bloch_path_a_route_label = bloch_path_a_projector_free_coarse_center_no_compatible_j
+projector_free_rule_verdict = not_solved
+projector_free_rule_generated_algebra_dimension = 34
+projector_free_rule_generated_algebra_closed = true
+projector_free_rule_central_idempotent_ranks = [0,4,6,10]
+projector_free_rule_compatible_centralizer_dimension = 4
+projector_free_rule_compatible_complex_structure_count = 0
 stepwise_projector_free_candidate_count = 6
 stepwise_projector_free_generated_algebra_dimension = 34
 stepwise_projector_free_center_dimension = 4
@@ -1288,10 +1293,11 @@ This guardrail must also be strengthened from an obvious diagonal-projector
 check to an algebraic check: reject candidates whose coefficient algebra
 generates `P_alpha` or `P_eta`, even if those projectors are hidden as
 polynomials in non-projector layer coefficients.
-The legacy capped Bloch Path-A checker implements that algebraic guardrail and
-evaluates sampled root-of-unity Bloch symbols. Its default projector-free
-verdict stops at generated algebra dimension `16`, so its `not_solved` result
-is a cap boundary/regression check rather than the physics headline.
+The mixed-panel Bloch Path-A checker implements that algebraic guardrail and
+evaluates sampled root-of-unity Bloch symbols. Its `candidate_panel_route_label`
+still records that the six labeled panel candidates only have seeded
+topological shape; its headline `route_label` now reports the projector-free
+structural result directly.
 The main `rule_to_verdict` interface now also supports a Bloch-period mode
 that forms the joint sampled algebra `R<T(zeta^j)>`. The first projector-free
 combined Route-1/Route-2 layer uses partial monomial hops with source shifts

@@ -9,7 +9,7 @@ from clifford_3plus2_d5.qca.bloch_rule import (
     bloch_path_a_projector_free_rule_to_verdict,
     bloch_path_a_search_summary,
 )
-from clifford_3plus2_d5.qca.rule_verdict import result_to_dict
+from clifford_3plus2_d5.qca.rule_verdict import RuleToVerdictResult, result_to_dict
 
 
 def _verdict_to_dict(verdict: BlochRuleVerdict) -> dict[str, object]:
@@ -54,7 +54,30 @@ def _verdict_to_dict(verdict: BlochRuleVerdict) -> dict[str, object]:
 
 
 def _summary_to_dict(summary: BlochPathASearchSummary) -> dict[str, object]:
-    projector_free_verdict = bloch_path_a_projector_free_rule_to_verdict()
+    return _summary_to_dict_with_projector_free(
+        summary,
+        projector_free_verdict=bloch_path_a_projector_free_rule_to_verdict(),
+    )
+
+
+def _projector_free_route_label(projector_free_payload: dict[str, object]) -> str:
+    if not projector_free_payload["generated_algebra_closed"]:
+        return "bloch_path_a_projector_free_cap_boundary"
+    if (
+        projector_free_payload["central_idempotent_ranks"] == [0, 4, 6, 10]
+        and projector_free_payload["compatible_centralizer_dimension"] == 4
+        and projector_free_payload["compatible_complex_structure_count"] == 0
+    ):
+        return "bloch_path_a_projector_free_coarse_center_no_compatible_j"
+    return "bloch_path_a_projector_free_structural_result"
+
+
+def _summary_to_dict_with_projector_free(
+    summary: BlochPathASearchSummary,
+    *,
+    projector_free_verdict: RuleToVerdictResult,
+) -> dict[str, object]:
+    projector_free_payload = result_to_dict(projector_free_verdict)
     return {
         "family": "bloch_path_a",
         "candidate_count": summary.candidate_count,
@@ -66,16 +89,20 @@ def _summary_to_dict(summary: BlochPathASearchSummary) -> dict[str, object]:
             summary.rule_generated_j_section_candidates
         ),
         "strict_bridge_candidates": summary.strict_bridge_candidates,
-        "route_label": summary.route_label,
+        "candidate_panel_route_label": summary.route_label,
+        "route_label": _projector_free_route_label(projector_free_payload),
         "load_bearing_qca_bridge": summary.load_bearing_qca_bridge,
-        "projector_free_rule_to_verdict": result_to_dict(projector_free_verdict),
+        "projector_free_rule_to_verdict": projector_free_payload,
         "candidates": [_verdict_to_dict(verdict) for verdict in summary.candidates],
     }
 
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description="Run sampled Bloch Path-A spatial QCA diagnostics."
+        description=(
+            "Run the mixed Bloch Path-A candidate panel plus the projector-free "
+            "joint-algebra headline check."
+        )
     )
     parser.add_argument("--json", action="store_true", help="Emit machine-readable JSON only.")
     parser.add_argument(
@@ -89,14 +116,30 @@ def main() -> int:
         default=1,
         help="Evaluate independent candidate diagnostics in parallel.",
     )
+    parser.add_argument(
+        "--projector-free-max-algebra-dim",
+        type=int,
+        default=48,
+        help=(
+            "Closure cap for the projector-free joint-algebra verdict. "
+            "Use 16 only for legacy cap-boundary regression checks."
+        ),
+    )
     args = parser.parse_args()
 
     summary = bloch_path_a_search_summary(jobs=args.jobs)
-    payload = _summary_to_dict(summary)
+    projector_free_verdict = bloch_path_a_projector_free_rule_to_verdict(
+        max_generated_algebra_dimension=args.projector_free_max_algebra_dim,
+    )
+    payload = _summary_to_dict_with_projector_free(
+        summary,
+        projector_free_verdict=projector_free_verdict,
+    )
     if args.json:
         print(json.dumps(payload, indent=2, sort_keys=True))
     else:
-        print("This checks sampled Bloch Path-A spatial QCA candidates.")
+        print("This checks the sampled Bloch Path-A candidate panel.")
+        print("It also reports the projector-free joint-algebra headline result.")
         print("It rejects seeded P_alpha/P_eta coefficient algebra explicitly.")
         print(f"candidate_count: {summary.candidate_count}")
         print(f"seed_guardrail_rejections: {summary.seed_guardrail_rejections}")
@@ -108,7 +151,8 @@ def main() -> int:
             f"{summary.rule_generated_j_section_candidates}"
         )
         print(f"strict_bridge_candidates: {summary.strict_bridge_candidates}")
-        print(f"route_label: {summary.route_label}")
+        print(f"candidate_panel_route_label: {summary.route_label}")
+        print(f"route_label: {payload['route_label']}")
         print(f"load_bearing_qca_bridge: {str(summary.load_bearing_qca_bridge).lower()}")
         projector_free_verdict = payload["projector_free_rule_to_verdict"]
         print(
@@ -122,6 +166,18 @@ def main() -> int:
         print(
             "projector_free_rule_generated_algebra_closed: "
             f"{str(projector_free_verdict['generated_algebra_closed']).lower()}"
+        )
+        print(
+            "projector_free_rule_central_idempotent_ranks: "
+            f"{projector_free_verdict['central_idempotent_ranks']}"
+        )
+        print(
+            "projector_free_rule_compatible_centralizer_dimension: "
+            f"{projector_free_verdict['compatible_centralizer_dimension']}"
+        )
+        print(
+            "projector_free_rule_compatible_complex_structure_count: "
+            f"{projector_free_verdict['compatible_complex_structure_count']}"
         )
         print(
             "projector_free_rule_pass_rule_to_bridge: "
@@ -145,10 +201,14 @@ def main() -> int:
             and summary.unseeded_candidate_count >= 1
             and summary.topological_pm_candidates >= 1
             and summary.strict_bridge_candidates == 0
-            and summary.route_label == "bloch_path_a_seeded_shape_only"
+            and payload["candidate_panel_route_label"] == "bloch_path_a_seeded_shape_only"
             and not summary.load_bearing_qca_bridge
             and payload["projector_free_rule_to_verdict"]["verdict"] == "not_solved"
-            and not payload["projector_free_rule_to_verdict"]["generated_algebra_closed"]
+            and payload["route_label"]
+            in {
+                "bloch_path_a_projector_free_cap_boundary",
+                "bloch_path_a_projector_free_coarse_center_no_compatible_j",
+            }
         )
         if not check_passed:
             return 1

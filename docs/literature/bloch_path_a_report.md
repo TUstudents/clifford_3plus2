@@ -10,8 +10,9 @@ and exposed by two CLIs:
 - [`scripts/bloch_path_a_stepwise.py`](../../scripts/bloch_path_a_stepwise.py):
   the headline calculation for projector-free monomial-hop candidates.
 - [`scripts/bloch_path_a_search.py`](../../scripts/bloch_path_a_search.py):
-  a capped legacy/regression scan that still reports `not_solved` at algebra
-  cap `16`.
+  the mixed candidate-panel check plus the default projector-free structural
+  result. Its `--projector-free-max-algebra-dim 16` mode is retained only as a
+  legacy cap-boundary regression.
 
 ## Purpose
 
@@ -49,9 +50,10 @@ already generates the coarse projectors.
 uv run python scripts/bloch_path_a_stepwise.py --max-candidates 6 --max-algebra-dim 48 --jobs 2 --check
 uv run python scripts/bloch_path_a_stepwise.py --max-candidates 6 --max-algebra-dim 48 --center-top 6 --idempotents --centralizer --j-solve --jobs 4 --check
 uv run python scripts/bloch_path_a_search.py --check
+uv run python scripts/bloch_path_a_search.py --check --projector-free-max-algebra-dim 16
 ```
 
-Legacy capped scan output:
+Default mixed-panel output:
 
 ```text
 candidate_count: 6
@@ -61,17 +63,22 @@ stable_6_4_band_candidates: 0
 topological_pm_candidates: 4
 rule_generated_j_section_candidates: 0
 strict_bridge_candidates: 0
-route_label: bloch_path_a_seeded_shape_only
+candidate_panel_route_label: bloch_path_a_seeded_shape_only
+route_label: bloch_path_a_projector_free_coarse_center_no_compatible_j
 load_bearing_qca_bridge: false
 projector_free_rule_verdict: not_solved
-projector_free_rule_generated_algebra_dimension: 16
-projector_free_rule_generated_algebra_closed: false
+projector_free_rule_generated_algebra_dimension: 34
+projector_free_rule_generated_algebra_closed: true
+projector_free_rule_central_idempotent_ranks: [0, 4, 6, 10]
+projector_free_rule_compatible_centralizer_dimension: 4
+projector_free_rule_compatible_complex_structure_count: 0
 projector_free_rule_pass_rule_to_bridge: false
 ```
 
-This output is intentionally retained as a regression check, but it is not the
-physics headline: `projector_free_rule_generated_algebra_dimension = 16` means
-the old default stopped at the closure cap.
+The optional `--projector-free-max-algebra-dim 16` run is retained only as a
+legacy cap-boundary regression check. The default now matches the stepwise
+headline: the projector-free candidate reaches the coarse center and fails at
+compatible `J`.
 
 Focused performance probe after the algebra-kernel optimization:
 
@@ -100,10 +107,16 @@ path_a_combined_route1_route2:
 path_a_shifted_u2_u1_layers:
   algebraic seeded guardrail rejected
   topological_pm_candidate = true
+  reason: the coefficient algebra contains the shifted Route-1 operators; on
+  the alpha block they are non-scalar, so Bezout polynomials recover
+  P_alpha/P_eta. This is Route 1 wrapped in trivial spatial structure, not a
+  genuine Path-A primitive.
 
 path_a_shifted_ulocal:
   algebraic seeded guardrail rejected
   topological_pm_candidate = true
+  reason: the coefficient algebra contains U2 U1 itself, so the same
+  alpha/eta spectral projectors are algebraically recoverable.
 
 path_a_unseeded_uniform_identity_shift:
   seed guardrail passed
@@ -113,6 +126,12 @@ path_a_unseeded_clock_shift:
   seed guardrail passed
   no stable 6+4 band split
 ```
+
+The six labeled candidates above are a diagnostic panel mixing seeded
+controls, Route-1-in-disguise guardrail cases, and two conservative unseeded
+full-shift sanity checks. They are not the monomial-hop enumeration. The
+actual projector-free enumeration is the stepwise `_five_cycles x
+_shift_assignments` scan below.
 
 Additional direct `rule_to_verdict` candidate:
 

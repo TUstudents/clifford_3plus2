@@ -68,6 +68,30 @@ def test_idempotent_split_j_solver_finds_four_complex_structures() -> None:
     assert all(candidate.matrix * candidate.matrix == -one for candidate in candidates)
 
 
+def test_idempotent_split_j_solver_reports_one_dimensional_blocks_as_solved_empty() -> None:
+    zero = sp.zeros(2)
+    one = sp.eye(2)
+    p_left = sp.diag(1, 0)
+    p_right = sp.diag(0, 1)
+    idempotents = (
+        CentralIdempotent((), zero, 0),
+        CentralIdempotent((), p_left, 1),
+        CentralIdempotent((), p_right, 1),
+        CentralIdempotent((), one, 2),
+    )
+
+    solved, moduli_dimension, candidates = solve_complex_structures_from_idempotent_splitting(
+        (p_left, p_right),
+        idempotents,
+        source="local_compatible_center",
+        dimension=2,
+    )
+
+    assert solved
+    assert moduli_dimension == 0
+    assert candidates == ()
+
+
 def test_minimal_period_four_rule_has_j_but_no_6_4_center() -> None:
     update = minimal_period_four_update()
     result = rule_to_verdict(layers_from_update(update), rule_name=update.name)
