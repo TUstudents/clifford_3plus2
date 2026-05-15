@@ -713,6 +713,7 @@ shifts: (1, -1)
 laurent_orthogonal: true
 seed_guardrail_passed: true
 coefficient_algebra_dimension: 4
+coefficient_algebra_closed: true
 generated_algebra_dimension: 4
 generated_algebra_closed: true
 center_dimension: 1
@@ -729,6 +730,7 @@ shifts: (3, 4, -3, -4)
 laurent_orthogonal: true
 seed_guardrail_passed: false
 coefficient_algebra_dimension: 8
+coefficient_algebra_closed: true
 generated_algebra_dimension: 8
 generated_algebra_closed: true
 center_dimension: 2
@@ -736,6 +738,26 @@ center_solved: true
 central_idempotent_ranks: (0, 20)
 effective_rank_6_4_pairs: 0
 route_label: two_site_seed_guardrail_rejected
+```
+
+Two-site split-step coin boundary:
+
+```text
+uv run python scripts/bloch_two_site.py --split-step-search --max-candidates 4 --max-generated-algebra-dim 8 --split-step-coefficient-algebra-dim 8 --check
+
+candidate_count: 4
+seed_guardrail_rejections: 0
+laurent_orthogonal_candidates: 4
+closed_candidates: 0
+effective_6_4_candidates: 0
+strict_bridge_candidates: 0
+route_label: split_step_cap_boundary
+load_bearing_qca_bridge: false
+
+candidate: uniform_sublattice_swap, shifts=(1, 1, 1, 1, 1), coins=(sublattice-swap,identity), seed=true, laurent=true, coef_dim=8, coef_closed=false, dim=None, closed=false, center=None, ranks=(), effective_pairs=0, label=split_step_coefficient_cap_boundary
+candidate: uniform_mode_cycle, shifts=(1, 1, 1, 1, 1), coins=(mode-5-cycle,sublattice-swap), seed=true, laurent=true, coef_dim=8, coef_closed=false, dim=None, closed=false, center=None, ranks=(), effective_pairs=0, label=split_step_coefficient_cap_boundary
+candidate: off_axis_winding_sublattice_swap, shifts=(4, 3, 4, 3, 4), coins=(sublattice-swap,identity), seed=true, laurent=true, coef_dim=8, coef_closed=false, dim=None, closed=false, center=None, ranks=(), effective_pairs=0, label=split_step_coefficient_cap_boundary
+candidate: off_axis_winding_mode_cycle, shifts=(4, 3, 4, 3, 4), coins=(mode-5-cycle,sublattice-swap), seed=true, laurent=true, coef_dim=8, coef_closed=false, dim=None, closed=false, center=None, ranks=(), effective_pairs=0, label=split_step_coefficient_cap_boundary
 ```
 
 Defect-beta search:

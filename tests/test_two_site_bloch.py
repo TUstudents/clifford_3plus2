@@ -4,6 +4,7 @@ from clifford_3plus2_d5.qca.rule_verdict import _bloch_layer_laurent_orthogonal
 from clifford_3plus2_d5.qca.two_site_bloch import (
     two_site_bloch_certificate,
     two_site_bloch_forward_inverse_layer,
+    two_site_split_step_search_summary,
 )
 
 
@@ -33,3 +34,18 @@ def test_two_site_uniform_certificate_closes_trivial_center() -> None:
     assert certificate.effective_rank_6_4_pairs == 0
     assert certificate.route_label == "two_site_trivial_center_no_effective_split"
     assert not certificate.load_bearing_qca_bridge
+
+
+def test_two_site_split_step_panel_reports_bounded_cap() -> None:
+    summary = two_site_split_step_search_summary(
+        max_candidates=1,
+        max_generated_algebra_dimension=2,
+        max_coefficient_algebra_dimension=2,
+    )
+
+    assert summary.candidate_count == 1
+    assert summary.laurent_orthogonal_candidates == 1
+    assert summary.closed_candidates == 0
+    assert summary.strict_bridge_candidates == 0
+    assert summary.route_label == "split_step_cap_boundary"
+    assert summary.candidates[0].candidate_name == "uniform_sublattice_swap"

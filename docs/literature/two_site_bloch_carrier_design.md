@@ -102,6 +102,7 @@ shifts: (1, -1)
 laurent_orthogonal: true
 seed_guardrail_passed: true
 coefficient_algebra_dimension: 4
+coefficient_algebra_closed: true
 generated_algebra_dimension: 4
 generated_algebra_closed: true
 center_dimension: 1
@@ -122,6 +123,7 @@ shifts: (3, 4, -3, -4)
 laurent_orthogonal: true
 seed_guardrail_passed: false
 coefficient_algebra_dimension: 8
+coefficient_algebra_closed: true
 generated_algebra_dimension: 8
 generated_algebra_closed: true
 center_dimension: 2
@@ -157,3 +159,41 @@ that becomes the natural extension of Proposition 4.
 For the next Move-2 attempt, the winding data must be attached through a
 two-site coin or split-step layer whose coefficient algebra does not recover
 the coarse projector before the Bloch center is computed.
+
+## Split-Step Coin Boundary
+
+The next bounded Move-2b panel adds exact on-site `20 x 20` coins around the
+forward/inverse carrier:
+
+```text
+T(z) = C_right * Shift(z) * C_left
+```
+
+The first panel uses sublattice swaps and shared five-mode cycles. These are
+genuine two-site coins, not raw `P_alpha/P_eta` coefficients, and each layer
+passes exact Laurent orthogonality. The checker deliberately stops before
+forming the sampled Bloch algebra unless the coefficient algebra closes under
+the configured cap; otherwise the seed guardrail itself has not been certified.
+
+Bounded panel:
+
+```text
+uv run python scripts/bloch_two_site.py --split-step-search --max-candidates 4 --max-generated-algebra-dim 8 --split-step-coefficient-algebra-dim 8 --check
+
+candidate_count: 4
+seed_guardrail_rejections: 0
+laurent_orthogonal_candidates: 4
+closed_candidates: 0
+effective_6_4_candidates: 0
+strict_bridge_candidates: 0
+route_label: split_step_cap_boundary
+```
+
+All four candidates hit `split_step_coefficient_cap_boundary`: the exact
+coefficients are orthogonal and projector-free at the raw-matrix level, but
+their coefficient algebra already exceeds the bounded guardrail cap. This is
+not a bridge failure theorem. It is a useful computational-boundary result:
+nontrivial two-site split-step coins quickly leave the cheap exact guardrail
+class, so the next Move-2 search needs either a stronger coefficient-algebra
+kernel or a more structured coin family whose coefficient algebra can be
+closed before sampling Bloch momenta.

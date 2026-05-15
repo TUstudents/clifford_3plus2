@@ -58,6 +58,52 @@ class TwoSiteBlochCertificate:
     load_bearing_qca_bridge: bool = False
 
 
+@dataclass(frozen=True)
+class TwoSiteSplitStepCandidate:
+    name: str
+    source_shifts: tuple[int, ...]
+    left_coin: str
+    right_coin: str
+
+
+@dataclass(frozen=True)
+class TwoSiteSplitStepResult:
+    candidate_name: str
+    source_shifts: tuple[int, ...]
+    left_coin: str
+    right_coin: str
+    layer_count: int
+    term_count: int
+    shifts: tuple[int, ...]
+    laurent_orthogonal: bool
+    seed_guardrail_passed: bool
+    raw_seed_witnesses: tuple[str, ...]
+    algebraic_seed_witnesses: tuple[str, ...]
+    coefficient_algebra_dimension: int
+    coefficient_algebra_closed: bool
+    generated_algebra_dimension: int | None
+    generated_algebra_closed: bool
+    center_dimension: int | None
+    center_solved: bool
+    central_idempotent_ranks: tuple[int, ...]
+    effective_rank_6_4_pairs: int
+    route_label: str
+    load_bearing_qca_bridge: bool = False
+
+
+@dataclass(frozen=True)
+class TwoSiteSplitStepSearchSummary:
+    candidate_count: int
+    seed_guardrail_rejections: int
+    laurent_orthogonal_candidates: int
+    closed_candidates: int
+    effective_6_4_candidates: int
+    strict_bridge_candidates: int
+    route_label: str
+    candidates: tuple[TwoSiteSplitStepResult, ...]
+    load_bearing_qca_bridge: bool = False
+
+
 def _mode_edge_matrix(edges: tuple[tuple[int, int], ...], *, dimension: int = 10) -> sp.Matrix:
     mode_count = dimension // 2
     matrix = sp.zeros(dimension)
@@ -131,6 +177,77 @@ def two_site_bloch_forward_inverse_layer(
     )
 
 
+def _mode_permutation_matrix(cycle: tuple[int, ...], *, dimension: int = 10) -> sp.Matrix:
+    return _mode_edge_matrix(tuple(enumerate(cycle)), dimension=dimension)
+
+
+def _two_site_diagonal(left: sp.Matrix, right: sp.Matrix) -> sp.Matrix:
+    zero = sp.zeros(left.rows)
+    return left.row_join(zero).col_join(zero.row_join(right))
+
+
+def _coin_matrix(name: str) -> sp.Matrix:
+    one10 = identity(10)
+    if name == "identity":
+        return identity(20)
+    if name == "sublattice-swap":
+        zero = sp.zeros(10)
+        return zero.row_join(one10).col_join(one10.row_join(zero))
+    if name == "mode-5-cycle":
+        cycle = _mode_permutation_matrix((1, 2, 3, 4, 0))
+        return _two_site_diagonal(cycle, cycle)
+    if name == "mode-cycle-inverse":
+        cycle = _mode_permutation_matrix((4, 0, 1, 2, 3))
+        return _two_site_diagonal(cycle, cycle)
+    raise ValueError(f"unknown two-site coin: {name}")
+
+
+def _coin_layer(name: str) -> RuleLayerInput:
+    return RuleLayerInput(
+        name=f"two_site_coin_{name}",
+        matrix=_coin_matrix(name),
+        locality_radius=0,
+    )
+
+
+def two_site_split_step_layers(candidate: TwoSiteSplitStepCandidate) -> tuple[RuleLayerInput, ...]:
+    shift = two_site_bloch_forward_inverse_layer(source_shifts=candidate.source_shifts)
+    return (
+        _coin_layer(candidate.left_coin),
+        shift,
+        _coin_layer(candidate.right_coin),
+    )
+
+
+def two_site_split_step_candidates() -> tuple[TwoSiteSplitStepCandidate, ...]:
+    return (
+        TwoSiteSplitStepCandidate(
+            name="uniform_sublattice_swap",
+            source_shifts=(1, 1, 1, 1, 1),
+            left_coin="sublattice-swap",
+            right_coin="identity",
+        ),
+        TwoSiteSplitStepCandidate(
+            name="uniform_mode_cycle",
+            source_shifts=(1, 1, 1, 1, 1),
+            left_coin="mode-5-cycle",
+            right_coin="sublattice-swap",
+        ),
+        TwoSiteSplitStepCandidate(
+            name="off_axis_winding_sublattice_swap",
+            source_shifts=(4, 3, 4, 3, 4),
+            left_coin="sublattice-swap",
+            right_coin="identity",
+        ),
+        TwoSiteSplitStepCandidate(
+            name="off_axis_winding_mode_cycle",
+            source_shifts=(4, 3, 4, 3, 4),
+            left_coin="mode-5-cycle",
+            right_coin="sublattice-swap",
+        ),
+    )
+
+
 def _embedded_projectors() -> tuple[tuple[str, sp.Matrix], ...]:
     p_alpha, p_eta = split_projectors_3_2()
     zero = sp.zeros(10)
@@ -159,24 +276,32 @@ def _matrix_in_span(matrix: sp.Matrix, basis: tuple[sp.Matrix, ...]) -> bool:
     return matrix_span_rank((*basis, matrix)) == matrix_span_rank(basis)
 
 
-def two_site_seed_guardrail(
-    layer: RuleLayerInput,
+def _layer_coefficients(layer: RuleLayerInput) -> tuple[sp.Matrix, ...]:
+    if layer.bloch_terms:
+        return tuple(term.matrix for term in layer.bloch_terms)
+    return (layer.matrix,)
+
+
+def two_site_seed_guardrail_for_layers(
+    layers: tuple[RuleLayerInput, ...],
     *,
     max_coefficient_algebra_dimension: int = 32,
 ) -> tuple[BlochSeedGuardrail, int, bool]:
     targets = _embedded_projectors()
     raw_witnesses: list[str] = []
-    for term in layer.bloch_terms:
-        for name, target in targets:
-            if term.matrix == target:
-                raw_witnesses.append(f"{layer.name}:shift_{term.shift}:{name}")
-        if _is_obvious_seed_projector(term.matrix):
-            raw_witnesses.append(
-                f"{layer.name}:shift_{term.shift}:projector_rank_{term.matrix.rank()}"
-            )
+    coefficients = []
+    for layer in layers:
+        for index, matrix in enumerate(_layer_coefficients(layer)):
+            label = f"{layer.name}:coefficient_{index}"
+            coefficients.append(matrix)
+            for name, target in targets:
+                if matrix == target:
+                    raw_witnesses.append(f"{label}:{name}")
+            if _is_obvious_seed_projector(matrix):
+                raw_witnesses.append(f"{label}:projector_rank_{matrix.rank()}")
 
     coefficient_closure = generated_algebra_closure(
-        tuple(term.matrix for term in layer.bloch_terms),
+        tuple(coefficients),
         dimension=20,
         max_dimension=max_coefficient_algebra_dimension,
     )
@@ -192,6 +317,17 @@ def two_site_seed_guardrail(
         ),
         len(coefficient_closure.basis),
         coefficient_closure.closed,
+    )
+
+
+def two_site_seed_guardrail(
+    layer: RuleLayerInput,
+    *,
+    max_coefficient_algebra_dimension: int = 32,
+) -> tuple[BlochSeedGuardrail, int, bool]:
+    return two_site_seed_guardrail_for_layers(
+        (layer,),
+        max_coefficient_algebra_dimension=max_coefficient_algebra_dimension,
     )
 
 
@@ -240,6 +376,30 @@ def _route_label(
     if central_idempotent_ranks == (0, 20):
         return "two_site_trivial_center_no_effective_split"
     return "two_site_no_effective_6_4"
+
+
+def _split_step_route_label(
+    *,
+    laurent_orthogonal: bool,
+    seed_guardrail_passed: bool,
+    coefficient_algebra_closed: bool,
+    generated_algebra_closed: bool,
+    central_idempotent_ranks: tuple[int, ...],
+    effective_rank_6_4_pairs: int,
+) -> str:
+    if not laurent_orthogonal:
+        return "split_step_invalid_laurent"
+    if not seed_guardrail_passed:
+        return "split_step_seed_guardrail_rejected"
+    if not coefficient_algebra_closed:
+        return "split_step_coefficient_cap_boundary"
+    if not generated_algebra_closed:
+        return "split_step_cap_boundary"
+    if effective_rank_6_4_pairs:
+        return "split_step_effective_6_4_unresolved"
+    if central_idempotent_ranks == (0, 20):
+        return "split_step_trivial_center_no_effective_split"
+    return "split_step_no_effective_6_4"
 
 
 def two_site_bloch_certificate(
@@ -313,4 +473,134 @@ def two_site_bloch_certificate(
             central_idempotent_ranks=idempotent_ranks,
             effective_rank_6_4_pairs=effective_pairs,
         ),
+    )
+
+
+def _layers_laurent_orthogonal(layers: tuple[RuleLayerInput, ...]) -> bool:
+    def is_layer_orthogonal(layer: RuleLayerInput) -> bool:
+        if layer.bloch_terms:
+            return _bloch_layer_laurent_orthogonal(layer, dimension=20)
+        return is_real_matrix(layer.matrix) and layer.matrix.T * layer.matrix == identity(20)
+
+    return all(is_layer_orthogonal(layer) for layer in layers)
+
+
+def _evaluate_split_step_candidate(
+    candidate: TwoSiteSplitStepCandidate,
+    *,
+    max_generated_algebra_dimension: int,
+    max_center_dimension: int,
+    max_coefficient_algebra_dimension: int,
+) -> TwoSiteSplitStepResult:
+    layers = two_site_split_step_layers(candidate)
+    laurent = _layers_laurent_orthogonal(layers)
+    guardrail, coefficient_dimension, coefficient_closed = two_site_seed_guardrail_for_layers(
+        layers,
+        max_coefficient_algebra_dimension=max_coefficient_algebra_dimension,
+    )
+
+    generated_dimension = None
+    generated_closed = False
+    center_dimension = None
+    center_solved = False
+    idempotent_ranks: tuple[int, ...] = ()
+    profiles: tuple[EffectiveIdempotentProfile, ...] = ()
+    if guardrail.passed and laurent and coefficient_closed:
+        samples = bloch_floquet_operators(layers, bloch_period=12, dimension=20)
+        closure = generated_algebra_closure(
+            samples,
+            dimension=20,
+            max_dimension=max_generated_algebra_dimension,
+        )
+        generated_dimension = len(closure.basis)
+        generated_closed = closure.closed
+        if closure.closed:
+            center = center_basis_of_algebra(closure.basis, dimension=20)
+            center_dimension = len(center)
+            center_solved, idempotents = solve_central_idempotents(
+                center,
+                max_center_dimension=max_center_dimension,
+                dimension=20,
+            )
+            idempotent_ranks = tuple(item.rank for item in idempotents)
+            profiles = tuple(_effective_profile(item.matrix) for item in idempotents)
+    effective_pairs = _effective_rank_6_4_pairs(profiles)
+
+    return TwoSiteSplitStepResult(
+        candidate_name=candidate.name,
+        source_shifts=candidate.source_shifts,
+        left_coin=candidate.left_coin,
+        right_coin=candidate.right_coin,
+        layer_count=len(layers),
+        term_count=sum(len(_layer_coefficients(layer)) for layer in layers),
+        shifts=tuple(term.shift for layer in layers for term in layer.bloch_terms),
+        laurent_orthogonal=laurent,
+        seed_guardrail_passed=guardrail.passed,
+        raw_seed_witnesses=guardrail.raw_seed_witnesses,
+        algebraic_seed_witnesses=guardrail.algebraic_seed_witnesses,
+        coefficient_algebra_dimension=coefficient_dimension,
+        coefficient_algebra_closed=coefficient_closed,
+        generated_algebra_dimension=generated_dimension,
+        generated_algebra_closed=generated_closed,
+        center_dimension=center_dimension,
+        center_solved=center_solved,
+        central_idempotent_ranks=idempotent_ranks,
+        effective_rank_6_4_pairs=effective_pairs,
+        route_label=_split_step_route_label(
+            laurent_orthogonal=laurent,
+            seed_guardrail_passed=guardrail.passed,
+            coefficient_algebra_closed=coefficient_closed,
+            generated_algebra_closed=generated_closed,
+            central_idempotent_ranks=idempotent_ranks,
+            effective_rank_6_4_pairs=effective_pairs,
+        ),
+    )
+
+
+def two_site_split_step_search_summary(
+    *,
+    max_candidates: int | None = None,
+    max_generated_algebra_dimension: int = 16,
+    max_center_dimension: int = 8,
+    max_coefficient_algebra_dimension: int = 32,
+) -> TwoSiteSplitStepSearchSummary:
+    candidates = two_site_split_step_candidates()
+    if max_candidates is not None:
+        candidates = candidates[:max_candidates]
+    results = tuple(
+        _evaluate_split_step_candidate(
+            candidate,
+            max_generated_algebra_dimension=max_generated_algebra_dimension,
+            max_center_dimension=max_center_dimension,
+            max_coefficient_algebra_dimension=max_coefficient_algebra_dimension,
+        )
+        for candidate in candidates
+    )
+    effective_hits = sum(result.effective_rank_6_4_pairs > 0 for result in results)
+    strict_hits = 0
+    route_label = (
+        "split_step_bridge_candidate"
+        if strict_hits
+        else (
+            "split_step_effective_6_4_unresolved"
+            if effective_hits
+            else (
+                "split_step_cap_boundary"
+                if any(
+                    not result.coefficient_algebra_closed or not result.generated_algebra_closed
+                    for result in results
+                )
+                else "split_step_no_bridge_candidates"
+            )
+        )
+    )
+    return TwoSiteSplitStepSearchSummary(
+        candidate_count=len(results),
+        seed_guardrail_rejections=sum(not result.seed_guardrail_passed for result in results),
+        laurent_orthogonal_candidates=sum(result.laurent_orthogonal for result in results),
+        closed_candidates=sum(result.generated_algebra_closed for result in results),
+        effective_6_4_candidates=effective_hits,
+        strict_bridge_candidates=strict_hits,
+        route_label=route_label,
+        candidates=results,
     )

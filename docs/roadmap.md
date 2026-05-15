@@ -1351,6 +1351,14 @@ The guardrail-passing uniform variant has only a trivial center. The
 Path-A-shaped `(4,3)` winding variant is exact and closes at generated algebra
 dimension `8`, but its coefficient algebra recovers embedded
 `P_alpha/P_eta`, so it is rejected before it can count as an unseeded bridge.
+The first split-step two-site coin panel wraps the forward/inverse carrier with
+exact `20 x 20` sublattice-swap and mode-cycle coins. All four bounded
+candidates pass layerwise Laurent orthogonality and raw projector-free checks,
+but each exceeds the configured coefficient-algebra cap before the sampled
+Bloch algebra is formed. The result is therefore a computational-boundary
+certificate, not a no-go: nontrivial two-site coins need either a stronger
+coefficient-algebra closure kernel or a narrower structured family before they
+can be judged as bridge candidates.
 ```
 
 ## Defect-Beta Transition-Pair Family
