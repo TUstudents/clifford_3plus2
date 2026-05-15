@@ -31,7 +31,7 @@ normalizer_check: candidate_only
 real_qca_branch_check: candidate_only
 rule_space_exploration: no forced survivors
 unseeded_projector_discovery: no complementary 6+4 pair
-rule_to_verdict_check: unified negative interface with exact field and J-moduli metadata
+rule_to_verdict_check: unified negative interface, now with sampled Bloch mode
 floquet_alpha: canonical CLI for alpha variants; coarse 6+4 center found
 floquet_alpha_time_reversal: declared K reduces J moduli 9->3, not ±J
 floquet_alpha_second_layer: cycle/swap lock fails no-locking guardrail
@@ -41,7 +41,7 @@ floquet_alpha_noncommuting_completion: no lower center, still four J signs
 spatial_1d_alpha: local-QCA sidecar couples four J signs to global ±
 spatial_1d_combined: Route 1 + Route 2 gives ± shape, still no rule-generated J
 spatial_1d_unseeded: no bridge candidate; seeded projector-shift rejected
-bloch_path_a: sampled Bloch checker; seeded shape only, no unseeded bridge
+bloch_path_a: seeded shape only; projector-free combined candidate is bounded not_solved
 defect_beta_search: monodromy equals alpha; transition-pair rule still negative
 Spin(10) branching check: passes
 QCA load-bearing bridge: notation_only
@@ -101,6 +101,7 @@ Spin(10), the project remains `notation_only`.
 - [Floquet alpha report](docs/literature/floquet_alpha_report.md)
 - [Floquet alpha J obstruction](docs/literature/floquet_alpha_j_obstruction.md)
 - [Spatial 1D sidecar report](docs/literature/spatial_1d_report.md)
+- [Bloch Path-A report](docs/literature/bloch_path_a_report.md)
 - [Defect beta report](docs/literature/defect_beta_report.md)
 - [Theory summary](docs/theory.md)
 - [Falsifiers](docs/falsifiers.md)

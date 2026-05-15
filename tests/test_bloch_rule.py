@@ -6,8 +6,11 @@ import sys
 from pathlib import Path
 
 from clifford_3plus2_d5.algebra.matrices import identity
+from clifford_3plus2_d5.algebra.real_carrier import split_projectors_3_2
 from clifford_3plus2_d5.qca.bloch_rule import (
     BlochRuleLayerInput,
+    bloch_path_a_projector_free_combined_layer,
+    bloch_path_a_projector_free_rule_to_verdict,
     bloch_path_a_search_summary,
     bloch_symbol_at_root,
 )
@@ -58,6 +61,35 @@ def test_bloch_path_a_summary_reports_seeded_shape_only() -> None:
     assert identity_shift.route_label == "bloch_path_a_no_stable_6_4_band_split"
 
 
+def test_projector_free_combined_layer_has_no_raw_projector_coefficients() -> None:
+    p_alpha, p_eta = split_projectors_3_2()
+    layer = bloch_path_a_projector_free_combined_layer()
+
+    assert layer.name == "path_a_projector_free_cycle_combined"
+    assert tuple(term.shift for term in layer.bloch_terms) == (3, 4)
+    assert layer.locality_radius == 4
+    assert all(term.matrix not in (p_alpha, p_eta) for term in layer.bloch_terms)
+    assert sorted(term.matrix.rank() for term in layer.bloch_terms) == [4, 6]
+
+
+def test_projector_free_rule_to_verdict_is_bounded_not_solved() -> None:
+    verdict = bloch_path_a_projector_free_rule_to_verdict(
+        max_generated_algebra_dimension=16,
+        max_center_solve_dimension=4,
+        max_j_solve_dimension=4,
+    )
+
+    assert verdict.bloch_period == 12
+    assert verdict.bloch_sample_count == 12
+    assert verdict.all_layers_real_orthogonal
+    assert verdict.all_layers_local
+    assert verdict.generated_algebra_dimension == 16
+    assert not verdict.generated_algebra_closed
+    assert not verdict.center_solved
+    assert verdict.verdict == "not_solved"
+    assert not verdict.pass_rule_to_bridge
+
+
 def test_bloch_path_a_cli_check() -> None:
     result = subprocess.run(
         [
@@ -81,3 +113,8 @@ def test_bloch_path_a_cli_check() -> None:
     assert payload["strict_bridge_candidates"] == 0
     assert payload["route_label"] == "bloch_path_a_seeded_shape_only"
     assert payload["load_bearing_qca_bridge"] is False
+    projector_free = payload["projector_free_rule_to_verdict"]
+    assert projector_free["bloch_period"] == 12
+    assert projector_free["bloch_sample_count"] == 12
+    assert projector_free["generated_algebra_closed"] is False
+    assert projector_free["verdict"] == "not_solved"

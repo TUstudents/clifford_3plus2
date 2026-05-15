@@ -55,6 +55,10 @@ rule_generated_j_section_candidates: 0
 strict_bridge_candidates: 0
 route_label: bloch_path_a_seeded_shape_only
 load_bearing_qca_bridge: false
+projector_free_rule_verdict: not_solved
+projector_free_rule_generated_algebra_dimension: 16
+projector_free_rule_generated_algebra_closed: false
+projector_free_rule_pass_rule_to_bridge: false
 ```
 
 Candidate labels:
@@ -86,6 +90,17 @@ path_a_unseeded_clock_shift:
   no stable 6+4 band split
 ```
 
+Additional direct `rule_to_verdict` candidate:
+
+```text
+path_a_projector_free_cycle_combined:
+  Bloch terms have shifts (3,4) from source-mode windings (4,4,4,3,3)
+  raw coefficients are partial monomial hops, not P_alpha/P_eta
+  on-site update is the Route-1 noncommuting U2 U1
+  sampled joint algebra exceeds the bounded exact closure cap
+  verdict = not_solved
+```
+
 ## Interpretation
 
 The checker now separates three things that were previously conflated:
@@ -102,10 +117,14 @@ The first Path-A result is therefore:
 seeded topological shape: yes
 unseeded stable 6+4 band split: no
 rule-generated J(k) section: no
+projector-free combined verdict: bounded not_solved
 strict bridge: no
 ```
 
 The next Path-A step is to enlarge the unseeded finite-radius family beyond
-uniform full-site shifts. The useful candidates should have nontrivial
+uniform full-site shifts and to optimize the exact algebra closure for
+projector-free partial hopping. The useful candidates should have nontrivial
 partial hopping structure without allowing the coefficient algebra to generate
-constant `P_alpha/P_eta`.
+constant `P_alpha/P_eta`; the first such candidate already escapes raw
+projector seeding but pushes the sampled algebra beyond the current quick
+closure bound.

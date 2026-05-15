@@ -6,8 +6,10 @@ import json
 from clifford_3plus2_d5.qca.bloch_rule import (
     BlochPathASearchSummary,
     BlochRuleVerdict,
+    bloch_path_a_projector_free_rule_to_verdict,
     bloch_path_a_search_summary,
 )
+from clifford_3plus2_d5.qca.rule_verdict import result_to_dict
 
 
 def _verdict_to_dict(verdict: BlochRuleVerdict) -> dict[str, object]:
@@ -52,6 +54,7 @@ def _verdict_to_dict(verdict: BlochRuleVerdict) -> dict[str, object]:
 
 
 def _summary_to_dict(summary: BlochPathASearchSummary) -> dict[str, object]:
+    projector_free_verdict = bloch_path_a_projector_free_rule_to_verdict()
     return {
         "family": "bloch_path_a",
         "candidate_count": summary.candidate_count,
@@ -65,6 +68,7 @@ def _summary_to_dict(summary: BlochPathASearchSummary) -> dict[str, object]:
         "strict_bridge_candidates": summary.strict_bridge_candidates,
         "route_label": summary.route_label,
         "load_bearing_qca_bridge": summary.load_bearing_qca_bridge,
+        "projector_free_rule_to_verdict": result_to_dict(projector_free_verdict),
         "candidates": [_verdict_to_dict(verdict) for verdict in summary.candidates],
     }
 
@@ -100,6 +104,23 @@ def main() -> int:
         print(f"strict_bridge_candidates: {summary.strict_bridge_candidates}")
         print(f"route_label: {summary.route_label}")
         print(f"load_bearing_qca_bridge: {str(summary.load_bearing_qca_bridge).lower()}")
+        projector_free_verdict = payload["projector_free_rule_to_verdict"]
+        print(
+            "projector_free_rule_verdict: "
+            f"{projector_free_verdict['verdict']}"
+        )
+        print(
+            "projector_free_rule_generated_algebra_dimension: "
+            f"{projector_free_verdict['generated_algebra_dimension']}"
+        )
+        print(
+            "projector_free_rule_generated_algebra_closed: "
+            f"{str(projector_free_verdict['generated_algebra_closed']).lower()}"
+        )
+        print(
+            "projector_free_rule_pass_rule_to_bridge: "
+            f"{str(projector_free_verdict['pass_rule_to_bridge']).lower()}"
+        )
         for verdict in summary.candidates:
             print(
                 "candidate: "
@@ -120,6 +141,8 @@ def main() -> int:
             and summary.strict_bridge_candidates == 0
             and summary.route_label == "bloch_path_a_seeded_shape_only"
             and not summary.load_bearing_qca_bridge
+            and payload["projector_free_rule_to_verdict"]["verdict"] == "not_solved"
+            and not payload["projector_free_rule_to_verdict"]["generated_algebra_closed"]
         )
         if not check_passed:
             return 1

@@ -620,6 +620,10 @@ topological_pm_candidates: 4
 rule_generated_j_section_candidates: 0
 strict_bridge_candidates: 0
 route_label: bloch_path_a_seeded_shape_only
+projector_free_rule_verdict: not_solved
+projector_free_rule_generated_algebra_dimension: 16
+projector_free_rule_generated_algebra_closed: false
+projector_free_rule_pass_rule_to_bridge: false
 load_bearing_qca_bridge: false
 ```
 
@@ -773,6 +777,12 @@ The Bloch Path-A checker now makes this boundary explicit over sampled
 root-of-unity Bloch symbols: seeded candidates have the topological shape but
 fail the coefficient-algebra guardrail, while the first unseeded full-shift
 candidates produce no stable rank-`(6,4)` band split.
+The main `rule_to_verdict` path now also samples Bloch symbols as a single
+joint algebra. Its first projector-free combined Route-1/Route-2 candidate
+uses source-mode shifts `(4,4,4,3,3)` without raw `P_alpha/P_eta`
+coefficients. The bounded exact algebra closure reaches dimension `16` before
+closure and returns `not_solved`, so this is a computational boundary rather
+than a bridge candidate or a fourth no-go.
 Defect-beta is retained as a regression target but parked as a load-bearing
 route until rebuilt as a genuine higher-dimensional defect calculation. Its
 round-trip monodromy is exactly the matching Floquet-alpha operator. The

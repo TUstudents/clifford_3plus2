@@ -11,6 +11,7 @@ from clifford_3plus2_d5.explore.primitives import block_reflection_primitive
 from clifford_3plus2_d5.qca.layers import minimal_period_four_update
 from clifford_3plus2_d5.qca.rule_verdict import (
     EXACT_WORKING_FIELD,
+    RuleBlochTerm,
     RuleLayerInput,
     layers_from_update,
     result_to_dict,
@@ -30,6 +31,7 @@ def test_minimal_period_four_rule_has_j_but_no_6_4_center() -> None:
     assert result.all_layers_local
     assert result.locality_radius_bound == 0
     assert result.center_solved
+    assert result.generated_algebra_closed
     assert [item.rank for item in result.central_idempotents] == [0, 10]
     assert result.generated_j_solved
     assert result.generated_j_moduli_dimension == 0
@@ -95,10 +97,13 @@ def test_result_serialization_is_stable() -> None:
     assert payload["rule_name"] == "minimal_period_four_clock_candidate"
     assert payload["exact_working_field"] == EXACT_WORKING_FIELD
     assert payload["natural_eigenvalue_field"] == "QQ"
+    assert payload["bloch_period"] is None
+    assert payload["bloch_sample_count"] == 0
     assert payload["all_layers_local"] is True
     assert payload["locality_radius_bound"] == 0
     assert payload["floquet_spectrum"] == [{"eigenvalue": "1", "multiplicity": 10}]
     assert payload["central_idempotent_ranks"] == [0, 10]
+    assert payload["generated_algebra_closed"] is True
     assert payload["generated_j_solved"] is True
     assert payload["generated_j_moduli_dimension"] == 0
     assert isinstance(payload["compatible_centralizer_dimension"], int)
@@ -156,3 +161,28 @@ def test_rule_to_verdict_cli_check_fails_without_bridge_candidate() -> None:
     )
 
     assert result.returncode == 1
+
+
+def test_rule_to_verdict_samples_bloch_symbols_when_period_is_present() -> None:
+    layer = RuleLayerInput(
+        name="identity_shift",
+        matrix=identity(10),
+        locality_radius=1,
+        bloch_terms=(RuleBlochTerm(shift=1, matrix=identity(10)),),
+    )
+
+    result = rule_to_verdict(
+        (layer,),
+        rule_name="identity_shift_bloch",
+        bloch_period=4,
+        max_center_solve_dimension=2,
+        max_j_solve_dimension=2,
+    )
+
+    assert result.bloch_period == 4
+    assert result.bloch_sample_count == 4
+    assert result.natural_eigenvalue_field == "QQ(zeta_4)"
+    assert result.layer_count == 1
+    assert result.all_layers_real_orthogonal
+    assert result.all_layers_local
+    assert result.locality_radius_bound == 1

@@ -22,10 +22,14 @@ from clifford_3plus2_d5.qca.floquet_alpha_noncommuting import (
 )
 from clifford_3plus2_d5.qca.gates import is_real_matrix
 from clifford_3plus2_d5.qca.rule_verdict import (
+    RuleBlochTerm,
+    RuleLayerInput,
+    RuleToVerdictResult,
     _complementary_rank_6_4_pairs,
     _lower_rank_idempotents_inside_pairs,
     center_basis_of_algebra,
     generated_algebra_basis,
+    rule_to_verdict,
     solve_central_idempotents,
 )
 from clifford_3plus2_d5.qca.spatial_1d import (
@@ -424,6 +428,73 @@ def _full_shift_layer(
         period=period,
         dimension=dimension,
         terms=(SpatialHoppingTerm(shift=shift, matrix=matrix),),
+    )
+
+
+def _mode_edge_matrix(
+    edges: tuple[tuple[int, int], ...],
+    *,
+    dimension: int = 10,
+) -> sp.Matrix:
+    mode_count = dimension // 2
+    matrix = sp.zeros(dimension)
+    for source, target in edges:
+        matrix[target, source] = 1
+        matrix[target + mode_count, source + mode_count] = 1
+    return matrix
+
+
+def bloch_path_a_projector_free_combined_layer() -> RuleLayerInput:
+    """Return a projector-free Route-1/Route-2 Bloch candidate.
+
+    The hopping is a monomial mode-pair cycle with edge shifts
+    ``(4,4,4,3,3)``.  Its raw coefficients are partial permutations, not
+    ``P_alpha/P_eta`` projectors.  The on-site update is the Route-1
+    noncommuting ``U2 * U1`` layer.
+    """
+
+    rule = spatial_alpha_prototype()
+    onsite = floquet_alpha_noncommuting_candidates(pattern_index=0)[0]
+    u1 = floquet_alpha_operator(onsite.pattern)
+    u2 = floquet_alpha_noncommuting_twist_operator(onsite)
+    ulocal = sp.simplify(u2 * u1)
+    cycle = (1, 2, 3, 4, 0)
+    source_shifts = (4, 4, 4, 3, 3)
+    terms = []
+    for shift in sorted(set(source_shifts)):
+        edges = tuple(
+            (source, cycle[source])
+            for source, source_shift in enumerate(source_shifts)
+            if source_shift == shift
+        )
+        terms.append(
+            RuleBlochTerm(
+                shift=shift,
+                matrix=sp.simplify(ulocal * _mode_edge_matrix(edges, dimension=rule.dimension)),
+            )
+        )
+    representative = sum((term.matrix for term in terms), sp.zeros(rule.dimension))
+    return RuleLayerInput(
+        name="path_a_projector_free_cycle_combined",
+        matrix=representative,
+        locality_radius=max(source_shifts),
+        bloch_terms=tuple(terms),
+    )
+
+
+def bloch_path_a_projector_free_rule_to_verdict(
+    *,
+    max_generated_algebra_dimension: int | None = 16,
+    max_center_solve_dimension: int = 8,
+    max_j_solve_dimension: int = 8,
+) -> RuleToVerdictResult:
+    return rule_to_verdict(
+        (bloch_path_a_projector_free_combined_layer(),),
+        rule_name="path_a_projector_free_cycle_combined",
+        bloch_period=spatial_alpha_prototype().period,
+        max_generated_algebra_dimension=max_generated_algebra_dimension,
+        max_center_solve_dimension=max_center_solve_dimension,
+        max_j_solve_dimension=max_j_solve_dimension,
     )
 
 

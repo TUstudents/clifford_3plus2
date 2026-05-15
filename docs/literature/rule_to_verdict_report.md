@@ -11,11 +11,14 @@ and exposed by
 
 The actual bridge question is now evaluated as one rule-to-verdict function.
 Input is a finite list of real on-site `10 x 10` layer matrices with locality
-metadata. Output is:
+metadata. For spatial sidecars, the same interface also accepts Bloch Laurent
+terms and an optional `bloch_period`; then the generated algebra is the joint
+sampled algebra `R<T(zeta^0),...,T(zeta^(period-1))>`. Output is:
 
 ```text
 Floquet spectrum
 generated real algebra dimension
+generated algebra closure status
 center of the generated algebra
 central idempotent ranks
 rank-(6,4) complementary pairs
@@ -126,6 +129,12 @@ or compatible basis is below the configured solve bound. When the full
 compatible centralizer is too large, the checker reports
 `compatible_j_solved: false` for that diagnostic solve but can still solve the
 rule-generated local problem.
+
+Bloch-mode candidates can also set a `max_generated_algebra_dimension` cap.
+If the joint sampled algebra exceeds the cap before closure, the checker
+returns `generated_algebra_closed: false` and `verdict: not_solved` rather
+than attempting an unbounded exact closure. This is a computational boundary,
+not a physics falsifier.
 
 The reported full-compatible `compatible_j_moduli_dimension` may fall back to
 a heuristic only in the single-generator semisimple case. That estimate counts

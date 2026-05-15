@@ -1245,6 +1245,9 @@ bloch_path_a_topological_pm_candidates = 4
 bloch_path_a_rule_generated_j_section_candidates = 0
 bloch_path_a_strict_bridge_candidates = 0
 bloch_path_a_route_label = bloch_path_a_seeded_shape_only
+projector_free_rule_verdict = not_solved
+projector_free_rule_generated_algebra_dimension = 16
+projector_free_rule_generated_algebra_closed = false
 load_bearing_qca_bridge = false
 ```
 
@@ -1283,6 +1286,12 @@ sampled root-of-unity Bloch symbols. Its first candidate family reports the
 expected boundary: seeded rules keep the `(4,3)` topological shape but are
 rejected, while the unseeded full-shift starters do not produce a stable
 rank-`(6,4)` band split or a rule-generated `J(k)` section.
+The main `rule_to_verdict` interface now also supports a Bloch-period mode
+that forms the joint sampled algebra `R<T(zeta^j)>`. The first projector-free
+combined Route-1/Route-2 layer uses partial monomial hops with source shifts
+`(4,4,4,3,3)` and on-site update `U2 U1`; it avoids raw projector
+coefficients but exceeds the bounded exact algebra-closure cap, so the verdict
+is `not_solved` rather than a bridge or a no-go.
 ```
 
 ## Defect-Beta Transition-Pair Family
