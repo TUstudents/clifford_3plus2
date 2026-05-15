@@ -25,6 +25,8 @@ from clifford_3plus2_d5.qca.floquet_alpha import (
     floquet_alpha_sector_centralizer_dimensions,
     floquet_alpha_second_layer_certificate,
     floquet_alpha_spectral_projectors,
+    floquet_alpha_time_reversal_certificate,
+    floquet_alpha_time_reversal_operator,
     pair_rotation,
 )
 from clifford_3plus2_d5.qca.floquet_alpha_noncommuting import (
@@ -149,6 +151,35 @@ def test_floquet_alpha_plus_reports_polarization_j_and_strict_obstruction() -> N
     assert not certificate.load_bearing_qca_bridge
 
 
+def test_floquet_alpha_time_reversal_is_guarded_sidecar_not_bridge() -> None:
+    candidate = floquet_alpha_candidates()[0]
+    operator = floquet_alpha_operator(candidate)
+    canonical_j = floquet_alpha_canonical_j(candidate)
+    k_operator = floquet_alpha_time_reversal_operator()
+    certificate = floquet_alpha_time_reversal_certificate(candidate)
+
+    assert k_operator.T * k_operator == identity(10)
+    assert k_operator * k_operator == identity(10)
+    assert sp.simplify(k_operator * operator * k_operator - operator.T) == sp.zeros(10)
+    assert sp.simplify(k_operator * canonical_j * k_operator + canonical_j) == sp.zeros(10)
+    assert certificate.time_reversal_origin == "declared_not_rule_generated"
+    assert certificate.k_real_orthogonal
+    assert certificate.k_involution
+    assert certificate.k_conjugates_floquet_to_inverse
+    assert certificate.k_anticommutes_with_canonical_j
+    assert not certificate.k_in_generated_algebra
+    assert certificate.compatible_j_moduli_dimension_before_k == 9
+    assert certificate.k_fixed_compatible_j_moduli_dimension == 3
+    assert certificate.k_fixed_generated_complex_structure_count == 4
+    assert certificate.k_fixed_local_compatible_complex_structure_count == 4
+    assert certificate.k_fixed_local_matches_canonical_orbit_count == 2
+    assert certificate.k_reduces_full_moduli
+    assert not certificate.k_reduces_to_global_pm
+    assert certificate.strict_bridge_candidates == 0
+    assert certificate.verdict == "declared_time_reversal_reduces_moduli_not_unique"
+    assert not certificate.load_bearing_qca_bridge
+
+
 def test_floquet_alpha_cycle_swap_second_layer_is_a_checked_negative() -> None:
     candidate = floquet_alpha_candidates()[0]
     operator = floquet_alpha_cycle_swap_operator(candidate)
@@ -259,6 +290,42 @@ def test_floquet_alpha_plus_cli_searches_all_patterns() -> None:
     assert payload["verdict_counts"] == {
         "polarization_j_produced_not_strictly_unique": 10
     }
+    assert payload["load_bearing_qca_bridge"] is False
+
+
+def test_floquet_alpha_time_reversal_cli_searches_all_patterns() -> None:
+    result = subprocess.run(
+        [
+            sys.executable,
+            "scripts/floquet_alpha_time_reversal_search.py",
+            "--json",
+            "--check",
+        ],
+        cwd=ROOT,
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    payload = json.loads(result.stdout)
+
+    assert payload["candidate_count"] == 10
+    assert payload["k_real_orthogonal_candidates"] == 10
+    assert payload["k_involution_candidates"] == 10
+    assert payload["k_conjugates_floquet_to_inverse_candidates"] == 10
+    assert payload["k_anticommutes_with_canonical_j_candidates"] == 10
+    assert payload["k_in_generated_algebra_candidates"] == 0
+    assert payload["compatible_j_moduli_dimension_before_k"] == 9
+    assert payload["k_fixed_compatible_j_moduli_dimension"] == 3
+    assert payload["k_fixed_local_compatible_complex_structure_count"] == 4
+    assert payload["k_fixed_local_matches_canonical_orbit_count"] == 2
+    assert payload["k_reduces_full_moduli_candidates"] == 10
+    assert payload["k_reduces_to_global_pm_candidates"] == 0
+    assert payload["strict_bridge_candidates"] == 0
+    assert payload["verdict_counts"] == {
+        "declared_time_reversal_reduces_moduli_not_unique": 10
+    }
+    assert payload["results"][0]["time_reversal_origin"] == "declared_not_rule_generated"
+    assert payload["results"][0]["k_fixed_compatible_j_moduli_dimension"] == 3
     assert payload["load_bearing_qca_bridge"] is False
 
 

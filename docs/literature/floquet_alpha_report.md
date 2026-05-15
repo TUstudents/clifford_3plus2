@@ -117,6 +117,24 @@ verdict_counts: {'polarization_j_produced_not_strictly_unique': 10}
 load_bearing_qca_bridge: false
 ```
 
+Route-3 time-reversal sidecar:
+
+```text
+k_real_orthogonal_candidates: 10
+k_involution_candidates: 10
+k_conjugates_floquet_to_inverse_candidates: 10
+k_anticommutes_with_canonical_j_candidates: 10
+k_in_generated_algebra_candidates: 0
+compatible_j_moduli_dimension_before_k: 9
+k_fixed_compatible_j_moduli_dimension: 3
+k_fixed_local_compatible_complex_structure_count: 4
+k_fixed_local_matches_canonical_orbit_count: 2
+k_reduces_full_moduli_candidates: 10
+k_reduces_to_global_pm_candidates: 0
+verdict_counts: {'declared_time_reversal_reduces_moduli_not_unique': 10}
+load_bearing_qca_bridge: false
+```
+
 ## Interpretation
 
 Floquet-α is progress relative to E1/E2 because the coarse `6+4` central
@@ -146,6 +164,14 @@ compatible centralizer is still large: `M_3(C)` on the alpha sector and
 orthogonal complex structures form a continuous family of dimension
 `dim U(3)/O(3) + dim U(2)/O(2) = 6 + 3 = 9`. Alpha-plus is therefore progress
 on rule-produced `J`, but not a strict uniqueness proof.
+
+The declared time-reversal involution `K` is also useful but not decisive.
+It exactly satisfies `KUK = U^-1` and `K J K = -J` for the canonical
+polarization `J`, but `K` is not in the generated Floquet algebra. The
+`K`-fixed compatible family still has estimated dimension `3`, and the
+rule-generated local center still contains four `K`-compatible complex
+structures. Route 3 is therefore recorded as a guarded sidecar, not a bridge
+claim.
 
 The `local_compatible_*` fields are a rule-generated local-center falsifier,
 not a complete search over all on-site local operators. For radius-0 α, all

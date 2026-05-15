@@ -100,6 +100,12 @@ floquet_alpha_plus_local_compatible_operator_dimension: 4
 floquet_alpha_plus_local_compatible_j_moduli_dimension: 0
 floquet_alpha_plus_local_compatible_complex_structure_count: 4
 floquet_alpha_plus_strict_bridge_candidates: 0
+floquet_alpha_time_reversal_k_candidates: 10
+floquet_alpha_time_reversal_k_in_generated_algebra_candidates: 0
+floquet_alpha_time_reversal_k_fixed_j_moduli_dimension: 3
+floquet_alpha_time_reversal_k_fixed_local_j_count: 4
+floquet_alpha_time_reversal_global_pm_candidates: 0
+floquet_alpha_time_reversal_route_label: declared_time_reversal_reduces_moduli_not_unique
 floquet_alpha_second_layer_commuting_candidates: 10
 floquet_alpha_second_layer_center_dimension: 10
 floquet_alpha_second_layer_compatible_centralizer_dimension: 10
@@ -925,6 +931,7 @@ Implementation:
 src/clifford_3plus2_d5/qca/floquet_alpha.py
 scripts/floquet_alpha_search.py
 scripts/floquet_alpha_plus_search.py
+scripts/floquet_alpha_time_reversal_search.py
 tests/test_floquet_alpha.py
 docs/literature/floquet_alpha_report.md
 ```
@@ -964,6 +971,21 @@ local_compatible_complex_structure_count = 4
 strict_compatible_j_forced_candidates = 0
 strict_bridge_candidates = 0
 verdict_counts = {'polarization_j_produced_not_strictly_unique': 10}
+load_bearing_qca_bridge = false
+```
+
+Route-3 time-reversal sidecar:
+
+```text
+K^2 = I
+K U K = U^-1
+K J_canonical K = -J_canonical
+K in generated algebra = false
+compatible_j_moduli_dimension_before_K = 9
+K_fixed_compatible_j_moduli_dimension = 3
+K_fixed_local_compatible_complex_structure_count = 4
+K_reduces_to_global_pm_candidates = 0
+route_label = declared_time_reversal_reduces_moduli_not_unique
 load_bearing_qca_bridge = false
 ```
 

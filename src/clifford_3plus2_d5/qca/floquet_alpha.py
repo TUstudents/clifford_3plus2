@@ -8,11 +8,13 @@ from itertools import combinations
 
 import sympy as sp
 
+from clifford_3plus2_d5.algebra.commutants import matrix_span_rank
 from clifford_3plus2_d5.algebra.matrices import commutator, is_zero_matrix
 from clifford_3plus2_d5.algebra.matrices import identity
 from clifford_3plus2_d5.qca.rule_verdict import (
     RuleLayerInput,
     RuleToVerdictResult,
+    generated_algebra_basis,
     rule_to_verdict,
 )
 
@@ -93,6 +95,28 @@ class FloquetAlphaSecondLayerCertificate:
     no_locking_guardrail_passed: bool
     compatible_centralizer_collapsed: bool
     pass_strict_rule_to_bridge: bool
+    load_bearing_qca_bridge: bool = False
+
+
+@dataclass(frozen=True)
+class FloquetAlphaTimeReversalCertificate:
+    candidate_name: str
+    time_reversal_name: str
+    time_reversal_origin: str
+    k_real_orthogonal: bool
+    k_involution: bool
+    k_conjugates_floquet_to_inverse: bool
+    k_anticommutes_with_canonical_j: bool
+    k_in_generated_algebra: bool
+    compatible_j_moduli_dimension_before_k: int | None
+    k_fixed_compatible_j_moduli_dimension: int | None
+    k_fixed_generated_complex_structure_count: int
+    k_fixed_local_compatible_complex_structure_count: int
+    k_fixed_local_matches_canonical_orbit_count: int
+    k_reduces_full_moduli: bool
+    k_reduces_to_global_pm: bool
+    strict_bridge_candidates: int
+    verdict: str
     load_bearing_qca_bridge: bool = False
 
 
@@ -242,6 +266,18 @@ def floquet_alpha_layer(candidate: FloquetAlphaCandidate) -> RuleLayerInput:
     )
 
 
+def floquet_alpha_time_reversal_operator(*, dimension: int = 10) -> sp.Matrix:
+    """Return the declared real pair-conjugation involution K.
+
+    In the fixed x_1,...,x_5,y_1,...,y_5 basis this is complex conjugation for
+    the standard pair complex structure: x coordinates are fixed and y
+    coordinates change sign.
+    """
+
+    half_dimension = dimension // 2
+    return sp.diag(*([1] * half_dimension), *([-1] * half_dimension))
+
+
 def floquet_alpha_candidates() -> tuple[FloquetAlphaCandidate, ...]:
     candidates = []
     all_modes = tuple(range(5))
@@ -345,6 +381,87 @@ def floquet_alpha_second_layer_certificate(
             < alpha_compatible_centralizer_dimension
         ),
         pass_strict_rule_to_bridge=rule_result.pass_rule_to_bridge,
+    )
+
+
+def _matrix_in_span(matrix: sp.Matrix, basis: tuple[sp.Matrix, ...]) -> bool:
+    return matrix_span_rank((*basis, matrix)) == matrix_span_rank(basis)
+
+
+def _k_fixed_compatible_j_moduli_dimension(candidate: FloquetAlphaCandidate) -> int:
+    alpha_projector, eta_projector = floquet_alpha_spectral_projectors(candidate)
+    alpha_complex_rank = alpha_projector.rank() // 2
+    eta_complex_rank = eta_projector.rank() // 2
+    return (alpha_complex_rank**2 // 4) + (eta_complex_rank**2 // 4)
+
+
+def floquet_alpha_time_reversal_certificate(
+    candidate: FloquetAlphaCandidate,
+) -> FloquetAlphaTimeReversalCertificate:
+    verdict = floquet_alpha_rule_to_verdict(candidate)
+    operator = floquet_alpha_operator(candidate)
+    canonical_j = floquet_alpha_canonical_j(candidate)
+    k_operator = floquet_alpha_time_reversal_operator()
+    one = identity(10)
+    zero = sp.zeros(10)
+    k_fixed_generated = tuple(
+        item
+        for item in verdict.generated_complex_structures
+        if _simplify_matrix(k_operator * item.matrix * k_operator + item.matrix) == zero
+    )
+    k_fixed_local = tuple(
+        item
+        for item in verdict.local_compatible_complex_structures
+        if _simplify_matrix(k_operator * item.matrix * k_operator + item.matrix) == zero
+    )
+    canonical_orbit_matches = sum(
+        _simplify_matrix(item.matrix - canonical_j) == zero
+        or _simplify_matrix(item.matrix + canonical_j) == zero
+        for item in k_fixed_local
+    )
+    generated_basis = generated_algebra_basis((operator,))
+    k_in_generated = _matrix_in_span(k_operator, generated_basis)
+    k_fixed_moduli_dimension = _k_fixed_compatible_j_moduli_dimension(candidate)
+    k_reduces_to_global_pm = (
+        k_fixed_moduli_dimension == 0
+        and len(k_fixed_local) == 2
+        and canonical_orbit_matches == 2
+    )
+
+    if k_in_generated and k_reduces_to_global_pm:
+        route_verdict = "time_reversal_forces_global_pm"
+    elif k_reduces_to_global_pm:
+        route_verdict = "declared_time_reversal_reduces_to_global_pm"
+    elif k_fixed_moduli_dimension < (verdict.compatible_j_moduli_dimension or 0):
+        route_verdict = "declared_time_reversal_reduces_moduli_not_unique"
+    else:
+        route_verdict = "declared_time_reversal_no_reduction"
+
+    return FloquetAlphaTimeReversalCertificate(
+        candidate_name=candidate.name,
+        time_reversal_name="declared_pair_conjugation",
+        time_reversal_origin="declared_not_rule_generated",
+        k_real_orthogonal=_simplify_matrix(k_operator.T * k_operator - one) == zero,
+        k_involution=_simplify_matrix(k_operator * k_operator - one) == zero,
+        k_conjugates_floquet_to_inverse=(
+            _simplify_matrix(k_operator * operator * k_operator - operator.T) == zero
+        ),
+        k_anticommutes_with_canonical_j=(
+            _simplify_matrix(k_operator * canonical_j * k_operator + canonical_j) == zero
+        ),
+        k_in_generated_algebra=k_in_generated,
+        compatible_j_moduli_dimension_before_k=verdict.compatible_j_moduli_dimension,
+        k_fixed_compatible_j_moduli_dimension=k_fixed_moduli_dimension,
+        k_fixed_generated_complex_structure_count=len(k_fixed_generated),
+        k_fixed_local_compatible_complex_structure_count=len(k_fixed_local),
+        k_fixed_local_matches_canonical_orbit_count=canonical_orbit_matches,
+        k_reduces_full_moduli=(
+            verdict.compatible_j_moduli_dimension is not None
+            and k_fixed_moduli_dimension < verdict.compatible_j_moduli_dimension
+        ),
+        k_reduces_to_global_pm=k_reduces_to_global_pm,
+        strict_bridge_candidates=0,
+        verdict=route_verdict,
     )
 
 
