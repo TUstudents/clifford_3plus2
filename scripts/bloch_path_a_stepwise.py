@@ -535,33 +535,37 @@ def main() -> int:
     if args.jobs <= 0:
         raise ValueError("jobs must be positive")
 
-    closure_args = [
-        (
-            candidate,
-            args.max_algebra_dim,
-            args.seed_guardrail,
-            False,
-            False,
-            False,
-            False,
-            False,
-        )
-        for candidate in candidates
-    ]
-    if args.jobs == 1:
-        closure_results = tuple(_evaluate_for_pool(item) for item in closure_args)
+    if args.center_top >= len(candidates):
+        closure_results = ()
+        detailed_targets = list(candidates)
     else:
-        with ProcessPoolExecutor(max_workers=args.jobs) as executor:
-            closure_results = tuple(executor.map(_evaluate_for_pool, closure_args))
+        closure_args = [
+            (
+                candidate,
+                args.max_algebra_dim,
+                args.seed_guardrail,
+                False,
+                False,
+                False,
+                False,
+                False,
+            )
+            for candidate in candidates
+        ]
+        if args.jobs == 1:
+            closure_results = tuple(_evaluate_for_pool(item) for item in closure_args)
+        else:
+            with ProcessPoolExecutor(max_workers=args.jobs) as executor:
+                closure_results = tuple(executor.map(_evaluate_for_pool, closure_args))
 
-    candidate_by_name = {_candidate_name(candidate): candidate for candidate in candidates}
-    detailed_targets = []
-    for result in closure_results:
-        if len(detailed_targets) >= args.center_top:
-            break
-        if not result.generated_algebra_closed:
-            continue
-        detailed_targets.append(candidate_by_name[result.name])
+        candidate_by_name = {_candidate_name(candidate): candidate for candidate in candidates}
+        detailed_targets = []
+        for result in closure_results:
+            if len(detailed_targets) >= args.center_top:
+                break
+            if not result.generated_algebra_closed:
+                continue
+            detailed_targets.append(candidate_by_name[result.name])
 
     detailed_args = [
         (
@@ -585,7 +589,10 @@ def main() -> int:
             detailed_results = tuple(executor.map(_evaluate_for_pool, detailed_args))
     detailed_by_name = {result.name: result for result in detailed_results}
 
-    results = tuple(detailed_by_name.get(result.name, result) for result in closure_results)
+    if closure_results:
+        results = tuple(detailed_by_name.get(result.name, result) for result in closure_results)
+    else:
+        results = detailed_results
     payload = {
         "candidate_count": len(results),
         "closed_count": sum(result.generated_algebra_closed for result in results),

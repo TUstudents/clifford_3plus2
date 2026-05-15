@@ -469,6 +469,16 @@ decomposition, and reports
 solved-empty, not a solver timeout, and the finite witness already has the
 split-real shape required by Conditional Lemma 4b.1.
 
+Follow-up counterexample scan. The command
+`uv run python scripts/bloch_path_a_stepwise.py --max-candidates 8 --cycle-count 4 --shift-count 4 --max-algebra-dim 48 --center-top 8 --centralizer --idempotents --projected-centralizer --jobs 4 --check`
+extends the projected-centralizer diagnostic to eight variants. All eight
+close at algebra dimension `34`, keep central idempotent ranks `[0,4,6,10]`,
+and report the same split-real projected centralizers `R^3` and `R`. This does
+not enlarge the full `J`-solve witness in Proposition 4a, but it gives
+additional exact evidence for the invariant needed by Proposition 4b. The
+larger twelve-candidate expansion currently runs into a slow exact-closure
+tail, so broader scans should use streaming or cached candidate evaluation.
+
 Conjectural Proposition 4b (coprime monomial-hop incompatibility). Let
 `T(z) = sum_s M_s z^s` be a projector-free 1D Bloch rule on `R^10` whose
 coefficients `M_s` are partial real-orthogonal monomial hops. Suppose the

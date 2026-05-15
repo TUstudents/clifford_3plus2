@@ -986,6 +986,13 @@ candidates have rank-6 projected centralizer `R^3` and rank-4 projected
 centralizer `R`. Proposition 4b remains conjectural, but the finite witness now
 exhibits the exact split-real invariant a general proof would need to derive
 for coprime monomial-hop rules.
+A follow-up classifier-only scan expands the check to eight candidates with
+`--cycle-count 4 --shift-count 4`; all eight close at dimension `34`, keep
+central idempotent ranks `[0,4,6,10]`, and again report rank-6 projected
+centralizer `R^3` plus rank-4 projected centralizer `R`, with no `C` factor.
+The attempted twelve-candidate scan exposed a runtime tail rather than a
+counterexample, so the stepwise script now skips the duplicate closure-only pass
+when `--center-top` covers every candidate.
 Defect-beta is retained as a regression target but parked as a load-bearing
 route until rebuilt as a genuine higher-dimensional defect calculation. Its
 round-trip monodromy is exactly the matching Floquet-alpha operator. The

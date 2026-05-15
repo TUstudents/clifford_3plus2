@@ -1372,6 +1372,12 @@ root-of-unity action cannot be assumed. The active gap is proving that this
 split-real projected-centralizer invariant persists in the full coprime
 monomial-hop class, or finding a microscopic hopping primitive whose projected
 centralizer acquires a genuine `C` factor carrying `J`.
+An expanded classifier-only scan over the first eight variants
+(`--cycle-count 4 --shift-count 4`) found no counterexample: all eight still
+close at dimension `34` with projected centralizers `R^3` and `R`. The
+twelve-candidate expansion currently hits a runtime tail, so the next
+engineering need for broader scans is streaming/cached candidate evaluation,
+not deeper blind enumeration.
 The first polynomial-hop extension keeps exact Laurent orthogonality by mixing
 two mode edges with a finite-order rational reflection. It does not produce a
 bridge candidate in the current exact checker: the first checked mixed
