@@ -32,6 +32,7 @@ def main() -> int:
     parser.add_argument("--variant", choices=("winding-4-3", "uniform"), default="winding-4-3")
     parser.add_argument("--max-candidates", type=int, default=None)
     parser.add_argument("--max-generated-algebra-dim", type=int, default=16)
+    parser.add_argument("--max-center-dim", type=int, default=8)
     parser.add_argument("--max-coefficient-algebra-dim", type=int, default=32)
     parser.add_argument("--split-step-coefficient-algebra-dim", type=int, default=8)
     parser.add_argument("--json", action="store_true")
@@ -42,6 +43,7 @@ def main() -> int:
         summary = two_site_split_step_search_summary(
             max_candidates=args.max_candidates,
             max_generated_algebra_dimension=args.max_generated_algebra_dim,
+            max_center_dimension=args.max_center_dim,
             max_coefficient_algebra_dimension=args.split_step_coefficient_algebra_dim,
         )
         payload = asdict(summary)
@@ -70,6 +72,7 @@ def main() -> int:
                     f"dim={result['generated_algebra_dimension']}, "
                     f"closed={str(result['generated_algebra_closed']).lower()}, "
                     f"center={result['center_dimension']}, "
+                    f"center_solved={str(result['center_solved']).lower()}, "
                     f"ranks={result['central_idempotent_ranks']}, "
                     f"effective_pairs={result['effective_rank_6_4_pairs']}, "
                     f"label={result['route_label']}"

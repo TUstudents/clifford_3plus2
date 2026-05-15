@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections import deque
 from collections.abc import Sequence
 from dataclasses import dataclass
 from typing import Literal
@@ -186,11 +187,7 @@ def _bloch_layer_laurent_orthogonal(layer: RuleLayerInput, *, dimension: int) ->
     if not layer.bloch_terms:
         return is_real_matrix(layer.matrix) and is_real_orthogonal(layer.matrix)
     terms_by_shift = _terms_by_shift(layer.bloch_terms)
-    deltas = {
-        left - right
-        for left in terms_by_shift
-        for right in terms_by_shift
-    }
+    deltas = {left - right for left in terms_by_shift for right in terms_by_shift}
     one = identity(dimension)
     zero = sp.zeros(dimension)
     for delta in deltas:
@@ -227,7 +224,7 @@ def generated_algebra_closure(
         add_matrices=False,
     )
     basis: list[sp.Matrix] = []
-    queue: list[sp.Matrix] = []
+    queue: deque[sp.Matrix] = deque()
 
     def add_to_basis(matrix: sp.Matrix, *, enqueue: bool) -> bool:
         nonlocal span
@@ -256,7 +253,7 @@ def generated_algebra_closure(
             )
 
     while queue and len(basis) < dimension * dimension:
-        matrix = queue.pop(0)
+        matrix = queue.popleft()
         for generator in generators:
             add_to_basis(matrix * generator, enqueue=True)
             if len(basis) == dimension * dimension:
@@ -277,9 +274,7 @@ def _center_basis_from_commutators(
         candidate += variable * basis_matrix
 
     equations = [
-        value
-        for basis_matrix in algebra_basis
-        for value in commutator(candidate, basis_matrix)
+        value for basis_matrix in algebra_basis for value in commutator(candidate, basis_matrix)
     ]
     coefficient_matrix, _ = sp.linear_eq_to_matrix(equations, variables)
     center = []
@@ -365,16 +360,9 @@ def centralizer_basis(
 ) -> tuple[sp.Matrix, ...]:
     variables = sp.symbols(f"x0:{dimension * dimension}")
     candidate = sp.Matrix(dimension, dimension, variables)
-    equations = [
-        value
-        for generator in generators
-        for value in commutator(candidate, generator)
-    ]
+    equations = [value for generator in generators for value in commutator(candidate, generator)]
     coefficient_matrix, _ = sp.linear_eq_to_matrix(equations, variables)
-    return tuple(
-        _matrix_from_flat(vector, dimension)
-        for vector in coefficient_matrix.nullspace()
-    )
+    return tuple(_matrix_from_flat(vector, dimension) for vector in coefficient_matrix.nullspace())
 
 
 def _basis_expression(
@@ -394,11 +382,7 @@ def _solve_matrix_equations(
     *,
     variables: Sequence[sp.Symbol],
 ) -> tuple[dict[sp.Symbol, sp.Expr], ...]:
-    equations = tuple(
-        sp.expand(value)
-        for value in matrix_equation
-        if sp.expand(value) != 0
-    )
+    equations = tuple(sp.expand(value) for value in matrix_equation if sp.expand(value) != 0)
     if not equations:
         return ({variable: sp.Integer(0) for variable in variables},)
     solutions = sp.solve(equations, tuple(variables), dict=True)
@@ -631,7 +615,9 @@ def solve_complex_structures_from_idempotent_splitting(
         for basis_matrix in block_basis:
             if not block_span.add(basis_matrix):
                 raise ValueError("block_basis must be linearly independent")
-        coordinates = block_span.coordinates((block_basis[1] * block_basis[1]).applyfunc(sp.simplify))
+        coordinates = block_span.coordinates(
+            (block_basis[1] * block_basis[1]).applyfunc(sp.simplify)
+        )
         if coordinates is None:
             return None
         a, b = (sp.simplify(item) for item in coordinates)
@@ -796,8 +782,7 @@ def rule_to_verdict(
         )
         bloch_sample_count = 0
         layers_are_real_orthogonal = all(
-            is_real_matrix(layer.matrix) and is_real_orthogonal(layer.matrix)
-            for layer in layers
+            is_real_matrix(layer.matrix) and is_real_orthogonal(layer.matrix) for layer in layers
         )
     else:
         floquet_samples = bloch_floquet_operators(
@@ -873,11 +858,13 @@ def rule_to_verdict(
     rank_pairs = _complementary_rank_6_4_pairs(idempotents, dimension=dimension)
     lower_rank = _lower_rank_idempotents_inside_pairs(idempotents, rank_pairs)
 
-    generated_j_solved, generated_j_moduli_dimension, generated_j = solve_complex_structures_in_basis(
-        algebra,
-        source="generated_algebra",
-        max_basis_dimension=max_j_solve_dimension,
-        dimension=dimension,
+    generated_j_solved, generated_j_moduli_dimension, generated_j = (
+        solve_complex_structures_in_basis(
+            algebra,
+            source="generated_algebra",
+            max_basis_dimension=max_j_solve_dimension,
+            dimension=dimension,
+        )
     )
     compatible_basis = centralizer_basis(algebra_generators, dimension=dimension)
     (
@@ -984,7 +971,9 @@ def rule_to_verdict(
         locality_radius_bound=locality_radius_bound,
         floquet_operator=floquet,
         floquet_spectrum=tuple(
-            sorted((str(value), multiplicity) for value, multiplicity in floquet.eigenvals().items())
+            sorted(
+                (str(value), multiplicity) for value, multiplicity in floquet.eigenvals().items()
+            )
         ),
         generated_algebra_dimension=len(algebra),
         generated_algebra_closed=True,
@@ -1016,12 +1005,7 @@ def layers_from_update(update: QCAUpdate) -> tuple[RuleLayerInput, ...]:
         RuleLayerInput(
             name=layer.name,
             matrix=layer_operator(layer),
-            support=tuple(
-                site
-                for gate in layer.gates
-                for site in gate.support
-            )
-            or (0,),
+            support=tuple(site for gate in layer.gates for site in gate.support) or (0,),
             locality_radius=max((gate.locality_radius for gate in layer.gates), default=0),
         )
         for layer in update.layers
@@ -1072,16 +1056,12 @@ def result_to_dict(result: RuleToVerdictResult) -> dict[str, object]:
         "center_dimension": result.center_dimension,
         "center_solved": result.center_solved,
         "central_idempotents": [
-            _idempotent_to_dict(idempotent)
-            for idempotent in result.central_idempotents
+            _idempotent_to_dict(idempotent) for idempotent in result.central_idempotents
         ],
-        "central_idempotent_ranks": [
-            idempotent.rank for idempotent in result.central_idempotents
-        ],
+        "central_idempotent_ranks": [idempotent.rank for idempotent in result.central_idempotents],
         "complementary_rank_6_4_pairs": result.complementary_rank_6_4_pairs,
         "lower_rank_central_idempotents": [
-            _idempotent_to_dict(idempotent)
-            for idempotent in result.lower_rank_central_idempotents
+            _idempotent_to_dict(idempotent) for idempotent in result.lower_rank_central_idempotents
         ],
         "generated_j_solved": result.generated_j_solved,
         "generated_j_moduli_dimension": result.generated_j_moduli_dimension,
@@ -1108,9 +1088,7 @@ def result_to_dict(result: RuleToVerdictResult) -> dict[str, object]:
             for candidate in result.local_compatible_complex_structures
         ],
         "forced_j_found": result.forced_j_found,
-        "rank_6_4_pair_commutes_with_forced_j": (
-            result.rank_6_4_pair_commutes_with_forced_j
-        ),
+        "rank_6_4_pair_commutes_with_forced_j": (result.rank_6_4_pair_commutes_with_forced_j),
         "pass_rule_to_bridge": result.pass_rule_to_bridge,
         "verdict": result.verdict,
         "load_bearing_qca_bridge": result.load_bearing_qca_bridge,

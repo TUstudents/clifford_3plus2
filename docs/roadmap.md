@@ -1359,6 +1359,13 @@ Bloch algebra is formed. The result is therefore a computational-boundary
 certificate, not a no-go: nontrivial two-site coins need either a stronger
 coefficient-algebra closure kernel or a narrower structured family before they
 can be judged as bridge candidates.
+The rational sparse span optimization moves that boundary: the four-candidate
+panel now reaches coefficient cap `16` quickly, and the first uniform
+split-step candidate closes its coefficient algebra at dimension `20` and its
+sampled Bloch algebra at dimension `10`. The active computational bottleneck
+is now central idempotent extraction for a center of dimension `10`; the
+generic polynomial idempotent solve is the wrong next bottleneck to brute
+force.
 ```
 
 ## Defect-Beta Transition-Pair Family

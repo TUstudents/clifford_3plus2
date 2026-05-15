@@ -38,6 +38,13 @@ class _SpanRow:
     coordinates: tuple[sp.Expr, ...]
 
 
+@dataclass(frozen=True)
+class _RationalSpanRow:
+    pivot: int
+    values: dict[int, sp.Rational]
+    coordinates: tuple[sp.Rational, ...]
+
+
 class IncrementalMatrixSpan:
     """Incremental exact span over flattened matrices.
 
@@ -136,6 +143,102 @@ class IncrementalMatrixSpan:
             if not _is_zero_expr(value):
                 return index
         return None
+
+
+class RationalMatrixSpan:
+    """Incremental exact span over rational sparse flattened matrices."""
+
+    def __init__(self, *, rows: int, cols: int) -> None:
+        self.rows = rows
+        self.cols = cols
+        self.basis_matrices: list[sp.Matrix] = []
+        self._echelon_rows: list[_RationalSpanRow] = []
+
+    @property
+    def rank(self) -> int:
+        return len(self.basis_matrices)
+
+    @staticmethod
+    def supports(matrix: sp.Matrix) -> bool:
+        return all(sp.sympify(value).is_Rational is True for value in matrix)
+
+    def add(self, matrix: sp.Matrix) -> bool:
+        vector = self._rational_vector(matrix)
+        coordinates = [sp.Rational(0)] * len(self.basis_matrices) + [sp.Rational(1)]
+        for row in self._echelon_rows:
+            coefficient = vector.get(row.pivot, sp.Rational(0))
+            if coefficient == 0:
+                continue
+            for index, value in row.values.items():
+                updated = vector.get(index, sp.Rational(0)) - coefficient * value
+                if updated == 0:
+                    vector.pop(index, None)
+                else:
+                    vector[index] = updated
+            for index, value in enumerate(row.coordinates):
+                coordinates[index] -= coefficient * value
+
+        if not vector:
+            return False
+
+        pivot = min(vector)
+        pivot_value = vector[pivot]
+        values = {index: value / pivot_value for index, value in vector.items() if value != 0}
+        normalized_coordinates = tuple(value / pivot_value for value in coordinates)
+        self.basis_matrices.append(matrix)
+        extended_rows = [
+            _RationalSpanRow(
+                pivot=row.pivot,
+                values=row.values,
+                coordinates=(*row.coordinates, sp.Rational(0)),
+            )
+            for row in self._echelon_rows
+        ]
+        extended_rows.append(
+            _RationalSpanRow(
+                pivot=pivot,
+                values=values,
+                coordinates=normalized_coordinates,
+            )
+        )
+        self._echelon_rows = sorted(extended_rows, key=lambda row: row.pivot)
+        return True
+
+    def coordinates(self, matrix: sp.Matrix) -> tuple[sp.Expr, ...] | None:
+        vector = self._rational_vector(matrix)
+        coordinates = [sp.Rational(0)] * len(self.basis_matrices)
+        for row in self._echelon_rows:
+            coefficient = vector.get(row.pivot, sp.Rational(0))
+            if coefficient == 0:
+                continue
+            for index, value in row.values.items():
+                updated = vector.get(index, sp.Rational(0)) - coefficient * value
+                if updated == 0:
+                    vector.pop(index, None)
+                else:
+                    vector[index] = updated
+            for index, value in enumerate(row.coordinates):
+                coordinates[index] += coefficient * value
+
+        if vector:
+            return None
+        return tuple(coordinates)
+
+    def contains(self, matrix: sp.Matrix) -> bool:
+        return self.coordinates(matrix) is not None
+
+    def _rational_vector(self, matrix: sp.Matrix) -> dict[int, sp.Rational]:
+        if matrix.shape != (self.rows, self.cols):
+            msg = f"matrix shape {matrix.shape} does not match {(self.rows, self.cols)}"
+            raise ValueError(msg)
+        vector: dict[int, sp.Rational] = {}
+        for index, value in enumerate(matrix):
+            rational = sp.sympify(value)
+            if rational.is_Rational is not True:
+                raise ValueError("matrix entries are not rational")
+            if rational != 0:
+                vector[index] = sp.Rational(rational)
+        return vector
 
 
 _SQRT3 = sp.sqrt(3)
@@ -362,20 +465,26 @@ def exact_matrix_span(
     rows: int | None = None,
     cols: int | None = None,
     add_matrices: bool = True,
-) -> IncrementalMatrixSpan | Sqrt3IMatrixSpan:
+) -> IncrementalMatrixSpan | RationalMatrixSpan | Sqrt3IMatrixSpan:
     if matrices:
         rows = matrices[0].rows
         cols = matrices[0].cols
     if rows is None or cols is None:
         raise ValueError("rows and cols are required when matrices is empty")
 
-    use_fast_field = bool(matrices) and all(Sqrt3IMatrixSpan.supports(matrix) for matrix in matrices)
-    span: IncrementalMatrixSpan | Sqrt3IMatrixSpan
-    span = (
-        Sqrt3IMatrixSpan(rows=rows, cols=cols)
-        if use_fast_field
-        else IncrementalMatrixSpan(rows=rows, cols=cols)
+    use_rational_field = bool(matrices) and all(
+        RationalMatrixSpan.supports(matrix) for matrix in matrices
     )
+    use_fast_field = bool(matrices) and all(
+        Sqrt3IMatrixSpan.supports(matrix) for matrix in matrices
+    )
+    span: IncrementalMatrixSpan | RationalMatrixSpan | Sqrt3IMatrixSpan
+    if use_rational_field:
+        span = RationalMatrixSpan(rows=rows, cols=cols)
+    elif use_fast_field:
+        span = Sqrt3IMatrixSpan(rows=rows, cols=cols)
+    else:
+        span = IncrementalMatrixSpan(rows=rows, cols=cols)
     if add_matrices:
         for matrix in matrices:
             span.add(matrix)

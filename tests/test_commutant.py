@@ -5,6 +5,7 @@ import pytest
 
 from clifford_3plus2_d5.algebra.commutants import (
     IncrementalMatrixSpan,
+    RationalMatrixSpan,
     Sqrt3IMatrixSpan,
     commutes_with_sm_gauge,
     complex_from_real,
@@ -83,6 +84,22 @@ def test_incremental_matrix_span_tracks_rank_and_coordinates() -> None:
     assert not span.contains(sp.Matrix([[0, 0], [1, 0]]))
 
 
+def test_rational_matrix_span_tracks_sparse_rank_and_coordinates() -> None:
+    first = sp.Matrix([[1, 0], [0, 0]])
+    second = sp.Matrix([[0, 1], [0, 0]])
+    dependent = sp.Rational(3, 2) * first - sp.Rational(1, 2) * second
+    span = RationalMatrixSpan(rows=2, cols=2)
+
+    assert RationalMatrixSpan.supports(dependent)
+    assert span.add(first)
+    assert span.add(second)
+    assert not span.add(dependent)
+    assert span.rank == 2
+    assert span.coordinates(dependent) == (sp.Rational(3, 2), sp.Rational(-1, 2))
+    assert span.contains(first + second)
+    assert not span.contains(sp.Matrix([[0, 0], [1, 0]]))
+
+
 def test_sqrt3_i_matrix_span_tracks_field_coefficients() -> None:
     first = sp.Matrix([[1, 0], [0, 0]])
     second = sp.Matrix([[sp.sqrt(3), 0], [0, 0]])
@@ -144,9 +161,7 @@ def test_complex_from_real_round_trips_exact_complex_matrix() -> None:
 
 
 def test_real_conjugation_is_not_complex_linear() -> None:
-    conjugation = sp.eye(5).row_join(sp.zeros(5)).col_join(
-        sp.zeros(5).row_join(-sp.eye(5))
-    )
+    conjugation = sp.eye(5).row_join(sp.zeros(5)).col_join(sp.zeros(5).row_join(-sp.eye(5)))
 
     assert not is_complex_linear_real(conjugation)
     assert complex_from_real(conjugation) is None

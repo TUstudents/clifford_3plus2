@@ -178,7 +178,7 @@ the configured cap; otherwise the seed guardrail itself has not been certified.
 Bounded panel:
 
 ```text
-uv run python scripts/bloch_two_site.py --split-step-search --max-candidates 4 --max-generated-algebra-dim 8 --split-step-coefficient-algebra-dim 8 --check
+uv run python scripts/bloch_two_site.py --split-step-search --max-candidates 4 --max-generated-algebra-dim 8 --split-step-coefficient-algebra-dim 16 --check
 
 candidate_count: 4
 seed_guardrail_rejections: 0
@@ -191,9 +191,25 @@ route_label: split_step_cap_boundary
 
 All four candidates hit `split_step_coefficient_cap_boundary`: the exact
 coefficients are orthogonal and projector-free at the raw-matrix level, but
-their coefficient algebra already exceeds the bounded guardrail cap. This is
-not a bridge failure theorem. It is a useful computational-boundary result:
-nontrivial two-site split-step coins quickly leave the cheap exact guardrail
-class, so the next Move-2 search needs either a stronger coefficient-algebra
-kernel or a more structured coin family whose coefficient algebra can be
-closed before sampling Bloch momenta.
+their coefficient algebra already exceeds the bounded guardrail cap.
+
+After adding the rational sparse span kernel, the first split-step candidate
+can be pushed deeper:
+
+```text
+uv run python scripts/bloch_two_site.py --split-step-search --max-candidates 1 --max-generated-algebra-dim 32 --split-step-coefficient-algebra-dim 64 --check
+
+candidate_count: 1
+laurent_orthogonal_candidates: 1
+closed_candidates: 1
+route_label: split_step_cap_boundary
+candidate: uniform_sublattice_swap, ..., coef_dim=20, coef_closed=true, dim=10, closed=true, center=10, center_solved=false, label=split_step_center_cap_boundary
+```
+
+So the first candidate is no longer stuck at the coefficient guardrail:
+coefficient algebra closes at dimension `20`, and the sampled Bloch algebra
+closes at dimension `10`. The remaining boundary is the generic central
+idempotent solver, whose current polynomial solve is too expensive at center
+dimension `10`. This is not a bridge failure theorem. It says the next
+calculation improvement should target center-idempotent extraction from a
+known finite-dimensional center, not broader candidate enumeration.

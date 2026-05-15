@@ -384,6 +384,7 @@ def _split_step_route_label(
     seed_guardrail_passed: bool,
     coefficient_algebra_closed: bool,
     generated_algebra_closed: bool,
+    center_solved: bool,
     central_idempotent_ranks: tuple[int, ...],
     effective_rank_6_4_pairs: int,
 ) -> str:
@@ -395,6 +396,8 @@ def _split_step_route_label(
         return "split_step_coefficient_cap_boundary"
     if not generated_algebra_closed:
         return "split_step_cap_boundary"
+    if not center_solved:
+        return "split_step_center_cap_boundary"
     if effective_rank_6_4_pairs:
         return "split_step_effective_6_4_unresolved"
     if central_idempotent_ranks == (0, 20):
@@ -551,6 +554,7 @@ def _evaluate_split_step_candidate(
             seed_guardrail_passed=guardrail.passed,
             coefficient_algebra_closed=coefficient_closed,
             generated_algebra_closed=generated_closed,
+            center_solved=center_solved,
             central_idempotent_ranks=idempotent_ranks,
             effective_rank_6_4_pairs=effective_pairs,
         ),
@@ -587,7 +591,9 @@ def two_site_split_step_search_summary(
             else (
                 "split_step_cap_boundary"
                 if any(
-                    not result.coefficient_algebra_closed or not result.generated_algebra_closed
+                    not result.coefficient_algebra_closed
+                    or not result.generated_algebra_closed
+                    or not result.center_solved
                     for result in results
                 )
                 else "split_step_no_bridge_candidates"
