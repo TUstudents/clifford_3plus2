@@ -646,13 +646,16 @@ candidate: path_a_projector_free_p0_c12403_s44334, dim=34, closed=true, center=N
 Follow-up staged calculation on the base projector-free candidate:
 
 ```text
-uv run python scripts/bloch_path_a_stepwise.py --max-candidates 1 --max-algebra-dim 48 --center-top 1 --idempotents --centralizer --check
+uv run python scripts/bloch_path_a_stepwise.py --max-candidates 1 --max-algebra-dim 48 --center-top 1 --idempotents --centralizer --j-solve --check
 
 generated_algebra_dimension: 34
 generated_algebra_closed: true
 center_dimension: 4
 central_idempotent_ranks: [0,4,6,10]
 compatible_centralizer_dimension: 4
+generated_j_count: 0
+compatible_j_count: 0
+bridge_j_status: no_rule_generated_j
 route_label: closes_coarse_6_4_center
 ```
 
@@ -813,8 +816,11 @@ coefficients. Raising the closure cap shows this was a real structured
 candidate, not a dead computational boundary: the base candidate closes at
 dimension `34`, has center dimension `4`, and its central idempotent ranks are
 `[0,4,6,10]`. Six nearby projector-free monomial-hop variants close to the
-same algebra dimension. The remaining gap is now specifically the
-rule-generated `J(k)`/global-`±J` test, not the coarse center.
+same algebra dimension. The bounded split-center `J` solver settles the base
+candidate negatively: generated and compatible `J` counts are both `0`. The
+remaining search gap is therefore not the coarse center, but a microscopic
+unseeded hopping primitive whose structured algebra also carries a complex
+structure.
 Defect-beta is retained as a regression target but parked as a load-bearing
 route until rebuilt as a genuine higher-dimensional defect calculation. Its
 round-trip monodromy is exactly the matching Floquet-alpha operator. The

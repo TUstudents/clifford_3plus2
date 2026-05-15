@@ -1293,9 +1293,10 @@ combined Route-1/Route-2 layer uses partial monomial hops with source shifts
 coefficients. Raising the algebra cap closes this candidate at dimension `34`;
 the staged center calculation gives center dimension `4`, central idempotent
 ranks `[0,4,6,10]`, and compatible centralizer dimension `4`. The first six
-projector-free monomial-hop variants all close at dimension `34`. The active
-gap is therefore the rule-generated `J(k)`/global-`±J` test, not the coarse
-center.
+projector-free monomial-hop variants all close at dimension `34`. The bounded
+split-center `J` solver gives `generated_j_count = 0` and
+`compatible_j_count = 0` for the base candidate. The active gap is therefore a
+new microscopic hopping primitive that carries `J`, not the coarse center.
 ```
 
 ## Defect-Beta Transition-Pair Family

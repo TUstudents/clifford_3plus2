@@ -5,22 +5,67 @@ import subprocess
 import sys
 from pathlib import Path
 
+import sympy as sp
+
 from clifford_3plus2_d5.algebra.matrices import identity
 from clifford_3plus2_d5.algebra.real_carrier import standard_real_carrier
 from clifford_3plus2_d5.explore.primitives import block_reflection_primitive
 from clifford_3plus2_d5.qca.layers import minimal_period_four_update
 from clifford_3plus2_d5.qca.rule_verdict import (
+    CentralIdempotent,
     EXACT_WORKING_FIELD,
     RuleBlochTerm,
     RuleLayerInput,
     layers_from_update,
     result_to_dict,
     rule_to_verdict,
+    solve_complex_structures_from_idempotent_splitting,
 )
 from clifford_3plus2_d5.search.addressability import rank_one_color_projector_controls
 
 
 ROOT = Path(__file__).resolve().parents[1]
+
+
+def test_idempotent_split_j_solver_finds_four_complex_structures() -> None:
+    zero = sp.zeros(4)
+    one = sp.eye(4)
+    p_left = sp.diag(1, 1, 0, 0)
+    j_left = sp.Matrix(
+        [
+            [0, -1, 0, 0],
+            [1, 0, 0, 0],
+            [0, 0, 0, 0],
+            [0, 0, 0, 0],
+        ]
+    )
+    p_right = sp.diag(0, 0, 1, 1)
+    j_right = sp.Matrix(
+        [
+            [0, 0, 0, 0],
+            [0, 0, 0, 0],
+            [0, 0, 0, -1],
+            [0, 0, 1, 0],
+        ]
+    )
+    idempotents = (
+        CentralIdempotent((), zero, 0),
+        CentralIdempotent((), p_left, 2),
+        CentralIdempotent((), p_right, 2),
+        CentralIdempotent((), one, 4),
+    )
+
+    solved, moduli_dimension, candidates = solve_complex_structures_from_idempotent_splitting(
+        (p_left, j_left, p_right, j_right),
+        idempotents,
+        source="local_compatible_center",
+        dimension=4,
+    )
+
+    assert solved
+    assert moduli_dimension == 0
+    assert len(candidates) == 4
+    assert all(candidate.matrix * candidate.matrix == -one for candidate in candidates)
 
 
 def test_minimal_period_four_rule_has_j_but_no_6_4_center() -> None:

@@ -7,6 +7,8 @@ from concurrent.futures import ProcessPoolExecutor
 from dataclasses import asdict, dataclass
 from itertools import combinations, permutations
 
+import sympy as sp
+
 from clifford_3plus2_d5.qca.bloch_rule import bloch_path_a_projector_free_layer
 from clifford_3plus2_d5.qca.rule_verdict import (
     bloch_floquet_operators,
@@ -14,6 +16,7 @@ from clifford_3plus2_d5.qca.rule_verdict import (
     centralizer_basis,
     generated_algebra_closure,
     solve_central_idempotents,
+    solve_complex_structures_from_idempotent_splitting,
 )
 
 
@@ -36,6 +39,15 @@ class StepwiseResult:
     center_solved: bool | None
     compatible_centralizer_dimension: int | None
     central_idempotent_ranks: tuple[int, ...]
+    generated_j_solved: bool | None
+    generated_j_moduli_dimension: int | None
+    generated_j_count: int | None
+    generated_j_sign_shape: str | None
+    compatible_j_solved: bool | None
+    compatible_j_moduli_dimension: int | None
+    compatible_j_count: int | None
+    compatible_j_sign_shape: str | None
+    bridge_j_status: str | None
     route_label: str
     elapsed_seconds: float
 
@@ -107,6 +119,54 @@ def _label_result(
     return "closes_other_center"
 
 
+def _zero_matrix_like(matrix: sp.Matrix) -> sp.Matrix:
+    return sp.zeros(matrix.rows, matrix.cols)
+
+
+def _negation_closed_count(matrices: tuple[sp.Matrix, ...]) -> int:
+    count = 0
+    for matrix in matrices:
+        if any((matrix + other).applyfunc(sp.simplify) == _zero_matrix_like(matrix) for other in matrices):
+            count += 1
+    return count
+
+
+def _j_sign_shape(matrices: tuple[sp.Matrix, ...]) -> str:
+    if not matrices:
+        return "none"
+    if len(matrices) == 2 and _negation_closed_count(matrices) == 2:
+        return "global_pm"
+    if _negation_closed_count(matrices) == len(matrices):
+        return f"{len(matrices)}_with_pm_pairs"
+    return f"{len(matrices)}_not_pm_closed"
+
+
+def _bridge_j_status(
+    *,
+    generated_solved: bool | None,
+    generated_count: int | None,
+    generated_shape: str | None,
+    compatible_solved: bool | None,
+    compatible_count: int | None,
+    compatible_shape: str | None,
+) -> str | None:
+    if generated_solved is None and compatible_solved is None:
+        return None
+    if generated_solved is False or compatible_solved is False:
+        return "j_not_solved"
+    if generated_count == 2 and generated_shape == "global_pm":
+        if compatible_count == 2 and compatible_shape == "global_pm":
+            return "global_pm_bridge_j_candidate"
+        return "rule_generated_pm_j_compatible_extra_unresolved"
+    if generated_count == 0 and compatible_count:
+        return "compatible_j_not_rule_generated"
+    if generated_count == 0:
+        return "no_rule_generated_j"
+    if generated_count and generated_count > 2:
+        return "too_many_rule_generated_j"
+    return "j_status_unclassified"
+
+
 def evaluate_candidate(
     candidate: StepwiseCandidate,
     *,
@@ -114,6 +174,7 @@ def evaluate_candidate(
     include_center: bool,
     include_centralizer: bool,
     include_idempotents: bool,
+    include_j_solve: bool,
 ) -> StepwiseResult:
     start = time.perf_counter()
     layer = bloch_path_a_projector_free_layer(
@@ -127,14 +188,44 @@ def evaluate_candidate(
     center_solved = None
     compatible_centralizer_dimension = None
     idempotent_ranks: tuple[int, ...] = ()
-    if include_center and closure.closed:
+    generated_j_solved = None
+    generated_j_moduli_dimension = None
+    generated_j_count = None
+    generated_j_sign_shape = None
+    compatible_j_solved = None
+    compatible_j_moduli_dimension = None
+    compatible_j_count = None
+    compatible_j_sign_shape = None
+    center = ()
+    compatible_basis = ()
+    if (include_center or include_j_solve) and closure.closed:
         center = center_basis_of_algebra(closure.basis)
         center_dimension = len(center)
-        if include_idempotents:
+        if include_idempotents or include_j_solve:
             center_solved, idempotents = solve_central_idempotents(center)
             idempotent_ranks = tuple(item.rank for item in idempotents)
-    if include_centralizer and closure.closed:
-        compatible_centralizer_dimension = len(centralizer_basis(samples))
+    if (include_centralizer or include_j_solve) and closure.closed:
+        compatible_basis = centralizer_basis(samples)
+        compatible_centralizer_dimension = len(compatible_basis)
+    if include_j_solve and closure.closed:
+        generated_j_solved, generated_j_moduli_dimension, generated_j = (
+            solve_complex_structures_from_idempotent_splitting(
+                center,
+                idempotents,
+                source="local_compatible_center",
+            )
+        )
+        generated_j_count = len(generated_j)
+        generated_j_sign_shape = _j_sign_shape(tuple(item.matrix for item in generated_j))
+        compatible_j_solved, compatible_j_moduli_dimension, compatible_j = (
+            solve_complex_structures_from_idempotent_splitting(
+                compatible_basis,
+                idempotents,
+                source="compatible_centralizer",
+            )
+        )
+        compatible_j_count = len(compatible_j)
+        compatible_j_sign_shape = _j_sign_shape(tuple(item.matrix for item in compatible_j))
 
     return StepwiseResult(
         name=layer.name,
@@ -147,6 +238,22 @@ def evaluate_candidate(
         center_solved=center_solved,
         compatible_centralizer_dimension=compatible_centralizer_dimension,
         central_idempotent_ranks=idempotent_ranks,
+        generated_j_solved=generated_j_solved,
+        generated_j_moduli_dimension=generated_j_moduli_dimension,
+        generated_j_count=generated_j_count,
+        generated_j_sign_shape=generated_j_sign_shape,
+        compatible_j_solved=compatible_j_solved,
+        compatible_j_moduli_dimension=compatible_j_moduli_dimension,
+        compatible_j_count=compatible_j_count,
+        compatible_j_sign_shape=compatible_j_sign_shape,
+        bridge_j_status=_bridge_j_status(
+            generated_solved=generated_j_solved,
+            generated_count=generated_j_count,
+            generated_shape=generated_j_sign_shape,
+            compatible_solved=compatible_j_solved,
+            compatible_count=compatible_j_count,
+            compatible_shape=compatible_j_sign_shape,
+        ),
         route_label=_label_result(
             closed=closure.closed,
             algebra_dimension=len(closure.basis),
@@ -158,15 +265,23 @@ def evaluate_candidate(
 
 
 def _evaluate_for_pool(
-    args: tuple[StepwiseCandidate, int, bool, bool, bool],
+    args: tuple[StepwiseCandidate, int, bool, bool, bool, bool],
 ) -> StepwiseResult:
-    candidate, max_algebra_dim, include_center, include_centralizer, include_idempotents = args
+    (
+        candidate,
+        max_algebra_dim,
+        include_center,
+        include_centralizer,
+        include_idempotents,
+        include_j_solve,
+    ) = args
     return evaluate_candidate(
         candidate,
         max_algebra_dim=max_algebra_dim,
         include_center=include_center,
         include_centralizer=include_centralizer,
         include_idempotents=include_idempotents,
+        include_j_solve=include_j_solve,
     )
 
 
@@ -183,6 +298,7 @@ def main() -> int:
     parser.add_argument("--center-top", type=int, default=0)
     parser.add_argument("--centralizer", action="store_true")
     parser.add_argument("--idempotents", action="store_true")
+    parser.add_argument("--j-solve", action="store_true")
     parser.add_argument("--json", action="store_true")
     parser.add_argument("--check", action="store_true")
     args = parser.parse_args()
@@ -197,7 +313,7 @@ def main() -> int:
         raise ValueError("jobs must be positive")
 
     closure_args = [
-        (candidate, args.max_algebra_dim, False, False, False)
+        (candidate, args.max_algebra_dim, False, False, False, False)
         for candidate in candidates
     ]
     if args.jobs == 1:
@@ -223,6 +339,7 @@ def main() -> int:
             include_center=True,
             include_centralizer=args.centralizer,
             include_idempotents=args.idempotents,
+            include_j_solve=args.j_solve,
         )
         detailed_by_name[result.name] = detailed
 
@@ -252,6 +369,9 @@ def main() -> int:
                 f"center={result.center_dimension}, "
                 f"centralizer={result.compatible_centralizer_dimension}, "
                 f"ranks={list(result.central_idempotent_ranks)}, "
+                f"generated_j={result.generated_j_count}, "
+                f"compatible_j={result.compatible_j_count}, "
+                f"j_status={result.bridge_j_status}, "
                 f"label={result.route_label}, "
                 f"time={result.elapsed_seconds:.3f}s"
             )

@@ -557,6 +557,130 @@ def solve_complex_structures_in_basis(
     return True, moduli_dimension, tuple(candidates)
 
 
+def _independent_block_basis(
+    basis: Sequence[sp.Matrix],
+    projector: sp.Matrix,
+) -> tuple[sp.Matrix, ...]:
+    span = IncrementalMatrixSpan(rows=projector.rows, cols=projector.cols)
+    span.add(projector)
+    block_basis = [projector]
+    for basis_matrix in basis:
+        candidate = (projector * basis_matrix).applyfunc(sp.simplify)
+        if span.add(candidate):
+            block_basis.append(candidate)
+    return tuple(block_basis)
+
+
+def solve_complex_structures_from_idempotent_splitting(
+    basis: Sequence[sp.Matrix],
+    idempotents: Sequence[CentralIdempotent],
+    *,
+    source: Literal[
+        "generated_algebra",
+        "compatible_centralizer",
+        "local_compatible_center",
+    ],
+    dimension: int = 10,
+) -> tuple[bool, int | None, tuple[ComplexStructureCandidate, ...]]:
+    """Solve finite ``J`` choices from a two-block real center splitting.
+
+    This is the bounded Path-A path for a 4D algebra with complementary
+    central idempotents ``P`` and ``I-P`` and no lower-rank refinements. Each
+    projected summand must be a 2D real algebra. If ``x^2 = a P + b x`` in one
+    summand, then ``u P + v x`` squares to ``-P`` exactly when
+    ``u = -b v / 2`` and ``v^2 = -1 / (a + b^2/4)``. Combining the two signs
+    across the two summands gives the finite global candidates.
+    """
+
+    nontrivial_pairs = []
+    one = identity(dimension)
+    zero = sp.zeros(dimension)
+    matrix_zero = sp.zeros(dimension)
+
+    def same_matrix(left: sp.Matrix, right: sp.Matrix) -> bool:
+        return (left - right).applyfunc(sp.simplify) == matrix_zero
+
+    for left in idempotents:
+        if left.rank in (0, dimension):
+            continue
+        for right in idempotents:
+            if right.rank in (0, dimension) or left.rank + right.rank != dimension:
+                continue
+            if (
+                same_matrix(left.matrix + right.matrix, one)
+                and same_matrix(left.matrix * right.matrix, zero)
+                and same_matrix(right.matrix * left.matrix, zero)
+            ):
+                nontrivial_pairs.append((left.matrix, right.matrix))
+    if not nontrivial_pairs:
+        return False, None, ()
+
+    coordinate_system = IncrementalMatrixSpan(rows=dimension, cols=dimension)
+    for basis_matrix in basis:
+        if not coordinate_system.add(basis_matrix):
+            raise ValueError("basis must be linearly independent")
+
+    def block_solutions(projector: sp.Matrix) -> tuple[sp.Matrix, ...] | None:
+        block_basis = _independent_block_basis(basis, projector)
+        if len(block_basis) != 2:
+            return None
+        block_span = IncrementalMatrixSpan(rows=dimension, cols=dimension)
+        for basis_matrix in block_basis:
+            if not block_span.add(basis_matrix):
+                raise ValueError("block_basis must be linearly independent")
+        coordinates = block_span.coordinates((block_basis[1] * block_basis[1]).applyfunc(sp.simplify))
+        if coordinates is None:
+            return None
+        a, b = (sp.simplify(item) for item in coordinates)
+        denominator = sp.simplify(a + b**2 / 4)
+        if denominator == 0:
+            return None
+        v = sp.sqrt(sp.simplify(-1 / denominator))
+        u = sp.simplify(-b * v / 2)
+        positive = (u * projector + v * block_basis[1]).applyfunc(sp.simplify)
+        negative = (-positive).applyfunc(sp.simplify)
+        return (positive, negative)
+
+    candidates: list[ComplexStructureCandidate] = []
+    seen: set[tuple[sp.Expr, ...]] = set()
+    for left_projector, right_projector in nontrivial_pairs[:1]:
+        left_block_basis = _independent_block_basis(basis, left_projector)
+        right_block_basis = _independent_block_basis(basis, right_projector)
+        if len(left_block_basis) == 1 or len(right_block_basis) == 1:
+            return True, 0, ()
+        if len(left_block_basis) != 2 or len(right_block_basis) != 2:
+            return False, None, ()
+
+        left_solutions = block_solutions(left_projector)
+        right_solutions = block_solutions(right_projector)
+        if left_solutions is None or right_solutions is None:
+            return False, None, ()
+        for left_j in left_solutions:
+            for right_j in right_solutions:
+                matrix = (left_j + right_j).applyfunc(sp.simplify)
+                if not is_real_matrix(matrix):
+                    continue
+                if (matrix * matrix + one).applyfunc(sp.simplify) != zero:
+                    continue
+                if (matrix.T * matrix - one).applyfunc(sp.simplify) != zero:
+                    continue
+                coordinates = coordinate_system.coordinates(matrix)
+                if coordinates is None:
+                    continue
+                key = tuple(sp.simplify(value) for value in matrix)
+                if key in seen:
+                    continue
+                seen.add(key)
+                candidates.append(
+                    ComplexStructureCandidate(
+                        expression=_basis_expression(coordinates, source),
+                        matrix=matrix,
+                        source=source,
+                    )
+                )
+    return True, 0, tuple(candidates)
+
+
 def _complementary_rank_6_4_pairs(
     idempotents: Sequence[CentralIdempotent],
     *,
