@@ -178,9 +178,11 @@ Meaning:
 - The QCA bridge has not passed.
 - No `data/qca_data.json` is present.
 - The project must not claim a geometry-to-D5 theorem yet.
-- The active obstruction is now concentrated in one gap: compatible `J`
-  candidates can be made finite, but they are not yet produced as a unique
-  global `±J` orbit by the rule-generated local algebra.
+- The active obstruction is now the centralizer gap:
+  `G_R = Cent_R / (A_R ∩ Cent_R) = Cent_R / Z(A_R)`. In the noncommuting
+  representative, `dim Cent_R = 6`, `dim Z(A_R) = 3`, and the four compatible
+  `J` candidates are finite points in `Cent_R` outside the rule-generated
+  algebra and rule-local center.
 - The successful/seeded witnesses preserve the coarse rank-`(6,4)` center
   without lower-rank refinement; the unseeded spatial scan has not produced
   such a witness and correctly rejects the seeded projector-shift layer.
@@ -1182,12 +1184,20 @@ the coarse central idempotent ranks `[0,4,6,10]`. The resulting spatial cycle
 has the right sign-coupling shape: independent alpha/eta orientations reduce
 to global ±J. It still is not a load-bearing bridge because `P_alpha/P_eta`
 enter as the layer coefficients rather than being derived from more primitive
-microscopic gates. The next Route-2 task is to factor or replace this
-projector-shift layer with microscopic local gates that do not seed the answer.
+microscopic gates. Those seeded coefficients are not a bug; they are the
+target to derive from local microscopic dynamics. The next Route-2 task is to
+factor or replace this projector-shift layer with finite-radius hopping layers
+built from finite-order on-site primitives such as Floquet-alpha `U1`, the
+noncommuting signed twist `U2`, short products of them, and
+translation-protected real-orthogonal `O(10)` generators.
 The first unseeded scan checks three block-blind finite-radius layers plus the
 seeded projector-shift guardrail. The unseeded layers either have no coarse
 `6+4` center or generate lower-rank central idempotents; the seeded layer is
 correctly rejected because its coefficients are exactly `P_alpha/P_eta`.
+This guardrail must also be strengthened from an obvious diagonal-projector
+check to an algebraic check: reject candidates whose coefficient algebra
+generates `P_alpha` or `P_eta`, even if those projectors are hidden as
+polynomials in non-projector layer coefficients.
 ```
 
 ## Defect-Beta Transition-Pair Family

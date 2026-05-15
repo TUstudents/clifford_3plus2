@@ -122,9 +122,11 @@ transport reduces the four on-site choices to global `±J`.
 
 The result should be read narrowly. It shows that the Route-2 mechanism has
 the right combinatorial shape and that the projector-shift layer is a genuine
-locality-preserving QCA. It does not prove that the band projectors and `J` are
-forced by microscopic local gates, because the coarse `P_alpha/P_eta`
-projectors still enter as layer coefficients.
+locality-preserving QCA. The seeded coefficients are not a bug in the
+calculation; they are the next research target. A load-bearing Route-2 witness
+must derive the effective `P_alpha z^4 + P_eta z^3` band split from more
+primitive microscopic layers rather than inserting `P_alpha/P_eta` as
+coefficients.
 
 The next useful Route-2 step is to factor or replace this projector-shift QCA
 with microscopic local gates that do not seed the coarse split.
@@ -153,6 +155,29 @@ load_bearing_qca_bridge: false
 ```
 
 Interpretation: three block-blind finite-radius QCA layers are genuinely
-unseeded but do not produce a bridge candidate. The projector-shift layer is
-included as a regression guardrail and is rejected because its coefficients
-are exactly `P_eta` and `P_alpha`.
+unseeded but do not produce a bridge candidate. This is only a sanity check,
+not a serious Route-2 search. The projector-shift layer is included as a
+regression guardrail and is rejected because its coefficients are exactly
+`P_eta` and `P_alpha`.
+
+## Route-2 Next Search Target
+
+The unseeded family must become microscopic rather than merely block-blind.
+The next Route-2 search should include finite-radius hopping layers built from:
+
+- finite-order on-site primitives already studied in Route 1, including the
+  Floquet-α layer `U1`, the noncommuting signed twist `U2`, and short products
+  or commutators of them, with nontrivial hopping shifts attached;
+- translation-protected real-orthogonal generators of `O(10)`, so the
+  band split can arise from spatial transport rather than from declared
+  projectors;
+- products of shifted layers whose effective Laurent coefficients may have
+  nontrivial spectral projectors only after the full transfer rule is formed.
+
+The seed guardrail also needs to become algebraic. The current
+`_is_obvious_seed_projector` check catches direct diagonal `0/1` coefficient
+matrices equal to `P_alpha` or `P_eta`. A more careful construction could hide
+the same projectors as polynomials or algebraic combinations of non-projector
+coefficients. The next guardrail should reject any candidate whose coefficient
+algebra generates `P_alpha` or `P_eta`, not only candidates whose raw
+coefficients are visibly those projectors.

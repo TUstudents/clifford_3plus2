@@ -266,6 +266,12 @@ None lies in the generated algebra or in the rule-local center, and none
 matches the spectral-polarization `J`. The remaining theorem target is
 therefore not centralizer collapse; it is microscopic production of the local
 orientation structure.
+Equivalently, the obstruction is the centralizer gap. For this representative,
+the joint compatible centralizer has dimension `6`, while
+`A_R ∩ Cent_R = Z(A_R)` has dimension `3`. The four compatible `J` candidates
+are finite points in `Cent_R` outside `A_R` and outside the rule-local center.
+The next primitive must therefore add rule-local access to an operator in this
+3-dimensional quotient `Cent_R / Z(A_R)`.
 The minimal completion experiment declares one such orientation as a third
 layer. That does not generate lower-rank central idempotents, but it still
 leaves four rule-local compatible complex structures. The residual obstruction
@@ -289,9 +295,12 @@ rule-generation/locality of `J`. More precisely:
    than one global `±J` orbit.
 
 Therefore the current obstruction is not the coarse `6+4` center and, in the
-noncommuting route, not continuous compatible-`J` moduli. The missing
-microscopic primitive must produce the compatible orientation as rule-local
-data and must reduce the remaining four block-sign choices to global `±J`.
+noncommuting route, not continuous compatible-`J` moduli. It is the
+centralizer gap `Cent_R / Z(A_R)`: compatible orientations exist in the joint
+centralizer, but the rule algebra does not yet generate them as local data.
+The missing microscopic primitive must produce the compatible orientation as
+rule-local data and must reduce the remaining four block-sign choices to
+global `±J`.
 
 Proof. Each statement is the exact output of the implemented route diagnostics:
 `scripts/floquet_alpha.py --variant time-reversal`,
@@ -313,6 +322,14 @@ as input coefficients rather than being generated microscopically.
 The first unseeded Route-2 scan makes that boundary explicit: block-blind
 finite-radius layers do not produce a bridge candidate, and the working
 projector-shift layer is rejected by the seeded-coefficient guardrail.
+That rejection is the correct result, not a reason to abandon Route 2. The
+seeded transfer `T(z) = P_alpha z^4 + P_eta z^3` is the target effective rule
+to derive from microscopic hopping layers. A serious unseeded Route-2 search
+must include finite-order on-site primitives, noncommuting orientation twists,
+and translation-protected real-orthogonal hopping generators. Its seed
+guardrail must also be algebraic: if the coefficient algebra generates
+`P_alpha` or `P_eta`, the candidate has hidden the answer even when no raw
+coefficient is visibly a diagonal projector.
 
 The second physical family is Defect-β, documented in
 [Defect Beta Report](literature/defect_beta_report.md). It computes
