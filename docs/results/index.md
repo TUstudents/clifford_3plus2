@@ -671,6 +671,37 @@ all six candidates:
   route_label: closes_coarse_6_4_center
 ```
 
+Polynomial-hop Path-A extension:
+
+```text
+uv run python scripts/bloch_path_a_stepwise.py --family polynomial-hop --max-candidates 6 --max-algebra-dim 16 --jobs 2 --check
+
+candidate_count: 6
+closed_count: 0
+seed_guardrail_checked: false
+seed_guardrail_rejections: 0
+laurent_orthogonal_count: 6
+coarse_6_4_count: 0
+all six candidates:
+  laurent_orthogonal: true
+  generated_algebra_dimension: 16
+  generated_algebra_closed: false
+  route_label: cap_exceeded_structured
+
+uv run python scripts/bloch_path_a_stepwise.py --family polynomial-hop --max-candidates 1 --max-algebra-dim 64 --check
+
+candidate: path_a_polynomial_hop_p0_c12340_s44433_m301
+laurent_orthogonal: true
+generated_algebra_dimension: 64
+generated_algebra_closed: false
+route_label: cap_exceeded_structured
+
+uv run python scripts/bloch_path_a_stepwise.py --family polynomial-hop --max-candidates 1 --max-algebra-dim 16 --seed-guardrail --check
+
+seed_guardrail_checked: true
+seed_guardrail_rejections: 1
+```
+
 Defect-beta search:
 
 ```text

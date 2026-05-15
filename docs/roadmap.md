@@ -64,6 +64,11 @@ an on-site block-preserving algebra on `R^10`.
   Route-2 winding prototype for coupling alpha/eta orientation signs.
 - [Bloch Path-A Report](literature/bloch_path_a_report.md):
   sampled Bloch-family checker for off-site Path-A candidates.
+- [Two-Site Bloch Carrier Design](literature/two_site_bloch_carrier_design.md):
+  next Path-A architecture after single-site polynomial hops exceed the
+  tractable coarse-center regime.
+- [Gauge-Equivalence Bridge Standard](literature/gauge_equivalence_bridge_standard.md):
+  proposed relaxed standard for finite compatible `J` orbits.
 - [Defect Beta Report](literature/defect_beta_report.md):
   second physical primitive family using computed wall-cycle monodromy.
 - [Handover Compliance](handover_compliance.md): Phase 0 closeout checklist.
@@ -182,6 +187,11 @@ bloch_path_a_rule_generated_j_section_candidates: 0
 bloch_path_a_strict_bridge_candidates: 0
 bloch_path_a_candidate_panel_route_label: bloch_path_a_seeded_shape_only
 bloch_path_a_route_label: bloch_path_a_projector_free_coarse_center_no_compatible_j
+polynomial_hop_candidate_count: 6
+polynomial_hop_laurent_orthogonal_count: 6
+polynomial_hop_closed_count_at_dim16: 0
+polynomial_hop_first_candidate_closed_at_dim64: false
+polynomial_hop_first_candidate_seed_guardrail_rejected: true
 spatial_1d_alpha_strict_bridge_candidates: 0
 floquet_alpha_noncommuting_forced_j_candidates: 0
 floquet_alpha_noncommuting_strict_bridge_candidates: 0
@@ -1260,6 +1270,11 @@ stepwise_projector_free_central_idempotent_ranks = [0,4,6,10]
 stepwise_projector_free_compatible_centralizer_dimension = 4
 stepwise_projector_free_generated_j_count = 0
 stepwise_projector_free_compatible_j_count = 0
+polynomial_hop_candidate_count = 6
+polynomial_hop_laurent_orthogonal_count = 6
+polynomial_hop_closed_count_at_dim16 = 0
+polynomial_hop_first_candidate_closed_at_dim64 = false
+polynomial_hop_first_candidate_seed_guardrail_rejected = true
 load_bearing_qca_bridge = false
 ```
 
@@ -1312,6 +1327,13 @@ multiset `(4,4,4,3,3)` may be structurally unable to carry a compatible real
 orthogonal complex structure. The active gap is therefore either a proof of
 that monomial-hop obstruction or a new microscopic hopping primitive that
 carries `J`, not the coarse center.
+The first polynomial-hop extension keeps exact Laurent orthogonality by mixing
+two mode edges with a finite-order rational reflection. It does not produce a
+bridge candidate in the current exact checker: the first checked mixed
+coefficient exceeds algebra dimension `64`, and the seed guardrail rejects
+that candidate algebraically. This moves the active Path-A target to the
+two-site Bloch carrier design, while the gauge-equivalence bridge standard is
+tracked as a separate theorem-standard decision.
 ```
 
 ## Defect-Beta Transition-Pair Family

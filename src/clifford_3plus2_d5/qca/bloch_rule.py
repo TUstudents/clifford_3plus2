@@ -326,7 +326,9 @@ def bloch_rule_to_verdict(
         bloch_layer_symbol_unitary_on_samples(layer) for layer in candidate.layers
     )
     all_finite_radius = all(layer.locality_radius < period for layer in candidate.layers)
-    coefficient_real = all(is_real_matrix(matrix) for matrix in _coefficient_matrices(candidate.layers))
+    coefficient_real = all(
+        is_real_matrix(matrix) for matrix in _coefficient_matrices(candidate.layers)
+    )
     stable_coarse_split = bool(samples) and all(
         sample.center_solved
         and sample.central_idempotent_ranks == (0, 4, 6, 10)
@@ -445,6 +447,34 @@ def _mode_edge_matrix(
     return matrix
 
 
+def _mixed_mode_edge_matrix(
+    edges: tuple[tuple[int, int], ...],
+    *,
+    mix_pair: tuple[int, int] | None = None,
+    dimension: int = 10,
+) -> sp.Matrix:
+    matrix = _mode_edge_matrix(edges, dimension=dimension)
+    if mix_pair is None:
+        return matrix
+    left, right = mix_pair
+    if left == right or not (0 <= left < len(edges)) or not (0 <= right < len(edges)):
+        raise ValueError("mix_pair must name two distinct edge positions")
+    mode_count = dimension // 2
+    target_left = edges[left][1]
+    target_right = edges[right][1]
+    mixer = identity(dimension)
+    left_weight = sp.Rational(3, 5)
+    right_weight = sp.Rational(4, 5)
+    for offset in (0, mode_count):
+        row_left = target_left + offset
+        row_right = target_right + offset
+        mixer[row_left, row_left] = left_weight
+        mixer[row_left, row_right] = right_weight
+        mixer[row_right, row_left] = right_weight
+        mixer[row_right, row_right] = -left_weight
+    return sp.simplify(mixer * matrix)
+
+
 def bloch_path_a_projector_free_combined_layer() -> RuleLayerInput:
     return bloch_path_a_projector_free_layer()
 
@@ -488,9 +518,7 @@ def bloch_path_a_projector_free_layer(
         )
     representative = sum((term.matrix for term in terms), sp.zeros(rule.dimension))
     default_candidate = (
-        pattern_index == 0
-        and cycle == (1, 2, 3, 4, 0)
-        and source_shifts == (4, 4, 4, 3, 3)
+        pattern_index == 0 and cycle == (1, 2, 3, 4, 0) and source_shifts == (4, 4, 4, 3, 3)
     )
     name = (
         "path_a_projector_free_cycle_combined"
@@ -506,6 +534,69 @@ def bloch_path_a_projector_free_layer(
         name=name,
         matrix=representative,
         locality_radius=max(source_shifts),
+        bloch_terms=tuple(terms),
+    )
+
+
+def bloch_path_a_polynomial_hop_layer(
+    *,
+    pattern_index: int = 0,
+    terms_by_shift: tuple[tuple[int, tuple[tuple[int, int], ...]], ...],
+    mixes_by_shift: tuple[tuple[int, tuple[int, int]], ...] = (),
+    name_suffix: str,
+) -> RuleLayerInput:
+    """Return a projector-free Path-A layer with polynomial hop coefficients.
+
+    Unlike ``bloch_path_a_projector_free_layer``, each Laurent coefficient may
+    include a finite-order rational reflection inside its source/target support.
+    The source and target mode partitions are still one-to-one across all
+    shifts, so the Laurent symbol remains exactly orthogonal without inserting
+    the answer projectors as coefficients.
+    """
+
+    rule = spatial_alpha_prototype()
+    if not terms_by_shift:
+        raise ValueError("terms_by_shift must not be empty")
+    all_edges = tuple(edge for _, edges in terms_by_shift for edge in edges)
+    sources = tuple(source for source, _ in all_edges)
+    targets = tuple(target for _, target in all_edges)
+    if sorted(sources) != list(range(rule.mode_count)):
+        raise ValueError("polynomial Path-A hops must use each source mode exactly once")
+    if sorted(targets) != list(range(rule.mode_count)):
+        raise ValueError("polynomial Path-A hops must use each target mode exactly once")
+    mix_lookup = dict(mixes_by_shift)
+    onsite = floquet_alpha_noncommuting_candidates(pattern_index=pattern_index)[0]
+    u1 = floquet_alpha_operator(onsite.pattern)
+    u2 = floquet_alpha_noncommuting_twist_operator(onsite)
+    ulocal = sp.simplify(u2 * u1)
+    terms = []
+    for shift, edges in terms_by_shift:
+        if shift not in (3, 4):
+            raise ValueError("polynomial Path-A hops are restricted to shifts 3 and 4")
+        if not edges or len(edges) > 3:
+            raise ValueError("each polynomial coefficient must use one to three mode edges")
+        for source, target in edges:
+            if not (0 <= source < rule.mode_count and 0 <= target < rule.mode_count):
+                raise ValueError("mode edges must use source/target indices 0..4")
+        mix_pair = mix_lookup.get(shift)
+        terms.append(
+            RuleBlochTerm(
+                shift=shift,
+                matrix=sp.simplify(
+                    ulocal
+                    * _mixed_mode_edge_matrix(
+                        edges,
+                        mix_pair=mix_pair,
+                        dimension=rule.dimension,
+                    )
+                ),
+            )
+        )
+    representative = sum((term.matrix for term in terms), sp.zeros(rule.dimension))
+    return RuleLayerInput(
+        name=f"path_a_polynomial_hop_p{pattern_index}_{name_suffix}",
+        matrix=representative,
+        locality_radius=max(abs(shift) for shift, _ in terms_by_shift),
         bloch_terms=tuple(terms),
     )
 
@@ -656,7 +747,9 @@ def bloch_path_a_search_summary(*, jobs: int = 1) -> BlochPathASearchSummary:
         stable_6_4_band_candidates=sum(
             verdict.coarse_6_4_band_split_at_all_samples for verdict in verdicts
         ),
-        topological_pm_candidates=sum(verdict.global_transport_pm_candidate for verdict in verdicts),
+        topological_pm_candidates=sum(
+            verdict.global_transport_pm_candidate for verdict in verdicts
+        ),
         rule_generated_j_section_candidates=sum(
             verdict.rule_generated_transported_j_section_count == 2 for verdict in verdicts
         ),

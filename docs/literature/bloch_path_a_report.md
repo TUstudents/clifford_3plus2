@@ -49,9 +49,15 @@ already generates the coarse projectors.
 ```bash
 uv run python scripts/bloch_path_a_stepwise.py --max-candidates 6 --max-algebra-dim 48 --jobs 2 --check
 uv run python scripts/bloch_path_a_stepwise.py --max-candidates 6 --max-algebra-dim 48 --center-top 6 --idempotents --centralizer --j-solve --jobs 4 --check
+uv run python scripts/bloch_path_a_stepwise.py --family polynomial-hop --max-candidates 6 --max-algebra-dim 16 --jobs 2 --check
+uv run python scripts/bloch_path_a_stepwise.py --family polynomial-hop --max-candidates 1 --max-algebra-dim 64 --check
 uv run python scripts/bloch_path_a_search.py --check
 uv run python scripts/bloch_path_a_search.py --check --projector-free-max-algebra-dim 16
 ```
+
+The detailed `--center-top ... --j-solve` command is an archived structural
+reproduction, not a fast-loop check; use the headline closure command for
+routine validation.
 
 Default mixed-panel output:
 
@@ -132,6 +138,60 @@ controls, Route-1-in-disguise guardrail cases, and two conservative unseeded
 full-shift sanity checks. They are not the monomial-hop enumeration. The
 actual projector-free enumeration is the stepwise `_five_cycles x
 _shift_assignments` scan below.
+
+## Polynomial-Hop Move 1
+
+The first extension beyond monomial hops allows a coefficient to be a
+finite-order rational reflection on two mode edges while preserving the exact
+Laurent orthogonality identity. This is still projector-free at the raw
+coefficient level and keeps the same `(3,4)` shift support.
+
+Bounded structural run:
+
+```text
+uv run python scripts/bloch_path_a_stepwise.py --family polynomial-hop --max-candidates 6 --max-algebra-dim 16 --jobs 2 --check
+
+candidate_count: 6
+closed_count: 0
+seed_guardrail_checked: false
+seed_guardrail_rejections: 0
+laurent_orthogonal_count: 6
+coarse_6_4_count: 0
+all six candidates:
+  laurent_orthogonal: true
+  generated_algebra_dimension: 16
+  generated_algebra_closed: false
+  route_label: cap_exceeded_structured
+```
+
+Boundary probe on the first polynomial-hop candidate:
+
+```text
+uv run python scripts/bloch_path_a_stepwise.py --family polynomial-hop --max-candidates 1 --max-algebra-dim 64 --check
+
+candidate: path_a_polynomial_hop_p0_c12340_s44433_m301
+laurent_orthogonal: true
+generated_algebra_dimension: 64
+generated_algebra_closed: false
+route_label: cap_exceeded_structured
+time: about 53s
+```
+
+A seed-guardrail annotation on that same candidate rejects it algebraically:
+
+```text
+uv run python scripts/bloch_path_a_stepwise.py --family polynomial-hop --max-candidates 1 --max-algebra-dim 16 --seed-guardrail --check
+
+seed_guardrail_checked: true
+seed_guardrail_rejections: 1
+```
+
+Interpretation: the bounded polynomial-hop class does not give a bridge
+candidate in the current exact checker. The smallest mixed coefficient already
+leaves the tractable coarse-center regime, and the first checked case also
+fails the stricter coefficient-algebra seed guardrail. This is not yet a
+theorem over all polynomial Bloch hops; it is a computational boundary for the
+next architecture.
 
 Additional direct `rule_to_verdict` candidate:
 

@@ -42,6 +42,7 @@ spatial_1d_alpha: local-QCA sidecar couples four J signs to global ±
 spatial_1d_combined: Route 1 + Route 2 gives ± shape, still no rule-generated J
 spatial_1d_unseeded: no bridge candidate; seeded projector-shift rejected
 bloch_path_a: six projector-free monomial hops close at dim 34; no compatible J
+polynomial_bloch_hops: exact mixed coefficients exceed dim 64; no bridge candidate
 perf_probe: focused algebra-kernel timing for Bloch computational boundary
 defect_beta_search: monodromy equals alpha; transition-pair rule still negative
 Spin(10) branching check: passes
@@ -103,6 +104,8 @@ Spin(10), the project remains `notation_only`.
 - [Floquet alpha J obstruction](docs/literature/floquet_alpha_j_obstruction.md)
 - [Spatial 1D sidecar report](docs/literature/spatial_1d_report.md)
 - [Bloch Path-A report](docs/literature/bloch_path_a_report.md)
+- [Two-site Bloch carrier design](docs/literature/two_site_bloch_carrier_design.md)
+- [Gauge-equivalence bridge standard](docs/literature/gauge_equivalence_bridge_standard.md)
 - [Defect beta report](docs/literature/defect_beta_report.md)
 - [Theory summary](docs/theory.md)
 - [Falsifiers](docs/falsifiers.md)
@@ -655,6 +658,8 @@ uv run python scripts/rule_to_verdict.py --case clock-rank-one-color-reflection 
 uv run python scripts/perf_probe.py --max-algebra-dim 16
 uv run python scripts/bloch_path_a_stepwise.py --max-candidates 6 --max-algebra-dim 48 --jobs 2 --check
 uv run python scripts/bloch_path_a_stepwise.py --max-candidates 6 --max-algebra-dim 48 --center-top 6 --idempotents --centralizer --j-solve --jobs 4 --check
+uv run python scripts/bloch_path_a_stepwise.py --family polynomial-hop --max-candidates 6 --max-algebra-dim 16 --jobs 2 --check
+uv run python scripts/bloch_path_a_stepwise.py --family polynomial-hop --max-candidates 1 --max-algebra-dim 64 --check
 uv run python scripts/floquet_alpha.py --check
 uv run python scripts/floquet_alpha.py --variant plus --check
 uv run python scripts/floquet_alpha.py --variant time-reversal --check
