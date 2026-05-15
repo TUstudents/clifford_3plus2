@@ -907,6 +907,7 @@ def _evaluate_many(
     *,
     jobs: int,
     chunk_size: int,
+    timeout_seconds: float | None,
     stream: bool,
     stop_on_complex_factor: bool,
     cache: dict[str, StepwiseResult],
@@ -963,7 +964,7 @@ def _evaluate_many(
             )
         return stop_on_complex_factor and _has_complex_projected_factor(result)
 
-    if jobs == 1:
+    if jobs == 1 and timeout_seconds is None:
         for index, cache_key, item in pending_items:
             result = _evaluate_for_pool(item)
             if store_result(index, cache_key, result):
@@ -979,28 +980,60 @@ def _evaluate_many(
         with ProcessPoolExecutor(max_workers=jobs) as executor:
             future_by_index: dict[Future[StepwiseResult], int] = {}
             cache_key_by_future: dict[Future[StepwiseResult], str] = {}
+            submitted_at: dict[Future[StepwiseResult], float] = {}
             for index, cache_key, item in chunk:
                 future = executor.submit(_evaluate_for_pool, item)
                 future_by_index[future] = index
                 cache_key_by_future[future] = cache_key
+                submitted_at[future] = time.perf_counter()
             pending = set(future_by_index)
             while pending:
                 if stream or stop_on_complex_factor:
-                    done, pending = wait(pending, return_when=FIRST_COMPLETED)
+                    wait_timeout = 1.0 if timeout_seconds is not None else None
+                    done, pending = wait(
+                        pending,
+                        timeout=wait_timeout,
+                        return_when=FIRST_COMPLETED,
+                    )
                 else:
-                    done = set(as_completed(pending))
-                    pending = set()
+                    if timeout_seconds is None:
+                        done = set(as_completed(pending))
+                        pending = set()
+                    else:
+                        done, pending = wait(pending, timeout=1.0, return_when=FIRST_COMPLETED)
+                if timeout_seconds is not None and not done:
+                    now = time.perf_counter()
+                    timed_out = [
+                        future
+                        for future in pending
+                        if now - submitted_at[future] >= timeout_seconds
+                    ]
+                    if timed_out:
+                        print(
+                            "timeout: terminating active chunk after "
+                            f"{timeout_seconds:.1f}s per-candidate limit; "
+                            f"completed={len(indexed_results)}/{len(work_items)}",
+                            flush=True,
+                        )
+                        stopped_early = True
+                        for future in pending:
+                            future.cancel()
+                        if hasattr(executor, "terminate_workers"):
+                            executor.terminate_workers()
+                        else:
+                            executor.shutdown(wait=False, cancel_futures=True)
+                        break
                 for future in done:
                     index = future_by_index[future]
                     cache_key = cache_key_by_future[future]
                     result = future.result()
                     if store_result(index, cache_key, result):
                         stopped_early = True
-                if stopped_early:
-                    for future in pending:
-                        future.cancel()
-                    executor.shutdown(cancel_futures=True)
-                    break
+                    if stopped_early:
+                        for pending_future in pending:
+                            pending_future.cancel()
+                        executor.shutdown(cancel_futures=True)
+                        break
     return tuple(indexed_results[index] for index in sorted(indexed_results)), cached_count
 
 
@@ -1048,6 +1081,7 @@ def main() -> int:
     parser.add_argument("--max-algebra-dim", type=int, default=48)
     parser.add_argument("--jobs", type=int, default=1)
     parser.add_argument("--chunk-size", type=int, default=0)
+    parser.add_argument("--timeout-seconds", type=float, default=None)
     parser.add_argument("--seed-guardrail", action="store_true")
     parser.add_argument("--center-top", type=int, default=0)
     parser.add_argument("--centralizer", action="store_true")
@@ -1091,6 +1125,8 @@ def main() -> int:
         raise ValueError("jobs must be positive")
     if args.chunk_size < 0:
         raise ValueError("chunk-size must be nonnegative")
+    if args.timeout_seconds is not None and args.timeout_seconds <= 0:
+        raise ValueError("timeout-seconds must be positive")
 
     run_start = time.perf_counter()
     cache = _load_cache(args.cache_file) if args.resume else {}
@@ -1153,6 +1189,7 @@ def main() -> int:
             closure_work_items,
             jobs=args.jobs,
             chunk_size=args.chunk_size,
+            timeout_seconds=args.timeout_seconds,
             stream=args.stream and not args.json,
             stop_on_complex_factor=False,
             cache=cache,
@@ -1201,6 +1238,7 @@ def main() -> int:
         detailed_work_items,
         jobs=args.jobs,
         chunk_size=args.chunk_size,
+        timeout_seconds=args.timeout_seconds,
         stream=args.stream and not args.json,
         stop_on_complex_factor=args.stop_on_complex_factor,
         cache=cache,
