@@ -41,6 +41,7 @@ floquet_alpha_noncommuting_completion: no lower center, still four J signs
 spatial_1d_alpha: local-QCA sidecar couples four J signs to global ±
 spatial_1d_combined: Route 1 + Route 2 gives ± shape, still no rule-generated J
 spatial_1d_unseeded: no bridge candidate; seeded projector-shift rejected
+bloch_path_a: sampled Bloch checker; seeded shape only, no unseeded bridge
 defect_beta_search: monodromy equals alpha; transition-pair rule still negative
 Spin(10) branching check: passes
 QCA load-bearing bridge: notation_only
@@ -660,6 +661,7 @@ uv run python scripts/floquet_alpha.py --variant noncommuting-completion --check
 uv run python scripts/spatial_1d_alpha_search.py --check
 uv run python scripts/spatial_1d_alpha_search.py --variant combined --check
 uv run python scripts/spatial_1d_unseeded_search.py --check
+uv run python scripts/bloch_path_a_search.py --check
 uv run python scripts/defect_beta_search.py --check
 uv run python scripts/branching_check.py --check
 uv run python scripts/qca_split_audit.py --check --expect-verdict notation_only

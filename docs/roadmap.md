@@ -62,6 +62,8 @@ an on-site block-preserving algebra on `R^10`.
   theorem-standard decision between spectral and strict forced `J`.
 - [Spatial 1D Sidecar Report](literature/spatial_1d_report.md):
   Route-2 winding prototype for coupling alpha/eta orientation signs.
+- [Bloch Path-A Report](literature/bloch_path_a_report.md):
+  sampled Bloch-family checker for off-site Path-A candidates.
 - [Defect Beta Report](literature/defect_beta_report.md):
   second physical primitive family using computed wall-cycle monodromy.
 - [Handover Compliance](handover_compliance.md): Phase 0 closeout checklist.
@@ -171,6 +173,14 @@ spatial_1d_unseeded_coarse_6_4_center_candidates: 0
 spatial_1d_unseeded_sign_coupled_candidates: 0
 spatial_1d_unseeded_strict_bridge_candidates: 0
 spatial_1d_unseeded_route_label: unseeded_spatial_no_bridge_candidates
+bloch_path_a_candidate_count: 6
+bloch_path_a_seed_guardrail_rejections: 4
+bloch_path_a_unseeded_candidate_count: 2
+bloch_path_a_stable_6_4_band_candidates: 0
+bloch_path_a_topological_pm_candidates: 4
+bloch_path_a_rule_generated_j_section_candidates: 0
+bloch_path_a_strict_bridge_candidates: 0
+bloch_path_a_route_label: bloch_path_a_seeded_shape_only
 spatial_1d_alpha_strict_bridge_candidates: 0
 floquet_alpha_noncommuting_forced_j_candidates: 0
 floquet_alpha_noncommuting_strict_bridge_candidates: 0
@@ -1173,10 +1183,14 @@ Implementation:
 
 ```text
 src/clifford_3plus2_d5/qca/spatial_1d.py
+src/clifford_3plus2_d5/qca/bloch_rule.py
 scripts/spatial_1d_alpha_search.py
 scripts/spatial_1d_unseeded_search.py
+scripts/bloch_path_a_search.py
 tests/test_spatial_1d.py
+tests/test_bloch_rule.py
 docs/literature/spatial_1d_report.md
+docs/literature/bloch_path_a_report.md
 ```
 
 Prototype:
@@ -1223,6 +1237,14 @@ unseeded_coarse_6_4_center_candidates = 0
 unseeded_sign_coupled_candidates = 0
 unseeded_strict_bridge_candidates = 0
 unseeded_route_label = unseeded_spatial_no_bridge_candidates
+bloch_path_a_candidate_count = 6
+bloch_path_a_seed_guardrail_rejections = 4
+bloch_path_a_unseeded_candidate_count = 2
+bloch_path_a_stable_6_4_band_candidates = 0
+bloch_path_a_topological_pm_candidates = 4
+bloch_path_a_rule_generated_j_section_candidates = 0
+bloch_path_a_strict_bridge_candidates = 0
+bloch_path_a_route_label = bloch_path_a_seeded_shape_only
 load_bearing_qca_bridge = false
 ```
 
@@ -1256,6 +1278,11 @@ This guardrail must also be strengthened from an obvious diagonal-projector
 check to an algebraic check: reject candidates whose coefficient algebra
 generates `P_alpha` or `P_eta`, even if those projectors are hidden as
 polynomials in non-projector layer coefficients.
+The Bloch Path-A checker implements that algebraic guardrail and evaluates
+sampled root-of-unity Bloch symbols. Its first candidate family reports the
+expected boundary: seeded rules keep the `(4,3)` topological shape but are
+rejected, while the unseeded full-shift starters do not produce a stable
+rank-`(6,4)` band split or a rule-generated `J(k)` section.
 ```
 
 ## Defect-Beta Transition-Pair Family

@@ -50,6 +50,7 @@ uv run python scripts/floquet_alpha.py --variant noncommuting-completion --check
 uv run python scripts/spatial_1d_alpha_search.py --check
 uv run python scripts/spatial_1d_alpha_search.py --variant combined --check
 uv run python scripts/spatial_1d_unseeded_search.py --check
+uv run python scripts/bloch_path_a_search.py --check
 uv run python scripts/defect_beta_search.py --check
 uv run python scripts/branching_check.py --check
 uv run python scripts/qca_split_audit.py --check --expect-verdict notation_only
@@ -608,6 +609,20 @@ candidate: unseeded_mode_5_cycle_shift, center_ranks=[0, 2, 4, 4, 6, 6, 8, 10], 
 candidate: spatial_1d_alpha_projector_shift_qca, witnesses=['shift_3:P_eta', 'shift_4:P_alpha'], route=unseeded_spatial_seeded_coefficient_rejected
 ```
 
+Bloch Path-A search:
+
+```text
+candidate_count: 6
+seed_guardrail_rejections: 4
+unseeded_candidate_count: 2
+stable_6_4_band_candidates: 0
+topological_pm_candidates: 4
+rule_generated_j_section_candidates: 0
+strict_bridge_candidates: 0
+route_label: bloch_path_a_seeded_shape_only
+load_bearing_qca_bridge: false
+```
+
 Defect-beta search:
 
 ```text
@@ -754,6 +769,10 @@ with the `(4,3)` winding hops. It reaches the topological `±J` shape
 (`4` compatible signs reduced to `2` transported signs), but the joint rule
 algebra still generates zero transported `J`s, so the strict bridge remains
 false.
+The Bloch Path-A checker now makes this boundary explicit over sampled
+root-of-unity Bloch symbols: seeded candidates have the topological shape but
+fail the coefficient-algebra guardrail, while the first unseeded full-shift
+candidates produce no stable rank-`(6,4)` band split.
 Defect-beta is retained as a regression target but parked as a load-bearing
 route until rebuilt as a genuine higher-dimensional defect calculation. Its
 round-trip monodromy is exactly the matching Floquet-alpha operator. The

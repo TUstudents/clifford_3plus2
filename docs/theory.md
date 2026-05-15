@@ -368,6 +368,12 @@ zero transported `J` elements.
 The first unseeded Route-2 scan makes that boundary explicit: block-blind
 finite-radius layers do not produce a bridge candidate, and the working
 projector-shift layer is rejected by the seeded-coefficient guardrail.
+The Bloch Path-A checker is the first version of the correct off-site verdict
+shape. It evaluates sampled root-of-unity Bloch symbols and rejects candidates
+whose coefficient algebra already generates `P_alpha` or `P_eta`. Its first
+candidate family reports seeded topological shape only: seeded rules have the
+`(4,3)` transport pattern, while the unseeded full-shift candidates do not
+produce a stable rank-`(6,4)` band split or a rule-generated `J(k)` section.
 That rejection is the correct result, not a reason to abandon Route 2. The
 seeded transfer `T(z) = P_alpha z^4 + P_eta z^3` is the target effective rule
 to derive from microscopic hopping layers. A serious unseeded Route-2 search
