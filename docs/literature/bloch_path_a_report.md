@@ -41,6 +41,7 @@ already generates the coarse projectors.
 
 ```bash
 uv run python scripts/bloch_path_a_search.py --check
+uv run python scripts/bloch_path_a_search.py --check --jobs 2
 ```
 
 Current output:
@@ -59,6 +60,18 @@ projector_free_rule_verdict: not_solved
 projector_free_rule_generated_algebra_dimension: 16
 projector_free_rule_generated_algebra_closed: false
 projector_free_rule_pass_rule_to_bridge: false
+```
+
+Focused performance probe after the algebra-kernel optimization:
+
+```text
+uv run python scripts/perf_probe.py --max-algebra-dim 16
+  bloch_samples: 12 in about 0.1s
+  generated_algebra: dimension=16 closed=false in about 3s
+
+uv run python scripts/perf_probe.py --max-algebra-dim 32
+  bloch_samples: 12 in about 0.1s
+  generated_algebra: dimension=32 closed=false in about 8.5s
 ```
 
 Candidate labels:

@@ -83,9 +83,15 @@ def main() -> int:
         action="store_true",
         help="Exit nonzero if the Path-A diagnostics regress.",
     )
+    parser.add_argument(
+        "--jobs",
+        type=int,
+        default=1,
+        help="Evaluate independent candidate diagnostics in parallel.",
+    )
     args = parser.parse_args()
 
-    summary = bloch_path_a_search_summary()
+    summary = bloch_path_a_search_summary(jobs=args.jobs)
     payload = _summary_to_dict(summary)
     if args.json:
         print(json.dumps(payload, indent=2, sort_keys=True))

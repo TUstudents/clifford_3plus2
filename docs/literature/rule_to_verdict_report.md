@@ -136,6 +136,13 @@ returns `generated_algebra_closed: false` and `verdict: not_solved` rather
 than attempting an unbounded exact closure. This is a computational boundary,
 not a physics falsifier.
 
+The algebra closure kernel now uses incremental exact span reduction instead
+of recomputing full matrix ranks for every product. It also has a fast exact
+path over `QQ(sqrt(3), i)`, the field used by the active period-12 Bloch
+samples, with generic SymPy reduction as fallback. Center computation uses
+structure constants inside the generated algebra when possible, falling back
+to full commutator equations only when product coordinates are unavailable.
+
 The reported full-compatible `compatible_j_moduli_dimension` may fall back to
 a heuristic only in the single-generator semisimple case. That estimate counts
 paired complex eigenspaces and is used for one-layer α-style diagnostics; it is

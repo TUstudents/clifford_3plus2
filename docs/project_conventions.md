@@ -31,6 +31,28 @@ Run the full `uv run pytest -q` suite only when one of these is true:
 When the full suite is skipped, say so explicitly in the result note instead of
 implying it was run.
 
+## Performance Policy
+
+Default route scripts must stay bounded and diagnostic. Expensive exact
+searches need explicit caps and should report the reason they stopped, for
+example `generated_algebra_closed: false` rather than silently continuing into
+an unbounded SymPy solve.
+
+Keep hot algebra kernels separate from CLI/report bookkeeping. Candidate
+construction, exact closure, center/J solves, and result formatting should be
+separate steps so timing probes can isolate the real bottleneck.
+
+Use the focused performance probe before and after algebra-kernel changes:
+
+```bash
+uv run python scripts/perf_probe.py --max-algebra-dim 16
+uv run python scripts/perf_probe.py --max-algebra-dim 32
+```
+
+Parallel candidate scans should expose a `--jobs` option and preserve
+deterministic output ordering. Do not make parallel execution the only path;
+`--jobs 1` must remain the reproducible baseline.
+
 ## Test Meaning
 
 Treat project checks as three classes:

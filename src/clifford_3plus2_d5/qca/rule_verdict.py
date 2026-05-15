@@ -4,12 +4,11 @@ from __future__ import annotations
 
 from collections.abc import Sequence
 from dataclasses import dataclass
-from itertools import product
 from typing import Literal
 
 import sympy as sp
 
-from clifford_3plus2_d5.algebra.commutants import matrix_span_rank
+from clifford_3plus2_d5.algebra.commutants import IncrementalMatrixSpan, exact_matrix_span
 from clifford_3plus2_d5.algebra.matrices import commutator, identity, is_zero_matrix
 from clifford_3plus2_d5.qca.gates import is_real_matrix, is_real_orthogonal
 from clifford_3plus2_d5.qca.layers import QCAUpdate, layer_operator
@@ -111,16 +110,6 @@ def _matrix_from_flat(vector: sp.Matrix, dimension: int) -> sp.Matrix:
     return sp.Matrix(dimension, dimension, list(vector))
 
 
-def _append_if_independent(basis: list[sp.Matrix], candidate: sp.Matrix) -> bool:
-    if not basis:
-        basis.append(candidate)
-        return True
-    if matrix_span_rank([*basis, candidate]) > matrix_span_rank(basis):
-        basis.append(candidate)
-        return True
-    return False
-
-
 def _validate_layers(layers: Sequence[RuleLayerInput], *, dimension: int) -> None:
     if not layers:
         raise ValueError("at least one rule layer is required")
@@ -167,8 +156,8 @@ def _bloch_layer_symbol_at_root(
     zeta = _root_of_unity(period, sample)
     symbol = sp.zeros(layer.matrix.rows)
     for term in layer.bloch_terms:
-        symbol += term.matrix * zeta**term.shift
-    return symbol.applyfunc(sp.simplify)
+        symbol += term.matrix * sp.expand(zeta**term.shift)
+    return symbol.applyfunc(sp.expand)
 
 
 def bloch_floquet_operators(
@@ -182,7 +171,7 @@ def bloch_floquet_operators(
         result = identity(dimension)
         for layer in layers:
             result = _bloch_layer_symbol_at_root(layer, period=bloch_period, sample=sample) * result
-        samples.append(result.applyfunc(sp.simplify))
+        samples.append(result.applyfunc(sp.expand))
     return tuple(samples)
 
 
@@ -231,21 +220,45 @@ def generated_algebra_closure(
     if limit <= 0:
         raise ValueError("max_dimension must be positive")
 
+    span = exact_matrix_span(
+        (identity(dimension), *generators),
+        rows=dimension,
+        cols=dimension,
+        add_matrices=False,
+    )
     basis: list[sp.Matrix] = []
-    for matrix in (identity(dimension), *generators):
-        _append_if_independent(basis, matrix)
+    queue: list[sp.Matrix] = []
+
+    def add_to_basis(matrix: sp.Matrix, *, enqueue: bool) -> bool:
+        nonlocal span
+        try:
+            added = span.add(matrix)
+        except ValueError:
+            fallback = IncrementalMatrixSpan(rows=dimension, cols=dimension)
+            for basis_matrix in basis:
+                fallback.add(basis_matrix)
+            span = fallback
+            added = span.add(matrix)
+        if not added:
+            return False
+        basis.append(matrix)
+        if enqueue:
+            queue.append(matrix)
+        return True
+
+    add_to_basis(identity(dimension), enqueue=False)
+    for matrix in generators:
+        add_to_basis(matrix, enqueue=True)
         if len(basis) >= limit:
             return AlgebraClosure(
                 basis=tuple(basis),
                 closed=len(basis) == dimension * dimension,
             )
 
-    changed = True
-    while changed and len(basis) < dimension * dimension:
-        changed = False
-        current = tuple(basis)
-        for left, right in product(current, current):
-            changed = _append_if_independent(basis, left * right) or changed
+    while queue and len(basis) < dimension * dimension:
+        matrix = queue.pop(0)
+        for generator in generators:
+            add_to_basis(matrix * generator, enqueue=True)
             if len(basis) == dimension * dimension:
                 return AlgebraClosure(basis=tuple(basis), closed=True)
             if len(basis) >= limit:
@@ -253,18 +266,10 @@ def generated_algebra_closure(
     return AlgebraClosure(basis=tuple(basis), closed=True)
 
 
-def generated_algebra_basis(
-    generators: Sequence[sp.Matrix],
-    *,
-    dimension: int = 10,
-) -> tuple[sp.Matrix, ...]:
-    return generated_algebra_closure(generators, dimension=dimension).basis
-
-
-def center_basis_of_algebra(
+def _center_basis_from_commutators(
     algebra_basis: Sequence[sp.Matrix],
     *,
-    dimension: int = 10,
+    dimension: int,
 ) -> tuple[sp.Matrix, ...]:
     variables = sp.symbols(f"z0:{len(algebra_basis)}")
     candidate = sp.zeros(dimension)
@@ -284,6 +289,73 @@ def center_basis_of_algebra(
             matrix += coefficient * basis_matrix
         center.append(matrix)
     return tuple(center)
+
+
+def _center_basis_from_structure_constants(
+    algebra_basis: Sequence[sp.Matrix],
+    *,
+    dimension: int,
+) -> tuple[sp.Matrix, ...] | None:
+    coordinate_system = exact_matrix_span(algebra_basis)
+    if coordinate_system.rank != len(algebra_basis):
+        raise ValueError("algebra_basis must be linearly independent")
+
+    basis_size = len(algebra_basis)
+    variables = sp.symbols(f"z0:{basis_size}")
+    equations = []
+    product_coordinates: dict[tuple[int, int], tuple[sp.Expr, ...]] = {}
+    for left_index, left in enumerate(algebra_basis):
+        for right_index, right in enumerate(algebra_basis):
+            try:
+                coordinates = coordinate_system.coordinates(left * right)
+            except ValueError:
+                return None
+            if coordinates is None:
+                return None
+            product_coordinates[(left_index, right_index)] = coordinates
+
+    for basis_index in range(basis_size):
+        for coordinate_index in range(basis_size):
+            equations.append(
+                sp.expand(
+                    sum(
+                        variables[left_index]
+                        * (
+                            product_coordinates[(left_index, basis_index)][coordinate_index]
+                            - product_coordinates[(basis_index, left_index)][coordinate_index]
+                        )
+                        for left_index in range(basis_size)
+                    )
+                )
+            )
+
+    coefficient_matrix, _ = sp.linear_eq_to_matrix(equations, variables)
+    center = []
+    for vector in coefficient_matrix.nullspace():
+        matrix = sp.zeros(dimension)
+        for coefficient, basis_matrix in zip(vector, algebra_basis, strict=True):
+            matrix += coefficient * basis_matrix
+        center.append(matrix)
+    return tuple(center)
+
+
+def generated_algebra_basis(
+    generators: Sequence[sp.Matrix],
+    *,
+    dimension: int = 10,
+) -> tuple[sp.Matrix, ...]:
+    return generated_algebra_closure(generators, dimension=dimension).basis
+
+
+def center_basis_of_algebra(
+    algebra_basis: Sequence[sp.Matrix],
+    *,
+    dimension: int = 10,
+) -> tuple[sp.Matrix, ...]:
+    center = _center_basis_from_structure_constants(algebra_basis, dimension=dimension)
+    if center is not None:
+        return center
+    return _center_basis_from_commutators(algebra_basis, dimension=dimension)
 
 
 def centralizer_basis(

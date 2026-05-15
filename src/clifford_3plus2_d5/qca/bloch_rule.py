@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from concurrent.futures import ProcessPoolExecutor
 from dataclasses import dataclass
 from math import gcd, lcm
 
@@ -600,8 +601,19 @@ def bloch_path_a_candidates() -> tuple[BlochPathACandidate, ...]:
     )
 
 
-def bloch_path_a_search_summary() -> BlochPathASearchSummary:
-    verdicts = tuple(bloch_rule_to_verdict(candidate) for candidate in bloch_path_a_candidates())
+def _bloch_rule_to_verdict_for_pool(candidate: BlochPathACandidate) -> BlochRuleVerdict:
+    return bloch_rule_to_verdict(candidate)
+
+
+def bloch_path_a_search_summary(*, jobs: int = 1) -> BlochPathASearchSummary:
+    if jobs <= 0:
+        raise ValueError("jobs must be positive")
+    candidates = bloch_path_a_candidates()
+    if jobs == 1:
+        verdicts = tuple(bloch_rule_to_verdict(candidate) for candidate in candidates)
+    else:
+        with ProcessPoolExecutor(max_workers=jobs) as executor:
+            verdicts = tuple(executor.map(_bloch_rule_to_verdict_for_pool, candidates))
     unseeded = tuple(verdict for verdict in verdicts if verdict.seed_guardrail_passed)
     strict_count = sum(verdict.strict_bridge_candidate for verdict in verdicts)
     if strict_count:

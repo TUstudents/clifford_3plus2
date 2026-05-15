@@ -4,6 +4,8 @@ import sympy as sp
 import pytest
 
 from clifford_3plus2_d5.algebra.commutants import (
+    IncrementalMatrixSpan,
+    Sqrt3IMatrixSpan,
     commutes_with_sm_gauge,
     complex_from_real,
     is_complex_block_scalar_3plus2,
@@ -64,6 +66,37 @@ def test_linear_system_commutant_basis_matches_projector_span() -> None:
     assert matrix_span_rank(computed) == 2
     assert matrix_span_rank(computed + expected) == 2
     assert sm_commutant_basis_matches_expected()
+
+
+def test_incremental_matrix_span_tracks_rank_and_coordinates() -> None:
+    first = sp.Matrix([[1, 0], [0, 0]])
+    second = sp.Matrix([[0, 1], [0, 0]])
+    dependent = 2 * first - second
+    span = IncrementalMatrixSpan(rows=2, cols=2)
+
+    assert span.add(first)
+    assert span.add(second)
+    assert not span.add(dependent)
+    assert span.rank == 2
+    assert span.coordinates(dependent) == (2, -1)
+    assert span.contains(first + second)
+    assert not span.contains(sp.Matrix([[0, 0], [1, 0]]))
+
+
+def test_sqrt3_i_matrix_span_tracks_field_coefficients() -> None:
+    first = sp.Matrix([[1, 0], [0, 0]])
+    second = sp.Matrix([[sp.sqrt(3), 0], [0, 0]])
+    third = sp.Matrix([[sp.I, 0], [0, 0]])
+    outside = sp.Matrix([[0, 1], [0, 0]])
+    span = Sqrt3IMatrixSpan(rows=2, cols=2)
+
+    assert span.add(first)
+    assert not span.add(second)
+    assert not span.add(third)
+    assert span.rank == 1
+    assert span.coordinates(second) == (sp.sqrt(3),)
+    assert span.coordinates(third) == (sp.I,)
+    assert not span.contains(outside)
 
 
 def test_block_scalar_commutes_with_sm_gauge() -> None:
