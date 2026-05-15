@@ -81,7 +81,7 @@ class StepwiseResult:
     stage_seconds: tuple[tuple[str, float], ...]
 
 
-SCANNER_VERSION = "bloch_path_a_stepwise_v4"
+SCANNER_VERSION = "bloch_path_a_stepwise_v5"
 DEFAULT_BLOCH_PERIOD = 12
 MAX_CYCLES = 24
 MAX_SHIFT_ASSIGNMENTS = 10
@@ -377,6 +377,32 @@ def _negation_closed_count(matrices: tuple[sp.Matrix, ...]) -> int:
         ):
             count += 1
     return count
+
+
+def _reduce_analysis_generators(
+    generators: Sequence[sp.Matrix],
+    closure_basis: Sequence[sp.Matrix],
+) -> tuple[sp.Matrix, ...]:
+    """Find a small sample subset that still generates the closed algebra."""
+
+    if not generators:
+        return ()
+    target_dimension = len(closure_basis)
+    selected: list[sp.Matrix] = []
+    selected_dimension = 1
+    for generator in generators:
+        trial = (*selected, generator)
+        closure = generated_algebra_closure(
+            trial,
+            dimension=generator.rows,
+            max_dimension=target_dimension + 1,
+        )
+        if closure.closed and len(closure.basis) == target_dimension:
+            return trial
+        if len(closure.basis) > selected_dimension:
+            selected.append(generator)
+            selected_dimension = len(closure.basis)
+    return tuple(generators)
 
 
 def _j_sign_shape(matrices: tuple[sp.Matrix, ...]) -> str:
@@ -796,10 +822,21 @@ def evaluate_candidate(
     center = ()
     compatible_basis = ()
     idempotents = ()
+    analysis_generators = samples
     has_rank_6_4_blocks = False
+    if (
+        include_center
+        or include_centralizer
+        or include_j_solve
+        or include_projected_centralizer
+    ) and closure.closed:
+        stage_start = time.perf_counter()
+        analysis_generators = _reduce_analysis_generators(samples, closure.basis)
+        record_stage("generator_reduction", stage_start)
+
     if (include_center or include_j_solve or include_projected_centralizer) and closure.closed:
         stage_start = time.perf_counter()
-        center = center_basis_of_generated_algebra(closure.basis, samples)
+        center = center_basis_of_generated_algebra(closure.basis, analysis_generators)
         center_dimension = len(center)
         record_stage("center_basis", stage_start)
         if include_idempotents or include_j_solve or include_projected_centralizer:
@@ -815,7 +852,7 @@ def evaluate_candidate(
     )
     if needs_compatible_basis and closure.closed:
         stage_start = time.perf_counter()
-        compatible_basis = centralizer_basis(samples)
+        compatible_basis = centralizer_basis(analysis_generators)
         compatible_centralizer_dimension = len(compatible_basis)
         record_stage("centralizer", stage_start)
     if (

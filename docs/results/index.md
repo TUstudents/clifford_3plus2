@@ -1016,7 +1016,7 @@ uv run python scripts/bloch_path_a_stepwise.py \
   --idempotents --centralizer --j-solve --projected-centralizer \
   --jobs 1 --check
 
-result:
+result after the second solver-polish pass:
 generated_algebra_dimension: 34
 center_dimension: 4
 central_idempotent_ranks: [0,4,6,10]
@@ -1024,32 +1024,34 @@ compatible_centralizer_dimension: 4
 generated_j_count: 0
 compatible_j_count: 0
 projected: rank6 split_real R^3; rank4 split_real R
-elapsed_seconds: 91.0
+elapsed_seconds: 37.8
 
 stage_seconds:
 closure: 10.1
-center_basis: 28.4
-idempotents: 22.6
-centralizer: 5.3
-j_solve: 22.4
+generator_reduction: 2.1
+center_basis: 5.6
+idempotents: 11.2
+centralizer: 1.3
+j_solve: 5.3
 projected_centralizer: 2.0
 ```
 
-The center stage now uses generator-relative structure constants for the
-stepwise scanner instead of multiplying every pair in the closed algebra. On
-the same representative candidate, center extraction dropped from about `46s`
-to about `28s`. The central-idempotent solver also has a rational
-multiplication-table path for small commutative centers; algebraic-field Bloch
-centers fall back to the matrix-equation solver because coordinate reduction is
-slower there.
+The stepwise scanner now reduces the 12 sampled Bloch generators to an exact
+smaller generating subset after closure. For the representative dim-`34`
+survivor, samples `(0,1)` already regenerate the same algebra, which shrinks
+the center and centralizer systems. The split-`J` solver also avoids repeated
+projected-basis work and builds coordinate systems lazily. Central idempotents
+are solved from deduplicated matrix equations with verified small-subsystem
+short-circuits; small rational commutative centers still use the
+multiplication-table path.
 
 Updated scan estimates from this single-candidate benchmark:
 
 | Scan mode | Candidate count | Serial estimate | 4-job estimate |
 | --- | ---: | ---: | ---: |
 | Monomial closure-only, one pattern | `240` | `~40 min` | `~10 min` |
-| Monomial detailed, one pattern | `240` | `~6 h` | `~1.5-2 h` |
-| Monomial detailed, ten patterns | `2400` | `~60 h` | `~15-20 h` |
+| Monomial detailed, one pattern | `240` | `~2.5-3 h` | `~45-60 min` |
+| Monomial detailed, ten patterns | `2400` | `~25-30 h` | `~7-9 h` |
 | Polynomial-hop bounded class | `960` per pattern | not stable | cap-boundary dominated |
 
 These estimates assume the dim-`34` survivor shape dominates. Dim-`22` and

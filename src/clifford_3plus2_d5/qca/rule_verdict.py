@@ -482,15 +482,51 @@ def _solve_matrix_equations(
     *,
     variables: Sequence[sp.Symbol],
 ) -> tuple[dict[sp.Symbol, sp.Expr], ...]:
-    equations = tuple(sp.expand(value) for value in matrix_equation if sp.expand(value) != 0)
+    equations = []
+    seen: set[str] = set()
+    for value in matrix_equation:
+        expanded = sp.expand(value)
+        if expanded == 0:
+            continue
+        key = sp.srepr(expanded)
+        if key in seen:
+            continue
+        seen.add(key)
+        equations.append(expanded)
     if not equations:
         return ({variable: sp.Integer(0) for variable in variables},)
-    solutions = sp.solve(equations, tuple(variables), dict=True)
-    complete_solutions = []
-    for solution in solutions:
-        if all(variable in solution for variable in variables):
-            complete_solutions.append(solution)
-    return tuple(complete_solutions)
+
+    def complete_solutions(
+        solutions: Sequence[dict[sp.Symbol, sp.Expr]],
+    ) -> tuple[dict[sp.Symbol, sp.Expr], ...]:
+        return tuple(
+            solution
+            for solution in solutions
+            if all(variable in solution for variable in variables)
+        )
+
+    def satisfies_all(solution: dict[sp.Symbol, sp.Expr]) -> bool:
+        return all(sp.simplify(equation.subs(solution)) == 0 for equation in equations)
+
+    ordered_equations = tuple(sorted(equations, key=lambda equation: len(str(equation))))
+    for limit in (8, 12, 16, 24, 32):
+        if len(ordered_equations) <= limit:
+            break
+        partial_solutions = sp.solve(
+            ordered_equations[:limit],
+            tuple(variables),
+            dict=True,
+        )
+        if not partial_solutions:
+            return ()
+        complete_partial_solutions = complete_solutions(partial_solutions)
+        if complete_partial_solutions and all(
+            satisfies_all(solution) for solution in complete_partial_solutions
+        ):
+            return complete_partial_solutions
+
+    solutions = sp.solve(tuple(ordered_equations), tuple(variables), dict=True)
+    return complete_solutions(solutions)
 
 
 def _solve_idempotent_coordinate_equations(
@@ -694,7 +730,7 @@ def _independent_block_basis(
 ) -> tuple[sp.Matrix, ...]:
     candidates = [projector]
     for basis_matrix in basis:
-        candidate = (projector * basis_matrix).applyfunc(sp.simplify)
+        candidate = (projector * basis_matrix).applyfunc(sp.expand)
         candidates.append(candidate)
 
     span = exact_matrix_span(tuple(candidates), add_matrices=False)
@@ -727,7 +763,7 @@ def solve_complex_structures_from_idempotent_splitting(
     different solver and are reported as unsupported.
     """
 
-    nontrivial_pairs = []
+    nontrivial_pairs: list[tuple[CentralIdempotent, CentralIdempotent]] = []
     one = identity(dimension)
     zero = sp.zeros(dimension)
     matrix_zero = sp.zeros(dimension)
@@ -748,16 +784,14 @@ def solve_complex_structures_from_idempotent_splitting(
                 and same_matrix(left.matrix * right.matrix, zero)
                 and same_matrix(right.matrix * left.matrix, zero)
             ):
-                nontrivial_pairs.append((left.matrix, right.matrix))
+                nontrivial_pairs.append((left, right))
     if not nontrivial_pairs:
         return False, None, ()
 
-    coordinate_system = exact_matrix_span(basis)
-    if coordinate_system.rank != len(basis):
-        raise ValueError("basis must be linearly independent")
-
-    def block_solutions(projector: sp.Matrix) -> tuple[sp.Matrix, ...] | None:
-        block_basis = _independent_block_basis(basis, projector)
+    def block_solutions(
+        projector: sp.Matrix,
+        block_basis: Sequence[sp.Matrix],
+    ) -> tuple[sp.Matrix, ...] | None:
         if len(block_basis) != 2:
             return None
         block_span = exact_matrix_span(block_basis)
@@ -781,29 +815,41 @@ def solve_complex_structures_from_idempotent_splitting(
     candidates: list[ComplexStructureCandidate] = []
     seen: set[tuple[sp.Expr, ...]] = set()
     unsupported_pair_seen = False
-    for left_projector, right_projector in nontrivial_pairs:
-        left_block_basis = _independent_block_basis(basis, left_projector)
-        right_block_basis = _independent_block_basis(basis, right_projector)
-        if len(left_block_basis) == 1 or len(right_block_basis) == 1:
+    coordinate_system = None
+    for left_idempotent, right_idempotent in nontrivial_pairs:
+        first, second = sorted((left_idempotent, right_idempotent), key=lambda item: item.rank)
+        first_block_basis = _independent_block_basis(basis, first.matrix)
+        if len(first_block_basis) == 1:
             continue
-        if len(left_block_basis) != 2 or len(right_block_basis) != 2:
+        if len(first_block_basis) != 2:
             unsupported_pair_seen = True
             continue
 
-        left_solutions = block_solutions(left_projector)
-        right_solutions = block_solutions(right_projector)
-        if left_solutions is None or right_solutions is None:
+        second_block_basis = _independent_block_basis(basis, second.matrix)
+        if len(second_block_basis) == 1:
+            continue
+        if len(second_block_basis) != 2:
             unsupported_pair_seen = True
             continue
-        for left_j in left_solutions:
-            for right_j in right_solutions:
-                matrix = (left_j + right_j).applyfunc(sp.simplify)
+
+        first_solutions = block_solutions(first.matrix, first_block_basis)
+        second_solutions = block_solutions(second.matrix, second_block_basis)
+        if first_solutions is None or second_solutions is None:
+            unsupported_pair_seen = True
+            continue
+        for first_j in first_solutions:
+            for second_j in second_solutions:
+                matrix = (first_j + second_j).applyfunc(sp.simplify)
                 if not is_real_matrix(matrix):
                     continue
                 if (matrix * matrix + one).applyfunc(sp.simplify) != zero:
                     continue
                 if (matrix.T * matrix - one).applyfunc(sp.simplify) != zero:
                     continue
+                if coordinate_system is None:
+                    coordinate_system = exact_matrix_span(basis)
+                    if coordinate_system.rank != len(basis):
+                        raise ValueError("basis must be linearly independent")
                 coordinates = coordinate_system.coordinates(matrix)
                 if coordinates is None:
                     continue
