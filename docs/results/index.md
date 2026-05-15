@@ -2,6 +2,10 @@
 
 ## 2026-05-14
 
+This is a historical result bundle. Current validation convention is documented
+in [Project Conventions](../project_conventions.md): full `uv run pytest -q` is
+a slow archival suite, while normal work uses Ruff plus focused route checks.
+
 Commands:
 
 ```bash
@@ -35,13 +39,13 @@ uv run python scripts/discover_projectors.py --check --mode block-reflection-can
 uv run python scripts/rule_to_verdict.py --case minimal-period-four --expect-verdict falsified_no_rank_6_4_center
 uv run python scripts/rule_to_verdict.py --case clock-block-reflection --expect-verdict candidate_only_j_not_forced
 uv run python scripts/rule_to_verdict.py --case clock-rank-one-color-reflection --expect-verdict falsified_rank_one_center
-uv run python scripts/floquet_alpha_search.py --check
-uv run python scripts/floquet_alpha_plus_search.py --check
-uv run python scripts/floquet_alpha_time_reversal_search.py --check
-uv run python scripts/floquet_alpha_second_layer_search.py --check
-uv run python scripts/floquet_alpha_noncommuting_search.py --check
-uv run python scripts/floquet_alpha_noncommuting_j_gap.py --check
-uv run python scripts/floquet_alpha_noncommuting_completion.py --check
+uv run python scripts/floquet_alpha.py --check
+uv run python scripts/floquet_alpha.py --variant plus --check
+uv run python scripts/floquet_alpha.py --variant time-reversal --check
+uv run python scripts/floquet_alpha.py --variant second-layer --check
+uv run python scripts/floquet_alpha.py --variant noncommuting --check
+uv run python scripts/floquet_alpha.py --variant noncommuting-gap --check
+uv run python scripts/floquet_alpha.py --variant noncommuting-completion --check
 uv run python scripts/spatial_1d_alpha_search.py --check
 uv run python scripts/spatial_1d_unseeded_search.py --check
 uv run python scripts/defect_beta_search.py --check

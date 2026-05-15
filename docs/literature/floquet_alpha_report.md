@@ -5,7 +5,7 @@ Status: first physical primitive family implemented.
 This report records the Floquet-α family implemented in
 [`src/clifford_3plus2_d5/qca/floquet_alpha.py`](../../src/clifford_3plus2_d5/qca/floquet_alpha.py)
 and exposed by
-[`scripts/floquet_alpha_search.py`](../../scripts/floquet_alpha_search.py).
+[`scripts/floquet_alpha.py`](../../scripts/floquet_alpha.py).
 
 ## Purpose
 
@@ -45,9 +45,9 @@ five mode pairs carry the alpha phase.
 ## Command
 
 ```bash
-uv run python scripts/floquet_alpha_search.py --check
-uv run python scripts/floquet_alpha_plus_search.py --check
-uv run python scripts/floquet_alpha_second_layer_search.py --check
+uv run python scripts/floquet_alpha.py --check
+uv run python scripts/floquet_alpha.py --variant plus --check
+uv run python scripts/floquet_alpha.py --variant second-layer --check
 ```
 
 Current output:
@@ -198,7 +198,7 @@ V^2 P_eta = P_eta
 ```
 
 This is now implemented as a checked negative via
-[`scripts/floquet_alpha_second_layer_search.py`](../../scripts/floquet_alpha_second_layer_search.py).
+[`scripts/floquet_alpha.py --variant second-layer`](../../scripts/floquet_alpha.py).
 
 Current output:
 
@@ -232,7 +232,7 @@ not `2`; together with the eta swap block this gives real dimension `10`, not
 The viable next finite-dimensional route is now implemented as
 [`src/clifford_3plus2_d5/qca/floquet_alpha_noncommuting.py`](../../src/clifford_3plus2_d5/qca/floquet_alpha_noncommuting.py)
 and
-[`scripts/floquet_alpha_noncommuting_search.py`](../../scripts/floquet_alpha_noncommuting_search.py).
+[`scripts/floquet_alpha.py --variant noncommuting`](../../scripts/floquet_alpha.py).
 It keeps the alpha/eta blocks fixed but adds a signed orientation twist `U2`
 with `[U1,U2] != 0`. The representative exact twist uses only `0, +1, -1`
 entries: a 3-cycle on the alpha mode-pairs, a swap on the eta mode-pairs, and
@@ -267,7 +267,7 @@ rule-generated/local `J`. The route label is therefore
 next microscopic mechanism.
 
 The gap is now extracted explicitly by
-[`scripts/floquet_alpha_noncommuting_j_gap.py`](../../scripts/floquet_alpha_noncommuting_j_gap.py).
+[`scripts/floquet_alpha.py --variant noncommuting-gap`](../../scripts/floquet_alpha.py).
 The four compatible `J` candidates are pair-orientation matrices with signs:
 
 ```text
@@ -293,7 +293,7 @@ So the noncommuting twist solves the continuous-moduli problem but not the
 microscopic-production problem.
 
 The minimal completion experiment is also checked by
-[`scripts/floquet_alpha_noncommuting_completion.py`](../../scripts/floquet_alpha_noncommuting_completion.py).
+[`scripts/floquet_alpha.py --variant noncommuting-completion`](../../scripts/floquet_alpha.py).
 It declares one finite compatible `J` as a third mandatory layer `W`. This is
 only a diagnostic, not a physical claim.
 

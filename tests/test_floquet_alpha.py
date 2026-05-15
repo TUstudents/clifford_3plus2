@@ -236,7 +236,7 @@ def test_floquet_alpha_cli_searches_all_patterns() -> None:
     result = subprocess.run(
         [
             sys.executable,
-            "scripts/floquet_alpha_search.py",
+            "scripts/floquet_alpha.py",
             "--json",
             "--check",
         ],
@@ -259,7 +259,9 @@ def test_floquet_alpha_plus_cli_searches_all_patterns() -> None:
     result = subprocess.run(
         [
             sys.executable,
-            "scripts/floquet_alpha_plus_search.py",
+            "scripts/floquet_alpha.py",
+            "--variant",
+            "plus",
             "--json",
             "--check",
         ],
@@ -297,7 +299,9 @@ def test_floquet_alpha_time_reversal_cli_searches_all_patterns() -> None:
     result = subprocess.run(
         [
             sys.executable,
-            "scripts/floquet_alpha_time_reversal_search.py",
+            "scripts/floquet_alpha.py",
+            "--variant",
+            "time-reversal",
             "--json",
             "--check",
         ],
@@ -333,7 +337,9 @@ def test_floquet_alpha_second_layer_cli_detects_no_locking_failure() -> None:
     result = subprocess.run(
         [
             sys.executable,
-            "scripts/floquet_alpha_second_layer_search.py",
+            "scripts/floquet_alpha.py",
+            "--variant",
+            "second-layer",
             "--json",
             "--check",
         ],
@@ -361,7 +367,9 @@ def test_floquet_alpha_noncommuting_cli_checks_representative_route() -> None:
     result = subprocess.run(
         [
             sys.executable,
-            "scripts/floquet_alpha_noncommuting_search.py",
+            "scripts/floquet_alpha.py",
+            "--variant",
+            "noncommuting",
             "--json",
             "--check",
             "--pattern-index",
@@ -403,7 +411,9 @@ def test_floquet_alpha_noncommuting_j_gap_cli_lists_missing_j_source() -> None:
     result = subprocess.run(
         [
             sys.executable,
-            "scripts/floquet_alpha_noncommuting_j_gap.py",
+            "scripts/floquet_alpha.py",
+            "--variant",
+            "noncommuting-gap",
             "--json",
             "--check",
             "--pattern-index",
@@ -462,7 +472,9 @@ def test_floquet_alpha_noncommuting_completion_cli_reports_remaining_sign_ambigu
     result = subprocess.run(
         [
             sys.executable,
-            "scripts/floquet_alpha_noncommuting_completion.py",
+            "scripts/floquet_alpha.py",
+            "--variant",
+            "noncommuting-completion",
             "--json",
             "--check",
             "--pattern-index",

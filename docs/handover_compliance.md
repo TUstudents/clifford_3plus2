@@ -40,7 +40,7 @@ closed. Future work should follow [Roadmap And Working Index](roadmap.md).
 | Off-block gates fail | Implemented | `tests/fixtures/qca/off_block_gate.json` |
 | Color-basis projectors fail | Implemented | `tests/fixtures/qca/color_projector_gate.json` |
 | Phase D documentation | Implemented | [Roadmap](roadmap.md), [Theory Summary](theory.md), [Falsifiers](falsifiers.md), [Results](results/index.md) |
-| Reproducible command suite | Implemented | Ruff, pytest, branching script, QCA audit script |
+| Reproducible command suite | Implemented | Historical Phase 0 suite: Ruff, pytest, branching script, QCA audit script |
 
 ## Intentional Deferrals
 
@@ -64,6 +64,10 @@ Synthetic safe/unsafe gate checks are present in unit tests, but they are not
 claimed as QCA evidence.
 
 ## Phase 0 Closure Criteria
+
+This is the historical Phase 0 closure record. Current validation convention is
+route-focused and documented in [Project Conventions](project_conventions.md);
+the full pytest suite is no longer the normal commit gate.
 
 Phase 0 is closed when all commands pass:
 

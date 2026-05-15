@@ -929,9 +929,7 @@ Implementation:
 
 ```text
 src/clifford_3plus2_d5/qca/floquet_alpha.py
-scripts/floquet_alpha_search.py
-scripts/floquet_alpha_plus_search.py
-scripts/floquet_alpha_time_reversal_search.py
+scripts/floquet_alpha.py
 tests/test_floquet_alpha.py
 docs/literature/floquet_alpha_report.md
 ```
@@ -1035,9 +1033,9 @@ Noncommuting signed-twist route:
 
 ```text
 src/clifford_3plus2_d5/qca/floquet_alpha_noncommuting.py
-scripts/floquet_alpha_noncommuting_search.py
-scripts/floquet_alpha_noncommuting_j_gap.py
-scripts/floquet_alpha_noncommuting_completion.py
+scripts/floquet_alpha.py --variant noncommuting
+scripts/floquet_alpha.py --variant noncommuting-gap
+scripts/floquet_alpha.py --variant noncommuting-completion
 tests/test_floquet_alpha.py
 ```
 
