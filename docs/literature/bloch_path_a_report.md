@@ -151,6 +151,9 @@ lattice. The bounded split-center `J` solver settles the sampled family
 negatively: neither the rule-generated center nor the compatible centralizer
 contains a real orthogonal `J` with `J^2 = -I`.
 This is a sharper obstruction than the previous unresolved generic solve.
+It is recorded in [Theory](../theory.md) as Proposition 4a, with a
+conjectural Proposition 4b naming the broader monomial-hop incompatibility to
+prove next.
 
 ## Interpretation
 
@@ -173,9 +176,9 @@ projector-free combined verdict: coarse-center hit, no generated J
 strict bridge: no
 ```
 
-The next Path-A step is to enlarge the unseeded finite-radius family beyond
-the base projector-free monomial hop. The useful candidates should have
-nontrivial partial hopping structure without allowing the coefficient
-algebra to generate constant `P_alpha/P_eta`; the first such candidates already
-escape raw projector seeding and close to the same structured algebra
-dimension.
+The next Path-A step is to prove or falsify the conjectural monomial-hop
+incompatibility: partial monomial hops with winding multiset `(4,4,4,3,3)` may
+force the coarse center but appear unable to generate the fixed complex
+structure on either coarse block. If that conjecture holds, the next viable
+primitive must go beyond monomial hops while still avoiding coefficient-algebra
+seeding of `P_alpha/P_eta`.
