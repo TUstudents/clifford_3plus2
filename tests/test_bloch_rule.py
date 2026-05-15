@@ -118,3 +118,31 @@ def test_bloch_path_a_cli_check() -> None:
     assert projector_free["bloch_sample_count"] == 12
     assert projector_free["generated_algebra_closed"] is False
     assert projector_free["verdict"] == "not_solved"
+
+
+def test_bloch_path_a_stepwise_cli_check() -> None:
+    result = subprocess.run(
+        [
+            sys.executable,
+            "scripts/bloch_path_a_stepwise.py",
+            "--json",
+            "--check",
+            "--max-candidates",
+            "1",
+            "--max-algebra-dim",
+            "16",
+        ],
+        cwd=ROOT,
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    payload = json.loads(result.stdout)
+
+    assert payload["candidate_count"] == 1
+    assert payload["closed_count"] == 0
+    [candidate] = payload["results"]
+    assert candidate["name"] == "path_a_projector_free_cycle_combined"
+    assert candidate["generated_algebra_dimension"] == 16
+    assert candidate["generated_algebra_closed"] is False
+    assert candidate["route_label"] == "cap_exceeded_structured"

@@ -42,6 +42,8 @@ already generates the coarse projectors.
 ```bash
 uv run python scripts/bloch_path_a_search.py --check
 uv run python scripts/bloch_path_a_search.py --check --jobs 2
+uv run python scripts/bloch_path_a_stepwise.py --max-candidates 6 --max-algebra-dim 48 --jobs 2 --check
+uv run python scripts/bloch_path_a_stepwise.py --max-candidates 1 --max-algebra-dim 48 --center-top 1 --idempotents --centralizer --check
 ```
 
 Current output:
@@ -114,6 +116,27 @@ path_a_projector_free_cycle_combined:
   verdict = not_solved
 ```
 
+Stepwise projector-free closure search:
+
+```text
+max_candidates = 6
+max_algebra_dim = 48
+jobs = 2
+
+closed_count = 6
+all six closed at generated_algebra_dimension = 34
+base candidate center_dimension = 4
+base candidate central_idempotent_ranks = [0,4,6,10]
+base candidate compatible_centralizer_dimension = 4
+```
+
+This is the first non-seeded Path-A positive structural result. The
+projector-free monomial-hop family does not blow up to full `M_10`; it closes
+to a structured 34-dimensional algebra and, for the base candidate, has the
+coarse central idempotent lattice. It is not yet a bridge because the
+rule-generated `J(k)`/global-`±J` condition remains unresolved, and the generic
+local `J` solve is still too slow for use inside the search loop.
+
 ## Interpretation
 
 The checker now separates three things that were previously conflated:
@@ -128,16 +151,17 @@ The first Path-A result is therefore:
 
 ```text
 seeded topological shape: yes
-unseeded stable 6+4 band split: no
-rule-generated J(k) section: no
-projector-free combined verdict: bounded not_solved
+unseeded projector-free closure: yes, dimension 34
+unseeded coarse 6+4 center: yes for the base candidate
+rule-generated J(k) section: unresolved
+projector-free combined verdict: coarse-center hit, J unresolved
 strict bridge: no
 ```
 
 The next Path-A step is to enlarge the unseeded finite-radius family beyond
-uniform full-site shifts and to optimize the exact algebra closure for
-projector-free partial hopping. The useful candidates should have nontrivial
-partial hopping structure without allowing the coefficient algebra to generate
-constant `P_alpha/P_eta`; the first such candidate already escapes raw
-projector seeding but pushes the sampled algebra beyond the current quick
-closure bound.
+the first six projector-free monomial hops and to replace the generic local
+`J` solve with a block/center-aware exact solver. The useful candidates should
+have nontrivial partial hopping structure without allowing the coefficient
+algebra to generate constant `P_alpha/P_eta`; the first such candidates already
+escape raw projector seeding and close to the same structured algebra
+dimension.

@@ -380,10 +380,14 @@ with `bloch_period = n`, it uses the joint algebra
 projector-free combined Route-1/Route-2 candidate replaces
 `P_alpha z^4 + P_eta z^3` with partial monomial hops carrying source-mode
 shifts `(4,4,4,3,3)` and on-site update `U2 U1`; its raw coefficients are not
-the coarse projectors. The current bounded exact verdict is `not_solved`
-because the joint sampled algebra exceeds the quick closure cap. This is a
-computational boundary, not a new no-go.
-That rejection is the correct result, not a reason to abandon Route 2. The
+the coarse projectors. Raising the closure cap shows this is a structured
+candidate: the sampled algebra closes at dimension `34`, the center has
+dimension `4`, the central idempotent ranks are `[0,4,6,10]`, and the
+compatible centralizer has dimension `4`. Six nearby projector-free monomial
+variants close at the same dimension. This is the first unseeded Path-A coarse
+center hit; it is not yet a bridge because the rule-generated `J(k)`/global
+`±J` condition remains unresolved.
+That unresolved `J` test is the correct next target, not a reason to abandon Route 2. The
 seeded transfer `T(z) = P_alpha z^4 + P_eta z^3` is the target effective rule
 to derive from microscopic hopping layers. A serious unseeded Route-2 search
 must include finite-order on-site primitives, noncommuting orientation twists,

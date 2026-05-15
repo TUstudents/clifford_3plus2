@@ -446,6 +446,15 @@ def _mode_edge_matrix(
 
 
 def bloch_path_a_projector_free_combined_layer() -> RuleLayerInput:
+    return bloch_path_a_projector_free_layer()
+
+
+def bloch_path_a_projector_free_layer(
+    *,
+    pattern_index: int = 0,
+    cycle: tuple[int, ...] = (1, 2, 3, 4, 0),
+    source_shifts: tuple[int, ...] = (4, 4, 4, 3, 3),
+) -> RuleLayerInput:
     """Return a projector-free Route-1/Route-2 Bloch candidate.
 
     The hopping is a monomial mode-pair cycle with edge shifts
@@ -455,12 +464,15 @@ def bloch_path_a_projector_free_combined_layer() -> RuleLayerInput:
     """
 
     rule = spatial_alpha_prototype()
-    onsite = floquet_alpha_noncommuting_candidates(pattern_index=0)[0]
+    if len(cycle) != rule.mode_count or sorted(cycle) != list(range(rule.mode_count)):
+        raise ValueError("cycle must be a permutation of the five mode indices")
+    if len(source_shifts) != rule.mode_count:
+        raise ValueError("source_shifts must assign one shift per mode")
+
+    onsite = floquet_alpha_noncommuting_candidates(pattern_index=pattern_index)[0]
     u1 = floquet_alpha_operator(onsite.pattern)
     u2 = floquet_alpha_noncommuting_twist_operator(onsite)
     ulocal = sp.simplify(u2 * u1)
-    cycle = (1, 2, 3, 4, 0)
-    source_shifts = (4, 4, 4, 3, 3)
     terms = []
     for shift in sorted(set(source_shifts)):
         edges = tuple(
@@ -475,8 +487,23 @@ def bloch_path_a_projector_free_combined_layer() -> RuleLayerInput:
             )
         )
     representative = sum((term.matrix for term in terms), sp.zeros(rule.dimension))
+    default_candidate = (
+        pattern_index == 0
+        and cycle == (1, 2, 3, 4, 0)
+        and source_shifts == (4, 4, 4, 3, 3)
+    )
+    name = (
+        "path_a_projector_free_cycle_combined"
+        if default_candidate
+        else (
+            "path_a_projector_free_"
+            f"p{pattern_index}_"
+            f"c{''.join(str(item) for item in cycle)}_"
+            f"s{''.join(str(item) for item in source_shifts)}"
+        )
+    )
     return RuleLayerInput(
-        name="path_a_projector_free_cycle_combined",
+        name=name,
         matrix=representative,
         locality_radius=max(source_shifts),
         bloch_terms=tuple(terms),

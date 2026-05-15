@@ -1290,8 +1290,12 @@ The main `rule_to_verdict` interface now also supports a Bloch-period mode
 that forms the joint sampled algebra `R<T(zeta^j)>`. The first projector-free
 combined Route-1/Route-2 layer uses partial monomial hops with source shifts
 `(4,4,4,3,3)` and on-site update `U2 U1`; it avoids raw projector
-coefficients but exceeds the bounded exact algebra-closure cap, so the verdict
-is `not_solved` rather than a bridge or a no-go.
+coefficients. Raising the algebra cap closes this candidate at dimension `34`;
+the staged center calculation gives center dimension `4`, central idempotent
+ranks `[0,4,6,10]`, and compatible centralizer dimension `4`. The first six
+projector-free monomial-hop variants all close at dimension `34`. The active
+gap is therefore the rule-generated `J(k)`/global-`±J` test, not the coarse
+center.
 ```
 
 ## Defect-Beta Transition-Pair Family

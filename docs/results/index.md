@@ -627,6 +627,35 @@ projector_free_rule_pass_rule_to_bridge: false
 load_bearing_qca_bridge: false
 ```
 
+Bloch Path-A stepwise projector-free search:
+
+```text
+uv run python scripts/bloch_path_a_stepwise.py --max-candidates 6 --max-algebra-dim 48 --jobs 2 --check
+
+candidate_count: 6
+closed_count: 6
+coarse_6_4_count: 0
+candidate: path_a_projector_free_cycle_combined, dim=34, closed=true, center=None, ranks=[], label=closes_center_not_checked
+candidate: path_a_projector_free_p0_c12340_s44343, dim=34, closed=true, center=None, ranks=[], label=closes_center_not_checked
+candidate: path_a_projector_free_p0_c12340_s44334, dim=34, closed=true, center=None, ranks=[], label=closes_center_not_checked
+candidate: path_a_projector_free_p0_c12403_s44433, dim=34, closed=true, center=None, ranks=[], label=closes_center_not_checked
+candidate: path_a_projector_free_p0_c12403_s44343, dim=34, closed=true, center=None, ranks=[], label=closes_center_not_checked
+candidate: path_a_projector_free_p0_c12403_s44334, dim=34, closed=true, center=None, ranks=[], label=closes_center_not_checked
+```
+
+Follow-up staged calculation on the base projector-free candidate:
+
+```text
+uv run python scripts/bloch_path_a_stepwise.py --max-candidates 1 --max-algebra-dim 48 --center-top 1 --idempotents --centralizer --check
+
+generated_algebra_dimension: 34
+generated_algebra_closed: true
+center_dimension: 4
+central_idempotent_ranks: [0,4,6,10]
+compatible_centralizer_dimension: 4
+route_label: closes_coarse_6_4_center
+```
+
 Defect-beta search:
 
 ```text
@@ -780,9 +809,12 @@ candidates produce no stable rank-`(6,4)` band split.
 The main `rule_to_verdict` path now also samples Bloch symbols as a single
 joint algebra. Its first projector-free combined Route-1/Route-2 candidate
 uses source-mode shifts `(4,4,4,3,3)` without raw `P_alpha/P_eta`
-coefficients. The bounded exact algebra closure reaches dimension `16` before
-closure and returns `not_solved`, so this is a computational boundary rather
-than a bridge candidate or a fourth no-go.
+coefficients. Raising the closure cap shows this was a real structured
+candidate, not a dead computational boundary: the base candidate closes at
+dimension `34`, has center dimension `4`, and its central idempotent ranks are
+`[0,4,6,10]`. Six nearby projector-free monomial-hop variants close to the
+same algebra dimension. The remaining gap is now specifically the
+rule-generated `J(k)`/global-`±J` test, not the coarse center.
 Defect-beta is retained as a regression target but parked as a load-bearing
 route until rebuilt as a genuine higher-dimensional defect calculation. Its
 round-trip monodromy is exactly the matching Floquet-alpha operator. The
