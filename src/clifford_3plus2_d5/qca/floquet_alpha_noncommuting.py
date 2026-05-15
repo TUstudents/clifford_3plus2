@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from itertools import permutations, product
 
 import sympy as sp
 
@@ -37,11 +38,15 @@ RouteLabel = str
 class FloquetAlphaNoncommutingCandidate:
     pattern: FloquetAlphaCandidate
     orientation_signs: tuple[int, ...]
+    mode_mapping: tuple[tuple[int, int], ...] | None = None
 
     @property
     def name(self) -> str:
         signs = "_".join("p" if sign > 0 else "m" for sign in self.orientation_signs)
-        return f"{self.pattern.name}_noncommuting_signed_twist_{signs}"
+        if self.mode_mapping is None:
+            return f"{self.pattern.name}_noncommuting_signed_twist_{signs}"
+        mapping = "_".join(f"{source}{target}" for source, target in self.mode_mapping)
+        return f"{self.pattern.name}_noncommuting_signed_twist_{signs}_perm_{mapping}"
 
 
 @dataclass(frozen=True)
@@ -153,6 +158,33 @@ class FloquetAlphaNoncommutingCompletionCertificate:
     load_bearing_qca_bridge: bool = False
 
 
+@dataclass(frozen=True)
+class FloquetAlphaNoncommutingExhaustiveSummary:
+    candidate_count: int
+    evaluated_symmetry_classes: int
+    sign_patterns_per_alpha_pattern: int
+    permutation_choices_per_alpha_pattern: int
+    noncommuting_candidates: int
+    commuting_candidates: int
+    oversized_algebra_rejections: int
+    generated_algebra_dimension_counts: tuple[tuple[int, int], ...]
+    compatible_j_count_distribution: tuple[tuple[int, int], ...]
+    minimal_four_j_candidates: int
+    no_locking_shape_candidates: int
+    compatible_j_in_generated_algebra_candidates: int
+    compatible_j_in_generated_algebra_total: int
+    minimal_four_j_in_generated_algebra_candidates: int
+    no_locking_shape_j_in_generated_algebra_candidates: int
+    bridge_candidate_count: int
+    hit_candidate_names: tuple[str, ...]
+    route_label: str
+    load_bearing_qca_bridge: bool = False
+
+
+Qsqrt3Entry = tuple[sp.Rational, sp.Rational]
+Qsqrt3Matrix = tuple[Qsqrt3Entry, ...]
+
+
 def _mode_count(dimension: int) -> int:
     if dimension % 2:
         raise ValueError("real carrier dimension must be even")
@@ -170,6 +202,9 @@ def floquet_alpha_noncommuting_mode_mapping(
     candidate: FloquetAlphaNoncommutingCandidate,
 ) -> dict[int, int]:
     """Return the block-preserving cycle/swap support of the signed twist."""
+
+    if candidate.mode_mapping is not None:
+        return dict(candidate.mode_mapping)
 
     alpha_modes = candidate.pattern.alpha_modes
     eta_modes = candidate.pattern.eta_modes
@@ -252,6 +287,45 @@ def floquet_alpha_noncommuting_candidates(
     return tuple(candidates)
 
 
+def _block_preserving_pair_permutation_mappings(
+    pattern: FloquetAlphaCandidate,
+) -> tuple[tuple[tuple[int, int], ...], ...]:
+    mappings = []
+    for alpha_targets in permutations(pattern.alpha_modes):
+        alpha_mapping = tuple(zip(pattern.alpha_modes, alpha_targets, strict=True))
+        for eta_targets in permutations(pattern.eta_modes):
+            eta_mapping = tuple(zip(pattern.eta_modes, eta_targets, strict=True))
+            mappings.append(tuple(sorted((*alpha_mapping, *eta_mapping))))
+    return tuple(mappings)
+
+
+def floquet_alpha_noncommuting_exhaustive_candidates(
+    *,
+    pattern_index: int | None = None,
+) -> tuple[FloquetAlphaNoncommutingCandidate, ...]:
+    """Enumerate all signed block-preserving pair-permutation twists.
+
+    This is the finite Route-1 discrete class: ten Floquet-alpha resonance
+    patterns, all ``2^5`` hidden pair-orientation sign choices, and all
+    block-preserving pair permutations ``S_3 x S_2``.
+    """
+
+    candidates: list[FloquetAlphaNoncommutingCandidate] = []
+    for pattern in floquet_alpha_candidates():
+        if pattern_index is not None and pattern.pattern_index != pattern_index:
+            continue
+        for mode_mapping in _block_preserving_pair_permutation_mappings(pattern):
+            for signs in product((-1, 1), repeat=5):
+                candidates.append(
+                    FloquetAlphaNoncommutingCandidate(
+                        pattern=pattern,
+                        orientation_signs=tuple(signs),
+                        mode_mapping=mode_mapping,
+                    )
+                )
+    return tuple(candidates)
+
+
 def floquet_alpha_noncommuting_rule_to_verdict(
     candidate: FloquetAlphaNoncommutingCandidate,
     *,
@@ -278,6 +352,143 @@ def _orientation_nonconstant(
 
 def _matrix_in_span(matrix: sp.Matrix, basis: tuple[sp.Matrix, ...]) -> bool:
     return matrix_span_rank((*basis, matrix)) == matrix_span_rank(basis)
+
+
+def _qzero() -> Qsqrt3Entry:
+    return sp.Rational(0), sp.Rational(0)
+
+
+def _qone() -> Qsqrt3Entry:
+    return sp.Rational(1), sp.Rational(0)
+
+
+def _qadd(left: Qsqrt3Entry, right: Qsqrt3Entry) -> Qsqrt3Entry:
+    return left[0] + right[0], left[1] + right[1]
+
+
+def _qsub(left: Qsqrt3Entry, right: Qsqrt3Entry) -> Qsqrt3Entry:
+    return left[0] - right[0], left[1] - right[1]
+
+
+def _qmul(left: Qsqrt3Entry, right: Qsqrt3Entry) -> Qsqrt3Entry:
+    return left[0] * right[0] + 3 * left[1] * right[1], left[0] * right[1] + left[1] * right[0]
+
+
+def _qinv(value: Qsqrt3Entry) -> Qsqrt3Entry:
+    denominator = value[0] * value[0] - 3 * value[1] * value[1]
+    return value[0] / denominator, -value[1] / denominator
+
+
+def _qis_zero(value: Qsqrt3Entry) -> bool:
+    return value == _qzero()
+
+
+def _qsqrt3_entry(value: sp.Expr) -> Qsqrt3Entry:
+    sqrt3 = sp.sqrt(3)
+    expanded = sp.expand(value)
+    sqrt_part = sp.Rational(sp.expand(expanded).coeff(sqrt3))
+    rational_part = sp.Rational(sp.simplify(expanded - sqrt_part * sqrt3))
+    return rational_part, sqrt_part
+
+
+def _qmatrix_from_sympy(matrix: sp.Matrix) -> Qsqrt3Matrix:
+    return tuple(_qsqrt3_entry(value) for value in matrix)
+
+
+def _qidentity(*, dimension: int = 10) -> Qsqrt3Matrix:
+    entries = []
+    for row in range(dimension):
+        for column in range(dimension):
+            entries.append(_qone() if row == column else _qzero())
+    return tuple(entries)
+
+
+def _qmatrix_mul(
+    left: Qsqrt3Matrix,
+    right: Qsqrt3Matrix,
+    *,
+    dimension: int = 10,
+) -> Qsqrt3Matrix:
+    entries = []
+    for row in range(dimension):
+        for column in range(dimension):
+            value = _qzero()
+            for index in range(dimension):
+                value = _qadd(
+                    value,
+                    _qmul(left[row * dimension + index], right[index * dimension + column]),
+                )
+            entries.append(value)
+    return tuple(entries)
+
+
+def _qmatrix_rank(vectors: tuple[Qsqrt3Matrix, ...]) -> int:
+    if not vectors:
+        return 0
+    rows = [list(row) for row in zip(*vectors, strict=True)]
+    row_count = len(rows)
+    column_count = len(vectors)
+    rank = 0
+    for column in range(column_count):
+        pivot = None
+        for row in range(rank, row_count):
+            if not _qis_zero(rows[row][column]):
+                pivot = row
+                break
+        if pivot is None:
+            continue
+        rows[rank], rows[pivot] = rows[pivot], rows[rank]
+        inverse = _qinv(rows[rank][column])
+        for active_column in range(column, column_count):
+            rows[rank][active_column] = _qmul(rows[rank][active_column], inverse)
+        for row in range(row_count):
+            if row == rank or _qis_zero(rows[row][column]):
+                continue
+            factor = rows[row][column]
+            for active_column in range(column, column_count):
+                rows[row][active_column] = _qsub(
+                    rows[row][active_column],
+                    _qmul(factor, rows[rank][active_column]),
+                )
+        rank += 1
+        if rank == row_count:
+            break
+    return rank
+
+
+def _qmatrix_in_span(matrix: Qsqrt3Matrix, basis: tuple[Qsqrt3Matrix, ...]) -> bool:
+    return _qmatrix_rank((*basis, matrix)) == _qmatrix_rank(basis)
+
+
+def _append_qindependent(
+    basis: list[Qsqrt3Matrix],
+    candidate: Qsqrt3Matrix,
+) -> bool:
+    if candidate in basis:
+        return False
+    if _qmatrix_rank((*basis, candidate)) > len(basis):
+        basis.append(candidate)
+        return True
+    return False
+
+
+def _qgenerated_algebra_basis(
+    generators: tuple[Qsqrt3Matrix, ...],
+    *,
+    max_dimension: int = 100,
+) -> tuple[bool, tuple[Qsqrt3Matrix, ...]]:
+    basis: list[Qsqrt3Matrix] = []
+    for matrix in (_qidentity(), *generators):
+        _append_qindependent(basis, matrix)
+    changed = True
+    while changed:
+        changed = False
+        current = tuple(basis)
+        for left, right in product(current, current):
+            changed = _append_qindependent(basis, _qmatrix_mul(left, right)) or changed
+            if len(basis) > max_dimension:
+                return False, tuple(basis)
+    return True, tuple(basis)
 
 
 def _pair_orientation_signs(matrix: sp.Matrix, *, dimension: int = 10) -> tuple[int, ...]:
@@ -323,6 +534,196 @@ def floquet_alpha_noncommuting_completion_j_signs(
     for mode in candidate.pattern.eta_modes:
         signs[mode] *= eta_flip
     return tuple(signs)
+
+
+def _compatible_pair_orientation_sign_choices(
+    candidate: FloquetAlphaNoncommutingCandidate,
+) -> tuple[tuple[int, ...], ...]:
+    mapping = floquet_alpha_noncommuting_mode_mapping(candidate)
+    edge_signs = {
+        source: (
+            1
+            if candidate.orientation_signs[source] == candidate.orientation_signs[target]
+            else -1
+        )
+        for source, target in mapping.items()
+    }
+    base = [0] * _mode_count(10)
+    components: list[tuple[int, ...]] = []
+    for start in range(_mode_count(10)):
+        if base[start]:
+            continue
+        component = []
+        base[start] = 1
+        current = start
+        while current not in component:
+            component.append(current)
+            target = mapping[current]
+            propagated = edge_signs[current] * base[current]
+            if base[target] and base[target] != propagated:
+                raise ValueError("inconsistent signed permutation orientation")
+            base[target] = propagated
+            current = target
+        components.append(tuple(component))
+
+    choices = []
+    for flips in product((-1, 1), repeat=len(components)):
+        signs = list(base)
+        for flip, component in zip(flips, components, strict=True):
+            for mode in component:
+                signs[mode] *= flip
+        choices.append(tuple(signs))
+    return tuple(sorted(set(choices)))
+
+
+def _relative_exhaustive_key(candidate: FloquetAlphaNoncommutingCandidate) -> tuple[object, ...]:
+    ordered_modes = (*candidate.pattern.alpha_modes, *candidate.pattern.eta_modes)
+    index_by_mode = {mode: index for index, mode in enumerate(ordered_modes)}
+    mapping = floquet_alpha_noncommuting_mode_mapping(candidate)
+    relative_mapping = tuple(index_by_mode[mapping[mode]] for mode in ordered_modes)
+    signs = tuple(candidate.orientation_signs[mode] for mode in ordered_modes)
+    alpha_anchor = signs[0]
+    eta_anchor = signs[len(candidate.pattern.alpha_modes)]
+    relative_signs = tuple(
+        sign * (alpha_anchor if index < len(candidate.pattern.alpha_modes) else eta_anchor)
+        for index, sign in enumerate(signs)
+    )
+    return relative_mapping, relative_signs
+
+
+def _exhaustive_candidate_generated_j_count(
+    candidate: FloquetAlphaNoncommutingCandidate,
+    *,
+    max_algebra_dimension: int,
+) -> tuple[bool, int, int, int]:
+    u1 = floquet_alpha_operator(candidate.pattern)
+    u2 = floquet_alpha_noncommuting_twist_operator(candidate)
+    if is_zero_matrix(commutator(u1, u2)):
+        return True, 0, 0, 0
+
+    solved, basis = _qgenerated_algebra_basis(
+        (_qmatrix_from_sympy(u1), _qmatrix_from_sympy(u2)),
+        max_dimension=max_algebra_dimension,
+    )
+    if not solved:
+        return False, len(basis), 0, 0
+
+    compatible_signs = _compatible_pair_orientation_sign_choices(candidate)
+    compatible_j_count = len(compatible_signs)
+    generated_j_count = 0
+    for signs in compatible_signs:
+        matrix = _qmatrix_from_sympy(pair_orientation_j_operator(signs))
+        if _qmatrix_in_span(matrix, basis):
+            generated_j_count += 1
+    return True, len(basis), compatible_j_count, generated_j_count
+
+
+def _is_single_cycle(mapping: dict[int, int], modes: tuple[int, ...]) -> bool:
+    if not modes:
+        return False
+    visited = []
+    current = modes[0]
+    while current not in visited:
+        visited.append(current)
+        current = mapping[current]
+    return current == modes[0] and set(visited) == set(modes)
+
+
+def _has_no_locking_shape(candidate: FloquetAlphaNoncommutingCandidate) -> bool:
+    mapping = floquet_alpha_noncommuting_mode_mapping(candidate)
+    return (
+        _is_single_cycle(mapping, candidate.pattern.alpha_modes)
+        and _is_single_cycle(mapping, candidate.pattern.eta_modes)
+        and _orientation_nonconstant(candidate.orientation_signs, candidate.pattern.alpha_modes)
+        and _orientation_nonconstant(candidate.orientation_signs, candidate.pattern.eta_modes)
+    )
+
+
+def floquet_alpha_noncommuting_exhaustive_summary(
+    *,
+    pattern_index: int | None = None,
+    max_algebra_dimension: int = 100,
+) -> FloquetAlphaNoncommutingExhaustiveSummary:
+    candidates = floquet_alpha_noncommuting_exhaustive_candidates(pattern_index=pattern_index)
+    cache: dict[tuple[object, ...], tuple[bool, int, int, int]] = {}
+    dimension_counts: dict[int, int] = {}
+    compatible_j_counts: dict[int, int] = {}
+    noncommuting = 0
+    commuting = 0
+    oversized = 0
+    minimal_four_j_candidates = 0
+    no_locking_shape_candidates = 0
+    generated_j_hit_candidates = 0
+    generated_j_hit_total = 0
+    minimal_four_j_hits = 0
+    no_locking_shape_hits = 0
+    hit_names: list[str] = []
+
+    for candidate in candidates:
+        key = _relative_exhaustive_key(candidate)
+        result = cache.get(key)
+        if result is None:
+            result = _exhaustive_candidate_generated_j_count(
+                candidate,
+                max_algebra_dimension=max_algebra_dimension,
+            )
+            cache[key] = result
+        solved, algebra_dimension, compatible_j_count, generated_j_count = result
+        if algebra_dimension == 0:
+            commuting += 1
+            continue
+        noncommuting += 1
+        if not solved:
+            oversized += 1
+            continue
+        dimension_counts[algebra_dimension] = dimension_counts.get(algebra_dimension, 0) + 1
+        compatible_j_counts[compatible_j_count] = compatible_j_counts.get(compatible_j_count, 0) + 1
+        if compatible_j_count == 4:
+            minimal_four_j_candidates += 1
+        no_locking_shape = _has_no_locking_shape(candidate)
+        if no_locking_shape:
+            no_locking_shape_candidates += 1
+        if compatible_j_count and generated_j_count:
+            generated_j_hit_candidates += 1
+            generated_j_hit_total += generated_j_count
+            if compatible_j_count == 4:
+                minimal_four_j_hits += 1
+            if no_locking_shape:
+                no_locking_shape_hits += 1
+            if len(hit_names) < 10:
+                hit_names.append(candidate.name)
+
+    bridge_candidates = 0
+    if no_locking_shape_hits:
+        route_label = "discrete_signed_twist_no_locking_shape_generated_j_hit"
+    elif generated_j_hit_candidates:
+        route_label = "discrete_signed_twist_generated_j_hits_fail_no_locking_shape"
+    elif oversized:
+        route_label = "discrete_signed_twist_oversized_algebra_rejections"
+    else:
+        route_label = "discrete_signed_twist_no_generated_compatible_j"
+
+    return FloquetAlphaNoncommutingExhaustiveSummary(
+        candidate_count=len(candidates),
+        evaluated_symmetry_classes=len(cache),
+        sign_patterns_per_alpha_pattern=32,
+        permutation_choices_per_alpha_pattern=12,
+        noncommuting_candidates=noncommuting,
+        commuting_candidates=commuting,
+        oversized_algebra_rejections=oversized,
+        generated_algebra_dimension_counts=tuple(sorted(dimension_counts.items())),
+        compatible_j_count_distribution=tuple(sorted(compatible_j_counts.items())),
+        minimal_four_j_candidates=minimal_four_j_candidates,
+        no_locking_shape_candidates=no_locking_shape_candidates,
+        compatible_j_in_generated_algebra_candidates=generated_j_hit_candidates,
+        compatible_j_in_generated_algebra_total=generated_j_hit_total,
+        minimal_four_j_in_generated_algebra_candidates=minimal_four_j_hits,
+        no_locking_shape_j_in_generated_algebra_candidates=no_locking_shape_hits,
+        bridge_candidate_count=bridge_candidates,
+        hit_candidate_names=tuple(hit_names),
+        route_label=route_label,
+        load_bearing_qca_bridge=bool(bridge_candidates),
+    )
 
 
 def _route_label(

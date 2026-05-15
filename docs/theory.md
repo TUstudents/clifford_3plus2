@@ -289,7 +289,12 @@ rule-generation/locality of `J`. More precisely:
    idempotent lattice, creates no lower-rank central idempotents, and reduces
    compatible `J` to a finite four-element set, but none of those four `J`
    candidates lies in the generated algebra or rule-local center.
-3. The completion experiment declares one finite compatible `J` as a third
+3. Exhausting the discrete block-preserving signed-twist class produces
+   generated compatible `J` hits (`720` candidates, including `240` minimal
+   four-`J` hits), but every such hit fails the no-locking shape. The strict
+   cycle/swap non-locking subclass has `240` candidates and zero
+   generated-compatible-`J` hits.
+4. The completion experiment declares one finite compatible `J` as a third
    layer and still creates no lower-rank central idempotents, but the
    rule-local center continues to admit four compatible `J` choices rather
    than one global `±J` orbit.
@@ -305,7 +310,8 @@ global `±J`.
 Proof. Each statement is the exact output of the implemented route diagnostics:
 `scripts/floquet_alpha.py --variant time-reversal`,
 `scripts/floquet_alpha.py --variant noncommuting`,
-`scripts/floquet_alpha.py --variant noncommuting-gap`, and
+`scripts/floquet_alpha.py --variant noncommuting-gap`,
+`scripts/floquet_alpha.py --variant noncommuting-exhaustive`, and
 `scripts/floquet_alpha.py --variant noncommuting-completion`.
 
 Route 2 is now represented by a spatial 1D sidecar. It does not alter the

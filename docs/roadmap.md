@@ -121,6 +121,12 @@ floquet_alpha_noncommuting_compatible_j_count: 4
 floquet_alpha_noncommuting_compatible_j_in_generated_algebra_count: 0
 floquet_alpha_noncommuting_compatible_j_in_rule_local_center_count: 0
 floquet_alpha_noncommuting_spectral_polarization_j_matched_count: 0
+floquet_alpha_noncommuting_exhaustive_candidate_count: 3840
+floquet_alpha_noncommuting_exhaustive_noncommuting_candidates: 2400
+floquet_alpha_noncommuting_exhaustive_generated_j_hits: 720
+floquet_alpha_noncommuting_exhaustive_minimal_four_j_hits: 240
+floquet_alpha_noncommuting_exhaustive_no_locking_shape_hits: 0
+floquet_alpha_noncommuting_exhaustive_bridge_candidates: 0
 floquet_alpha_noncommuting_completion_generated_algebra_dimension: 26
 floquet_alpha_noncommuting_completion_center_dimension: 4
 floquet_alpha_noncommuting_completion_lower_rank_central_idempotents: 0
@@ -1047,6 +1053,7 @@ Noncommuting signed-twist route:
 src/clifford_3plus2_d5/qca/floquet_alpha_noncommuting.py
 scripts/floquet_alpha.py --variant noncommuting
 scripts/floquet_alpha.py --variant noncommuting-gap
+scripts/floquet_alpha.py --variant noncommuting-exhaustive
 scripts/floquet_alpha.py --variant noncommuting-completion
 tests/test_floquet_alpha.py
 ```
@@ -1080,6 +1087,30 @@ compatible_j_in_rule_local_center_count = 0
 spectral_polarization_j_matched_count = 0
 reason_for_forced_j_failure = compatible_j_finite_but_not_generated_or_rule_local
 ```
+
+Exhaustive discrete signed-twist result:
+
+```text
+candidate_count = 3840
+evaluated_symmetry_classes = 96
+noncommuting_candidates = 2400
+commuting_candidates = 1440
+oversized_algebra_rejections = 0
+compatible_j_count_distribution = ((4,560), (8,1200), (16,640))
+minimal_four_j_candidates = 560
+no_locking_shape_candidates = 240
+compatible_j_in_generated_algebra_candidates = 720
+minimal_four_j_in_generated_algebra_candidates = 240
+no_locking_shape_j_in_generated_algebra_candidates = 0
+bridge_candidate_count = 0
+route_label = discrete_signed_twist_generated_j_hits_fail_no_locking_shape
+load_bearing_qca_bridge = false
+```
+
+This scan closes the cheap finite Route-1 class. Generated compatible `J`s
+exist, including minimal four-`J` compatible sets, but every generated-`J` hit
+fails the no-locking shape. The strict cycle/swap non-locking subclass has
+zero generated-compatible-`J` hits.
 
 Minimal completion experiment:
 

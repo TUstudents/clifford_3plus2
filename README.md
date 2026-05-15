@@ -36,6 +36,7 @@ floquet_alpha: canonical CLI for alpha variants; coarse 6+4 center found
 floquet_alpha_time_reversal: declared K reduces J moduli 9->3, not ±J
 floquet_alpha_second_layer: cycle/swap lock fails no-locking guardrail
 floquet_alpha_noncommuting: block-preserving signed twist under exploration
+floquet_alpha_noncommuting_exhaustive: generated J hits exist, none in no-locking shape
 floquet_alpha_noncommuting_completion: no lower center, still four J signs
 spatial_1d_alpha: local-QCA sidecar couples four J signs to global ±
 spatial_1d_unseeded: no bridge candidate; seeded projector-shift rejected
@@ -405,6 +406,29 @@ reason_for_forced_j_failure: compatible_j_finite_but_not_generated_or_rule_local
 load_bearing_qca_bridge: false
 ```
 
+`scripts/floquet_alpha.py --variant noncommuting-exhaustive` exhausts the
+discrete block-preserving signed-twist class: `10` alpha/eta mode patterns,
+`32` sign patterns per mode pattern, and `12` block-preserving permutation
+choices. It finds generated compatible `J` hits, but none in the no-locking
+shape. The strict bridge remains false:
+
+```text
+candidate_count: 3840
+evaluated_symmetry_classes: 96
+noncommuting_candidates: 2400
+commuting_candidates: 1440
+oversized_algebra_rejections: 0
+compatible_j_count_distribution: ((4, 560), (8, 1200), (16, 640))
+minimal_four_j_candidates: 560
+no_locking_shape_candidates: 240
+compatible_j_in_generated_algebra_candidates: 720
+minimal_four_j_in_generated_algebra_candidates: 240
+no_locking_shape_j_in_generated_algebra_candidates: 0
+bridge_candidate_count: 0
+route_label: discrete_signed_twist_generated_j_hits_fail_no_locking_shape
+load_bearing_qca_bridge: false
+```
+
 `scripts/floquet_alpha.py --variant noncommuting-completion` performs the
 minimal completion experiment: declare one of those finite compatible `J`s as
 a third mandatory layer `W`. This does not create lower-rank central
@@ -592,6 +616,7 @@ uv run python scripts/floquet_alpha.py --variant time-reversal --check
 uv run python scripts/floquet_alpha.py --variant second-layer --check
 uv run python scripts/floquet_alpha.py --variant noncommuting --check
 uv run python scripts/floquet_alpha.py --variant noncommuting-gap --check
+uv run python scripts/floquet_alpha.py --variant noncommuting-exhaustive --check
 uv run python scripts/floquet_alpha.py --variant noncommuting-completion --check
 uv run python scripts/spatial_1d_alpha_search.py --check
 uv run python scripts/spatial_1d_unseeded_search.py --check

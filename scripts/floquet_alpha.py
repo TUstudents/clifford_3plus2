@@ -18,11 +18,13 @@ from clifford_3plus2_d5.qca.floquet_alpha import (
 from clifford_3plus2_d5.qca.floquet_alpha_noncommuting import (
     FloquetAlphaNoncommutingCertificate,
     FloquetAlphaNoncommutingCompletionCertificate,
+    FloquetAlphaNoncommutingExhaustiveSummary,
     FloquetAlphaNoncommutingJDiagnostic,
     FloquetAlphaNoncommutingJGapCertificate,
     floquet_alpha_noncommuting_candidates,
     floquet_alpha_noncommuting_certificate,
     floquet_alpha_noncommuting_completion_certificate,
+    floquet_alpha_noncommuting_exhaustive_summary,
     floquet_alpha_noncommuting_j_gap_certificate,
 )
 from clifford_3plus2_d5.qca.rule_verdict import result_to_dict
@@ -322,6 +324,47 @@ def _completion_to_dict(
         "pass_completion_to_bridge": certificate.pass_completion_to_bridge,
         "completion_label": certificate.completion_label,
         "load_bearing_qca_bridge": certificate.load_bearing_qca_bridge,
+    }
+
+
+def _exhaustive_to_dict(
+    summary: FloquetAlphaNoncommutingExhaustiveSummary,
+) -> dict[str, object]:
+    return {
+        "family": "floquet_alpha_noncommuting_exhaustive",
+        "candidate_count": summary.candidate_count,
+        "evaluated_symmetry_classes": summary.evaluated_symmetry_classes,
+        "sign_patterns_per_alpha_pattern": summary.sign_patterns_per_alpha_pattern,
+        "permutation_choices_per_alpha_pattern": (
+            summary.permutation_choices_per_alpha_pattern
+        ),
+        "noncommuting_candidates": summary.noncommuting_candidates,
+        "commuting_candidates": summary.commuting_candidates,
+        "oversized_algebra_rejections": summary.oversized_algebra_rejections,
+        "generated_algebra_dimension_counts": [
+            list(item) for item in summary.generated_algebra_dimension_counts
+        ],
+        "compatible_j_count_distribution": [
+            list(item) for item in summary.compatible_j_count_distribution
+        ],
+        "minimal_four_j_candidates": summary.minimal_four_j_candidates,
+        "no_locking_shape_candidates": summary.no_locking_shape_candidates,
+        "compatible_j_in_generated_algebra_candidates": (
+            summary.compatible_j_in_generated_algebra_candidates
+        ),
+        "compatible_j_in_generated_algebra_total": (
+            summary.compatible_j_in_generated_algebra_total
+        ),
+        "minimal_four_j_in_generated_algebra_candidates": (
+            summary.minimal_four_j_in_generated_algebra_candidates
+        ),
+        "no_locking_shape_j_in_generated_algebra_candidates": (
+            summary.no_locking_shape_j_in_generated_algebra_candidates
+        ),
+        "bridge_candidate_count": summary.bridge_candidate_count,
+        "hit_candidate_names": list(summary.hit_candidate_names),
+        "route_label": summary.route_label,
+        "load_bearing_qca_bridge": summary.load_bearing_qca_bridge,
     }
 
 
@@ -857,11 +900,59 @@ def _run_noncommuting_completion(
     return payload, lines, check_passed
 
 
+def _run_noncommuting_exhaustive(
+    args: argparse.Namespace,
+) -> tuple[dict[str, object], list[str], bool]:
+    summary = floquet_alpha_noncommuting_exhaustive_summary(
+        pattern_index=args.pattern_index,
+        max_algebra_dimension=args.max_algebra_dimension,
+    )
+    payload = _exhaustive_to_dict(summary)
+    lines = [
+        "This exhausts the discrete block-preserving signed-twist Route-1 class.",
+        f"candidate_count: {summary.candidate_count}",
+        f"evaluated_symmetry_classes: {summary.evaluated_symmetry_classes}",
+        f"sign_patterns_per_alpha_pattern: {summary.sign_patterns_per_alpha_pattern}",
+        "permutation_choices_per_alpha_pattern: "
+        f"{summary.permutation_choices_per_alpha_pattern}",
+        f"noncommuting_candidates: {summary.noncommuting_candidates}",
+        f"commuting_candidates: {summary.commuting_candidates}",
+        f"oversized_algebra_rejections: {summary.oversized_algebra_rejections}",
+        f"generated_algebra_dimension_counts: {summary.generated_algebra_dimension_counts}",
+        f"compatible_j_count_distribution: {summary.compatible_j_count_distribution}",
+        f"minimal_four_j_candidates: {summary.minimal_four_j_candidates}",
+        f"no_locking_shape_candidates: {summary.no_locking_shape_candidates}",
+        "compatible_j_in_generated_algebra_candidates: "
+        f"{summary.compatible_j_in_generated_algebra_candidates}",
+        "compatible_j_in_generated_algebra_total: "
+        f"{summary.compatible_j_in_generated_algebra_total}",
+        "minimal_four_j_in_generated_algebra_candidates: "
+        f"{summary.minimal_four_j_in_generated_algebra_candidates}",
+        "no_locking_shape_j_in_generated_algebra_candidates: "
+        f"{summary.no_locking_shape_j_in_generated_algebra_candidates}",
+        f"bridge_candidate_count: {summary.bridge_candidate_count}",
+        f"route_label: {summary.route_label}",
+        f"load_bearing_qca_bridge: {str(summary.load_bearing_qca_bridge).lower()}",
+    ]
+    lines.extend(f"hit_candidate: {name}" for name in summary.hit_candidate_names)
+    check_passed = (
+        summary.candidate_count > 0
+        and summary.oversized_algebra_rejections == 0
+        and summary.compatible_j_in_generated_algebra_candidates > 0
+        and summary.minimal_four_j_in_generated_algebra_candidates > 0
+        and summary.no_locking_shape_j_in_generated_algebra_candidates == 0
+        and summary.bridge_candidate_count == 0
+        and not summary.load_bearing_qca_bridge
+    )
+    return payload, lines, check_passed
+
+
 VARIANTS = {
     "base": _run_base,
     "plus": _run_plus,
     "second-layer": _run_second_layer,
     "noncommuting": _run_noncommuting,
+    "noncommuting-exhaustive": _run_noncommuting_exhaustive,
     "noncommuting-gap": _run_noncommuting_gap,
     "noncommuting-completion": _run_noncommuting_completion,
     "time-reversal": _run_time_reversal,
@@ -891,6 +982,12 @@ def main() -> int:
         type=int,
         default=0,
         help="Compatible J index for the noncommuting-completion variant.",
+    )
+    parser.add_argument(
+        "--max-algebra-dimension",
+        type=int,
+        default=100,
+        help="Reject exhaustive candidates whose generated algebra grows past this size.",
     )
     args = parser.parse_args()
 

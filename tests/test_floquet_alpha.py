@@ -31,6 +31,7 @@ from clifford_3plus2_d5.qca.floquet_alpha import (
 )
 from clifford_3plus2_d5.qca.floquet_alpha_noncommuting import (
     floquet_alpha_noncommuting_candidates,
+    floquet_alpha_noncommuting_exhaustive_summary,
     floquet_alpha_noncommuting_mode_mapping,
     floquet_alpha_noncommuting_twist_operator,
 )
@@ -230,6 +231,33 @@ def test_floquet_alpha_noncommuting_twist_is_viable_route_input() -> None:
     assert sp.simplify(u2 * alpha_projector * u2.T - alpha_projector) == sp.zeros(10)
     assert sp.simplify(u2 * eta_projector * u2.T - eta_projector) == sp.zeros(10)
     assert u1 * u2 != u2 * u1
+
+
+def test_floquet_alpha_noncommuting_exhaustive_class_finds_no_strict_bridge() -> None:
+    summary = floquet_alpha_noncommuting_exhaustive_summary(pattern_index=0)
+
+    assert summary.candidate_count == 384
+    assert summary.evaluated_symmetry_classes == 96
+    assert summary.noncommuting_candidates == 240
+    assert summary.commuting_candidates == 144
+    assert summary.oversized_algebra_rejections == 0
+    assert summary.generated_algebra_dimension_counts == (
+        (6, 16),
+        (8, 72),
+        (10, 56),
+        (20, 48),
+        (22, 48),
+    )
+    assert summary.compatible_j_count_distribution == ((4, 56), (8, 120), (16, 64))
+    assert summary.minimal_four_j_candidates == 56
+    assert summary.no_locking_shape_candidates == 24
+    assert summary.compatible_j_in_generated_algebra_candidates == 72
+    assert summary.compatible_j_in_generated_algebra_total == 288
+    assert summary.minimal_four_j_in_generated_algebra_candidates == 24
+    assert summary.no_locking_shape_j_in_generated_algebra_candidates == 0
+    assert summary.bridge_candidate_count == 0
+    assert summary.route_label == "discrete_signed_twist_generated_j_hits_fail_no_locking_shape"
+    assert not summary.load_bearing_qca_bridge
 
 
 def test_floquet_alpha_cli_searches_all_patterns() -> None:

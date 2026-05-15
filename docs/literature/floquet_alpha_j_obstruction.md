@@ -35,6 +35,23 @@ structure. Strict forcedness now requires a microscopic primitive that puts an
 orientation operator in this centralizer gap and then reduces the remaining
 block-sign choices to the global `±J` orbit.
 
+The exhaustive discrete signed-twist scan sharpens this headline. Generated
+compatible `J` elements do appear in the larger block-preserving signed-twist
+class, but only outside the no-locking shape:
+
+```text
+candidate_count = 3840
+compatible_j_in_generated_algebra_candidates = 720
+minimal_four_j_in_generated_algebra_candidates = 240
+no_locking_shape_j_in_generated_algebra_candidates = 0
+bridge_candidate_count = 0
+route_label = discrete_signed_twist_generated_j_hits_fail_no_locking_shape
+```
+
+So the missing structure is not merely "put any compatible `J` in the rule
+algebra." It must put a compatible orientation in the rule algebra while also
+preserving the coarse center without lower-rank locking.
+
 ## Spectral-Polarization `J`
 
 Given the mandatory Floquet operator `U` with real minimal-polynomial factors:
@@ -276,6 +293,29 @@ Thus the next microscopic input cannot merely collapse the compatible
 centralizer. It must also produce one of these local pair-orientation
 structures, or produce a different noncommuting mechanism whose finite
 compatible `J` is already in the rule algebra.
+
+The exhaustive discrete signed-twist scan checks whether this failure was an
+artifact of the representative. It covers all `10 * 32 * 12 = 3840`
+block-preserving signed-twist candidates and evaluates `96` symmetry-reduced
+exact algebra classes:
+
+```text
+noncommuting_candidates = 2400
+commuting_candidates = 1440
+oversized_algebra_rejections = 0
+compatible_j_count_distribution = ((4,560), (8,1200), (16,640))
+no_locking_shape_candidates = 240
+compatible_j_in_generated_algebra_candidates = 720
+minimal_four_j_in_generated_algebra_candidates = 240
+no_locking_shape_j_in_generated_algebra_candidates = 0
+bridge_candidate_count = 0
+```
+
+The enlargement does find generated compatible `J` hits. They are not bridge
+witnesses: the hits leave the no-locking shape, while the `240` candidates
+with the strict cycle/swap non-locking shape have no generated compatible
+`J`. The representative is therefore not an isolated accident; the finite
+signed-twist class is exhausted at the current strict standard.
 
 The minimal completion experiment answers the next fork. If one of these
 finite compatible `J`s is declared as a third mandatory layer `W`, no lower

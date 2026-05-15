@@ -45,6 +45,7 @@ uv run python scripts/floquet_alpha.py --variant time-reversal --check
 uv run python scripts/floquet_alpha.py --variant second-layer --check
 uv run python scripts/floquet_alpha.py --variant noncommuting --check
 uv run python scripts/floquet_alpha.py --variant noncommuting-gap --check
+uv run python scripts/floquet_alpha.py --variant noncommuting-exhaustive --check
 uv run python scripts/floquet_alpha.py --variant noncommuting-completion --check
 uv run python scripts/spatial_1d_alpha_search.py --check
 uv run python scripts/spatial_1d_unseeded_search.py --check
@@ -740,6 +741,10 @@ The unseeded spatial scan makes the remaining gap concrete: conservative
 block-blind finite-radius layers do not produce a bridge candidate, and the
 working projector-shift layer is rejected when seeded coefficients are
 forbidden.
+The exhaustive discrete Route-1 scan is now checked as a focused result:
+`3840` signed-twist candidates reduce to `96` exact symmetry classes. It finds
+`720` generated-compatible-`J` hits, including `240` minimal four-`J` hits, but
+zero generated-`J` hits in the no-locking shape and zero bridge candidates.
 Defect-beta is retained as a regression target but parked as a load-bearing
 route until rebuilt as a genuine higher-dimensional defect calculation. Its
 round-trip monodromy is exactly the matching Floquet-alpha operator. The
