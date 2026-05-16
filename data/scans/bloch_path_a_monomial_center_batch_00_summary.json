@@ -1,0 +1,55 @@
+{
+  "cached_count": 0,
+  "candidates_per_second": 0.251427,
+  "class_counts": {
+    "solver_bottleneck": 240
+  },
+  "completed_count": 240,
+  "elapsed_seconds": 954.553,
+  "eta_seconds": 0.0,
+  "pending_count": 0,
+  "scanner_version": "bloch_path_a_stepwise_v5",
+  "selected_count": 240,
+  "slowest_candidates": [
+    {
+      "class": "solver_bottleneck",
+      "elapsed_seconds": 22.592,
+      "name": "path_a_projector_free_p0_c30421_s43434",
+      "ranks": []
+    },
+    {
+      "class": "solver_bottleneck",
+      "elapsed_seconds": 22.519,
+      "name": "path_a_projector_free_p0_c30421_s43443",
+      "ranks": []
+    },
+    {
+      "class": "solver_bottleneck",
+      "elapsed_seconds": 22.471,
+      "name": "path_a_projector_free_p0_c30421_s43344",
+      "ranks": []
+    },
+    {
+      "class": "solver_bottleneck",
+      "elapsed_seconds": 22.429,
+      "name": "path_a_projector_free_p0_c40312_s43434",
+      "ranks": []
+    },
+    {
+      "class": "solver_bottleneck",
+      "elapsed_seconds": 22.362,
+      "name": "path_a_projector_free_p0_c40312_s43344",
+      "ranks": []
+    }
+  ],
+  "stage_average_seconds": {
+    "bloch_layer": 1e-05,
+    "bloch_samples": 0.09791,
+    "center_basis": 4.073914,
+    "closure": 7.508239,
+    "generator_reduction": 1.559168,
+    "laurent": 0.001827,
+    "layer": 0.128369
+  },
+  "total_candidate_space": 2400
+}
