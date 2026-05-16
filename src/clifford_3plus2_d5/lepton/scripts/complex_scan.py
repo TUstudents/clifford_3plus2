@@ -16,6 +16,23 @@ from clifford_3plus2_d5.lepton.complex_scans import (
 def _parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--profile", choices=("c3", "c5", "c5-discovered"), default="c3")
+    parser.add_argument(
+        "--family",
+        choices=(
+            "controls",
+            "phase-permutation",
+            "monomial",
+            "finite-order",
+            "dense-conjugated-control",
+            "dense-hadamard",
+            "dense-householder",
+            "dense-fourier-lite",
+            "dense-all",
+            "all",
+        ),
+        default="controls",
+        help="Candidate family for the c5-discovered profile.",
+    )
     parser.add_argument("--max-candidates", type=int, default=None)
     return parser
 
@@ -27,7 +44,10 @@ def main(argv: list[str] | None = None) -> int:
     elif args.profile == "c5":
         rows = run_complex_c5_split_scan(max_candidates=args.max_candidates)
     else:
-        rows = run_complex_c5_discovered_split_scan(max_candidates=args.max_candidates)
+        rows = run_complex_c5_discovered_split_scan(
+            family=args.family,
+            max_candidates=args.max_candidates,
+        )
     print(json.dumps([asdict(row) for row in rows], indent=2, sort_keys=True))
     return 0
 

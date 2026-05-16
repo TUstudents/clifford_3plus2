@@ -13,6 +13,7 @@ from clifford_3plus2_d5.lepton.complex_primitives import (
     c3_synthetic_split_candidate,
     c5_full_irreducible_control,
     c5_conjugated_synthetic_split_candidate,
+    c5_dense_conjugated_synthetic_split_candidate,
     c5_rank_one_locking_control,
     c5_seeded_split_control,
     c5_synthetic_split_candidate,
@@ -219,4 +220,151 @@ def test_complex_c5_discovered_summary_counts_controls_and_candidates() -> None:
     summary = complex_c5_discovered_summary(max_candidates=5)
     assert summary.candidate_count == 5
     assert summary.split_candidate_count == 2
+    assert summary.non_synthetic_split_candidate_count == 0
+    assert summary.canonical_split_candidate_count == 1
+    assert summary.noncanonical_split_candidate_count == 1
     assert summary.seeded_control_count == 1
+
+
+def test_complex_c5_discovered_phase_permutation_scan_is_deterministic() -> None:
+    rows = run_complex_c5_discovered_split_scan(
+        family="phase-permutation",
+        max_candidates=4,
+    )
+    assert tuple(row.verdict for row in rows) == (
+        "not_solved",
+        "falsified_no_split",
+        "not_solved",
+        "not_solved",
+    )
+    assert all(dict(row.metadata)["synthetic"] == "false" for row in rows)
+    assert all(row.discovered_projector_ranks == () for row in rows)
+
+
+def test_complex_c5_discovered_monomial_scan_is_deterministic() -> None:
+    rows = run_complex_c5_discovered_split_scan(
+        family="monomial",
+        max_candidates=3,
+    )
+    assert tuple(row.verdict for row in rows) == (
+        "falsified_no_split",
+        "falsified_rank_one_locking",
+        "falsified_no_split",
+    )
+    assert all(dict(row.metadata)["synthetic"] == "false" for row in rows)
+    assert all(row.verdict != "split_candidate" for row in rows)
+
+
+def test_complex_c5_discovered_finite_order_scan_is_deterministic() -> None:
+    rows = run_complex_c5_discovered_split_scan(
+        family="finite-order",
+        max_candidates=4,
+    )
+    assert tuple(row.verdict for row in rows) == (
+        "falsified_rank_one_locking",
+        "falsified_rank_one_locking",
+        "not_solved",
+        "falsified_rank_one_locking",
+    )
+    assert all(dict(row.metadata)["synthetic"] == "false" for row in rows)
+    assert all(row.verdict != "split_candidate" for row in rows)
+
+
+def test_complex_c5_discovered_monomial_summary_reports_no_non_synthetic_split() -> None:
+    summary = complex_c5_discovered_summary(
+        family="monomial",
+        max_candidates=3,
+    )
+    assert summary.candidate_count == 3
+    assert summary.split_candidate_count == 0
+    assert summary.non_synthetic_split_candidate_count == 0
+    assert summary.seeded_control_count == 0
+    assert summary.max_generated_algebra_dimension == 25
+
+
+def test_c5_discovered_profile_accepts_dense_conjugated_control() -> None:
+    profile = complex_c5_discovered_split_profile()
+    result = rule_to_complex_split_verdict(
+        c5_dense_conjugated_synthetic_split_candidate().layers,
+        profile,
+    )
+    assert result.verdict.value == "split_candidate"
+    assert not result.canonical_split_matched
+    assert result.discovered_projector_ranks == (3, 2)
+    assert result.block_dimensions == (9, 4)
+
+
+def test_c5_fixed_profile_rejects_dense_conjugated_control() -> None:
+    profile = complex_c5_split_profile()
+    result = rule_to_complex_split_verdict(
+        c5_dense_conjugated_synthetic_split_candidate().layers,
+        profile,
+    )
+    assert result.verdict.value == "falsified_no_split"
+    assert not result.target_split_present
+
+
+def test_complex_c5_discovered_dense_control_scan_is_deterministic() -> None:
+    rows = run_complex_c5_discovered_split_scan(
+        family="dense-conjugated-control",
+        max_candidates=1,
+    )
+    assert len(rows) == 1
+    [row] = rows
+    assert row.verdict == "split_candidate"
+    assert row.discovered_projector_ranks == (3, 2)
+    assert not row.canonical_split_matched
+    metadata = dict(row.metadata)
+    assert metadata["synthetic"] == "true"
+    assert metadata["control"] == "true"
+    assert metadata["dense"] == "true"
+
+
+def test_complex_c5_discovered_dense_hadamard_scan_is_deterministic() -> None:
+    rows = run_complex_c5_discovered_split_scan(
+        family="dense-hadamard",
+        max_candidates=3,
+    )
+    assert tuple(row.verdict for row in rows) == ("not_solved", "not_solved", "not_solved")
+    assert tuple(row.reason for row in rows) == (
+        "center_too_large",
+        "center_too_large",
+        "center_too_large",
+    )
+    assert all(dict(row.metadata)["dense"] == "true" for row in rows)
+    assert all(dict(row.metadata)["control"] == "false" for row in rows)
+
+
+def test_complex_c5_discovered_dense_householder_scan_is_deterministic() -> None:
+    rows = run_complex_c5_discovered_split_scan(
+        family="dense-householder",
+        max_candidates=3,
+    )
+    assert tuple(row.verdict for row in rows) == ("not_solved", "not_solved", "not_solved")
+    assert tuple(row.center_dimension for row in rows) == (10, 10, 10)
+    assert all(dict(row.metadata)["synthetic"] == "false" for row in rows)
+
+
+def test_complex_c5_discovered_dense_fourier_lite_scan_is_deterministic() -> None:
+    rows = run_complex_c5_discovered_split_scan(
+        family="dense-fourier-lite",
+        max_candidates=3,
+    )
+    assert tuple(row.verdict for row in rows) == (
+        "falsified_no_split",
+        "falsified_rank_one_locking",
+        "falsified_rank_one_locking",
+    )
+    assert all(dict(row.metadata)["dense"] == "true" for row in rows)
+    assert all(row.verdict != "split_candidate" for row in rows)
+
+
+def test_complex_c5_discovered_dense_all_summary_reports_no_non_control_split() -> None:
+    summary = complex_c5_discovered_summary(
+        family="dense-all",
+        max_candidates=9,
+    )
+    assert summary.candidate_count == 9
+    assert summary.split_candidate_count == 0
+    assert summary.non_synthetic_split_candidate_count == 0
+    assert summary.seeded_control_count == 0

@@ -9,6 +9,7 @@ from dataclasses import dataclass
 from clifford_3plus2_d5.lepton.complex_primitives import (
     iter_complex_c3_candidates,
     iter_complex_c5_candidates,
+    iter_complex_c5_discovered_candidates,
 )
 from clifford_3plus2_d5.lepton.complex_profiles import (
     complex_c3_split_profile,
@@ -48,9 +49,23 @@ class ComplexSplitSummary:
     verdict_counts: tuple[tuple[str, int], ...]
     reason_counts: tuple[tuple[str, int], ...]
     split_candidate_count: int
+    non_synthetic_split_candidate_count: int
+    canonical_split_candidate_count: int
+    noncanonical_split_candidate_count: int
     seeded_control_count: int
     max_generated_algebra_dimension: int
     max_center_dimension: int
+
+
+def _metadata_value(metadata: Sequence[tuple[str, str]], key: str) -> str | None:
+    for item_key, item_value in metadata:
+        if item_key == key:
+            return item_value
+    return None
+
+
+def _is_non_synthetic(row: ComplexSplitScanRow) -> bool:
+    return _metadata_value(row.metadata, "synthetic") == "false"
 
 
 def complex_split_scan_row(
@@ -116,15 +131,17 @@ def run_complex_c5_split_scan(
 def run_complex_c5_discovered_split_scan(
     *,
     max_candidates: int | None = None,
-    phase_orders: tuple[int, ...] = (3, 4),
+    phase_orders: tuple[int, ...] = (2,),
     include_conjugated: bool = True,
+    family: str = "controls",
 ) -> tuple[ComplexSplitScanRow, ...]:
     profile = complex_c5_discovered_split_profile()
     rows = []
-    for candidate in iter_complex_c5_candidates(
+    for candidate in iter_complex_c5_discovered_candidates(
         max_candidates=max_candidates,
         phase_orders=phase_orders,
         include_conjugated=include_conjugated,
+        family=family,
     ):
         result = rule_to_complex_split_verdict(candidate.layers, profile)
         rows.append(complex_split_scan_row(candidate.name, result, metadata=candidate.metadata))
@@ -143,6 +160,21 @@ def summarize_complex_rows(
         verdict_counts=tuple(sorted(verdict_counts.items(), key=lambda item: (-item[1], item[0]))),
         reason_counts=tuple(sorted(reason_counts.items(), key=lambda item: (-item[1], item[0]))),
         split_candidate_count=sum(1 for row in rows if row.verdict == "split_candidate"),
+        non_synthetic_split_candidate_count=sum(
+            1
+            for row in rows
+            if row.verdict == "split_candidate" and _is_non_synthetic(row)
+        ),
+        canonical_split_candidate_count=sum(
+            1
+            for row in rows
+            if row.verdict == "split_candidate" and row.canonical_split_matched
+        ),
+        noncanonical_split_candidate_count=sum(
+            1
+            for row in rows
+            if row.verdict == "split_candidate" and not row.canonical_split_matched
+        ),
         seeded_control_count=sum(1 for row in rows if row.verdict == "seeded_split_control"),
         max_generated_algebra_dimension=max(
             (row.generated_algebra_dimension for row in rows),
@@ -175,8 +207,12 @@ def complex_c5_summary(
 def complex_c5_discovered_summary(
     *,
     max_candidates: int | None = None,
+    family: str = "controls",
 ) -> ComplexSplitSummary:
     return summarize_complex_rows(
-        "complex_c5_discovered_split",
-        run_complex_c5_discovered_split_scan(max_candidates=max_candidates),
+        f"complex_c5_discovered_split_{family}",
+        run_complex_c5_discovered_split_scan(
+            max_candidates=max_candidates,
+            family=family,
+        ),
     )
