@@ -2,6 +2,7 @@ import sympy as sp
 
 from clifford_3plus2_d5.qca.rule_verdict import (
     center_basis_of_generated_algebra,
+    solve_central_idempotent_rank_profile,
     solve_central_idempotents,
 )
 
@@ -55,3 +56,15 @@ def test_generated_center_uses_generators_inside_known_algebra_basis() -> None:
 
     assert len(center) == 1
     assert center[0] == sp.eye(2)
+
+
+def test_rank_profile_solver_fast_rejects_rank_2_8_involution() -> None:
+    central_involution = sp.diag(1, 1, 1, 1, 1, 1, 1, 1, -1, -1)
+
+    solved, ranks = solve_central_idempotent_rank_profile(
+        (sp.eye(10), central_involution),
+        dimension=10,
+    )
+
+    assert solved
+    assert ranks == (0, 2, 8, 10)

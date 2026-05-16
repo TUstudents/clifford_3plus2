@@ -1,0 +1,81 @@
+{
+  "cached_count": 0,
+  "candidates_per_second": 0.414697,
+  "class_counts": {
+    "non_coarse": 120
+  },
+  "completed_count": 120,
+  "elapsed_seconds": 289.368,
+  "eta_seconds": 0.0,
+  "pending_count": 0,
+  "scanner_version": "bloch_path_a_stepwise_v5",
+  "selected_count": 120,
+  "slowest_candidates": [
+    {
+      "class": "non_coarse",
+      "elapsed_seconds": 21.315,
+      "name": "path_a_projector_free_p3_c12340_s33444",
+      "ranks": [
+        0,
+        2,
+        8,
+        10
+      ]
+    },
+    {
+      "class": "non_coarse",
+      "elapsed_seconds": 20.95,
+      "name": "path_a_projector_free_p3_c12340_s43344",
+      "ranks": [
+        0,
+        2,
+        8,
+        10
+      ]
+    },
+    {
+      "class": "non_coarse",
+      "elapsed_seconds": 20.811,
+      "name": "path_a_projector_free_p3_c12340_s44334",
+      "ranks": [
+        0,
+        2,
+        8,
+        10
+      ]
+    },
+    {
+      "class": "non_coarse",
+      "elapsed_seconds": 20.723,
+      "name": "path_a_projector_free_p1_c23140_s34344",
+      "ranks": [
+        0,
+        2,
+        8,
+        10
+      ]
+    },
+    {
+      "class": "non_coarse",
+      "elapsed_seconds": 20.652,
+      "name": "path_a_projector_free_p1_c43021_s44334",
+      "ranks": [
+        0,
+        2,
+        8,
+        10
+      ]
+    }
+  ],
+  "stage_average_seconds": {
+    "bloch_layer": 1e-05,
+    "bloch_samples": 0.114359,
+    "center_basis": 5.904202,
+    "closure": 10.618039,
+    "generator_reduction": 2.273123,
+    "idempotents": 8e-06,
+    "laurent": 0.002262,
+    "layer": 0.066619
+  },
+  "total_candidate_space": 2400
+}

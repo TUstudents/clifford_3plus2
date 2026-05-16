@@ -1,0 +1,59 @@
+{
+  "cached_count": 76,
+  "candidates_per_second": 0.067247,
+  "class_counts": {
+    "coarse_unclassified": 104,
+    "timeout": 16
+  },
+  "completed_count": 120,
+  "elapsed_seconds": 1784.454,
+  "eta_seconds": 0.0,
+  "pending_count": 0,
+  "scanner_version": "bloch_path_a_stepwise_v5",
+  "selected_count": 120,
+  "slowest_candidates": [
+    {
+      "class": "timeout",
+      "elapsed_seconds": 600.0,
+      "name": "path_a_projector_free_p0_c30421_s43443",
+      "ranks": []
+    },
+    {
+      "class": "timeout",
+      "elapsed_seconds": 600.0,
+      "name": "path_a_projector_free_p0_c40312_s44343",
+      "ranks": []
+    },
+    {
+      "class": "timeout",
+      "elapsed_seconds": 600.0,
+      "name": "path_a_projector_free_p0_c30421_s34434",
+      "ranks": []
+    },
+    {
+      "class": "timeout",
+      "elapsed_seconds": 600.0,
+      "name": "path_a_projector_free_p0_c40312_s33444",
+      "ranks": []
+    },
+    {
+      "class": "timeout",
+      "elapsed_seconds": 600.0,
+      "name": "path_a_projector_free_p0_c30421_s33444",
+      "ranks": []
+    }
+  ],
+  "stage_average_seconds": {
+    "bloch_layer": 1.3e-05,
+    "bloch_samples": 0.128291,
+    "center_basis": 7.782591,
+    "closure": 14.068731,
+    "generator_reduction": 2.896667,
+    "idempotents": 23.393718,
+    "j_solve": 24.106848,
+    "laurent": 0.002319,
+    "layer": 0.107092,
+    "timeout": 600.0
+  },
+  "total_candidate_space": 2400
+}

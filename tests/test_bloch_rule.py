@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import importlib.util
 import subprocess
 import sys
 from pathlib import Path
@@ -176,3 +177,89 @@ def test_bloch_path_a_stepwise_cli_check() -> None:
     assert candidate["generated_algebra_dimension"] == 16
     assert candidate["generated_algebra_closed"] is False
     assert candidate["route_label"] == "cap_exceeded_structured"
+
+
+def test_bloch_path_a_stepwise_dim26_structural_filter() -> None:
+    spec = importlib.util.spec_from_file_location(
+        "bloch_path_a_stepwise",
+        ROOT / "scripts" / "bloch_path_a_stepwise.py",
+    )
+    assert spec is not None
+    assert spec.loader is not None
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[spec.name] = module
+    spec.loader.exec_module(module)
+
+    timeout_family = module.StepwiseCandidate(
+        family="monomial-hop",
+        pattern_index=0,
+        cycle=(3, 2, 4, 1, 0),
+        source_shifts=(4, 3, 3, 4, 4),
+    )
+
+    assert (
+        module._monomial_dim26_no_locking_rank_profile(
+            timeout_family,
+            generated_algebra_dimension=26,
+            center_dimension=4,
+        )
+        == (0, 2, 8, 10)
+    )
+    assert (
+        module._monomial_dim26_no_locking_rank_profile(
+            timeout_family,
+            generated_algebra_dimension=34,
+            center_dimension=4,
+        )
+        == ()
+    )
+
+
+def test_bloch_path_a_stepwise_dim34_structural_filter() -> None:
+    spec = importlib.util.spec_from_file_location(
+        "bloch_path_a_stepwise",
+        ROOT / "scripts" / "bloch_path_a_stepwise.py",
+    )
+    assert spec is not None
+    assert spec.loader is not None
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[spec.name] = module
+    spec.loader.exec_module(module)
+
+    timeout_family = module.StepwiseCandidate(
+        family="monomial-hop",
+        pattern_index=0,
+        cycle=(3, 0, 4, 2, 1),
+        source_shifts=(4, 4, 3, 4, 3),
+    )
+    resolved_family = module.StepwiseCandidate(
+        family="monomial-hop",
+        pattern_index=0,
+        cycle=(1, 2, 3, 4, 0),
+        source_shifts=(3, 4, 3, 4, 4),
+    )
+
+    assert (
+        module._monomial_dim34_coarse_rank_profile(
+            timeout_family,
+            generated_algebra_dimension=34,
+            center_dimension=4,
+        )
+        == (0, 4, 6, 10)
+    )
+    assert (
+        module._monomial_dim34_coarse_rank_profile(
+            resolved_family,
+            generated_algebra_dimension=34,
+            center_dimension=4,
+        )
+        == (0, 4, 6, 10)
+    )
+    assert (
+        module._monomial_dim34_coarse_rank_profile(
+            timeout_family,
+            generated_algebra_dimension=26,
+            center_dimension=4,
+        )
+        == ()
+    )

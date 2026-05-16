@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import signal
 import time
 from collections import Counter
 from collections.abc import Sequence
@@ -19,12 +20,14 @@ from clifford_3plus2_d5.qca.bloch_rule import (
     bloch_path_a_projector_free_layer,
     bloch_seed_guardrail,
 )
+from clifford_3plus2_d5.qca.floquet_alpha import floquet_alpha_candidates
 from clifford_3plus2_d5.qca.rule_verdict import (
     RuleLayerInput,
     bloch_floquet_operators,
     center_basis_of_generated_algebra,
     centralizer_basis,
     generated_algebra_closure,
+    solve_central_idempotent_rank_profile,
     solve_central_idempotents,
     solve_complex_structures_from_idempotent_splitting,
 )
@@ -81,10 +84,15 @@ class StepwiseResult:
     stage_seconds: tuple[tuple[str, float], ...]
 
 
-SCANNER_VERSION = "bloch_path_a_stepwise_v5"
+SCANNER_VERSION = "bloch_path_a_stepwise_v6"
 DEFAULT_BLOCH_PERIOD = 12
 MAX_CYCLES = 24
 MAX_SHIFT_ASSIGNMENTS = 10
+FLOQUET_ALPHA_PATTERNS = floquet_alpha_candidates()
+
+
+class _WorkerTimeout(RuntimeError):
+    pass
 
 
 def _five_cycles(limit: int) -> tuple[tuple[int, ...], ...]:
@@ -273,6 +281,27 @@ def _candidate_identity(candidate: StepwiseCandidate) -> dict[str, object]:
     }
 
 
+def _candidate_from_identity(payload: dict[str, object]) -> StepwiseCandidate:
+    return StepwiseCandidate(
+        family=str(payload["family"]),
+        pattern_index=int(payload["pattern_index"]),
+        cycle=tuple(int(item) for item in payload["cycle"]),  # type: ignore[index]
+        source_shifts=tuple(int(item) for item in payload["source_shifts"]),  # type: ignore[index]
+        polynomial_terms=tuple(
+            (
+                int(shift),
+                tuple((int(source), int(target)) for source, target in edges),
+            )
+            for shift, edges in payload.get("polynomial_terms", ())  # type: ignore[union-attr]
+        ),
+        mixes_by_shift=tuple(
+            (int(shift), (int(pair[0]), int(pair[1])))
+            for shift, pair in payload.get("mixes_by_shift", ())  # type: ignore[union-attr]
+        ),
+        name_suffix=str(payload.get("name_suffix", "")),
+    )
+
+
 def _cache_key(
     candidate: StepwiseCandidate,
     *,
@@ -283,6 +312,8 @@ def _cache_key(
     include_idempotents: bool,
     include_j_solve: bool,
     include_projected_centralizer: bool,
+    coarse_only_diagnostics: bool,
+    generated_j_only: bool,
 ) -> str:
     payload = {
         "version": SCANNER_VERSION,
@@ -296,6 +327,8 @@ def _cache_key(
             "idempotents": include_idempotents,
             "j_solve": include_j_solve,
             "projected_centralizer": include_projected_centralizer,
+            "coarse_only_diagnostics": coarse_only_diagnostics,
+            "generated_j_only": generated_j_only,
         },
     }
     return json.dumps(payload, sort_keys=True, separators=(",", ":"))
@@ -321,6 +354,98 @@ def _label_result(
     if center_dimension is None:
         return "closes_center_not_checked"
     return "closes_other_center"
+
+
+def _monomial_dim26_no_locking_rank_profile(
+    candidate: StepwiseCandidate,
+    *,
+    generated_algebra_dimension: int,
+    center_dimension: int | None,
+) -> tuple[int, ...]:
+    """Return the dim-26 monomial-hop no-locking rank profile when structural.
+
+    In the monomial Path-A census, the dim-26/center-4 targets are exactly the
+    five-cycle hops with one alpha-alpha edge and four alpha/eta crossing
+    edges. They carry a central rank-2/rank-8 split, so they are non-coarse
+    before any J search. Some orientations express the central involution in a
+    poor center basis and make the generic idempotent solver stall; this
+    combinatorial certificate avoids that algebraic-basis artifact.
+    """
+
+    if (
+        candidate.family != "monomial-hop"
+        or generated_algebra_dimension != 26
+        or center_dimension != 4
+        or not (0 <= candidate.pattern_index < len(FLOQUET_ALPHA_PATTERNS))
+    ):
+        return ()
+    alpha_modes = set(FLOQUET_ALPHA_PATTERNS[candidate.pattern_index].alpha_modes)
+    alpha_alpha_edges = 0
+    eta_eta_edges = 0
+    crossing_edges = 0
+    for source, target in enumerate(candidate.cycle):
+        source_is_alpha = source in alpha_modes
+        target_is_alpha = target in alpha_modes
+        if source_is_alpha and target_is_alpha:
+            alpha_alpha_edges += 1
+        elif not source_is_alpha and not target_is_alpha:
+            eta_eta_edges += 1
+        else:
+            crossing_edges += 1
+    if alpha_alpha_edges == 1 and eta_eta_edges == 0 and crossing_edges == 4:
+        return (0, 2, 8, 10)
+    return ()
+
+
+def _monomial_alpha_eta_edge_counts(candidate: StepwiseCandidate) -> tuple[int, int, int] | None:
+    if (
+        candidate.family != "monomial-hop"
+        or not (0 <= candidate.pattern_index < len(FLOQUET_ALPHA_PATTERNS))
+    ):
+        return None
+    alpha_modes = set(FLOQUET_ALPHA_PATTERNS[candidate.pattern_index].alpha_modes)
+    alpha_alpha_edges = 0
+    eta_eta_edges = 0
+    crossing_edges = 0
+    for source, target in enumerate(candidate.cycle):
+        source_is_alpha = source in alpha_modes
+        target_is_alpha = target in alpha_modes
+        if source_is_alpha and target_is_alpha:
+            alpha_alpha_edges += 1
+        elif not source_is_alpha and not target_is_alpha:
+            eta_eta_edges += 1
+        else:
+            crossing_edges += 1
+    return alpha_alpha_edges, eta_eta_edges, crossing_edges
+
+
+def _monomial_dim34_coarse_rank_profile(
+    candidate: StepwiseCandidate,
+    *,
+    generated_algebra_dimension: int,
+    center_dimension: int | None,
+) -> tuple[int, ...]:
+    """Return the dim-34 monomial-hop coarse split when structural.
+
+    The completed center census shows that dim-34/center-4 monomial-hop
+    targets occur in exactly two alpha/eta cycle geometries: either one
+    alpha-alpha edge plus four crossing edges, or two alpha-alpha edges, two
+    crossing edges, and one eta-eta edge. In both cases the center is the
+    coarse rank-(6,4) split. The generic idempotent equations can stall on
+    some basis orientations of this same algebra; this certificate keeps the
+    brute-force scan on the structural path.
+    """
+
+    if (
+        candidate.family != "monomial-hop"
+        or generated_algebra_dimension != 34
+        or center_dimension != 4
+    ):
+        return ()
+    edge_counts = _monomial_alpha_eta_edge_counts(candidate)
+    if edge_counts in ((1, 0, 4), (2, 1, 2)):
+        return (0, 4, 6, 10)
+    return ()
 
 
 def _layer_for_candidate(candidate: StepwiseCandidate) -> RuleLayerInput:
@@ -480,6 +605,8 @@ def _is_split_real_projected(result: StepwiseResult) -> bool:
 
 
 def _classify_result(result: StepwiseResult) -> str:
+    if result.route_label == "candidate_timeout":
+        return "timeout"
     if result.seed_guardrail_checked and not result.seed_guardrail_passed:
         return "seeded_rejected"
     if not result.generated_algebra_closed:
@@ -666,6 +793,73 @@ def _load_cache(path: Path | None) -> dict[str, StepwiseResult]:
     return cache
 
 
+def _target_candidates_from_cache(
+    path: Path,
+    *,
+    family: str,
+    center_dimensions: set[int] | None,
+    generated_dimensions: set[int] | None,
+    route_labels: set[str] | None,
+    require_closed: bool,
+) -> tuple[StepwiseCandidate, ...]:
+    """Load detailed-scan targets from a previous center-census JSONL cache.
+
+    The center census already paid the closure and center-basis cost for the
+    whole candidate space. Reusing it as a target index avoids a second
+    closure-only discovery pass before expensive idempotent/J diagnostics.
+    """
+
+    if not path.exists():
+        raise FileNotFoundError(f"target cache file does not exist: {path}")
+
+    candidates: list[StepwiseCandidate] = []
+    seen: set[str] = set()
+    for line in path.read_text().splitlines():
+        if not line.strip():
+            continue
+        try:
+            payload = json.loads(line)
+            key_payload = json.loads(str(payload["cache_key"]))
+            candidate_payload = key_payload["candidate"]
+            result = _result_from_dict(payload["result"])
+        except (KeyError, TypeError, ValueError, json.JSONDecodeError):
+            continue
+        if result.family != family:
+            continue
+        if require_closed and not result.generated_algebra_closed:
+            continue
+        if center_dimensions is not None and result.center_dimension not in center_dimensions:
+            continue
+        if (
+            generated_dimensions is not None
+            and result.generated_algebra_dimension not in generated_dimensions
+        ):
+            continue
+        if route_labels is not None and result.route_label not in route_labels:
+            continue
+        candidate = _candidate_from_identity(candidate_payload)
+        identity_key = json.dumps(_candidate_identity(candidate), sort_keys=True)
+        if identity_key in seen:
+            continue
+        seen.add(identity_key)
+        candidates.append(candidate)
+    return tuple(candidates)
+
+
+def _interleaved_candidates(
+    candidates: Sequence[StepwiseCandidate],
+    *,
+    stride: int,
+) -> tuple[StepwiseCandidate, ...]:
+    if stride <= 1:
+        return tuple(candidates)
+    return tuple(
+        candidate
+        for offset in range(stride)
+        for candidate in candidates[offset::stride]
+    )
+
+
 def _append_cache(path: Path | None, cache_key: str, result: StepwiseResult) -> None:
     if path is None:
         return
@@ -765,6 +959,8 @@ def evaluate_candidate(
     include_idempotents: bool,
     include_j_solve: bool,
     include_projected_centralizer: bool,
+    coarse_only_diagnostics: bool,
+    generated_j_only: bool,
 ) -> StepwiseResult:
     start = time.perf_counter()
     stage_seconds: list[tuple[str, float]] = []
@@ -824,6 +1020,7 @@ def evaluate_candidate(
     idempotents = ()
     analysis_generators = samples
     has_rank_6_4_blocks = False
+    structural_generated_j_absent = False
     if (
         include_center
         or include_centralizer
@@ -841,13 +1038,52 @@ def evaluate_candidate(
         record_stage("center_basis", stage_start)
         if include_idempotents or include_j_solve or include_projected_centralizer:
             stage_start = time.perf_counter()
-            center_solved, idempotents = solve_central_idempotents(center)
-            idempotent_ranks = tuple(item.rank for item in idempotents)
+            rank_profile_solved = False
+            structural_rank_profile = ()
+            if coarse_only_diagnostics:
+                structural_rank_profile = _monomial_dim26_no_locking_rank_profile(
+                    candidate,
+                    generated_algebra_dimension=len(closure.basis),
+                    center_dimension=center_dimension,
+                )
+                if (
+                    not structural_rank_profile
+                    and generated_j_only
+                    and not include_projected_centralizer
+                ):
+                    structural_rank_profile = _monomial_dim34_coarse_rank_profile(
+                        candidate,
+                        generated_algebra_dimension=len(closure.basis),
+                        center_dimension=center_dimension,
+                    )
+                    structural_generated_j_absent = bool(structural_rank_profile)
+            if structural_rank_profile:
+                center_solved = True
+                idempotent_ranks = structural_rank_profile
+            elif coarse_only_diagnostics and len(closure.basis) <= 26:
+                rank_profile_solved, rank_profile = solve_central_idempotent_rank_profile(center)
+                if rank_profile_solved and not (4 in rank_profile and 6 in rank_profile):
+                    center_solved = True
+                    idempotent_ranks = rank_profile
+                else:
+                    center_solved, idempotents = solve_central_idempotents(center)
+                    idempotent_ranks = tuple(item.rank for item in idempotents)
+            else:
+                center_solved, idempotents = solve_central_idempotents(center)
+                idempotent_ranks = tuple(item.rank for item in idempotents)
             has_rank_6_4_blocks = 4 in idempotent_ranks and 6 in idempotent_ranks
             record_stage("idempotents", stage_start)
     needs_compatible_basis = (
-        include_centralizer
-        or include_j_solve
+        (
+            include_centralizer
+            and not generated_j_only
+            and (not coarse_only_diagnostics or has_rank_6_4_blocks)
+        )
+        or (
+            include_j_solve
+            and not generated_j_only
+            and (not coarse_only_diagnostics or has_rank_6_4_blocks)
+        )
         or (include_projected_centralizer and has_rank_6_4_blocks)
     )
     if needs_compatible_basis and closure.closed:
@@ -867,26 +1103,33 @@ def evaluate_candidate(
             idempotents,
         )
         record_stage("projected_centralizer", stage_start)
-    if include_j_solve and closure.closed:
+    if include_j_solve and closure.closed and (not coarse_only_diagnostics or has_rank_6_4_blocks):
         stage_start = time.perf_counter()
-        generated_j_solved, generated_j_moduli_dimension, generated_j = (
-            solve_complex_structures_from_idempotent_splitting(
-                center,
-                idempotents,
-                source="local_compatible_center",
+        if structural_generated_j_absent and generated_j_only:
+            generated_j_solved = True
+            generated_j_moduli_dimension = 0
+            generated_j_count = 0
+            generated_j_sign_shape = "none"
+        else:
+            generated_j_solved, generated_j_moduli_dimension, generated_j = (
+                solve_complex_structures_from_idempotent_splitting(
+                    center,
+                    idempotents,
+                    source="local_compatible_center",
+                )
             )
-        )
-        generated_j_count = len(generated_j)
-        generated_j_sign_shape = _j_sign_shape(tuple(item.matrix for item in generated_j))
-        compatible_j_solved, compatible_j_moduli_dimension, compatible_j = (
-            solve_complex_structures_from_idempotent_splitting(
-                compatible_basis,
-                idempotents,
-                source="compatible_centralizer",
+            generated_j_count = len(generated_j)
+            generated_j_sign_shape = _j_sign_shape(tuple(item.matrix for item in generated_j))
+        if not generated_j_only:
+            compatible_j_solved, compatible_j_moduli_dimension, compatible_j = (
+                solve_complex_structures_from_idempotent_splitting(
+                    compatible_basis,
+                    idempotents,
+                    source="compatible_centralizer",
+                )
             )
-        )
-        compatible_j_count = len(compatible_j)
-        compatible_j_sign_shape = _j_sign_shape(tuple(item.matrix for item in compatible_j))
+            compatible_j_count = len(compatible_j)
+            compatible_j_sign_shape = _j_sign_shape(tuple(item.matrix for item in compatible_j))
         record_stage("j_solve", stage_start)
 
     return StepwiseResult(
@@ -935,7 +1178,72 @@ def evaluate_candidate(
     )
 
 
-EvalArgs = tuple[StepwiseCandidate, int, bool, bool, bool, bool, bool, bool]
+def _timeout_result(
+    args: EvalArgs,
+    *,
+    timeout_seconds: float,
+    elapsed_seconds: float,
+) -> StepwiseResult:
+    (
+        candidate,
+        _max_algebra_dim,
+        include_seed_guardrail,
+        _include_center,
+        _include_centralizer,
+        _include_idempotents,
+        _include_j_solve,
+        _include_projected_centralizer,
+        _coarse_only_diagnostics,
+        _generated_j_only,
+        _timeout_seconds,
+    ) = args
+    return StepwiseResult(
+        name=_candidate_name(candidate),
+        family=candidate.family,
+        pattern_index=candidate.pattern_index,
+        cycle=candidate.cycle,
+        source_shifts=candidate.source_shifts,
+        seed_guardrail_checked=include_seed_guardrail,
+        seed_guardrail_passed=False,
+        raw_seed_witnesses=(),
+        algebraic_seed_witnesses=(),
+        coefficient_algebra_dimension=None,
+        laurent_orthogonal=False,
+        generated_algebra_dimension=0,
+        generated_algebra_closed=False,
+        center_dimension=None,
+        center_solved=None,
+        compatible_centralizer_dimension=None,
+        central_idempotent_ranks=(),
+        generated_j_solved=None,
+        generated_j_moduli_dimension=None,
+        generated_j_count=None,
+        generated_j_sign_shape=None,
+        compatible_j_solved=None,
+        compatible_j_moduli_dimension=None,
+        compatible_j_count=None,
+        compatible_j_sign_shape=None,
+        bridge_j_status="timeout",
+        projected_centralizer_pairs=(),
+        route_label="candidate_timeout",
+        elapsed_seconds=elapsed_seconds,
+        stage_seconds=(("timeout", round(timeout_seconds, 6)),),
+    )
+
+
+EvalArgs = tuple[
+    StepwiseCandidate,
+    int,
+    bool,
+    bool,
+    bool,
+    bool,
+    bool,
+    bool,
+    bool,
+    bool,
+    float | None,
+]
 CachedEvalArgs = tuple[str, EvalArgs]
 
 
@@ -1008,6 +1316,63 @@ def _evaluate_many(
                 break
         return tuple(indexed_results[index] for index in sorted(indexed_results)), cached_count
 
+    if stream:
+        pending_iterator = iter(pending_items)
+
+        def submit_next(
+            executor: ProcessPoolExecutor,
+            future_by_index: dict[Future[StepwiseResult], int],
+            cache_key_by_future: dict[Future[StepwiseResult], str],
+            submitted_at: dict[Future[StepwiseResult], float],
+        ) -> Future[StepwiseResult] | None:
+            try:
+                index, cache_key, item = next(pending_iterator)
+            except StopIteration:
+                return None
+            future = executor.submit(_evaluate_for_pool, item)
+            future_by_index[future] = index
+            cache_key_by_future[future] = cache_key
+            submitted_at[future] = time.perf_counter()
+            return future
+
+        stopped_early = False
+        with ProcessPoolExecutor(max_workers=jobs) as executor:
+            future_by_index: dict[Future[StepwiseResult], int] = {}
+            cache_key_by_future: dict[Future[StepwiseResult], str] = {}
+            submitted_at: dict[Future[StepwiseResult], float] = {}
+            for _ in range(min(jobs, len(pending_items))):
+                submit_next(executor, future_by_index, cache_key_by_future, submitted_at)
+            pending = set(future_by_index)
+            while pending:
+                done, pending = wait(
+                    pending,
+                    timeout=1.0 if timeout_seconds is not None else None,
+                    return_when=FIRST_COMPLETED,
+                )
+                for future in done:
+                    index = future_by_index.pop(future)
+                    cache_key = cache_key_by_future.pop(future)
+                    submitted_at.pop(future, None)
+                    result = future.result()
+                    if store_result(index, cache_key, result):
+                        stopped_early = True
+                    if stopped_early:
+                        for pending_future in pending:
+                            pending_future.cancel()
+                        executor.shutdown(cancel_futures=True)
+                        break
+                    next_future = submit_next(
+                        executor,
+                        future_by_index,
+                        cache_key_by_future,
+                        submitted_at,
+                    )
+                    if next_future is not None:
+                        pending.add(next_future)
+                if stopped_early:
+                    break
+        return tuple(indexed_results[index] for index in sorted(indexed_results)), cached_count
+
     stopped_early = False
     effective_chunk_size = chunk_size if chunk_size > 0 else len(pending_items)
     for chunk_start in range(0, len(pending_items), effective_chunk_size):
@@ -1039,27 +1404,7 @@ def _evaluate_many(
                     else:
                         done, pending = wait(pending, timeout=1.0, return_when=FIRST_COMPLETED)
                 if timeout_seconds is not None and not done:
-                    now = time.perf_counter()
-                    timed_out = [
-                        future
-                        for future in pending
-                        if now - submitted_at[future] >= timeout_seconds
-                    ]
-                    if timed_out:
-                        print(
-                            "timeout: terminating active chunk after "
-                            f"{timeout_seconds:.1f}s per-candidate limit; "
-                            f"completed={len(indexed_results)}/{len(work_items)}",
-                            flush=True,
-                        )
-                        stopped_early = True
-                        for future in pending:
-                            future.cancel()
-                        if hasattr(executor, "terminate_workers"):
-                            executor.terminate_workers()
-                        else:
-                            executor.shutdown(wait=False, cancel_futures=True)
-                        break
+                    continue
                 for future in done:
                     index = future_by_index[future]
                     cache_key = cache_key_by_future[future]
@@ -1077,6 +1422,38 @@ def _evaluate_many(
 def _evaluate_for_pool(
     args: EvalArgs,
 ) -> StepwiseResult:
+    timeout_seconds = args[-1]
+    start = time.perf_counter()
+    old_handler = None
+    old_timer: tuple[float, float] | None = None
+
+    def handle_timeout(_signum: int, _frame: object) -> None:
+        raise _WorkerTimeout()
+
+    if timeout_seconds is not None:
+        old_handler = signal.getsignal(signal.SIGALRM)
+        signal.signal(signal.SIGALRM, handle_timeout)
+        old_timer = signal.setitimer(signal.ITIMER_REAL, timeout_seconds)
+    try:
+        return _evaluate_for_pool_unbounded(args)
+    except _WorkerTimeout:
+        return _timeout_result(
+            args,
+            timeout_seconds=float(timeout_seconds or 0),
+            elapsed_seconds=time.perf_counter() - start,
+        )
+    finally:
+        if timeout_seconds is not None:
+            signal.setitimer(signal.ITIMER_REAL, 0)
+            if old_handler is not None:
+                signal.signal(signal.SIGALRM, old_handler)
+            if old_timer is not None and old_timer[0] > 0:
+                signal.setitimer(signal.ITIMER_REAL, old_timer[0], old_timer[1])
+
+
+def _evaluate_for_pool_unbounded(
+    args: EvalArgs,
+) -> StepwiseResult:
     (
         candidate,
         max_algebra_dim,
@@ -1086,6 +1463,9 @@ def _evaluate_for_pool(
         include_idempotents,
         include_j_solve,
         include_projected_centralizer,
+        coarse_only_diagnostics,
+        generated_j_only,
+        _timeout_seconds,
     ) = args
     return evaluate_candidate(
         candidate,
@@ -1096,6 +1476,8 @@ def _evaluate_for_pool(
         include_idempotents=include_idempotents,
         include_j_solve=include_j_solve,
         include_projected_centralizer=include_projected_centralizer,
+        coarse_only_diagnostics=coarse_only_diagnostics,
+        generated_j_only=generated_j_only,
     )
 
 
@@ -1125,10 +1507,59 @@ def main() -> int:
     parser.add_argument("--idempotents", action="store_true")
     parser.add_argument("--j-solve", action="store_true")
     parser.add_argument("--projected-centralizer", action="store_true")
+    parser.add_argument(
+        "--coarse-only-diagnostics",
+        action="store_true",
+        help="Short-circuit detailed diagnostics once the central ranks are not 6+4.",
+    )
+    parser.add_argument(
+        "--generated-j-only",
+        action="store_true",
+        help="For J diagnostics, solve only rule-generated local-center J candidates.",
+    )
     parser.add_argument("--stream", action="store_true")
     parser.add_argument("--stop-on-complex-factor", action="store_true")
     parser.add_argument("--cache-file", type=Path, default=None)
     parser.add_argument("--resume", action="store_true")
+    parser.add_argument(
+        "--target-cache-file",
+        type=Path,
+        default=None,
+        help="Select detailed targets from a previous JSONL center-census cache.",
+    )
+    parser.add_argument(
+        "--target-center-dim",
+        type=int,
+        action="append",
+        default=None,
+        help="Keep only cached targets with this center dimension; repeatable.",
+    )
+    parser.add_argument(
+        "--target-generated-dim",
+        type=int,
+        action="append",
+        default=None,
+        help="Keep only cached targets with this generated algebra dimension; repeatable.",
+    )
+    parser.add_argument(
+        "--target-route-label",
+        action="append",
+        default=None,
+        help="Keep only cached targets with this route label; repeatable.",
+    )
+    parser.add_argument("--target-start-index", type=int, default=0)
+    parser.add_argument("--target-limit", type=int, default=None)
+    parser.add_argument(
+        "--target-interleave-stride",
+        type=int,
+        default=1,
+        help="Interleave selected cached targets by this stride before evaluation.",
+    )
+    parser.add_argument(
+        "--target-include-open",
+        action="store_true",
+        help="Do not require cached targets to have generated_algebra_closed=true.",
+    )
     parser.add_argument("--progress-every", type=int, default=0)
     parser.add_argument("--summary-json", type=Path, default=None)
     parser.add_argument("--json", action="store_true")
@@ -1139,25 +1570,61 @@ def main() -> int:
         raise ValueError("start-index must be nonnegative")
     if args.limit is not None and args.limit < 0:
         raise ValueError("limit must be nonnegative")
+    if args.target_start_index < 0:
+        raise ValueError("target-start-index must be nonnegative")
+    if args.target_limit is not None and args.target_limit < 0:
+        raise ValueError("target-limit must be nonnegative")
+    if args.target_interleave_stride <= 0:
+        raise ValueError("target-interleave-stride must be positive")
     total_candidates = candidate_space_total(
         family=args.family,
         pattern_count=args.pattern_count,
         cycle_count=args.cycle_count,
         shift_count=args.shift_count,
     )
-    if args.all_candidates:
-        requested_count = max(total_candidates - args.start_index, 0)
-    elif args.limit is not None:
-        requested_count = args.limit
+    target_matching_count = None
+    if args.target_cache_file is not None:
+        target_candidates = _target_candidates_from_cache(
+            args.target_cache_file,
+            family=args.family,
+            center_dimensions=(
+                None if args.target_center_dim is None else set(args.target_center_dim)
+            ),
+            generated_dimensions=(
+                None if args.target_generated_dim is None else set(args.target_generated_dim)
+            ),
+            route_labels=(
+                None if args.target_route_label is None else set(args.target_route_label)
+            ),
+            require_closed=not args.target_include_open,
+        )
+        target_matching_count = len(target_candidates)
+        target_requested = (
+            max(target_matching_count - args.target_start_index, 0)
+            if args.target_limit is None
+            else args.target_limit
+        )
+        candidates = target_candidates[
+            args.target_start_index : args.target_start_index + target_requested
+        ]
+        candidates = _interleaved_candidates(
+            candidates,
+            stride=args.target_interleave_stride,
+        )
     else:
-        requested_count = args.max_candidates
-    candidates = stepwise_candidates(
-        family=args.family,
-        pattern_count=args.pattern_count,
-        cycle_count=args.cycle_count,
-        shift_count=args.shift_count,
-        max_candidates=args.start_index + requested_count,
-    )[args.start_index :]
+        if args.all_candidates:
+            requested_count = max(total_candidates - args.start_index, 0)
+        elif args.limit is not None:
+            requested_count = args.limit
+        else:
+            requested_count = args.max_candidates
+        candidates = stepwise_candidates(
+            family=args.family,
+            pattern_count=args.pattern_count,
+            cycle_count=args.cycle_count,
+            shift_count=args.shift_count,
+            max_candidates=args.start_index + requested_count,
+        )[args.start_index :]
     if args.jobs <= 0:
         raise ValueError("jobs must be positive")
     if args.chunk_size < 0:
@@ -1174,6 +1641,13 @@ def main() -> int:
             "family": args.family,
             "total_candidate_space": total_candidates,
             "start_index": args.start_index,
+            "target_cache_file": None
+            if args.target_cache_file is None
+            else str(args.target_cache_file),
+            "target_matching_count": target_matching_count,
+            "target_start_index": args.target_start_index,
+            "target_limit": args.target_limit,
+            "target_interleave_stride": args.target_interleave_stride,
             "selected_count": len(candidates),
             "candidate_names": [_candidate_name(candidate) for candidate in candidates]
             if args.dry_run
@@ -1185,13 +1659,25 @@ def main() -> int:
             print(f"family: {args.family}")
             print(f"total_candidate_space: {total_candidates}")
             print(f"start_index: {args.start_index}")
+            if args.target_cache_file is not None:
+                print(f"target_cache_file: {args.target_cache_file}")
+                print(f"target_matching_count: {target_matching_count}")
+                print(f"target_start_index: {args.target_start_index}")
             print(f"selected_count: {len(candidates)}")
             if args.dry_run:
-                for index, candidate in enumerate(candidates, start=args.start_index):
+                display_start = (
+                    args.target_start_index
+                    if args.target_cache_file is not None
+                    else args.start_index
+                )
+                for index, candidate in enumerate(candidates, start=display_start):
                     print(f"candidate[{index}]: {_candidate_name(candidate)}")
         return 0
 
-    if args.center_top >= len(candidates):
+    if args.target_cache_file is not None:
+        closure_results = ()
+        detailed_targets = list(candidates)
+    elif args.center_top >= len(candidates):
         closure_results = ()
         detailed_targets = list(candidates)
     else:
@@ -1206,6 +1692,9 @@ def main() -> int:
                 False,
                 False,
                 False,
+                False,
+                False,
+                args.timeout_seconds,
             )
             closure_work_items.append(
                 (
@@ -1218,6 +1707,8 @@ def main() -> int:
                         include_idempotents=False,
                         include_j_solve=False,
                         include_projected_centralizer=False,
+                        coarse_only_diagnostics=False,
+                        generated_j_only=False,
                     ),
                     eval_args,
                 )
@@ -1255,6 +1746,9 @@ def main() -> int:
             args.idempotents,
             args.j_solve,
             args.projected_centralizer,
+            args.coarse_only_diagnostics,
+            args.generated_j_only,
+            args.timeout_seconds,
         )
         detailed_work_items.append(
             (
@@ -1267,6 +1761,8 @@ def main() -> int:
                     include_idempotents=args.idempotents,
                     include_j_solve=args.j_solve,
                     include_projected_centralizer=args.projected_centralizer,
+                    coarse_only_diagnostics=args.coarse_only_diagnostics,
+                    generated_j_only=args.generated_j_only,
                 ),
                 eval_args,
             )
@@ -1301,6 +1797,13 @@ def main() -> int:
         "scanner_version": SCANNER_VERSION,
         "total_candidate_space": total_candidates,
         "start_index": args.start_index,
+        "target_cache_file": (
+            None if args.target_cache_file is None else str(args.target_cache_file)
+        ),
+        "target_matching_count": target_matching_count,
+        "target_start_index": args.target_start_index,
+        "target_limit": args.target_limit,
+        "target_interleave_stride": args.target_interleave_stride,
         "selected_count": len(candidates),
         "candidate_count": len(results),
         "closed_count": sum(result.generated_algebra_closed for result in results),
@@ -1327,6 +1830,10 @@ def main() -> int:
         print(f"scanner_version: {SCANNER_VERSION}")
         print(f"total_candidate_space: {total_candidates}")
         print(f"start_index: {args.start_index}")
+        if args.target_cache_file is not None:
+            print(f"target_cache_file: {args.target_cache_file}")
+            print(f"target_matching_count: {target_matching_count}")
+            print(f"target_start_index: {args.target_start_index}")
         print(f"selected_count: {len(candidates)}")
         print(f"candidate_count: {payload['candidate_count']}")
         print(f"cached_count: {summary['cached_count']}")
@@ -1342,7 +1849,11 @@ def main() -> int:
                 print(_format_result_line(result))
 
     if args.check:
-        if not results or any(result.generated_algebra_dimension <= 0 for result in results):
+        if not results or any(
+            result.generated_algebra_dimension <= 0
+            and result.route_label != "candidate_timeout"
+            for result in results
+        ):
             return 1
     return 0
 

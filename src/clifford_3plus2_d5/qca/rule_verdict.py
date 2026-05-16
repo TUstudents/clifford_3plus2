@@ -574,6 +574,116 @@ def _solve_idempotent_coordinate_equations(
     return tuple(complete_solutions)
 
 
+def _central_involution_rank_profile(
+    center_basis: Sequence[sp.Matrix],
+    *,
+    dimension: int = 10,
+) -> tuple[bool, tuple[int, ...]]:
+    """Fast no-locking certificate from an involution in the center."""
+
+    one = identity(dimension)
+    for matrix in center_basis:
+        trace = sp.simplify(sp.trace(matrix))
+        if trace.is_Integer is not True:
+            continue
+        trace_int = int(trace)
+        if abs(trace_int) == dimension:
+            continue
+        if (dimension + trace_int) % 2 or (dimension - trace_int) % 2:
+            continue
+        if is_real_matrix(matrix) and matrix * matrix == one:
+            left_rank = (dimension + trace_int) // 2
+            right_rank = (dimension - trace_int) // 2
+            if 0 <= left_rank <= dimension and 0 <= right_rank <= dimension:
+                return True, tuple(sorted({0, left_rank, right_rank, dimension}))
+    return False, ()
+
+
+def solve_central_idempotent_rank_profile(
+    center_basis: Sequence[sp.Matrix],
+    *,
+    max_center_dimension: int = 8,
+    dimension: int = 10,
+) -> tuple[bool, tuple[int, ...]]:
+    """Return central idempotent ranks without constructing full projectors.
+
+    Scan code uses this as a fast coarse/non-coarse filter. The coordinate
+    equations certify idempotency inside the center algebra; ranks are traces
+    of idempotents, avoiding expensive symbolic matrix rank computations for
+    candidates that already fail the 6+4 guardrail.
+    """
+
+    if len(center_basis) > max_center_dimension:
+        return False, ()
+
+    involution_solved, involution_profile = _central_involution_rank_profile(
+        center_basis,
+        dimension=dimension,
+    )
+    if involution_solved and 2 in involution_profile:
+        return True, involution_profile
+
+    variables = sp.symbols(f"c0:{len(center_basis)}")
+    coordinate_system = IncrementalMatrixSpan(rows=dimension, cols=dimension)
+    for matrix in center_basis:
+        coordinate_system.add(matrix)
+    if coordinate_system.rank != len(center_basis):
+        raise ValueError("center_basis must be linearly independent")
+
+    product_coordinates: dict[tuple[int, int], tuple[sp.Expr, ...]] = {}
+    for left_index, left in enumerate(center_basis):
+        for right_index, right in enumerate(center_basis):
+            coordinates = coordinate_system.coordinates(left * right)
+            if coordinates is None:
+                return False, ()
+            product_coordinates[(left_index, right_index)] = coordinates
+
+    equations = []
+    for coordinate_index in range(len(center_basis)):
+        equation = sum(
+            variables[left_index]
+            * variables[right_index]
+            * product_coordinates[(left_index, right_index)][coordinate_index]
+            for left_index in range(len(center_basis))
+            for right_index in range(len(center_basis))
+        ) - variables[coordinate_index]
+        expanded = sp.expand(equation)
+        if expanded != 0:
+            equations.append(expanded)
+    solutions = sp.solve(tuple(equations), tuple(variables), dict=True)
+    complete_solutions = tuple(
+        solution for solution in solutions if all(variable in solution for variable in variables)
+    )
+    if not complete_solutions:
+        return False, ()
+
+    basis_traces = tuple(sp.trace(matrix) for matrix in center_basis)
+    ranks: list[int] = []
+    seen: set[tuple[sp.Expr, ...]] = set()
+    for solution in complete_solutions:
+        coefficients = tuple(sp.simplify(solution[variable]) for variable in variables)
+        if coefficients in seen:
+            continue
+        seen.add(coefficients)
+        matrix = sp.zeros(dimension)
+        for coefficient, basis_matrix in zip(coefficients, center_basis, strict=True):
+            matrix += coefficient * basis_matrix
+        if not is_real_matrix(matrix):
+            continue
+        rank_expr = sp.simplify(
+            sum(
+                coefficient * basis_trace
+                for coefficient, basis_trace in zip(coefficients, basis_traces, strict=True)
+            )
+        )
+        if rank_expr.is_Integer is not True:
+            continue
+        rank = int(rank_expr)
+        if 0 <= rank <= dimension:
+            ranks.append(rank)
+    return True, tuple(sorted(set(ranks)))
+
+
 def _polynomial_system_moduli_dimension(
     equations: Sequence[sp.Expr],
     variables: Sequence[sp.Symbol],

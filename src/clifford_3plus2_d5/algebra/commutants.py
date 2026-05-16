@@ -250,7 +250,7 @@ _FBASIS_INDEX = {item: index for index, item in enumerate(_FBASIS)}
 _FieldElement = tuple[sp.Rational, sp.Rational, sp.Rational, sp.Rational]
 
 
-def _sqrt3_pair(expr: sp.Expr) -> tuple[sp.Rational, sp.Rational] | None:
+def _sqrt3_pair_from_expanded(expr: sp.Expr) -> tuple[sp.Rational, sp.Rational] | None:
     replaced = sp.expand(expr).xreplace({_SQRT3: _SQRT3_SYMBOL})
     try:
         poly = sp.Poly(replaced, _SQRT3_SYMBOL, domain=sp.QQ)
@@ -262,6 +262,18 @@ def _sqrt3_pair(expr: sp.Expr) -> tuple[sp.Rational, sp.Rational] | None:
         sp.Rational(poly.coeff_monomial(1)),
         sp.Rational(poly.coeff_monomial(_SQRT3_SYMBOL)),
     )
+
+
+def _sqrt3_pair(expr: sp.Expr) -> tuple[sp.Rational, sp.Rational] | None:
+    pair = _sqrt3_pair_from_expanded(expr)
+    if pair is not None:
+        return pair
+    simplified = sp.simplify(expr)
+    if simplified == 0:
+        return (sp.Rational(0), sp.Rational(0))
+    if simplified != expr:
+        return _sqrt3_pair_from_expanded(simplified)
+    return None
 
 
 def _field_from_expr(expr: sp.Expr) -> _FieldElement | None:
