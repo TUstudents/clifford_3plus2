@@ -82,6 +82,15 @@ class CliffordDynamicsAuditEntry:
         }
 
 
+@dataclass(frozen=True)
+class FiniteGroupClosureResult:
+    order: int
+    status: str
+
+    def to_dict(self) -> dict[str, object]:
+        return {"order": self.order, "status": self.status}
+
+
 def _identity(dimension: int) -> sp.Matrix:
     return sp.eye(dimension)
 
@@ -116,6 +125,16 @@ def _span_rank(matrices: Sequence[sp.Matrix]) -> int:
 
 def _matrix_in_span(matrix: sp.Matrix, basis: Sequence[sp.Matrix]) -> bool:
     return _span_rank(tuple(basis)) == _span_rank((*basis, matrix))
+
+
+def _all_matrices_in_span(matrices: Sequence[sp.Matrix], basis: Sequence[sp.Matrix]) -> bool:
+    return all(_matrix_in_span(matrix, basis) for matrix in matrices)
+
+
+def matrix_key(matrix: sp.Matrix) -> tuple[sp.Expr, ...]:
+    """Exact immutable key for a matrix over the symbolic rationals."""
+
+    return tuple(sp.simplify(value) for value in matrix)
 
 
 @lru_cache(maxsize=2)
@@ -156,6 +175,30 @@ def _word_matrix(word: Sequence[int]) -> sp.Matrix:
     for index in word:
         matrix = (matrix * gammas[index]).applyfunc(sp.simplify)
     return matrix
+
+
+def chiral_so8_generator(first: int, second: int) -> sp.Matrix:
+    """Return ``1/2 gamma_i gamma_j`` on the positive chiral block.
+
+    These are the infinitesimal ``so(8)`` generators. They are a different
+    object from the finite group representatives audited by Session 14.
+    """
+
+    if not (0 <= first < 8 and 0 <= second < 8) or first == second:
+        raise ValueError("indices must be distinct values in 0..7")
+    i, j = sorted((first, second))
+    block = chiral_block_matrix(_word_matrix((i, j)), "+")
+    if block is None:
+        raise RuntimeError("bivector unexpectedly failed to preserve chirality")
+    generator = (sp.Rational(1, 2) * block).applyfunc(sp.simplify)
+    if not _same_matrix(generator + generator.T, _zero(8)):
+        raise RuntimeError("chiral bivector generator is not skew-symmetric")
+    return generator
+
+
+@lru_cache(maxsize=1)
+def chiral_so8_generators() -> MatrixTuple:
+    return tuple(chiral_so8_generator(first, second) for first, second in combinations(range(8), 2))
 
 
 @lru_cache(maxsize=1)
@@ -326,6 +369,64 @@ def generated_lie_algebra_dimension(
     return len(basis)
 
 
+def finite_group_closure(
+    generators: Sequence[sp.Matrix],
+    *,
+    max_size: int = 4096,
+) -> FiniteGroupClosureResult:
+    """Compute exact finite closure under multiplication up to ``max_size``."""
+
+    if not generators:
+        return FiniteGroupClosureResult(order=1, status="closed")
+    dimension = generators[0].rows
+    identity = _identity(dimension)
+    seed = (identity, *generators)
+    seen: dict[tuple[sp.Expr, ...], sp.Matrix] = {}
+    queue: list[sp.Matrix] = []
+    for matrix in seed:
+        key = matrix_key(matrix)
+        if key not in seen:
+            simplified = matrix.applyfunc(sp.simplify)
+            seen[key] = simplified
+            queue.append(simplified)
+
+    while queue:
+        left = queue.pop(0)
+        for right in tuple(seen.values()):
+            for product in (left * right, right * left):
+                product = product.applyfunc(sp.simplify)
+                key = matrix_key(product)
+                if key in seen:
+                    continue
+                seen[key] = product
+                queue.append(product)
+                if len(seen) >= max_size:
+                    return FiniteGroupClosureResult(order=len(seen), status="hit_max_size")
+    return FiniteGroupClosureResult(order=len(seen), status="closed")
+
+
+def bivector_lie_audit_payload() -> dict[str, object]:
+    generators = chiral_so8_generators()
+    g2_basis = octonion_derivation_basis()
+    su3_basis = su3_stabilizer_basis(7)
+    g2_plus_bivectors_span_dimension = _span_rank((*g2_basis, *generators))
+    su3_plus_bivectors_span_dimension = _span_rank((*su3_basis, *generators))
+    return {
+        "so8_bivector_generator_count": len(generators),
+        "so8_bivector_span_dimension": _span_rank(generators),
+        "individual_bivectors_in_g2_count": sum(1 for generator in generators if _matrix_in_span(generator, g2_basis)),
+        "individual_bivectors_in_su3_count": sum(
+            1 for generator in generators if _matrix_in_span(generator, su3_basis)
+        ),
+        "g2_inside_bivector_span": _all_matrices_in_span(g2_basis, generators),
+        "su3_inside_bivector_span": _all_matrices_in_span(su3_basis, generators),
+        "g2_plus_bivectors_span_dimension": g2_plus_bivectors_span_dimension,
+        "su3_plus_bivectors_span_dimension": su3_plus_bivectors_span_dimension,
+        "expected_g2_dimension": len(g2_basis),
+        "expected_su3_dimension": len(su3_basis),
+    }
+
+
 @lru_cache(maxsize=1)
 def clifford_dynamics_audit_entries() -> tuple[CliffordDynamicsAuditEntry, ...]:
     return tuple(audit_clifford_dynamics_candidate(candidate) for candidate in iter_clifford_dynamics_candidates())
@@ -342,6 +443,60 @@ def _count_by_stabilizer(entries: Sequence[CliffordDynamicsAuditEntry]) -> dict[
     return {
         stabilizer_class.value: sum(1 for entry in entries if entry.stabilizer_class == stabilizer_class)
         for stabilizer_class in StabilizerClass
+    }
+
+
+def _blocks_for_entries(
+    candidates: Sequence[CliffordDynamicsCandidate],
+    entries: Sequence[CliffordDynamicsAuditEntry],
+    *,
+    predicate,
+) -> MatrixTuple:
+    blocks: list[sp.Matrix] = []
+    for candidate, entry in zip(candidates, entries, strict=True):
+        if not predicate(entry):
+            continue
+        block = chiral_block_matrix(candidate.matrix, "+")
+        if block is not None:
+            blocks.append(block)
+    return tuple(blocks)
+
+
+def finite_group_audit_payload(
+    candidates: Sequence[CliffordDynamicsCandidate] | None = None,
+    entries: Sequence[CliffordDynamicsAuditEntry] | None = None,
+) -> dict[str, object]:
+    candidates = iter_clifford_dynamics_candidates() if candidates is None else tuple(candidates)
+    entries = clifford_dynamics_audit_entries() if entries is None else tuple(entries)
+    automorphism_blocks = _blocks_for_entries(
+        candidates,
+        entries,
+        predicate=lambda entry: entry.octonion_automorphism,
+    )
+    fixing_blocks = _blocks_for_entries(
+        candidates,
+        entries,
+        predicate=lambda entry: entry.stabilizer_class == StabilizerClass.SU3_FIXING_E7,
+    )
+    fixing_plus_flip_blocks = _blocks_for_entries(
+        candidates,
+        entries,
+        predicate=lambda entry: entry.stabilizer_class
+        in {StabilizerClass.SU3_FIXING_E7, StabilizerClass.SU3_FLIPPING_E7},
+    )
+    automorphism_closure = finite_group_closure(automorphism_blocks)
+    fixing_closure = finite_group_closure(fixing_blocks)
+    fixing_plus_flip_closure = finite_group_closure(fixing_plus_flip_blocks)
+    return {
+        "g2_rigid_automorphism_generator_count": len(automorphism_blocks),
+        "g2_rigid_finite_closure_order": automorphism_closure.order,
+        "g2_rigid_finite_closure_status": automorphism_closure.status,
+        "su3_fixing_generator_count": len(fixing_blocks),
+        "su3_fixing_finite_closure_order": fixing_closure.order,
+        "su3_fixing_finite_closure_status": fixing_closure.status,
+        "su3_fixing_plus_flip_generator_count": len(fixing_plus_flip_blocks),
+        "su3_fixing_plus_flip_finite_closure_order": fixing_plus_flip_closure.order,
+        "su3_fixing_plus_flip_finite_closure_status": fixing_plus_flip_closure.status,
     }
 
 
@@ -385,6 +540,12 @@ def clifford_dynamics_audit_payload(*, include_entries: bool = False) -> dict[st
         ),
         "expected_g2_dimension": len(g2_basis),
         "expected_su3_dimension": len(su3_basis),
+        "finite_representative_lie_seed_note": (
+            "Finite orthogonal representatives are not Lie algebra seeds; "
+            "see lie_bivector_audit for the infinitesimal bivector question."
+        ),
+        "lie_bivector_audit": bivector_lie_audit_payload(),
+        "finite_group_audit": finite_group_audit_payload(candidates, entries),
         "qca_session_15_preview": (
             "Build a clifford_dynamics_profile using the Cl(2) J choice and "
             "the G2/SU3 stabilizer predicate as the commutant policy."

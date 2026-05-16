@@ -8,9 +8,13 @@ import subprocess
 from clifford_3plus2_d5.lepton.clifford_dynamics import (
     StabilizerClass,
     audit_clifford_dynamics_candidate,
+    chiral_so8_generator,
+    chiral_so8_generators,
     chiral_block_matrix,
     clifford_dynamics_audit_entries,
     clifford_dynamics_audit_payload,
+    finite_group_audit_payload,
+    finite_group_closure,
     generated_lie_algebra_dimension,
     is_octonion_automorphism,
     iter_clifford_dynamics_candidates,
@@ -105,6 +109,40 @@ def test_lie_closure_dimension_is_zero_for_rigid_finite_representatives() -> Non
     assert generated_lie_algebra_dimension(su3_basis, ambient_basis=su3_basis) == 8
 
 
+def test_chiral_bivectors_are_so8_lie_generators() -> None:
+    first = chiral_so8_generator(0, 1)
+    assert first.shape == (8, 8)
+    assert first + first.T == first.zeros(8, 8)
+
+    generators = chiral_so8_generators()
+    assert len(generators) == 28
+    payload = clifford_dynamics_audit_payload()["lie_bivector_audit"]
+    assert payload["so8_bivector_span_dimension"] == 28
+    assert payload["individual_bivectors_in_g2_count"] == 0
+    assert payload["individual_bivectors_in_su3_count"] == 0
+    assert payload["g2_inside_bivector_span"] is True
+    assert payload["su3_inside_bivector_span"] is True
+    assert payload["g2_plus_bivectors_span_dimension"] == 28
+    assert payload["su3_plus_bivectors_span_dimension"] == 28
+
+
+def test_finite_group_closure_of_rigid_automorphisms_is_stable() -> None:
+    payload = finite_group_audit_payload()
+    assert payload["g2_rigid_automorphism_generator_count"] == 7
+    assert payload["g2_rigid_finite_closure_order"] == 8
+    assert payload["g2_rigid_finite_closure_status"] == "closed"
+    assert payload["su3_fixing_generator_count"] == 3
+    assert payload["su3_fixing_finite_closure_order"] == 4
+    assert payload["su3_fixing_finite_closure_status"] == "closed"
+    assert payload["su3_fixing_plus_flip_generator_count"] == 7
+    assert payload["su3_fixing_plus_flip_finite_closure_order"] == 8
+    assert payload["su3_fixing_plus_flip_finite_closure_status"] == "closed"
+
+    identity_closure = finite_group_closure((known_octonion_automorphism(),))
+    assert identity_closure.status == "closed"
+    assert identity_closure.order == 3
+
+
 def test_clifford_dynamics_audit_cli_outputs_json() -> None:
     completed = subprocess.run(
         [
@@ -122,3 +160,5 @@ def test_clifford_dynamics_audit_cli_outputs_json() -> None:
     assert payload["candidate_count"] == 107
     assert payload["octonion_automorphism_count"] == 7
     assert payload["g2_algebra_closure_dimension"] == 0
+    assert payload["lie_bivector_audit"]["so8_bivector_span_dimension"] == 28
+    assert payload["finite_group_audit"]["g2_rigid_finite_closure_order"] == 8
