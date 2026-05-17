@@ -62,7 +62,9 @@ three generations.
 assembly → tensor lift to `lepton`'s chiral-16 internal carrier →
 background gauge covariance audit.
 
-**Sessions**: 20 BCC Dirac Bloch-symbol audit complete.
+**Sessions**: 20 BCC Dirac Bloch-symbol audit complete; 21 mass-layer audit
+complete; 22 finite real-space step complete; 23 Higgs/Yukawa representation
+audit complete.
 
 **Implemented**:
 - BCC geometry (8 body diagonals).
@@ -73,8 +75,15 @@ background gauge covariance audit.
 - First-order continuum expansion utilities.
 - Constant-background gauge tensor lift against a real 32×32 Pati-Salam
   `SU(2)_L` generator from `lepton`.
+- Scalar Dirac mass layer `beta x M_internal`.
+- Finite periodic real-space BCC Weyl/Dirac step.
+- Representation-level Higgs-like internal charge-shift map and its conjugate
+  transpose component.
 - Session 20 report: `src/clifford_3plus2_d5/spacetime_qca/SESSION_20_BCC_DIRAC.md`.
-- 20 passing tests.
+- Session 21 report: `src/clifford_3plus2_d5/spacetime_qca/SESSION_21_MASS_LAYER.md`.
+- Session 22 report: `src/clifford_3plus2_d5/spacetime_qca/SESSION_22_REAL_SPACE_STEP.md`.
+- Session 23 report: `src/clifford_3plus2_d5/spacetime_qca/SESSION_23_YUKAWA_REPRESENTATION.md`.
+- 45 passing tests.
 
 **Result**:
 - `H_R(k) = sigma . k`.
@@ -85,12 +94,22 @@ background gauge covariance audit.
   equivalents, not claimed as independent doublers.
 - Constant background gauge lift gives
   `H_eff = alpha.k x I_internal + I_spacetime x iA`.
+- Scalar mass control gives
+  `H_m(k)^2 = (k_x^2 + k_y^2 + k_z^2 + m^2) I`.
+- Scalar internal mass commutes with Pati-Salam and SM generators; a
+  non-scalar projector control breaks SM symmetry.
+- Finite real-space pull-form step matches the BCC Bloch symbol on plane waves.
+- Weyl and Dirac finite-lattice steps preserve norm on deterministic
+  plane-wave states.
+- Exact color-singlet Higgs-like internal maps exist with
+  `Delta Y = +1/2` and `Delta T3_L = +1/2`; the transpose gives the
+  conjugate `(-1/2, -1/2)` component; solution space dimension `4`.
 
 **Open**:
 - Full fundamental-BCC-Brillouin-zone no-doubling proof.
-- Finite real-space BCC `step(state, links)`.
 - Position-dependent gauge links and site-local gauge covariance.
-- Mass / dynamical gauge in subsequent sessions.
+- Hermitian/dynamical Higgs-Yukawa layer.
+- Dynamical gauge fields.
 
 ## Workspace meta
 
@@ -105,9 +124,9 @@ background gauge covariance audit.
 | `lepton.*` | `obstruction_r10.qca.rule_verdict` | The trunk's VerdictProfile / predicate machinery is reused by Lab A / Lab B verdicts. |
 | `lepton.*` | `algebra.*` | Shared exact rational matrix algebra. |
 | `spacetime_qca.*` | `algebra.*` | Shared matrix utilities. |
-| `spacetime_qca.tests.*` | `lepton.checkerboard_patisalam` | Session 20 verifies the tensor lift with a real Pati-Salam internal generator. |
+| `spacetime_qca.tests.*` | `lepton.checkerboard_patisalam`, `lepton.clifford_patisalam`, `lepton.patisalam_sm`, `lepton.sm_hypercharge` | Sessions 20-21 verify tensor lift and mass compatibility with real Pati-Salam / SM internal generators. |
 | `obstruction_r10.qca.*` | `algebra.*` | Shared matrix utilities. |
 
 Runtime sidecar code remains mostly factored.  The visible sidecar coupling
 today is test-level: `spacetime_qca` verifies tensor compatibility against a
-real generator from `lepton`.
+small set of real internal generators from `lepton`.
