@@ -62,20 +62,34 @@ three generations.
 assembly → tensor lift to `lepton`'s chiral-16 internal carrier →
 background gauge covariance audit.
 
-**Sessions**: 20 scaffolding present.
+**Sessions**: 20 BCC Dirac Bloch-symbol audit complete.
 
 **Implemented**:
 - BCC geometry (8 body diagonals).
-- 2-component Weyl Bloch symbol on BCC.
+- Bialynicki-Birula 2-component Weyl Bloch symbol on BCC, pinned to
+  Phys. Rev. D 49, 6920 (1994), Section II.
 - 4-component Dirac chiral assembly.
 - Hypercubic doubling control.
 - First-order continuum expansion utilities.
+- Constant-background gauge tensor lift against a real 32×32 Pati-Salam
+  `SU(2)_L` generator from `lepton`.
+- Session 20 report: `src/clifford_3plus2_d5/spacetime_qca/SESSION_20_BCC_DIRAC.md`.
 - 20 passing tests.
 
+**Result**:
+- `H_R(k) = sigma . k`.
+- `H_L(k) = -sigma . k`.
+- `H_D(k) = alpha . k`.
+- Hypercube control has 8 literal cubic BZ-corner doublers.
+- BCC cubic-corner gapless representatives are reciprocal-lattice origin
+  equivalents, not claimed as independent doublers.
+- Constant background gauge lift gives
+  `H_eff = alpha.k x I_internal + I_spacetime x iA`.
+
 **Open**:
-- Audit the Bialynicki-Birula continuum limit against α·k.
-- Verify hypercube control exhibits 8 BZ-corner doublers.
-- Tensor lift against `lepton`'s internal generators.
+- Full fundamental-BCC-Brillouin-zone no-doubling proof.
+- Finite real-space BCC `step(state, links)`.
+- Position-dependent gauge links and site-local gauge covariance.
 - Mass / dynamical gauge in subsequent sessions.
 
 ## Workspace meta
@@ -91,6 +105,9 @@ background gauge covariance audit.
 | `lepton.*` | `obstruction_r10.qca.rule_verdict` | The trunk's VerdictProfile / predicate machinery is reused by Lab A / Lab B verdicts. |
 | `lepton.*` | `algebra.*` | Shared exact rational matrix algebra. |
 | `spacetime_qca.*` | `algebra.*` | Shared matrix utilities. |
+| `spacetime_qca.tests.*` | `lepton.checkerboard_patisalam` | Session 20 verifies the tensor lift with a real Pati-Salam internal generator. |
 | `obstruction_r10.qca.*` | `algebra.*` | Shared matrix utilities. |
 
-Only one cross-sidecar dependency: `lepton` depends on `obstruction_r10.qca.rule_verdict`. This is the actual logical coupling and is now visible in every import line.
+Runtime sidecar code remains mostly factored.  The visible sidecar coupling
+today is test-level: `spacetime_qca` verifies tensor compatibility against a
+real generator from `lepton`.
