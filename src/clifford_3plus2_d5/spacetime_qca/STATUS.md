@@ -1,9 +1,10 @@
 # spacetime_qca — Status
 
-**Status**: in progress. Sessions 20-26 complete through finite real-space
+**Status**: in progress. Sessions 20-27 complete through finite real-space
 BCC stepping, representation-level Higgs/Yukawa audit, position-dependent
 background gauge covariance, BCC plaquette holonomy geometry, and a static
-Higgs/Yukawa map-layer audit, plus a JAX numerical backend.
+Higgs/Yukawa map-layer audit, a JAX numerical backend, and Wilson plaquette
+observables.
 
 This module builds the 3D spatial side of the QCA: a BCC Weyl walk
 (Bialynicki-Birula 1994) and its chiral assembly into a 4D Dirac carrier,
@@ -32,6 +33,8 @@ scalars.  A compressed explicit `C^16_internal` basis is not implemented yet.
   control audits.
 - `jax_state.py`, `jax_links.py`, `jax_step.py` — numerical JAX state/link
   layout and BCC Dirac step kernels.
+- `wilson.py`, `jax_wilson.py` — exact and numerical Wilson plaquette
+  observables.
 - `lattice.py`, `state.py`, `step.py` — finite periodic real-space BCC step.
 - `audit.py` — result payloads for the report.
 - `SESSION_20_BCC_DIRAC.md` — Session 20 result report.
@@ -42,7 +45,8 @@ scalars.  A compressed explicit `C^16_internal` basis is not implemented yet.
 - `SESSION_24B_PLAQUETTE_HOLONOMY.md` — Session 24b result report.
 - `SESSION_25_STATIC_YUKAWA.md` — Session 25 result report.
 - `SESSION_26_JAX_BACKEND.md` — Session 26 result report.
-- 69 passing tests.
+- `SESSION_27_WILSON_OBSERVABLES.md` — Session 27 result report.
+- 76 passing tests.
 
 ## Session 20 result
 
@@ -90,7 +94,7 @@ scalars.  A compressed explicit `C^16_internal` basis is not implemented yet.
 ## Sessions ahead
 
 - Session 20b: full symbolic BCC unitarity and no-doubling hardening.
-- Session 27: Wilson observable normalization / plaquette action audit.
+- Session 28: Wilson action normalization / gauge-energy audit.
 
 See [PLAN.md](PLAN.md) for the detailed Session 20 plan and
 [SESSION_20_BCC_DIRAC.md](SESSION_20_BCC_DIRAC.md) for the running report.
@@ -108,7 +112,7 @@ interfaces.
 uv run pytest src/clifford_3plus2_d5/spacetime_qca/tests/ -q
 ```
 
-Expected: 69 tests green.
+Expected: 76 tests green.
 
 ## Session 21 result
 
@@ -182,6 +186,23 @@ full Yukawa mass spectrum.
 Interpretation: `spacetime_qca` now has a numerical backend suitable for
 finite-lattice simulation and later dynamical-field experiments.  The exact
 SymPy backend remains the reference implementation.
+
+## Session 27 result
+
+- Exact Wilson-loop trace and normalized trace helpers implemented on top of
+  BCC plaquette holonomy.
+- Exact average normalized Wilson loop implemented over all sites and the six
+  canonical BCC plaquette shapes.
+- JAX plaquette holonomy, Wilson trace, normalized trace, and average helpers
+  implemented for `(nx, ny, nz, 8, d, d)` link fields.
+- Identity links give normalized Wilson loop `1`.
+- Pure-gauge links give average normalized Wilson loop `1`.
+- Exact and JAX Wilson traces are invariant under finite site-local gauge
+  transforms.
+- JAX Wilson observables match exact SymPy observables on tiny lattices.
+
+Interpretation: the module now has the gauge-invariant curvature-observable
+layer needed before a Wilson action or dynamical gauge update.
 
 ## Session 24 result
 

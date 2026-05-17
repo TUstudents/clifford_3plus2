@@ -92,6 +92,12 @@ from clifford_3plus2_d5.spacetime_qca.jax_step import (
     jax_dirac_step_with_constant_link,
     jax_dirac_step_with_links,
 )
+from clifford_3plus2_d5.spacetime_qca.jax_wilson import (
+    jax_average_normalized_wilson_loop,
+    jax_normalized_wilson_loop,
+    jax_plaquette_holonomy,
+    jax_wilson_loop_trace,
+)
 from clifford_3plus2_d5.spacetime_qca.lattice import Displacement, PeriodicLattice3D, Site
 from clifford_3plus2_d5.spacetime_qca.links import (
     GaugeTransform,
@@ -200,6 +206,11 @@ from clifford_3plus2_d5.spacetime_qca.yukawa import (
     yukawa_representation_audit_payload,
     yukawa_spacetime_coupler,
 )
+from clifford_3plus2_d5.spacetime_qca.wilson import (
+    average_normalized_wilson_loop,
+    normalized_wilson_loop,
+    wilson_loop_trace,
+)
 
 __all__ = [
     "SpacetimeQCAInfrastructureAudit",
@@ -221,6 +232,7 @@ __all__ = [
     "all_higgs_like_charge_shift",
     "alpha_matrices",
     "audit_yukawa_candidate",
+    "average_normalized_wilson_loop",
     "background_gauge_hamiltonian",
     "beta_anticommutes_with_alpha",
     "beta_is_off_diagonal_between_chiralities",
@@ -292,12 +304,16 @@ __all__ = [
     "is_elementary_bcc_plaquette_shape",
     "is_unitary",
     "jax_bcc_displacements",
+    "jax_average_normalized_wilson_loop",
     "jax_constant_link_field",
     "jax_dirac_hops",
     "jax_dirac_step",
     "jax_dirac_step_with_constant_link",
     "jax_dirac_step_with_links",
     "jax_identity_link_field",
+    "jax_normalized_wilson_loop",
+    "jax_plaquette_holonomy",
+    "jax_wilson_loop_trace",
     "k0_scalar_mass_spectrum",
     "left_right_projectors",
     "lift_internal_operator",
@@ -310,6 +326,7 @@ __all__ = [
     "matrix_rank_nullity",
     "matrix_zero",
     "naive_hypercube_hamiltonian",
+    "normalized_wilson_loop",
     "origin3",
     "opposite_helicity_hops",
     "pauli_matrices",
@@ -356,6 +373,7 @@ __all__ = [
     "weyl_bloch_symbol_from_hops",
     "weyl_plane_wave_matches_bloch",
     "weyl_step",
+    "wilson_loop_trace",
     "yukawa_representation_audit_payload",
     "yukawa_spacetime_coupler",
     "zero_dirac_state",

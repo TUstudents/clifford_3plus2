@@ -66,7 +66,8 @@ background gauge covariance audit.
 complete; 22 finite real-space step complete; 23 Higgs/Yukawa representation
 audit complete; 24 position-dependent background gauge covariance complete;
 24b BCC plaquette holonomy complete; 25 static Higgs/Yukawa map-layer audit
-complete; 26 JAX numerical backend complete.
+complete; 26 JAX numerical backend complete; 27 Wilson plaquette observables
+complete.
 
 **Implemented**:
 - BCC geometry (8 body diagonals).
@@ -83,6 +84,8 @@ complete; 26 JAX numerical backend complete.
 - JAX numerical backend for flat Dirac states, `Dirac x internal` tensor
   states, identity/constant/position-dependent link fields, and BCC Dirac
   steps.
+- Exact and JAX Wilson plaquette observables over the six canonical BCC
+  plaquette shapes.
 - Real-form internal convention: the internal chiral-16 is kept as `R^32`
   with compatible `J`, equivalent to `C^16` but not compressed to a
   `16 x 16` complex basis.  Tensor-lift matrices currently have size
@@ -100,7 +103,8 @@ complete; 26 JAX numerical backend complete.
 - Session 24b report: `src/clifford_3plus2_d5/spacetime_qca/SESSION_24B_PLAQUETTE_HOLONOMY.md`.
 - Session 25 report: `src/clifford_3plus2_d5/spacetime_qca/SESSION_25_STATIC_YUKAWA.md`.
 - Session 26 report: `src/clifford_3plus2_d5/spacetime_qca/SESSION_26_JAX_BACKEND.md`.
-- 69 passing tests.
+- Session 27 report: `src/clifford_3plus2_d5/spacetime_qca/SESSION_27_WILSON_OBSERVABLES.md`.
+- 76 passing tests.
 
 **Result**:
 - `H_R(k) = sigma . k`.
@@ -140,6 +144,9 @@ complete; 26 JAX numerical backend complete.
 - JAX finite-lattice steps match the exact SymPy backend for ungauged,
   constant-link, and position-dependent-link cases; the linked step is
   `jax.jit` compilable and runs on the default JAX device.
+- Wilson-loop traces and normalized averages are implemented exactly and in
+  JAX; identity/pure-gauge fields give normalized Wilson loop `1`, and traces
+  are gauge invariant under finite site-local transforms.
 
 **Open**:
 - Full fundamental-BCC-Brillouin-zone no-doubling proof.
@@ -147,7 +154,7 @@ complete; 26 JAX numerical backend complete.
 - Optional conversion to a `J`-adapted explicit `C^16` internal basis.
 - Plaquette action / Wilson observable normalization.
 - Dynamical Higgs-Yukawa layer and realistic Yukawa mass matrices.
-- Dynamical gauge fields.
+- Wilson action normalization and dynamical gauge fields.
 - Numerical performance benchmarks and long-time stability tests.
 
 ## Workspace meta
