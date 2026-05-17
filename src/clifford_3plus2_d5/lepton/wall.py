@@ -10,7 +10,7 @@ from itertools import permutations, product
 import sympy as sp
 
 from clifford_3plus2_d5.algebra.matrices import identity
-from clifford_3plus2_d5.qca.gates import is_real_matrix
+from clifford_3plus2_d5.obstruction_r10.qca.gates import is_real_matrix
 
 
 class LocalityModel(StrEnum):

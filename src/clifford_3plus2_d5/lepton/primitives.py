@@ -9,7 +9,7 @@ from itertools import product
 import sympy as sp
 
 from clifford_3plus2_d5.algebra.matrices import identity
-from clifford_3plus2_d5.qca.rule_verdict import RuleLayerInput
+from clifford_3plus2_d5.obstruction_r10.qca.rule_verdict import RuleLayerInput
 
 
 LAB_A_DIMENSION = 4

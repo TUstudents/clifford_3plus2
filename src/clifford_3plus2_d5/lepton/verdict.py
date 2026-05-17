@@ -17,8 +17,8 @@ import sympy as sp
 
 from clifford_3plus2_d5.algebra.commutants import exact_matrix_span
 from clifford_3plus2_d5.algebra.matrices import commutator, identity
-from clifford_3plus2_d5.qca.gates import is_real_matrix
-from clifford_3plus2_d5.qca.rule_verdict import (
+from clifford_3plus2_d5.obstruction_r10.qca.gates import is_real_matrix
+from clifford_3plus2_d5.obstruction_r10.qca.rule_verdict import (
     CentralIdempotent,
     ComplexStructureCandidate,
     RuleLayerInput,

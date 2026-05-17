@@ -7,7 +7,7 @@ from collections.abc import Sequence
 import sympy as sp
 
 from clifford_3plus2_d5.algebra.matrices import commutator, identity
-from clifford_3plus2_d5.qca.rule_verdict import (
+from clifford_3plus2_d5.obstruction_r10.qca.rule_verdict import (
     CentralIdempotent,
     ComplexStructureCandidate,
 )

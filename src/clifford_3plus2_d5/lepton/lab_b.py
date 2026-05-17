@@ -27,7 +27,7 @@ from clifford_3plus2_d5.lepton.wall import (
     solve_t_intertwiner_orthogonal,
     spectrum_matches,
 )
-from clifford_3plus2_d5.qca.rule_verdict import RuleLayerInput
+from clifford_3plus2_d5.obstruction_r10.qca.rule_verdict import RuleLayerInput
 
 
 LAB_B_DIMENSION = 6

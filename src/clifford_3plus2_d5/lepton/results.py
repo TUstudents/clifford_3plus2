@@ -8,7 +8,7 @@ from dataclasses import dataclass
 from multiprocessing import Queue, get_context
 from queue import Empty
 
-from clifford_3plus2_d5.qca.rule_verdict import (
+from clifford_3plus2_d5.obstruction_r10.qca.rule_verdict import (
     center_basis_of_algebra,
     generated_algebra_closure,
     solve_central_idempotents,

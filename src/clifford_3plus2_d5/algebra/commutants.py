@@ -10,7 +10,7 @@ from sympy.polys.polyerrors import CoercionFailed
 
 from clifford_3plus2_d5.algebra.matrices import commutator, identity, is_zero_matrix
 from clifford_3plus2_d5.algebra.real_carrier import standard_real_carrier
-from clifford_3plus2_d5.sm.embedding import (
+from clifford_3plus2_d5.obstruction_r10.sm.embedding import (
     GaugeGenerator,
     complex_block_scalar,
     complex_projector_2,

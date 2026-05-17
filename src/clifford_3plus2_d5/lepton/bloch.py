@@ -16,7 +16,7 @@ from clifford_3plus2_d5.lepton.primitives import (
     mode_swap_matrix,
     signed_twist_matrix,
 )
-from clifford_3plus2_d5.qca.rule_verdict import RuleLayerInput
+from clifford_3plus2_d5.obstruction_r10.qca.rule_verdict import RuleLayerInput
 
 
 @dataclass(frozen=True)
