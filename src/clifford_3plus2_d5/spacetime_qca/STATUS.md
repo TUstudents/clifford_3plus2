@@ -1,7 +1,8 @@
 # spacetime_qca — Status
 
-**Status**: in progress. Sessions 20-23 complete through finite real-space
-BCC stepping and representation-level Higgs/Yukawa audit.
+**Status**: in progress. Sessions 20-24 complete through finite real-space
+BCC stepping, representation-level Higgs/Yukawa audit, and position-dependent
+background gauge covariance.
 
 This module builds the 3D spatial side of the QCA: a BCC Weyl walk
 (Bialynicki-Birula 1994) and its chiral assembly into a 4D Dirac carrier,
@@ -23,6 +24,7 @@ scalars.  A compressed explicit `C^16_internal` basis is not implemented yet.
 - `hypercube_control.py` — naive central-difference cubic control Hamiltonian.
 - `continuum.py` — first-order expansion utilities.
 - `gauge_lift.py` — constant-background internal gauge tensor lift.
+- `links.py` — finite-lattice position-dependent internal link fields.
 - `mass.py` — Dirac mass-layer and gauge-compatibility helpers.
 - `yukawa.py` — representation-level Higgs/Yukawa charge-shift audit.
 - `lattice.py`, `state.py`, `step.py` — finite periodic real-space BCC step.
@@ -31,7 +33,8 @@ scalars.  A compressed explicit `C^16_internal` basis is not implemented yet.
 - `SESSION_21_MASS_LAYER.md` — Session 21 result report.
 - `SESSION_22_REAL_SPACE_STEP.md` — Session 22 result report.
 - `SESSION_23_YUKAWA_REPRESENTATION.md` — Session 23 result report.
-- 45 passing tests.
+- `SESSION_24_GAUGE_COVARIANCE.md` — Session 24 result report.
+- 51 passing tests.
 
 ## Session 20 result
 
@@ -70,15 +73,17 @@ scalars.  A compressed explicit `C^16_internal` basis is not implemented yet.
 - Explicit `J`-adapted `C^16` internal basis, if we want code dimensions to
   match the compressed complex carrier rather than the current `R^32` real
   form.
-- Position-dependent gauge links and site-local gauge covariance.
+- BCC plaquette / holonomy geometry.
 - Hermitian/dynamical Higgs-Yukawa layer.
 - Dynamical gauge fields.
 - Lorentz boost recovery beyond the `alpha . k` continuum precursor.
 
 ## Sessions ahead
 
-- Session 24: position-dependent links and finite-lattice gauge covariance, or
-  Hermitian/dynamical Higgs-Yukawa layer.
+- Session 24b: BCC plaquette / holonomy geometry.
+- Session 20b: full symbolic BCC unitarity and no-doubling hardening.
+- Session 25: Higgs-like solution-space decomposition and static Hermitian
+  Yukawa layer.
 
 See [PLAN.md](PLAN.md) for the detailed Session 20 plan and
 [SESSION_20_BCC_DIRAC.md](SESSION_20_BCC_DIRAC.md) for the running report.
@@ -96,7 +101,7 @@ interfaces.
 uv run pytest src/clifford_3plus2_d5/spacetime_qca/tests/ -q
 ```
 
-Expected: 45 tests green.
+Expected: 51 tests green.
 
 ## Session 21 result
 
@@ -132,3 +137,21 @@ Higgs-like map slot.  The transpose result is a real-linear charge-shift
 conjugate, not a complex Hermitian-conjugate Higgs field.  The 4-real-dim
 solution space has not yet been decomposed as an `SU(2)_L` Higgs doublet.
 This is not yet a dynamical Higgs/Yukawa QCA layer.
+
+## Session 24 result
+
+- Position-dependent internal link fields are keyed by
+  `(target_site, displacement)` in the pull convention
+  `target_site <- target_site + displacement`.
+- `dirac_step_with_link_field` implements
+  `out[x] = sum_h (W_h x U[x <- x+h]) psi[x+h]`.
+- Site-local gauge transforms act as
+  `psi[x] -> (I_space x G[x]) psi[x]` and
+  `U[x <- y] -> G[x] U[x <- y] G[y]^-1`.
+- Exact finite-lattice covariance is tested:
+  `step(G psi, GUG^-1) = G step(psi, U)`.
+- Identity and constant link fields regress to the previous Session 22 paths.
+- Pure-gauge links preserve norm on the deterministic plane-wave test state.
+
+Interpretation: this is a background-link gauge-covariant finite QCA rule.
+It is not yet a plaquette/curvature construction or a dynamical gauge field.

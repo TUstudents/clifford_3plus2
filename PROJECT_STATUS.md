@@ -64,7 +64,7 @@ background gauge covariance audit.
 
 **Sessions**: 20 BCC Dirac Bloch-symbol audit complete; 21 mass-layer audit
 complete; 22 finite real-space step complete; 23 Higgs/Yukawa representation
-audit complete.
+audit complete; 24 position-dependent background gauge covariance complete.
 
 **Implemented**:
 - BCC geometry (8 body diagonals).
@@ -75,6 +75,8 @@ audit complete.
 - First-order continuum expansion utilities.
 - Constant-background gauge tensor lift against a real 32×32 Pati-Salam
   `SU(2)_L` generator from `lepton`.
+- Position-dependent internal link fields and exact finite-lattice site-local
+  gauge covariance for the Dirac step.
 - Real-form internal convention: the internal chiral-16 is kept as `R^32`
   with compatible `J`, equivalent to `C^16` but not compressed to a
   `16 x 16` complex basis.  Tensor-lift matrices currently have size
@@ -87,7 +89,8 @@ audit complete.
 - Session 21 report: `src/clifford_3plus2_d5/spacetime_qca/SESSION_21_MASS_LAYER.md`.
 - Session 22 report: `src/clifford_3plus2_d5/spacetime_qca/SESSION_22_REAL_SPACE_STEP.md`.
 - Session 23 report: `src/clifford_3plus2_d5/spacetime_qca/SESSION_23_YUKAWA_REPRESENTATION.md`.
-- 45 passing tests.
+- Session 24 report: `src/clifford_3plus2_d5/spacetime_qca/SESSION_24_GAUGE_COVARIANCE.md`.
+- 51 passing tests.
 
 **Result**:
 - `H_R(k) = sigma . k`.
@@ -112,12 +115,14 @@ audit complete.
 - Exact color-singlet Higgs-like internal maps exist with
   `Delta Y = +1/2` and `Delta T3_L = +1/2`; the transpose gives the
   conjugate `(-1/2, -1/2)` component; solution space dimension `4`.
+- Position-dependent background links satisfy exact finite-lattice covariance:
+  `step(G psi, GUG^-1) = G step(psi,U)`.
 
 **Open**:
 - Full fundamental-BCC-Brillouin-zone no-doubling proof.
 - Full symbolic all-momentum BCC Bloch-symbol unitarity proof.
 - Optional conversion to a `J`-adapted explicit `C^16` internal basis.
-- Position-dependent gauge links and site-local gauge covariance.
+- BCC plaquette / holonomy geometry.
 - Hermitian/dynamical Higgs-Yukawa layer.
 - Dynamical gauge fields.
 

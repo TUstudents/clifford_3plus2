@@ -13,6 +13,12 @@ from clifford_3plus2_d5.spacetime_qca.bcc_weyl import (
 )
 from clifford_3plus2_d5.spacetime_qca.dirac import block_diag
 from clifford_3plus2_d5.spacetime_qca.lattice import PeriodicLattice3D
+from clifford_3plus2_d5.spacetime_qca.links import (
+    LinkField,
+    bcc_link_displacements,
+    constant_link_field,
+    validate_link_field,
+)
 from clifford_3plus2_d5.spacetime_qca.state import State, combine_dirac_state, split_dirac_state
 
 
@@ -72,9 +78,19 @@ def dirac_step_with_constant_link(
 ) -> State:
     """Apply ``sum_h (W_D(h) x link) psi[x+h]`` with a constant internal link."""
 
-    internal_dim = link.rows
-    if link.shape != (internal_dim, internal_dim):
+    if link.rows != link.cols:
         raise ValueError("link must be square")
+    return dirac_step_with_link_field(state, lattice, constant_link_field(lattice, link))
+
+
+def dirac_step_with_link_field(
+    state: State,
+    lattice: PeriodicLattice3D,
+    links: LinkField,
+) -> State:
+    """Apply ``sum_h (W_D(h) x U[x <- x+h]) psi[x+h]`` with local links."""
+
+    internal_dim = validate_link_field(links, lattice)
     spinor_dim = 4 * internal_dim
     _validate_state(state, lattice, spinor_dim)
 
@@ -88,8 +104,9 @@ def dirac_step_with_constant_link(
     out = _zero_like_state(lattice, spinor_dim)
     for site in lattice.sites():
         spinor = sp.zeros(spinor_dim, 1)
-        for direction, hop in zip(bialynicki_birula_directions(), dirac_hops, strict=True):
+        for direction, hop in zip(bcc_link_displacements(), dirac_hops, strict=True):
             source = lattice.translate(site, direction)
+            link = links[(site, direction)]  # U[site <- source] in pull convention.
             spinor += sp.kronecker_product(hop, link) * state[source]
         out[site] = spinor.applyfunc(sp.simplify)
     return out
