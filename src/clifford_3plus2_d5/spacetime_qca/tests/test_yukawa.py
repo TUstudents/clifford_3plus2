@@ -15,17 +15,30 @@ from clifford_3plus2_d5.spacetime_qca import (
     beta_is_off_diagonal_between_chiralities,
     color_singlet_charge_shift_basis,
     conjugate_charge_shift_component,
+    commutes_with_internal_j,
+    electromagnetic_charge_observable,
     gauge_breaking_summary,
     has_charge_shift,
+    higgs_doublet_map_audit_payload,
+    higgs_like_doublet_map_basis,
     higgs_like_charge_shift_candidate,
     higgs_like_charge_shift_pair,
     higgs_like_yukawa_audit,
     is_higgs_like_charge_shift,
     left_right_projectors,
+    matrix_is_real_symmetric,
+    preserves_electromagnetism,
     projector_control_mass,
     projector_control_yukawa_audit,
     same_matrix,
     scalar_internal_mass,
+    static_higgs_doublet_hamiltonian,
+    static_higgs_doublet_internal_control,
+    static_neutral_higgs_vev_hamiltonian,
+    static_neutral_higgs_vev_control,
+    static_yukawa_hamiltonian,
+    static_yukawa_internal_control,
+    su2_l_lowered_higgs_like_basis,
     universal_scalar_yukawa_audit,
     yukawa_representation_audit_payload,
     yukawa_spacetime_coupler,
@@ -112,6 +125,90 @@ def test_higgs_like_candidate_classification() -> None:
     assert audit.hypercharge_shift == sp.Rational(1, 2)
     assert audit.t3_l_shift == sp.Rational(1, 2)
     assert "Representation-level" in audit.interpretation
+
+
+def test_su2_l_action_generates_lower_higgs_like_map_space() -> None:
+    upper, lower = higgs_like_doublet_map_basis()
+    assert len(upper) == 4
+    assert len(lower) == 4
+    assert lower == su2_l_lowered_higgs_like_basis()
+    assert all(is_higgs_like_charge_shift(matrix) for matrix in upper)
+    assert all(
+        is_higgs_like_charge_shift(
+            matrix,
+            hypercharge_shift=sp.Rational(1, 2),
+            t3_l_shift=sp.Rational(-1, 2),
+        )
+        for matrix in lower
+    )
+
+
+def test_higgs_like_maps_are_not_individually_internal_j_linear() -> None:
+    upper, lower = higgs_like_doublet_map_basis()
+    assert not all(commutes_with_internal_j(matrix) for matrix in upper)
+    assert not all(commutes_with_internal_j(matrix) for matrix in lower)
+
+
+def test_static_yukawa_control_and_hamiltonian_are_hermitian() -> None:
+    control = static_yukawa_internal_control()
+    hamiltonian = static_yukawa_hamiltonian()
+    assert control.shape == (32, 32)
+    assert hamiltonian.shape == (128, 128)
+    assert matrix_is_real_symmetric(control)
+    assert same_matrix(hamiltonian, hamiltonian.H)
+    assert not has_charge_shift(control, hypercharge_observable(), sp.Rational(1, 2))
+
+
+def test_static_higgs_doublet_control_is_hermitian() -> None:
+    control = static_higgs_doublet_internal_control()
+    hamiltonian = static_higgs_doublet_hamiltonian()
+    assert control.shape == (32, 32)
+    assert hamiltonian.shape == (128, 128)
+    assert matrix_is_real_symmetric(control)
+    assert same_matrix(hamiltonian, hamiltonian.H)
+
+
+def test_neutral_higgs_vev_preserves_electromagnetism_only() -> None:
+    control = static_neutral_higgs_vev_control()
+    hamiltonian = static_neutral_higgs_vev_hamiltonian()
+    assert matrix_is_real_symmetric(control)
+    assert same_matrix(hamiltonian, hamiltonian.H)
+    assert preserves_electromagnetism(control)
+    assert same_matrix(
+        hypercharge_observable() + normalized_t3_l_observable(),
+        electromagnetic_charge_observable(),
+    )
+    assert not same_matrix(
+        hypercharge_observable() * control - control * hypercharge_observable(),
+        sp.zeros(32),
+    )
+    assert not same_matrix(
+        normalized_t3_l_observable() * control - control * normalized_t3_l_observable(),
+        sp.zeros(32),
+    )
+
+
+def test_higgs_doublet_map_audit_payload_records_boundaries() -> None:
+    payload = higgs_doublet_map_audit_payload()
+    assert payload.upper_dimension == 4
+    assert payload.lower_dimension == 4
+    assert payload.combined_dimension == 8
+    assert payload.upper_charge_shifts_valid
+    assert payload.lower_charge_shifts_valid
+    assert payload.lowering_generators_span_same_space
+    assert not payload.upper_commutes_with_j
+    assert not payload.lower_commutes_with_j
+    assert payload.static_control_symmetric
+    assert payload.static_hamiltonian_hermitian
+    assert payload.full_doublet_control_rank > 0
+    assert payload.full_doublet_control_nullity < 32
+    assert payload.neutral_vev_preserves_color
+    assert payload.neutral_vev_preserves_electromagnetism
+    assert payload.neutral_vev_breaks_hypercharge
+    assert payload.neutral_vev_breaks_t3_l
+    assert payload.neutral_vev_rank > 0
+    assert payload.neutral_vev_nullity < 32
+    assert "not dynamical Higgs fields" in payload.interpretation
 
 
 def test_yukawa_representation_payload_records_boundary() -> None:

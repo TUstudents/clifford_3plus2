@@ -1,8 +1,9 @@
 # spacetime_qca — Status
 
-**Status**: in progress. Sessions 20-24 complete through finite real-space
-BCC stepping, representation-level Higgs/Yukawa audit, and position-dependent
-background gauge covariance.
+**Status**: in progress. Sessions 20-25 complete through finite real-space
+BCC stepping, representation-level Higgs/Yukawa audit, position-dependent
+background gauge covariance, BCC plaquette holonomy geometry, and a static
+Higgs/Yukawa map-layer audit.
 
 This module builds the 3D spatial side of the QCA: a BCC Weyl walk
 (Bialynicki-Birula 1994) and its chiral assembly into a 4D Dirac carrier,
@@ -25,8 +26,10 @@ scalars.  A compressed explicit `C^16_internal` basis is not implemented yet.
 - `continuum.py` — first-order expansion utilities.
 - `gauge_lift.py` — constant-background internal gauge tensor lift.
 - `links.py` — finite-lattice position-dependent internal link fields.
+- `plaquette.py` — BCC elementary plaquette shapes and holonomy covariance.
 - `mass.py` — Dirac mass-layer and gauge-compatibility helpers.
-- `yukawa.py` — representation-level Higgs/Yukawa charge-shift audit.
+- `yukawa.py` — representation-level Higgs/Yukawa charge-shift and static
+  control audits.
 - `lattice.py`, `state.py`, `step.py` — finite periodic real-space BCC step.
 - `audit.py` — result payloads for the report.
 - `SESSION_20_BCC_DIRAC.md` — Session 20 result report.
@@ -34,7 +37,9 @@ scalars.  A compressed explicit `C^16_internal` basis is not implemented yet.
 - `SESSION_22_REAL_SPACE_STEP.md` — Session 22 result report.
 - `SESSION_23_YUKAWA_REPRESENTATION.md` — Session 23 result report.
 - `SESSION_24_GAUGE_COVARIANCE.md` — Session 24 result report.
-- 51 passing tests.
+- `SESSION_24B_PLAQUETTE_HOLONOMY.md` — Session 24b result report.
+- `SESSION_25_STATIC_YUKAWA.md` — Session 25 result report.
+- 63 passing tests.
 
 ## Session 20 result
 
@@ -73,17 +78,15 @@ scalars.  A compressed explicit `C^16_internal` basis is not implemented yet.
 - Explicit `J`-adapted `C^16` internal basis, if we want code dimensions to
   match the compressed complex carrier rather than the current `R^32` real
   form.
-- BCC plaquette / holonomy geometry.
-- Hermitian/dynamical Higgs-Yukawa layer.
+- Plaquette action / Wilson observable normalization.
+- Dynamic Higgs-Yukawa layer.
 - Dynamical gauge fields.
 - Lorentz boost recovery beyond the `alpha . k` continuum precursor.
 
 ## Sessions ahead
 
-- Session 24b: BCC plaquette / holonomy geometry.
 - Session 20b: full symbolic BCC unitarity and no-doubling hardening.
-- Session 25: Higgs-like solution-space decomposition and static Hermitian
-  Yukawa layer.
+- Session 26: Wilson observable normalization / plaquette action audit.
 
 See [PLAN.md](PLAN.md) for the detailed Session 20 plan and
 [SESSION_20_BCC_DIRAC.md](SESSION_20_BCC_DIRAC.md) for the running report.
@@ -101,7 +104,7 @@ interfaces.
 uv run pytest src/clifford_3plus2_d5/spacetime_qca/tests/ -q
 ```
 
-Expected: 51 tests green.
+Expected: 63 tests green.
 
 ## Session 21 result
 
@@ -138,6 +141,26 @@ conjugate, not a complex Hermitian-conjugate Higgs field.  The 4-real-dim
 solution space has not yet been decomposed as an `SU(2)_L` Higgs doublet.
 This is not yet a dynamical Higgs/Yukawa QCA layer.
 
+## Session 25 result
+
+- The upper Higgs-like map space has real dimension `4` and charge shift
+  `(Delta Y, Delta T3_L) = (+1/2, +1/2)`.
+- Acting with the non-Cartan `SU(2)_L` generators produces the lower
+  component, also real dimension `4`, with
+  `(Delta Y, Delta T3_L) = (+1/2, -1/2)`.
+- The combined upper/lower map module has real dimension `8`.
+- Static real-form controls built as `M + M.T` are real symmetric, and
+  `beta x Y_static` is Hermitian.
+- The neutral lower-component VEV control preserves color and
+  `Q_em = Y + T3_L` while breaking `Y` and `T3_L` separately.
+- The default static controls are rank `2` with nullity `30`, so they are
+  low-rank background probes, not realistic mass matrices.
+
+Interpretation: the module now has the exact static Higgs-doublet charge
+structure and neutral-VEV breaking pattern
+`SU(2)_L x U(1)_Y -> U(1)_em`.  It is still not a dynamical Higgs field or a
+full Yukawa mass spectrum.
+
 ## Session 24 result
 
 - Position-dependent internal link fields are keyed by
@@ -155,3 +178,19 @@ This is not yet a dynamical Higgs/Yukawa QCA layer.
 
 Interpretation: this is a background-link gauge-covariant finite QCA rule.
 It is not yet a plaquette/curvature construction or a dynamical gauge field.
+
+## Session 24b result
+
+- Elementary BCC plaquettes are four-hop non-backtracking parallelograms
+  `(a, b, -a, -b)` built from body-diagonal displacements.
+- Modulo cyclic rotation and orientation reversal, there are six canonical
+  unoriented elementary plaquette shapes.
+- Plaquette holonomy uses the pull convention:
+  `H[x0] = U[x0 <- x1] U[x1 <- x2] U[x2 <- x3] U[x3 <- x0]`.
+- Holonomy transforms by base-site conjugation:
+  `H[x0] -> G[x0] H[x0] G[x0]^-1`.
+- Identity and pure-gauge link fields have identity holonomy.
+
+Interpretation: the module now has the BCC loop geometry needed for curvature
+observables.  This is not yet a plaquette action or dynamical gauge-field
+update rule.

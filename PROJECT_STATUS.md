@@ -64,7 +64,9 @@ background gauge covariance audit.
 
 **Sessions**: 20 BCC Dirac Bloch-symbol audit complete; 21 mass-layer audit
 complete; 22 finite real-space step complete; 23 Higgs/Yukawa representation
-audit complete; 24 position-dependent background gauge covariance complete.
+audit complete; 24 position-dependent background gauge covariance complete;
+24b BCC plaquette holonomy complete; 25 static Higgs/Yukawa map-layer audit
+complete.
 
 **Implemented**:
 - BCC geometry (8 body diagonals).
@@ -77,20 +79,24 @@ audit complete; 24 position-dependent background gauge covariance complete.
   `SU(2)_L` generator from `lepton`.
 - Position-dependent internal link fields and exact finite-lattice site-local
   gauge covariance for the Dirac step.
+- BCC elementary plaquette shapes and holonomy covariance.
 - Real-form internal convention: the internal chiral-16 is kept as `R^32`
   with compatible `J`, equivalent to `C^16` but not compressed to a
   `16 x 16` complex basis.  Tensor-lift matrices currently have size
   `4 x 32 = 128` over Bloch complex scalars.
 - Scalar Dirac mass layer `beta x M_internal`.
 - Finite periodic real-space BCC Weyl/Dirac step.
-- Representation-level Higgs-like internal charge-shift map and its conjugate
-  transpose component.
+- Representation-level Higgs-like internal charge-shift map, its conjugate
+  transpose component, the `SU(2)_L`-generated lower map space, and static
+  Hermitian controls.
 - Session 20 report: `src/clifford_3plus2_d5/spacetime_qca/SESSION_20_BCC_DIRAC.md`.
 - Session 21 report: `src/clifford_3plus2_d5/spacetime_qca/SESSION_21_MASS_LAYER.md`.
 - Session 22 report: `src/clifford_3plus2_d5/spacetime_qca/SESSION_22_REAL_SPACE_STEP.md`.
 - Session 23 report: `src/clifford_3plus2_d5/spacetime_qca/SESSION_23_YUKAWA_REPRESENTATION.md`.
 - Session 24 report: `src/clifford_3plus2_d5/spacetime_qca/SESSION_24_GAUGE_COVARIANCE.md`.
-- 51 passing tests.
+- Session 24b report: `src/clifford_3plus2_d5/spacetime_qca/SESSION_24B_PLAQUETTE_HOLONOMY.md`.
+- Session 25 report: `src/clifford_3plus2_d5/spacetime_qca/SESSION_25_STATIC_YUKAWA.md`.
+- 63 passing tests.
 
 **Result**:
 - `H_R(k) = sigma . k`.
@@ -115,15 +121,25 @@ audit complete; 24 position-dependent background gauge covariance complete.
 - Exact color-singlet Higgs-like internal maps exist with
   `Delta Y = +1/2` and `Delta T3_L = +1/2`; the transpose gives the
   conjugate `(-1/2, -1/2)` component; solution space dimension `4`.
+- The `SU(2)_L` action generates the lower Higgs-like map component with
+  `Delta Y = +1/2` and `Delta T3_L = -1/2`; the combined upper/lower module
+  has real dimension `8`.
+- Static Higgs controls are Hermitian after the `beta x Y_static` lift.  The
+  neutral lower-component VEV preserves color and `Q_em = Y + T3_L` while
+  breaking `Y` and `T3_L` separately.
+- Default static Higgs controls are low-rank (`rank 2`, `nullity 30`), so they
+  are background probes rather than realistic mass matrices.
 - Position-dependent background links satisfy exact finite-lattice covariance:
   `step(G psi, GUG^-1) = G step(psi,U)`.
+- BCC plaquette holonomies transform by base-site conjugation and are identity
+  on identity/pure-gauge link fields.
 
 **Open**:
 - Full fundamental-BCC-Brillouin-zone no-doubling proof.
 - Full symbolic all-momentum BCC Bloch-symbol unitarity proof.
 - Optional conversion to a `J`-adapted explicit `C^16` internal basis.
-- BCC plaquette / holonomy geometry.
-- Hermitian/dynamical Higgs-Yukawa layer.
+- Plaquette action / Wilson observable normalization.
+- Dynamical Higgs-Yukawa layer and realistic Yukawa mass matrices.
 - Dynamical gauge fields.
 
 ## Workspace meta

@@ -67,12 +67,13 @@ This is the first finite-lattice gauge-covariance result in `spacetime_qca`.
 It upgrades the module from constant-background Bloch and real-space checks to
 a genuine position-dependent background-link rule.
 
-It does not yet provide:
+It does not provide:
 
-- plaquette holonomies or BCC curvature geometry;
 - dynamical gauge-field evolution;
 - group-membership projection for arbitrary link matrices;
 - site-local gauge covariance for a dynamical Higgs/Yukawa field.
+
+Plaquette holonomies and BCC curvature geometry are handled in Session 24b.
 
 ## Validation
 
@@ -88,7 +89,7 @@ Current expected result after Session 24: 51 tests green.
 
 ## Still Open
 
-- BCC plaquette / holonomy geometry.
+- Plaquette action / Wilson observable normalization.
 - Full symbolic all-momentum BCC Bloch unitarity proof.
 - Fundamental-BCC-Brillouin-zone no-doubling proof.
 - Hermitian/dynamical Higgs-Yukawa layer.

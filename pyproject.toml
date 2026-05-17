@@ -5,9 +5,19 @@ description = "Workspace for QCA-derivation modules: obstruction_r10, lepton, sp
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
-    "numpy>=2.4.4",
+    "jax>=0.4.20",
+    "jaxlib>=0.4.20",
+    "matplotlib>=3.7.0",
+    "numpy>=1.24.0",
+    "optax>=0.1.7",
     "scipy>=1.17.1",
     "sympy>=1.14.0",
+    "tqdm>=4.65.0",
+]
+
+[project.optional-dependencies]
+cuda = [
+    "jax[cuda12]>=0.4.20",
 ]
 
 [build-system]
