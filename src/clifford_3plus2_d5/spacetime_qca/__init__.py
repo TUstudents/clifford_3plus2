@@ -71,6 +71,27 @@ from clifford_3plus2_d5.spacetime_qca.hypercube_control import (
     hypercube_is_gapless_at,
     naive_hypercube_hamiltonian,
 )
+from clifford_3plus2_d5.spacetime_qca.jax_links import (
+    jax_constant_link_field,
+    jax_identity_link_field,
+    sympy_link_field_to_jax,
+)
+from clifford_3plus2_d5.spacetime_qca.jax_state import (
+    flatten_dirac_internal_state,
+    sympy_matrix_to_numpy,
+    sympy_scalar_to_complex,
+    sympy_state_to_jax_dirac_internal,
+    sympy_state_to_jax_flat,
+    zero_jax_dirac_internal_state,
+    zero_jax_dirac_state,
+)
+from clifford_3plus2_d5.spacetime_qca.jax_step import (
+    jax_bcc_displacements,
+    jax_dirac_hops,
+    jax_dirac_step,
+    jax_dirac_step_with_constant_link,
+    jax_dirac_step_with_links,
+)
 from clifford_3plus2_d5.spacetime_qca.lattice import Displacement, PeriodicLattice3D, Site
 from clifford_3plus2_d5.spacetime_qca.links import (
     GaugeTransform,
@@ -244,6 +265,7 @@ __all__ = [
     "expected_weyl_hamiltonian",
     "expected_link_keys",
     "first_order_in_epsilon",
+    "flatten_dirac_internal_state",
     "gauge_breaking_summary",
     "gamma0",
     "gamma5",
@@ -269,6 +291,13 @@ __all__ = [
     "is_hermitian",
     "is_elementary_bcc_plaquette_shape",
     "is_unitary",
+    "jax_bcc_displacements",
+    "jax_constant_link_field",
+    "jax_dirac_hops",
+    "jax_dirac_step",
+    "jax_dirac_step_with_constant_link",
+    "jax_dirac_step_with_links",
+    "jax_identity_link_field",
     "k0_scalar_mass_spectrum",
     "left_right_projectors",
     "lift_internal_operator",
@@ -311,6 +340,11 @@ __all__ = [
     "static_yukawa_hamiltonian",
     "static_yukawa_internal_control",
     "su2_l_lowered_higgs_like_basis",
+    "sympy_link_field_to_jax",
+    "sympy_matrix_to_numpy",
+    "sympy_scalar_to_complex",
+    "sympy_state_to_jax_dirac_internal",
+    "sympy_state_to_jax_flat",
     "tensor_internal",
     "transform_internal_state",
     "transform_link_field",
@@ -325,6 +359,8 @@ __all__ = [
     "yukawa_representation_audit_payload",
     "yukawa_spacetime_coupler",
     "zero_dirac_state",
+    "zero_jax_dirac_internal_state",
+    "zero_jax_dirac_state",
     "zero_state",
     "zero_weyl_state",
 ]

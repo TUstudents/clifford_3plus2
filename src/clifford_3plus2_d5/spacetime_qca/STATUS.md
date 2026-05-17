@@ -1,9 +1,9 @@
 # spacetime_qca — Status
 
-**Status**: in progress. Sessions 20-25 complete through finite real-space
+**Status**: in progress. Sessions 20-26 complete through finite real-space
 BCC stepping, representation-level Higgs/Yukawa audit, position-dependent
 background gauge covariance, BCC plaquette holonomy geometry, and a static
-Higgs/Yukawa map-layer audit.
+Higgs/Yukawa map-layer audit, plus a JAX numerical backend.
 
 This module builds the 3D spatial side of the QCA: a BCC Weyl walk
 (Bialynicki-Birula 1994) and its chiral assembly into a 4D Dirac carrier,
@@ -30,6 +30,8 @@ scalars.  A compressed explicit `C^16_internal` basis is not implemented yet.
 - `mass.py` — Dirac mass-layer and gauge-compatibility helpers.
 - `yukawa.py` — representation-level Higgs/Yukawa charge-shift and static
   control audits.
+- `jax_state.py`, `jax_links.py`, `jax_step.py` — numerical JAX state/link
+  layout and BCC Dirac step kernels.
 - `lattice.py`, `state.py`, `step.py` — finite periodic real-space BCC step.
 - `audit.py` — result payloads for the report.
 - `SESSION_20_BCC_DIRAC.md` — Session 20 result report.
@@ -39,7 +41,8 @@ scalars.  A compressed explicit `C^16_internal` basis is not implemented yet.
 - `SESSION_24_GAUGE_COVARIANCE.md` — Session 24 result report.
 - `SESSION_24B_PLAQUETTE_HOLONOMY.md` — Session 24b result report.
 - `SESSION_25_STATIC_YUKAWA.md` — Session 25 result report.
-- 63 passing tests.
+- `SESSION_26_JAX_BACKEND.md` — Session 26 result report.
+- 69 passing tests.
 
 ## Session 20 result
 
@@ -82,11 +85,12 @@ scalars.  A compressed explicit `C^16_internal` basis is not implemented yet.
 - Dynamic Higgs-Yukawa layer.
 - Dynamical gauge fields.
 - Lorentz boost recovery beyond the `alpha . k` continuum precursor.
+- Numerical performance benchmarks and long-time stability tests.
 
 ## Sessions ahead
 
 - Session 20b: full symbolic BCC unitarity and no-doubling hardening.
-- Session 26: Wilson observable normalization / plaquette action audit.
+- Session 27: Wilson observable normalization / plaquette action audit.
 
 See [PLAN.md](PLAN.md) for the detailed Session 20 plan and
 [SESSION_20_BCC_DIRAC.md](SESSION_20_BCC_DIRAC.md) for the running report.
@@ -104,7 +108,7 @@ interfaces.
 uv run pytest src/clifford_3plus2_d5/spacetime_qca/tests/ -q
 ```
 
-Expected: 63 tests green.
+Expected: 69 tests green.
 
 ## Session 21 result
 
@@ -160,6 +164,24 @@ Interpretation: the module now has the exact static Higgs-doublet charge
 structure and neutral-VEV breaking pattern
 `SU(2)_L x U(1)_Y -> U(1)_em`.  It is still not a dynamical Higgs field or a
 full Yukawa mass spectrum.
+
+## Session 26 result
+
+- JAX state layout implemented for flat Dirac states and
+  `Dirac x internal` tensor states.
+- JAX link-field layout implemented as `(nx, ny, nz, 8, d, d)` in the same
+  BCC pull convention as the exact backend.
+- Ungauged JAX BCC Dirac step matches exact SymPy `dirac_step` on a delta
+  state.
+- JAX identity-link tensor step matches exact `dirac_step_with_constant_link`.
+- JAX position-dependent link step matches exact `dirac_step_with_link_field`.
+- The constant-link shortcut matches an explicitly broadcast link field.
+- The linked JAX step is `jax.jit` compilable and runs on the default JAX
+  device.
+
+Interpretation: `spacetime_qca` now has a numerical backend suitable for
+finite-lattice simulation and later dynamical-field experiments.  The exact
+SymPy backend remains the reference implementation.
 
 ## Session 24 result
 

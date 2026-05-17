@@ -66,7 +66,7 @@ background gauge covariance audit.
 complete; 22 finite real-space step complete; 23 Higgs/Yukawa representation
 audit complete; 24 position-dependent background gauge covariance complete;
 24b BCC plaquette holonomy complete; 25 static Higgs/Yukawa map-layer audit
-complete.
+complete; 26 JAX numerical backend complete.
 
 **Implemented**:
 - BCC geometry (8 body diagonals).
@@ -80,6 +80,9 @@ complete.
 - Position-dependent internal link fields and exact finite-lattice site-local
   gauge covariance for the Dirac step.
 - BCC elementary plaquette shapes and holonomy covariance.
+- JAX numerical backend for flat Dirac states, `Dirac x internal` tensor
+  states, identity/constant/position-dependent link fields, and BCC Dirac
+  steps.
 - Real-form internal convention: the internal chiral-16 is kept as `R^32`
   with compatible `J`, equivalent to `C^16` but not compressed to a
   `16 x 16` complex basis.  Tensor-lift matrices currently have size
@@ -96,7 +99,8 @@ complete.
 - Session 24 report: `src/clifford_3plus2_d5/spacetime_qca/SESSION_24_GAUGE_COVARIANCE.md`.
 - Session 24b report: `src/clifford_3plus2_d5/spacetime_qca/SESSION_24B_PLAQUETTE_HOLONOMY.md`.
 - Session 25 report: `src/clifford_3plus2_d5/spacetime_qca/SESSION_25_STATIC_YUKAWA.md`.
-- 63 passing tests.
+- Session 26 report: `src/clifford_3plus2_d5/spacetime_qca/SESSION_26_JAX_BACKEND.md`.
+- 69 passing tests.
 
 **Result**:
 - `H_R(k) = sigma . k`.
@@ -133,6 +137,9 @@ complete.
   `step(G psi, GUG^-1) = G step(psi,U)`.
 - BCC plaquette holonomies transform by base-site conjugation and are identity
   on identity/pure-gauge link fields.
+- JAX finite-lattice steps match the exact SymPy backend for ungauged,
+  constant-link, and position-dependent-link cases; the linked step is
+  `jax.jit` compilable and runs on the default JAX device.
 
 **Open**:
 - Full fundamental-BCC-Brillouin-zone no-doubling proof.
@@ -141,6 +148,7 @@ complete.
 - Plaquette action / Wilson observable normalization.
 - Dynamical Higgs-Yukawa layer and realistic Yukawa mass matrices.
 - Dynamical gauge fields.
+- Numerical performance benchmarks and long-time stability tests.
 
 ## Workspace meta
 
