@@ -19,7 +19,9 @@ The new package asks the next question:
 > avoids the naive hypercubic doubling obstruction?
 
 The first target is the Bialynicki-Birula BCC Weyl walk, then a massless Dirac
-pair, then tensoring with the `C^16` internal carrier.
+pair, then tensoring with the lepton package's real-form chiral-16 internal
+carrier.  The internal factor is `R^32` equipped with the compatible `J`; this
+is equivalent to `C^16`, but the current code keeps the exact real basis.
 
 ## Scope Boundary
 
@@ -43,7 +45,7 @@ The packages meet only at tensor-lift interfaces.
 
 ## Architecture Target
 
-Long-term carrier:
+Compressed mathematical carrier:
 
 ```text
 spacetime factor: Cl(1,3) Dirac spinor
@@ -51,12 +53,29 @@ internal factor:  Cl(0,6) x Cl(0,4) chiral-16 from lepton
 site carrier:     C^4_Dirac x C^16_internal = C^64 per site
 ```
 
+This is the conceptual target after choosing a `J`-adapted complex basis for
+the internal factor.  It is not the matrix size used by the current exact
+implementation.
+
+Implementation convention:
+
+```text
+spacetime Bloch factor: C^4_Dirac
+internal exact basis:   R^32_internal with J, i.e. C^16 after choosing
+                        a J-adapted complex basis
+matrix size used now:   4 x 32 = 128 complex Bloch components
+```
+
+So the package currently audits the real-form tensor lift.  A future
+J-adapted compression to explicit `C^16_internal` matrices would change the
+implementation size to `C^64`, but that is not the present representation.
+
 For implementation, build in layers:
 
 ```text
 1. C^2 Weyl BCC walk
 2. C^4 massless Dirac pair = Weyl_R direct_sum Weyl_L
-3. C^4 x C^16 tensor lift
+3. C^4 x R^32 tensor lift, with R^32 interpreted as C^16 via J
 4. background gauge-link lift
 ```
 
@@ -154,6 +173,11 @@ Expected:
 - gapless points occur at all 8 Brillouin-zone corners;
 - therefore the hypercube control has Nielsen-Ninomiya doublers.
 
+This is a Hamiltonian-form control, not a unitary cubic walk.  It is included
+as the minimal exact diagnostic for the naive-lattice doubling pattern under
+the same `alpha . k` continuum target.  A stricter unitary cubic-walk control
+is future work.
+
 BCC expected for the Session 20 sampled corner audit:
 
 - continuum near `k = 0` matches `alpha . k`;
@@ -217,7 +241,7 @@ src/clifford_3plus2_d5/spacetime_qca/
 ```
 
 Keep the small exact blocks independent.  Do not make the first tests depend
-on the 64-dimensional tensor lift.
+on the 128-dimensional real-form tensor lift.
 
 ## Session 20 Test Checklist
 
@@ -225,7 +249,9 @@ Build tests:
 
 1. BCC directions are exactly the 8 body diagonals.
 2. BCC Weyl hop matrices satisfy the chosen source convention.
-3. Weyl Bloch symbol has the expected unitarity/orthogonality property.
+3. Weyl Bloch symbol has the expected sampled unitarity/orthogonality
+   property.  Full all-`k` symbolic unitarity is deferred; the all-`k` claim is
+   sourced from the Bialynicki-Birula construction.
 4. Dirac assembly in chiral basis gives `alpha_i = diag(sigma_i, -sigma_i)`.
 
 Continuum tests:
@@ -249,9 +275,11 @@ Doubling tests:
 
 Tensor/gauge tests:
 
-10. Tensoring with `I_16` multiplies eigenvalue multiplicities only.
+10. Tensoring with the `I_32` real-form internal identity multiplies
+    eigenvalue multiplicities only.  This is the exact-basis version of a
+    `C^16` internal lift.
 11. Constant background internal `A` gives
-    `H_eff = alpha . k x I_16 + I_4 x iA`.
+    `H_eff = alpha . k x I_32 + I_4 x iA`.
 12. At least one finite internal gauge element from `lepton` satisfies the
     expected covariance identity after tensor lift.
 

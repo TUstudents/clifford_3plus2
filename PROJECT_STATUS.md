@@ -75,6 +75,10 @@ audit complete.
 - First-order continuum expansion utilities.
 - Constant-background gauge tensor lift against a real 32×32 Pati-Salam
   `SU(2)_L` generator from `lepton`.
+- Real-form internal convention: the internal chiral-16 is kept as `R^32`
+  with compatible `J`, equivalent to `C^16` but not compressed to a
+  `16 x 16` complex basis.  Tensor-lift matrices currently have size
+  `4 x 32 = 128` over Bloch complex scalars.
 - Scalar Dirac mass layer `beta x M_internal`.
 - Finite periodic real-space BCC Weyl/Dirac step.
 - Representation-level Higgs-like internal charge-shift map and its conjugate
@@ -92,6 +96,10 @@ audit complete.
 - Hypercube control has 8 literal cubic BZ-corner doublers.
 - BCC cubic-corner gapless representatives are reciprocal-lattice origin
   equivalents, not claimed as independent doublers.
+- BCC Bloch unitarity is sample-checked; the all-momentum identity is trusted
+  from the pinned Bialynicki-Birula source convention.
+- Hypercube control is Hamiltonian-form and used as a naive-lattice doubling
+  diagnostic, not as a unitary cubic-walk comparison.
 - Constant background gauge lift gives
   `H_eff = alpha.k x I_internal + I_spacetime x iA`.
 - Scalar mass control gives
@@ -107,6 +115,8 @@ audit complete.
 
 **Open**:
 - Full fundamental-BCC-Brillouin-zone no-doubling proof.
+- Full symbolic all-momentum BCC Bloch-symbol unitarity proof.
+- Optional conversion to a `J`-adapted explicit `C^16` internal basis.
 - Position-dependent gauge links and site-local gauge covariance.
 - Hermitian/dynamical Higgs-Yukawa layer.
 - Dynamical gauge fields.

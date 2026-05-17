@@ -48,9 +48,19 @@ where `alpha_i = diag(sigma_i, -sigma_i)` in chiral basis.
 This is the Hamiltonian-form audit.  The code intentionally compares against
 `alpha . k`, not against the Lagrangian operator `gamma_mu k^mu`.
 
+## Unitarity Scope
+
+The package currently sample-checks the BCC Bloch symbol's unitarity at the
+origin and three single-axis cubic corners.  It does not yet prove the full
+symbolic identity `S(k)^dagger S(k) = I` for all momenta.  The all-momentum
+unitarity claim is therefore inherited from the pinned Bialynicki-Birula
+source convention, while this package verifies representative samples and the
+first-order continuum Hamiltonian.
+
 ## Hypercube Control
 
-The naive cubic control uses:
+The naive cubic control is a Hamiltonian-form lattice fermion, not a unitary
+walk.  It uses:
 
 ```text
 H_cube(k) =
@@ -62,12 +72,29 @@ H_cube(k) =
 At the 8 cubic Brillouin-zone corners this Hamiltonian is zero, so the control
 has the expected 8 sampled doublers.
 
+This is an apples-to-purpose comparison: both BCC and the control target the
+same `alpha . k` continuum Hamiltonian, but the control is included only as
+the exact naive-lattice doubling diagnostic.  A stricter cubic unitary-walk
+control is future work.
+
 ## BCC Corner Caveat
 
 For the body-diagonal BCC walk, the same cubic-corner sample has eigenvalue
 `1` at four corners, not only at the literal `(0,0,0)` corner.  This is not
 encoded as four independent doublers in the audit: those four corners are
 reciprocal-lattice origin representatives for the body-diagonal lattice.
+
+The parity rule is explicit.  For a cubic corner
+`k = (pi/epsilon) (n_x,n_y,n_z)` and a body-diagonal hop
+`h = epsilon (s_x,s_y,s_z)` with `s_i = +/-1`, the Bloch phase is
+
+```text
+exp(i k.h) = exp(i pi (n_x s_x + n_y s_y + n_z s_z))
+           = (-1)^(n_x + n_y + n_z).
+```
+
+So even-parity cubic corners have phase `1` for every body-diagonal hop and
+are reciprocal-origin representatives for this sampled BCC lattice.
 
 The implemented check is therefore:
 

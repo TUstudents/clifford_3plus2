@@ -39,6 +39,11 @@ constraint.  In the real form used here, the transpose of a `(+1/2, +1/2)`
 solution is a `(-1/2, -1/2)` solution because the charge observables are real
 symmetric.
 
+This is a real-linear transpose statement, not a full complex Hermitian
+conjugation statement.  A dynamical Higgs/Yukawa Hamiltonian would still need a
+Hermitian combination of both charge components after the `J`-complex
+structure is made explicit.
+
 ## Construction
 
 The candidate is not guessed.  The code solves an exact linear system over the
@@ -54,6 +59,11 @@ The solution space has real dimension `4`.  The first basis element is used as
 a representative static positive-shift Higgs-like map, and its transpose is
 used as the conjugate negative-shift component.  This avoids a second
 nullspace solve while still checking both charge directions exactly.
+
+The dimension `4` matches the real dimension of a complex SM Higgs doublet,
+but Session 23 does not yet decompose this solution space as an `SU(2)_L`
+doublet representation.  That decomposition is the next representation audit
+before claiming a full Higgs multiplet identification.
 
 ## Audit Results
 
@@ -90,6 +100,8 @@ provide:
 - a dynamical Higgs field;
 - Yukawa coupling constants;
 - a Hermitian full Yukawa Hamiltonian built from both Higgs components;
+- an `SU(2)_L`-doublet decomposition of the 4-real-dimensional solution
+  space;
 - a finite real-space QCA layer;
 - spontaneous symmetry breaking.
 

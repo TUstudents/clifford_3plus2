@@ -8,6 +8,12 @@ This module builds the 3D spatial side of the QCA: a BCC Weyl walk
 with a constant-background tensor lift against `lepton`'s chiral-16 internal
 carrier.
 
+Carrier convention: the internal chiral-16 is represented in the exact real
+`R^32` basis supplied by `lepton`, with its compatible `J` carrying the
+`C^16` interpretation.  Current tensor-lift matrices therefore use
+`C^4_Dirac x R^32_internal` and have size `128 x 128` over the Bloch complex
+scalars.  A compressed explicit `C^16_internal` basis is not implemented yet.
+
 ## What exists
 
 - `bcc_geometry.py` — 8 body-diagonal BCC vectors, Brillouin-zone sample points.
@@ -37,6 +43,10 @@ carrier.
 - Hypercube control has 8 literal cubic Brillouin-zone corner doublers.
 - BCC cubic-corner gapless representatives are reciprocal-lattice origin
   equivalents for the body-diagonal lattice.
+- BCC Bloch-symbol unitarity is sample-checked; the all-momentum unitarity
+  claim is inherited from the pinned Bialynicki-Birula source convention.
+- The hypercube control is Hamiltonian-form, not a unitary cubic walk; it is
+  used as the exact naive-lattice doubling diagnostic.
 - Constant background gauge lift gives
   `H_eff = alpha.k x I_internal + I_spacetime x iA`.
 - The gauge lift is tested with a real 32×32 Pati-Salam `SU(2)_L` generator
@@ -56,8 +66,12 @@ carrier.
 ## What is open
 
 - Full fundamental-BCC-Brillouin-zone no-doubling proof.
+- Full symbolic all-momentum BCC Bloch-symbol unitarity proof.
+- Explicit `J`-adapted `C^16` internal basis, if we want code dimensions to
+  match the compressed complex carrier rather than the current `R^32` real
+  form.
 - Position-dependent gauge links and site-local gauge covariance.
-- Higgs / Yukawa representation audit.
+- Hermitian/dynamical Higgs-Yukawa layer.
 - Dynamical gauge fields.
 - Lorentz boost recovery beyond the `alpha . k` continuum precursor.
 
@@ -114,4 +128,7 @@ Interpretation: scalar mass validates the Dirac mass slot
 - The Higgs-like charge-shift solution space has real dimension `4`.
 
 Interpretation: the chiral-16 internal carrier contains a representation-level
-Higgs-like map slot.  This is not yet a dynamical Higgs/Yukawa QCA layer.
+Higgs-like map slot.  The transpose result is a real-linear charge-shift
+conjugate, not a complex Hermitian-conjugate Higgs field.  The 4-real-dim
+solution space has not yet been decomposed as an `SU(2)_L` Higgs doublet.
+This is not yet a dynamical Higgs/Yukawa QCA layer.
