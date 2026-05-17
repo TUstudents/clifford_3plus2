@@ -204,37 +204,49 @@ path_a_projector_free_cycle_combined:
   verdict = not_solved
 ```
 
-Stepwise projector-free detailed search:
+Stepwise projector-free full monomial-hop census:
 
 ```text
-max_candidates = 6
+candidate_space = 2400
+pattern_count = 10
+cycle_count = 24
+shift_count = 10
 max_algebra_dim = 48
-center_top = 6
-jobs = 4
+jobs = 8
 
-closed_count = 6
-coarse_6_4_count = 6
-all six closed at generated_algebra_dimension = 34
-all six have center_dimension = 4
-all six have central_idempotent_ranks = [0,4,6,10]
-all six have compatible_centralizer_dimension = 4
-all six have generated_j_solved = true
-all six have generated_j_count = 0
-all six have compatible_j_solved = true
-all six have compatible_j_count = 0
-all six have bridge_j_status = no_rule_generated_j
+all candidates close below cap 48
+center_dim_4_candidates = 1320
+
+dim26 / center4:
+  candidates = 360
+  central_idempotent_ranks = [0,2,8,10] for all
+  coarse_6_4_count = 0
+  timeout_count = 0
+
+dim34 / center4:
+  candidates = 960
+  central_idempotent_ranks = [0,4,6,10] for all
+  generated_j_solved = true for all
+  generated_j_count = 0 for all
+  bridge_j_status = no_rule_generated_j for all
+  timeout_count = 0
 ```
 
-This is the first non-seeded Path-A positive structural result. The
-projector-free monomial-hop family does not blow up to full `M_10`; it closes
-to a structured 34-dimensional algebra and has the coarse central idempotent
-lattice. The bounded split-center `J` solver settles the sampled family
-negatively: neither the rule-generated center nor the compatible centralizer
-contains a real orthogonal `J` with `J^2 = -I`.
-This is a sharper obstruction than the previous unresolved generic solve.
-It is recorded in [Theory](../theory.md) as Proposition 4a, with a
-conjectural Proposition 4b naming the broader monomial-hop incompatibility to
-prove next.
+This closes the finite projector-free monomial-hop Path-A class as a strict
+bridge route. The dim-`26` branch fails no-locking by producing rank-`2`
+central idempotents. The dim-`34` branch has the desired coarse central
+idempotent lattice but generates no local-center `J`. The old timeout class was
+an idempotent/J diagnostic bottleneck, not an algebra-closure boundary; the
+structural filters now classify it directly. The result is recorded in
+[Theory](../theory.md) as Proposition 4a.
+
+Reproduction artifacts:
+
+```text
+data/scans/bloch_path_a_monomial_center_dim26_rank_filter_v7.jsonl
+data/scans/bloch_path_a_monomial_center_dim34_timeout_filter_v6.jsonl
+data/scans/bloch_path_a_monomial_center_dim4_bridge_fast_v5.jsonl
+```
 
 ## Interpretation
 
@@ -250,16 +262,16 @@ The first Path-A result is therefore:
 
 ```text
 seeded topological shape: yes
-unseeded projector-free closure: yes, dimension 34
-unseeded coarse 6+4 center: yes for six sampled candidates
-rule-generated J(k) section: no for six sampled candidates
+unseeded projector-free closure: yes for all 2400 monomial-hop candidates
+unseeded coarse 6+4 center: yes for 960 dim34 candidates
+dim26 no-locking failure: yes for 360 candidates
+rule-generated J(k) section: no for all 960 coarse dim34 candidates
 projector-free combined verdict: coarse-center hit, no generated J
 strict bridge: no
 ```
 
-The next Path-A step is to prove or falsify the conjectural monomial-hop
-incompatibility: partial monomial hops with winding multiset `(4,4,4,3,3)` may
-force the coarse center but appear unable to generate the fixed complex
-structure on either coarse block. If that conjecture holds, the next viable
-primitive must go beyond monomial hops while still avoiding coefficient-algebra
-seeding of `P_alpha/P_eta`.
+The next Path-A theorem step is to decide whether Conjectural Proposition 4b
+can be promoted from the finite census to a structural statement about broader
+coprime monomial-hop rules. The next bridge-search step, if pursued, must go
+beyond monomial hops while still avoiding coefficient-algebra seeding of
+`P_alpha/P_eta`.

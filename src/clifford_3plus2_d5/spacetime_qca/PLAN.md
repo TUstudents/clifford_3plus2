@@ -154,10 +154,16 @@ Expected:
 - gapless points occur at all 8 Brillouin-zone corners;
 - therefore the hypercube control has Nielsen-Ninomiya doublers.
 
-BCC expected:
+BCC expected for the Session 20 sampled corner audit:
 
 - continuum near `k = 0` matches `alpha . k`;
-- sampled Brillouin-zone audit finds only the origin gapless.
+- cubic-corner gapless samples are all reciprocal-lattice origin equivalents.
+
+The Bialynicki-Birula body-diagonal lattice has reciprocal-identifications that
+make some cubic-corner representatives equivalent to the origin.  Session 20
+therefore does not claim a full fundamental-Brillouin-zone proof.  It claims
+the sourced BCC walk has the correct continuum Hamiltonian and that the naive
+hypercube has the expected 8 literal corner doublers.
 
 The hypercube failure is part of the positive evidence for choosing BCC.
 
@@ -237,8 +243,9 @@ Doubling tests:
    Brillouin-zone corners.  Direct symbolic check:
    `H_cube(pi/eps * n_x, pi/eps * n_y, pi/eps * n_z) = 0` for
    `n_i in {0, 1}`.
-9. BCC sampled gapless set is `{0}` over the same corner-style sample points
-   and any BCC-specific samples required by the pinned convention.
+9. BCC cubic-corner gapless samples are reciprocal-lattice origin
+   representatives for the body-diagonal lattice.  A full fundamental-BZ
+   no-doubling proof is future work.
 
 Tensor/gauge tests:
 
@@ -283,7 +290,8 @@ Session 20 is a pass if:
 
 - the exact Weyl/BCC block is verified against its pinned convention;
 - the massless Dirac continuum Hamiltonian is `alpha . k`;
-- BCC has one sampled gapless point while the hypercube control has 8;
+- BCC cubic-corner gapless representatives are reciprocal-origin equivalents
+  while the hypercube control has 8 literal corner doublers;
 - the internal tensor lift preserves the spacetime result by multiplicity;
 - background gauge generators enter additively in covariant-derivative form.
 

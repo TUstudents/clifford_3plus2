@@ -1357,41 +1357,27 @@ The main `rule_to_verdict` interface now also supports a Bloch-period mode
 that forms the joint sampled algebra `R<T(zeta^j)>`. The first projector-free
 combined Route-1/Route-2 layer uses partial monomial hops with source shifts
 `(4,4,4,3,3)` and on-site update `U2 U1`; it avoids raw projector
-coefficients. The stepwise checker raises the algebra cap to `48` and closes
-the first six projector-free monomial-hop variants at dimension `34`. All six
-have center dimension `4`, central idempotent ranks `[0,4,6,10]`, compatible
-centralizer dimension `4`, `generated_j_count = 0`, and
-`compatible_j_count = 0`. A projected-centralizer diagnostic now strengthens
-that finite witness: all six have rank-6 projected centralizer `R^3` and
-rank-4 projected centralizer `R`, with no orthogonal `C` factor. Theory records
-this as Proposition 4a and names the broader Proposition 4b conjecture for
-coprime projector-free monomial hops. The current proof attempt does not
-promote 4b to a theorem: the implemented coefficients are `U_local E_s`, and
-the coarse projectors are outputs of the joint sampled algebra, so block-scalar
-root-of-unity action cannot be assumed. The active gap is proving that this
-split-real projected-centralizer invariant persists in the full coprime
-monomial-hop class, or finding a microscopic hopping primitive whose projected
-centralizer acquires a genuine `C` factor carrying `J`.
-An expanded classifier-only scan over the first eight variants
-(`--cycle-count 4 --shift-count 4`) found no counterexample: all eight still
-close at dimension `34` with projected centralizers `R^3` and `R`. The
-twelve-candidate expansion now streams per-candidate results and skips
-compatible-centralizer work for non-`6+4` centers. Its completed tail results
-are non-coarse, not `C`-factor counterexamples: two variants have
-`[0,2,8,10]` centers and one has an unsolved 10-dimensional center. The one
-remaining dim-22 tail case is an idempotent-solver bottleneck. The next
-engineering need for broader scans is therefore targeted center-idempotent
-extraction, not deeper blind enumeration.
-Operational full-scan strategy: use the stepwise scanner as a resumable
-classifier, not a one-shot script. First run `--count-only --all-candidates` to
-record the candidate space (`240` monomial-hop candidates per Floquet pattern,
-`960` polynomial-hop candidates per pattern). Then run classifier-only slices
-with `--cache-file`, `--resume`, `--stream`, `--progress-every`, and
-`--summary-json`; reserve `--j-solve` for survivors that already have
-rank-`(6,4)` centers and a projected `C` factor. The per-stage timings from the
-pilot runs show that center/idempotent extraction dominates the runtime, so the
-next performance target is a faster idempotent extractor for commutative or
-low-dimensional centers.
+coefficients. The stepwise checker has now classified the full finite
+monomial-hop census: `10 * 24 * 10 = 2400` candidates. The `360` dim-`26`
+center-`4` cases all fail no-locking with ranks `[0,2,8,10]`. The `960`
+dim-`34` center-`4` cases all have coarse ranks `[0,4,6,10]`, but every one
+has `generated_j_count = 0` and `bridge_j_status = no_rule_generated_j`.
+There are no remaining timeout cases. A projected-centralizer diagnostic on
+the first dim-`34` witnesses still records the split-real shape
+`rank6: R^3`, `rank4: R`, with no orthogonal `C` factor. Theory records this
+as Proposition 4a, upgraded from a six-candidate witness to a full finite
+census, and keeps Proposition 4b as the broader structural conjecture for
+coprime projector-free monomial hops. The active gap is proving that this
+split-real/no-generated-`J` invariant persists in a wider monomial-hop theorem,
+or finding a microscopic hopping primitive beyond monomial hops whose
+projected centralizer acquires a genuine `C` factor carrying `J`.
+The prior eight- and twelve-candidate probes are now historical subsets of the
+full census. Their main engineering lesson survived: center/idempotent
+extraction, not Laurent checking or Bloch sampling, was the bottleneck. The
+scanner now supports resumable target-cache slices, streamed progress,
+per-candidate timeouts, dim-`26` rank-profile rejection, and dim-`34`
+generated-`J` short-circuiting. This is enough to make future bounded families
+auditable without repeating the timeout/debug cycle.
 The first polynomial-hop extension keeps exact Laurent orthogonality by mixing
 two mode edges with a finite-order rational reflection. It does not produce a
 bridge candidate in the current exact checker: the first checked mixed

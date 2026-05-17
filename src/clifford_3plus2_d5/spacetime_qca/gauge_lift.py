@@ -37,3 +37,14 @@ def background_gauge_hamiltonian(
         lift_spacetime_operator(spacetime_hamiltonian, internal_generator.rows)
         + lift_internal_operator(spacetime_hamiltonian.rows, sp.I * internal_generator)
     ).applyfunc(sp.simplify)
+
+
+def constant_background_link_floquet(
+    spacetime_floquet: sp.Matrix,
+    internal_generator: sp.Matrix,
+    epsilon: sp.Symbol | sp.Expr,
+) -> sp.Matrix:
+    """Return ``U_space x (I + eps A)`` for a constant background link."""
+
+    link = sp.eye(internal_generator.rows) + epsilon * internal_generator
+    return sp.kronecker_product(spacetime_floquet, link).applyfunc(sp.simplify)

@@ -42,8 +42,8 @@ gauge_equivalence_check: Route-1 block signs still require strict standard
 spatial_1d_alpha: local-QCA sidecar couples four J signs to global ±
 spatial_1d_combined: Route 1 + Route 2 gives ± shape, still no rule-generated J
 spatial_1d_unseeded: no bridge candidate; seeded projector-shift rejected
-bloch_path_a: six projector-free monomial hops close at dim 34; no compatible J
-bloch_path_a_projected_centralizer: solver-polished timed scanner; 8 coarse split-real hits, no C factor
+bloch_path_a: full 2400 monomial-hop census closed; no bridge candidate
+bloch_path_a_projected_centralizer: dim26 fails no-locking; dim34 coarse split has no generated J
 polynomial_bloch_hops: exact mixed coefficients exceed dim 64; no bridge candidate
 two_site_bloch: uniform carrier trivial; winding carrier seed-guardrail rejected
 two_site_split_step: optimized rational closure; panel hits coefficient cap, first candidate reaches center cap

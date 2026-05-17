@@ -10,6 +10,7 @@ a slow archival suite, while normal work uses Ruff plus focused route checks.
 
 | Move | Family | Status | Verdict |
 | --- | --- | --- | --- |
+| Path A | Projector-free monomial-hop Bloch census | Full `2400`-candidate space classified; dim-`26` fails no-locking, dim-`34` has no generated `J`; zero timeouts remain | closed as a bridge route |
 | Move 1 | Polynomial Bloch hops | Algebra cap exceeded at `64`; first tractable candidate is algebraically seeded | computational boundary |
 | Move 2 | Two-site forward/inverse uniform carrier | Seed guardrail passes; center ranks `(0,20)` only | no effective coarse split |
 | Move 2 | Two-site forward/inverse winding-`4,3` carrier | Exact Laurent identity; coefficient algebra recovers embedded `P_alpha/P_eta` | seeded |
@@ -707,6 +708,54 @@ all six candidates:
   route_label: closes_coarse_6_4_center
 ```
 
+Full projector-free monomial-hop census, completed 2026-05-16:
+
+```text
+candidate_space: 2400
+center_dim_4_candidates: 1320
+
+dim26 / center4:
+  candidates: 360
+  rank_profile: [0,2,8,10] for all 360
+  coarse_6_4_count: 0
+  timeout_count: 0
+  artifact: ../../data/scans/bloch_path_a_monomial_center_dim26_rank_filter_v7.jsonl
+
+dim34 / center4:
+  candidates: 960
+  rank_profile: [0,4,6,10] for all 960
+  generated_j_count: 0 for all 960
+  bridge_j_status: no_rule_generated_j for all 960
+  timeout_count: 0
+  prior timeout closure artifact:
+    ../../data/scans/bloch_path_a_monomial_center_dim34_timeout_filter_v6.jsonl
+
+conclusion:
+  projector-free monomial-hop Bloch Path A is closed as a strict bridge route.
+```
+
+Reproduction commands:
+
+```bash
+uv run python scripts/bloch_path_a_stepwise.py \
+  --family monomial-hop \
+  --pattern-count 10 --cycle-count 24 --shift-count 10 \
+  --target-cache-file data/scans/bloch_path_a_monomial_center_v5.jsonl \
+  --target-center-dim 4 --target-generated-dim 26 \
+  --max-algebra-dim 48 --idempotents --j-solve \
+  --generated-j-only --coarse-only-diagnostics \
+  --jobs 8 --chunk-size 8 --timeout-seconds 60 --check
+
+uv run python scripts/bloch_path_a_stepwise.py \
+  --family monomial-hop \
+  --pattern-count 10 --cycle-count 24 --shift-count 10 \
+  --target-cache-file data/scans/bloch_path_a_monomial_center_dim34_timeout_targets_v5.jsonl \
+  --target-center-dim 4 --target-generated-dim 34 \
+  --max-algebra-dim 48 --idempotents --j-solve \
+  --generated-j-only --coarse-only-diagnostics \
+  --jobs 8 --chunk-size 8 --timeout-seconds 60 --check
+```
+
 Polynomial-hop Path-A extension:
 
 ```text
@@ -971,40 +1020,24 @@ candidates produce no stable rank-`(6,4)` band split.
 The main `rule_to_verdict` path now also samples Bloch symbols as a single
 joint algebra. Its first projector-free combined Route-1/Route-2 candidate
 uses source-mode shifts `(4,4,4,3,3)` without raw `P_alpha/P_eta`
-coefficients. Raising the closure cap shows this was a real structured
-candidate, not a dead computational boundary: six nearby projector-free
-monomial-hop variants close at dimension `34`, have center dimension `4`, and
-share central idempotent ranks `[0,4,6,10]`. They also share the same
-centralizer/J profile. The bounded
-split-center `J` solver settles this finite sampled family negatively:
-generated and compatible `J` counts are both `0` for all six candidates. The
-remaining search gap is therefore not the coarse center, but a microscopic
-unseeded hopping primitive whose structured algebra also carries a complex
-structure. The projected-centralizer diagnostic computes the coarse-block
-multiplication tables and primitive idempotent decompositions; all six checked
-candidates have rank-6 projected centralizer `R^3` and rank-4 projected
-centralizer `R`. Proposition 4b remains conjectural, but the finite witness now
-exhibits the exact split-real invariant a general proof would need to derive
-for coprime monomial-hop rules.
-A follow-up classifier-only scan expands the check to eight candidates with
-`--cycle-count 4 --shift-count 4`; all eight close at dimension `34`, keep
-central idempotent ranks `[0,4,6,10]`, and again report rank-6 projected
-centralizer `R^3` plus rank-4 projected centralizer `R`, with no `C` factor.
-The stepwise script now supports streamed per-candidate output, candidate
-slicing, direct detailed evaluation when `--center-top` covers every candidate,
-and a projected-centralizer mode that skips compatible-centralizer work when no
-rank-`(6,4)` center is present. A streamed twelve-candidate probe produced the
-same eight coarse split-real hits, plus three additional non-coarse tail
-candidates with ranks `[0,2,8,10]`, `[0,2,8,10]`, and an unsolved
-10-dimensional center. The remaining dim-22 tail candidate exposes an
-idempotent-solver bottleneck rather than a `C`-factor counterexample.
-The scanner is now a resumable timed classifier. It reports exact search-space
-cardinality before execution: one Floquet pattern has `24 * 10 = 240`
-monomial-hop candidates, while the current polynomial-hop extension has `960`
-candidates per pattern. JSONL cache/resume is keyed by candidate identity,
-scanner version, Bloch period, max algebra dimension, and enabled stages.
-Per-candidate timing shows the active bottleneck is center/idempotent
-extraction on survivors, not Laurent checking or Bloch sampling.
+coefficients. The full finite monomial-hop census shows this was a structured
+family, not a dead computational boundary: all `2400` candidates close below
+cap `48`; the `360` dim-`26` center-`4` cases fail no-locking via
+`[0,2,8,10]`; and the `960` dim-`34` center-`4` cases have the coarse
+`[0,4,6,10]` center but no rule-generated `J`. The remaining search gap is
+therefore not the coarse center inside monomial hops, but a microscopic
+unseeded hopping primitive outside this class whose structured algebra also
+carries a complex structure. The projected-centralizer diagnostic on the first
+dim-`34` witnesses computes rank-6 projected centralizer `R^3` and rank-4
+projected centralizer `R`. Proposition 4b remains conjectural, but the finite
+census now exhibits the exact split-real/no-generated-`J` invariant a general
+proof would need to derive for broader coprime monomial-hop rules.
+The older eight- and twelve-candidate probes are retained as historical
+subsets of the completed census. They correctly identified the same two
+structural branches: coarse dim-`34` survivors and non-coarse rank-`2`
+refinements. The finished scanner is now a resumable timed classifier with
+target-cache slicing, streamed progress, per-candidate timeouts, and structural
+rank-profile short-circuits for the monomial-hop timeout classes.
 
 Solver polish note, 2026-05-15:
 
@@ -1045,7 +1078,8 @@ are solved from deduplicated matrix equations with verified small-subsystem
 short-circuits; small rational commutative centers still use the
 multiplication-table path.
 
-Updated scan estimates from this single-candidate benchmark:
+Historical scan estimates from the single-candidate benchmark, superseded by
+the completed 2026-05-16 monomial-hop census:
 
 | Scan mode | Candidate count | Serial estimate | 4-job estimate |
 | --- | ---: | ---: | ---: |
@@ -1054,9 +1088,10 @@ Updated scan estimates from this single-candidate benchmark:
 | Monomial detailed, ten patterns | `2400` | `~25-30 h` | `~7-9 h` |
 | Polynomial-hop bounded class | `960` per pattern | not stable | cap-boundary dominated |
 
-These estimates assume the dim-`34` survivor shape dominates. Dim-`22` and
-dim-`10` tail cases should be run through cached chunks first, because their
-center/idempotent profile differs from the coarse survivor path.
+The finished run shows that the right strategy was not deeper brute force but
+structural rank-profile filters: dim-`26` idempotent diagnostics now short-cut
+to `[0,2,8,10]`, and the old dim-`34` timeout class short-cuts to
+`[0,4,6,10]` with `generated_j_count = 0`.
 Defect-beta is retained as a regression target but parked as a load-bearing
 route until rebuilt as a genuine higher-dimensional defect calculation. Its
 round-trip monodromy is exactly the matching Floquet-alpha operator. The
