@@ -71,7 +71,7 @@ physics policy.
 - Basic finite-value/state-transition diagnostics and benchmark wrapper.
 
 **Boundary**: BCC Weyl/Dirac kernels, BCC plaquettes, Wilson observables, and
-SO(2)/SU(2) force policy remain in `spacetime_qca`.
+SO(2)/SU(2)/SU(3) force policy remain in `spacetime_qca`.
 
 ## spacetime_qca — in progress
 
@@ -87,7 +87,8 @@ complete; 26 JAX numerical backend complete; 27 Wilson plaquette observables
 complete; 28 Wilson action normalization complete; 29 SO(2) Wilson-action
 gradients complete; 30 SU(2) nonabelian Wilson-force controls complete; 31
 left-trivialized SU(2) force and compact descent complete; 32 reversible SU(2)
-leapfrog gauge dynamics complete.
+leapfrog gauge dynamics complete; 33 compact SU(3) force and reversible
+leapfrog dynamics complete.
 
 **Implemented**:
 - BCC geometry (8 body diagonals).
@@ -114,8 +115,8 @@ leapfrog gauge dynamics complete.
   invariance, pure-gauge controls, and `jax.jit` gradient support.
 - SU(2) left-trivialized Wilson force, compact left updates, and deterministic
   action-descent controls.
-- SU(2) compact momentum fields, Hamiltonian-density helper, and reversible
-  leapfrog update.
+- SU(2)/SU(3) compact momentum fields, Hamiltonian-density helpers, and
+  reversible leapfrog updates.
 - Real-form internal convention: the internal chiral-16 is kept as `R^32`
   with compatible `J`, equivalent to `C^16` but not compressed to a
   `16 x 16` complex basis.  Tensor-lift matrices currently have size
@@ -139,7 +140,8 @@ leapfrog gauge dynamics complete.
 - Session 30 report: `src/clifford_3plus2_d5/spacetime_qca/SESSION_30_SU2_FORCE.md`.
 - Session 31 report: `src/clifford_3plus2_d5/spacetime_qca/SESSION_31_SU2_LEFT_FORCE.md`.
 - Session 32 report: `src/clifford_3plus2_d5/spacetime_qca/SESSION_32_SU2_LEAPFROG.md`.
-- 114 passing tests.
+- Session 33 report: `src/clifford_3plus2_d5/spacetime_qca/SESSION_33_SU3_DYNAMICS.md`.
+- 130 passing tests.
 
 **Result**:
 - `H_R(k) = sigma . k`.
@@ -200,14 +202,21 @@ leapfrog gauge dynamics complete.
   momentum fields transform by target-site adjoint action, Hamiltonian-density
   drift is small and step-size sensitive, compactness is preserved, and finite
   gauge covariance holds.
+- SU(3) compact-link left-trivialized forces and reversible leapfrog dynamics
+  are implemented in JAX; zero and finite pure-gauge links have zero force,
+  non-flat fields have non-zero force, compact descent lowers Wilson action,
+  momentum kinetic energy is gauge invariant, compactness is preserved, and
+  finite gauge covariance holds.  The SU(3) force still differentiates through
+  compact perturbation exponentials, so full SU(3) leapfrog JIT is deferred
+  until a staple/vectorized force is implemented.
 
 **Open**:
 - Full fundamental-BCC-Brillouin-zone no-doubling proof.
 - Full symbolic all-momentum BCC Bloch-symbol unitarity proof.
 - Optional conversion to a `J`-adapted explicit `C^16` internal basis.
 - Dynamical Higgs-Yukawa layer and realistic Yukawa mass matrices.
-- SU(3), SU(4), or Pati-Salam Wilson-action gradients / force projection and
-  dynamical gauge fields.
+- SU(4) or Pati-Salam Wilson-action gradients / force projection and dynamical
+  gauge fields.
 - Gauss-law constraints, fermion backreaction, and full physical gauge-field
   evolution beyond the current SU(2) leapfrog prototype.
 - Numerical performance benchmarks and long-time stability tests.

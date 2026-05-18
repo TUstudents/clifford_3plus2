@@ -4,7 +4,8 @@ Session 29 introduced the smallest compact gauge testbed: every BCC link is an
 SO(2) rotation parameterized by one real angle.  Session 30 extends the same
 Wilson-gradient audit to fundamental SU(2) links, the smallest compact
 nonabelian testbed.  Session 31 adds a left-trivialized SU(2) force audit and
-compact action-descent update.
+compact action-descent update.  Session 33 mirrors the compact force stack for
+fundamental SU(3) color links.
 
 * zero field has zero action and zero gradient;
 * pure gauges have zero action and zero gradient;
@@ -13,8 +14,8 @@ compact action-descent update.
 This is a force audit, not a production HMC implementation.  The
 left-trivialized force is computed by differentiating compact left
 perturbations ``exp(omega_a T_a) U``.  Focused finite-difference tests pin the
-convention before a future vectorized staple formula.  Full SU(N) force
-projection and leapfrog/heatbath dynamics remain future work.
+convention before a future vectorized staple formula.  Generic SU(N) force
+projection and heatbath dynamics remain future work.
 """
 
 from __future__ import annotations
@@ -23,6 +24,7 @@ from collections.abc import Callable
 
 import jax
 import jax.numpy as jnp
+from jax.scipy.linalg import expm as jax_matrix_expm
 
 from clifford_3plus2_d5.sim.lattice import source_roll
 from clifford_3plus2_d5.sim.links import (
@@ -52,6 +54,31 @@ def _validate_su2_site_algebra(site_theta: jnp.ndarray) -> None:
 def _validate_su2_links(links: jnp.ndarray) -> None:
     if links.ndim != 6 or links.shape[3:] != (8, 2, 2):
         raise ValueError("SU(2) BCC links must have shape (nx, ny, nz, 8, 2, 2)")
+
+
+def _validate_su3_link_algebra(theta: jnp.ndarray) -> None:
+    if theta.ndim != 5 or theta.shape[-2:] != (8, 8):
+        raise ValueError("SU(3) link algebra coordinates must have shape (nx, ny, nz, 8, 8)")
+
+
+def _validate_su3_site_algebra(site_theta: jnp.ndarray) -> None:
+    if site_theta.ndim != 4 or site_theta.shape[-1] != 8:
+        raise ValueError("SU(3) site algebra coordinates must have shape (nx, ny, nz, 8)")
+
+
+def _validate_su3_links(links: jnp.ndarray) -> None:
+    if links.ndim != 6 or links.shape[3:] != (8, 3, 3):
+        raise ValueError("SU(3) BCC links must have shape (nx, ny, nz, 8, 3, 3)")
+
+
+def _jax_matrix_expm_batch(matrices: jnp.ndarray) -> jnp.ndarray:
+    if matrices.shape[-1] != matrices.shape[-2]:
+        raise ValueError("matrix exponentials require square trailing dimensions")
+
+    dimension = matrices.shape[-1]
+    flat = jnp.reshape(matrices, (-1, dimension, dimension))
+    exponentials = jax.vmap(jax_matrix_expm)(flat)
+    return jnp.reshape(exponentials, matrices.shape)
 
 
 def jax_so2_rotation(theta: jnp.ndarray) -> jnp.ndarray:
@@ -148,6 +175,31 @@ def jax_su2_generators(dtype: jnp.dtype = jnp.complex64) -> jnp.ndarray:
     return -0.5j * jnp.stack((sigma_x, sigma_y, sigma_z), axis=0)
 
 
+def jax_su3_generators(dtype: jnp.dtype = jnp.complex64) -> jnp.ndarray:
+    """Return anti-Hermitian fundamental SU(3) generators ``T_a = -i lambda_a/2``."""
+
+    zero = jnp.asarray(0, dtype=dtype)
+    one = jnp.asarray(1, dtype=dtype)
+    two = jnp.asarray(2, dtype=dtype)
+    imag = jnp.asarray(1j, dtype=dtype)
+    inv_sqrt_three = one / jnp.sqrt(jnp.asarray(3, dtype=dtype))
+    lambda_1 = jnp.asarray(((zero, one, zero), (one, zero, zero), (zero, zero, zero)), dtype=dtype)
+    lambda_2 = jnp.asarray(((zero, -imag, zero), (imag, zero, zero), (zero, zero, zero)), dtype=dtype)
+    lambda_3 = jnp.asarray(((one, zero, zero), (zero, -one, zero), (zero, zero, zero)), dtype=dtype)
+    lambda_4 = jnp.asarray(((zero, zero, one), (zero, zero, zero), (one, zero, zero)), dtype=dtype)
+    lambda_5 = jnp.asarray(((zero, zero, -imag), (zero, zero, zero), (imag, zero, zero)), dtype=dtype)
+    lambda_6 = jnp.asarray(((zero, zero, zero), (zero, zero, one), (zero, one, zero)), dtype=dtype)
+    lambda_7 = jnp.asarray(((zero, zero, zero), (zero, zero, -imag), (zero, imag, zero)), dtype=dtype)
+    lambda_8 = inv_sqrt_three * jnp.asarray(
+        ((one, zero, zero), (zero, one, zero), (zero, zero, -two)),
+        dtype=dtype,
+    )
+    return -0.5j * jnp.stack(
+        (lambda_1, lambda_2, lambda_3, lambda_4, lambda_5, lambda_6, lambda_7, lambda_8),
+        axis=0,
+    )
+
+
 def jax_su2_project_antihermitian_to_algebra(matrix: jnp.ndarray) -> jnp.ndarray:
     """Project anti-Hermitian traceless matrices onto SU(2) coordinates.
 
@@ -162,6 +214,18 @@ def jax_su2_project_antihermitian_to_algebra(matrix: jnp.ndarray) -> jnp.ndarray
         raise ValueError("SU(2) algebra matrices must have trailing shape (2, 2)")
 
     generators = jax_su2_generators(dtype=jnp.result_type(matrix, 1j))
+    generator_daggers = jnp.swapaxes(jnp.conj(generators), -1, -2)
+    inner_products = jnp.einsum("aij,...ji->...a", generator_daggers, matrix)
+    return 2 * jnp.real(inner_products)
+
+
+def jax_su3_project_antihermitian_to_algebra(matrix: jnp.ndarray) -> jnp.ndarray:
+    """Project anti-Hermitian traceless matrices onto SU(3) coordinates."""
+
+    if matrix.shape[-2:] != (3, 3):
+        raise ValueError("SU(3) algebra matrices must have trailing shape (3, 3)")
+
+    generators = jax_su3_generators(dtype=jnp.result_type(matrix, 1j))
     generator_daggers = jnp.swapaxes(jnp.conj(generators), -1, -2)
     inner_products = jnp.einsum("aij,...ji->...a", generator_daggers, matrix)
     return 2 * jnp.real(inner_products)
@@ -209,6 +273,38 @@ def jax_su2_site_field_from_algebra(site_theta: jnp.ndarray) -> jnp.ndarray:
     return jax_su2_link_from_algebra(site_theta)
 
 
+def jax_su3_algebra_matrix(theta: jnp.ndarray) -> jnp.ndarray:
+    """Return anti-Hermitian SU(3) matrices from algebra coordinates."""
+
+    if theta.shape[-1:] != (8,):
+        raise ValueError("SU(3) algebra coordinates must have trailing dimension 8")
+
+    dtype = jnp.result_type(theta, 1j)
+    coordinates = theta.astype(jnp.real(jnp.asarray(0, dtype=dtype)).dtype)
+    generators = jax_su3_generators(dtype=dtype)
+    return jnp.einsum("...a,aij->...ij", coordinates, generators)
+
+
+def jax_su3_link_from_algebra(theta: jnp.ndarray) -> jnp.ndarray:
+    """Return compact SU(3) matrices from Lie-algebra coordinates."""
+
+    return _jax_matrix_expm_batch(jax_su3_algebra_matrix(theta))
+
+
+def jax_su3_link_field_from_algebra(theta: jnp.ndarray) -> jnp.ndarray:
+    """Return a BCC JAX link field from SU(3) link-algebra coordinates."""
+
+    _validate_su3_link_algebra(theta)
+    return jax_su3_link_from_algebra(theta)
+
+
+def jax_su3_site_field_from_algebra(site_theta: jnp.ndarray) -> jnp.ndarray:
+    """Return site-local SU(3) gauge matrices from algebra coordinates."""
+
+    _validate_su3_site_algebra(site_theta)
+    return jax_su3_link_from_algebra(site_theta)
+
+
 def jax_transform_link_field(links: jnp.ndarray, site_gauge: jnp.ndarray) -> jnp.ndarray:
     """Apply finite site-local gauge transforms to BCC pull-convention links.
 
@@ -224,6 +320,14 @@ def jax_su2_pure_gauge_links_from_site_algebra(site_theta: jnp.ndarray) -> jnp.n
 
     site_gauge = jax_su2_site_field_from_algebra(site_theta)
     identity_links = jax_identity_link_field(site_gauge.shape[:3], 2, dtype=site_gauge.dtype)
+    return jax_transform_link_field(identity_links, site_gauge)
+
+
+def jax_su3_pure_gauge_links_from_site_algebra(site_theta: jnp.ndarray) -> jnp.ndarray:
+    """Return pure-gauge SU(3) BCC links generated by site-local gauges."""
+
+    site_gauge = jax_su3_site_field_from_algebra(site_theta)
+    identity_links = jax_identity_link_field(site_gauge.shape[:3], 3, dtype=site_gauge.dtype)
     return jax_transform_link_field(identity_links, site_gauge)
 
 
@@ -251,6 +355,18 @@ def jax_su2_wilson_action_gradient(
     """
 
     return jax.grad(lambda coordinates: jax_su2_wilson_action_density(coordinates, shapes))(theta)
+
+
+def jax_su3_wilson_action_density(
+    theta: jnp.ndarray,
+    shapes: tuple[PlaquetteShape, ...] | None = None,
+) -> jnp.ndarray:
+    """Return Wilson action density for SU(3)-parameterized BCC links."""
+
+    return jax_average_wilson_action_density(
+        jax_su3_link_field_from_algebra(theta),
+        shapes,
+    )
 
 
 def jax_su2_left_force(
@@ -302,6 +418,45 @@ def jax_su2_left_force_from_algebra(
     )
 
 
+def jax_su3_left_force(
+    links: jnp.ndarray,
+    *,
+    epsilon: float = 1e-3,
+    shapes: tuple[PlaquetteShape, ...] | None = None,
+) -> jnp.ndarray:
+    """Return the left-trivialized Wilson force for SU(3) links."""
+
+    _validate_su3_links(links)
+    if epsilon <= 0:
+        raise ValueError("epsilon must be positive")
+
+    real_dtype = jnp.real(jnp.asarray(0, dtype=links.dtype)).dtype
+    zero_perturbation = jnp.zeros((*links.shape[:4], 8), dtype=real_dtype)
+
+    def action_from_left_perturbation(perturbation: jnp.ndarray) -> jnp.ndarray:
+        return jax_average_wilson_action_density(
+            _jax_su3_apply_left_coordinates(links, perturbation),
+            shapes,
+        )
+
+    return jax.grad(action_from_left_perturbation)(zero_perturbation)
+
+
+def jax_su3_left_force_from_algebra(
+    theta: jnp.ndarray,
+    *,
+    epsilon: float = 1e-3,
+    shapes: tuple[PlaquetteShape, ...] | None = None,
+) -> jnp.ndarray:
+    """Return left-trivialized SU(3) force for coordinate-built links."""
+
+    return jax_su3_left_force(
+        jax_su3_link_field_from_algebra(theta),
+        epsilon=epsilon,
+        shapes=shapes,
+    )
+
+
 def jax_su2_apply_left_update(
     links: jnp.ndarray,
     force: jnp.ndarray,
@@ -336,6 +491,34 @@ def jax_su2_action_descent_step(
     return jax_su2_apply_left_update(links, force, step_size=step_size), force
 
 
+def jax_su3_action_descent_step(
+    links: jnp.ndarray,
+    *,
+    step_size: float = 0.05,
+    epsilon: float = 1e-3,
+    shapes: tuple[PlaquetteShape, ...] | None = None,
+) -> tuple[jnp.ndarray, jnp.ndarray]:
+    """Return ``(updated_links, force)`` for one compact SU(3) Wilson descent step."""
+
+    force = jax_su3_left_force(links, epsilon=epsilon, shapes=shapes)
+    return jax_su3_apply_left_update(links, force, step_size=step_size), force
+
+
+def jax_su3_apply_left_update(
+    links: jnp.ndarray,
+    force: jnp.ndarray,
+    *,
+    step_size: float,
+) -> jnp.ndarray:
+    """Apply a compact left gradient-descent update to SU(3) links."""
+
+    _validate_su3_links(links)
+    if force.shape != (*links.shape[:4], 8):
+        raise ValueError("force must have shape (nx, ny, nz, 8, 8)")
+
+    return _jax_su3_apply_left_coordinates(links, -jnp.asarray(step_size, dtype=force.dtype) * force)
+
+
 def _jax_su2_apply_left_coordinates(links: jnp.ndarray, coordinates: jnp.ndarray) -> jnp.ndarray:
     """Apply ``exp(coordinates_a T_a)`` to each link from the left."""
 
@@ -344,4 +527,15 @@ def _jax_su2_apply_left_coordinates(links: jnp.ndarray, coordinates: jnp.ndarray
         raise ValueError("coordinates must have shape (nx, ny, nz, 8, 3)")
 
     updates = jax_su2_link_from_algebra(coordinates)
+    return jnp.einsum("...ij,...jk->...ik", updates, links)
+
+
+def _jax_su3_apply_left_coordinates(links: jnp.ndarray, coordinates: jnp.ndarray) -> jnp.ndarray:
+    """Apply ``exp(coordinates_a T_a)`` to each SU(3) link from the left."""
+
+    _validate_su3_links(links)
+    if coordinates.shape != (*links.shape[:4], 8):
+        raise ValueError("coordinates must have shape (nx, ny, nz, 8, 8)")
+
+    updates = jax_su3_link_from_algebra(coordinates)
     return jnp.einsum("...ij,...jk->...ik", updates, links)

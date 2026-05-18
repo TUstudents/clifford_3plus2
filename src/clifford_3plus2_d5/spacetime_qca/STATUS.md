@@ -1,12 +1,13 @@
 # spacetime_qca — Status
 
-**Status**: in progress. Sessions 20-32 complete through finite real-space
+**Status**: in progress. Sessions 20-33 complete through finite real-space
 BCC stepping, representation-level Higgs/Yukawa audit, position-dependent
 background gauge covariance, BCC plaquette holonomy geometry, and a static
 Higgs/Yukawa map-layer audit, a JAX numerical backend, Wilson plaquette
 observables/action normalization, SO(2) Wilson-action gradients, and SU(2)
 nonabelian Wilson-force controls with compact left-trivialized descent and
-reversible leapfrog dynamics.
+reversible leapfrog dynamics, plus compact SU(3) force/descent and reversible
+leapfrog controls.
 
 This module builds the 3D spatial side of the QCA: a BCC Weyl walk
 (Bialynicki-Birula 1994) and its chiral assembly into a 4D Dirac carrier,
@@ -39,10 +40,11 @@ scalars.  A compressed explicit `C^16_internal` basis is not implemented yet.
   `sim` roll/link primitives.
 - `wilson.py`, `jax_wilson.py` — exact and numerical Wilson plaquette
   observables and action densities.
-- `jax_gauge_force.py` — SO(2) and SU(2) compact-link JAX Wilson-action
-  gradients, SU(2) left-trivialized force, and compact action descent.
-- `jax_gauge_dynamics.py` — SU(2) momentum fields, Hamiltonian-density helper,
-  and compact leapfrog update.
+- `jax_gauge_force.py` — SO(2), SU(2), and SU(3) compact-link JAX
+  Wilson-action gradients/forces, left-trivialized force controls, and compact
+  action descent.
+- `jax_gauge_dynamics.py` — SU(2)/SU(3) momentum fields,
+  Hamiltonian-density helpers, and compact leapfrog updates.
 - `lattice.py`, `state.py`, `step.py` — finite periodic real-space BCC step.
 - `audit.py` — result payloads for the report.
 - `SESSION_20_BCC_DIRAC.md` — Session 20 result report.
@@ -59,7 +61,8 @@ scalars.  A compressed explicit `C^16_internal` basis is not implemented yet.
 - `SESSION_30_SU2_FORCE.md` — Session 30 result report.
 - `SESSION_31_SU2_LEFT_FORCE.md` — Session 31 result report.
 - `SESSION_32_SU2_LEAPFROG.md` — Session 32 result report.
-- 114 passing tests.
+- `SESSION_33_SU3_DYNAMICS.md` — Session 33 result report.
+- 130 passing tests.
 
 ## Session 20 result
 
@@ -100,8 +103,8 @@ scalars.  A compressed explicit `C^16_internal` basis is not implemented yet.
   form.
 - Vectorized Wilson action evaluation for large lattices.
 - Dynamic Higgs-Yukawa layer.
-- Dynamical gauge fields beyond the current SU(2) leapfrog prototype.
-- SU(3), SU(4), or Pati-Salam Wilson-action gradients and force projection.
+- Dynamical gauge fields beyond the current SU(2)/SU(3) leapfrog prototypes.
+- SU(4) or full Pati-Salam Wilson-action gradients and force projection.
 - Vectorized SU(2) staple force and Gauss-law constraints.
 - Lorentz boost recovery beyond the `alpha . k` continuum precursor.
 - Numerical performance benchmarks and long-time stability tests.
@@ -109,7 +112,7 @@ scalars.  A compressed explicit `C^16_internal` basis is not implemented yet.
 ## Sessions ahead
 
 - Session 20b: full symbolic BCC unitarity and no-doubling hardening.
-- Session 33: SU(3)/Pati-Salam force projection or fermion-coupled gauge-link
+- Session 34: SU(4)/Pati-Salam force projection or fermion-coupled gauge-link
   evolution.
 
 See [PLAN.md](PLAN.md) for the detailed Session 20 plan and
@@ -131,7 +134,12 @@ BCC Dirac, BCC Wilson, and Wilson-force policy remains in `spacetime_qca`.
 uv run pytest src/clifford_3plus2_d5/spacetime_qca/tests/ -q
 ```
 
-Expected: 114 tests green.
+Expected: 130 tests green.
+
+On memory-constrained machines, prefer running the JAX dynamics files in
+smaller groups.  JAX compilation caches can accumulate across the full
+`spacetime_qca` suite, and the SU(3) force path currently differentiates
+through batched matrix exponentials.
 
 ## Session 21 result
 
@@ -324,8 +332,45 @@ physical gauge-field evolution rule.
 
 Interpretation: the module now has a first reversible compact SU(2)
 gauge-field dynamics prototype.  It is still not a full physical Yang-Mills
-QCA: there is no Gauss-law projection, no fermion backreaction, and no SU(3) or
+QCA: there is no Gauss-law projection, no fermion backreaction, and no SU(4) or
 Pati-Salam force projection yet.
+
+## Session 33 result
+
+- Fundamental SU(3) generators `T_a = -i lambda_a / 2` are implemented in JAX.
+- Anti-Hermitian traceless `3 x 3` matrices can be projected back to SU(3)
+  generator coordinates with
+  `theta_a = 2 Re Tr(T_a^dagger A)`.
+- Compact SU(3) links are built from Lie-algebra coordinates with batched
+  matrix exponentials.
+- Site-local SU(3) gauge fields and finite pure-gauge link fields are
+  implemented in the BCC pull convention.
+- Zero links and finite pure-gauge SU(3) links have zero Wilson action and
+  zero left force.
+- A deterministic non-flat SU(3) field has non-zero left force.
+- The left force matches a centered compact left directional finite
+  difference.
+- Compact left descent preserves SU(3) links and lowers the Wilson action.
+- SU(3) momentum coordinates lift to anti-Hermitian traceless matrices.
+- Target-site adjoint gauge transforms of momentum fields preserve kinetic
+  energy density.
+- The SU(3) gauge Hamiltonian-density helper combines
+  `0.5 mean_link ||P||^2` with `beta * S_W_density`.
+- Compact momentum updates and leapfrog updates preserve link unitarity and
+  determinant `1`.
+- Forward then negative-time leapfrog recovers links and momenta within
+  numerical tolerance.
+- Hamiltonian-density drift is finite and smaller at smaller step size.
+- Leapfrog is covariant under finite site-local SU(3) gauge transforms.
+- The compact SU(3) momentum update is `jax.jit` compilable.
+
+Interpretation: the module now has a compact SU(3) color-gauge dynamics
+prototype matching the SU(2) force/leapfrog convention.  It is still a gauge
+simulation-control layer: no Gauss-law projection, no fermion backreaction,
+and no SU(4) / Pati-Salam compact dynamics yet.  The SU(3) left force still
+uses reverse-mode autodiff through compact perturbation exponentials, so
+JIT-compiling the full SU(3) leapfrog is intentionally not part of the default
+test suite until a staple/vectorized force is implemented.
 
 ## Session 24 result
 
