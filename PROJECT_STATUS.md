@@ -85,7 +85,8 @@ audit complete; 24 position-dependent background gauge covariance complete;
 24b BCC plaquette holonomy complete; 25 static Higgs/Yukawa map-layer audit
 complete; 26 JAX numerical backend complete; 27 Wilson plaquette observables
 complete; 28 Wilson action normalization complete; 29 SO(2) Wilson-action
-gradients complete; 30 SU(2) nonabelian Wilson-force controls complete.
+gradients complete; 30 SU(2) nonabelian Wilson-force controls complete; 31
+left-trivialized SU(2) force and compact descent complete.
 
 **Implemented**:
 - BCC geometry (8 body diagonals).
@@ -110,6 +111,8 @@ gradients complete; 30 SU(2) nonabelian Wilson-force controls complete.
   pure-gauge flatness checks, and `jax.jit` gradient support.
 - SU(2)-parameterized JAX Wilson-action gradients, finite gauge-transform
   invariance, pure-gauge controls, and `jax.jit` gradient support.
+- SU(2) left-trivialized Wilson force, compact left updates, and deterministic
+  action-descent controls.
 - Real-form internal convention: the internal chiral-16 is kept as `R^32`
   with compatible `J`, equivalent to `C^16` but not compressed to a
   `16 x 16` complex basis.  Tensor-lift matrices currently have size
@@ -131,7 +134,8 @@ gradients complete; 30 SU(2) nonabelian Wilson-force controls complete.
 - Session 28 report: `src/clifford_3plus2_d5/spacetime_qca/SESSION_28_WILSON_ACTION.md`.
 - Session 29 report: `src/clifford_3plus2_d5/spacetime_qca/SESSION_29_WILSON_GRADIENTS.md`.
 - Session 30 report: `src/clifford_3plus2_d5/spacetime_qca/SESSION_30_SU2_FORCE.md`.
-- 97 passing tests.
+- Session 31 report: `src/clifford_3plus2_d5/spacetime_qca/SESSION_31_SU2_LEFT_FORCE.md`.
+- 105 passing tests.
 
 **Result**:
 - `H_R(k) = sigma . k`.
@@ -185,6 +189,9 @@ gradients complete; 30 SU(2) nonabelian Wilson-force controls complete.
   fields, Cartan pure-gauge coordinates, and finite pure-gauge links are flat;
   non-flat fields have non-zero gradient; finite gauge transforms preserve
   action density.
+- SU(2) compact-link left-trivialized forces are implemented in JAX; zero and
+  finite pure-gauge links have zero left force; non-flat fields have non-zero
+  force; compact descent preserves SU(2) links and lowers the Wilson action.
 
 **Open**:
 - Full fundamental-BCC-Brillouin-zone no-doubling proof.
@@ -193,6 +200,8 @@ gradients complete; 30 SU(2) nonabelian Wilson-force controls complete.
 - Dynamical Higgs-Yukawa layer and realistic Yukawa mass matrices.
 - SU(3), SU(4), or Pati-Salam Wilson-action gradients / force projection and
   dynamical gauge fields.
+- Reversible/symplectic gauge-field update rules beyond deterministic compact
+  descent.
 - Numerical performance benchmarks and long-time stability tests.
 
 ## triality — closed: negative result

@@ -3,13 +3,17 @@
 Session 29 introduced the smallest compact gauge testbed: every BCC link is an
 SO(2) rotation parameterized by one real angle.  Session 30 extends the same
 Wilson-gradient audit to fundamental SU(2) links, the smallest compact
-nonabelian testbed.
+nonabelian testbed.  Session 31 adds a left-trivialized SU(2) force audit and
+compact action-descent update.
 
 * zero field has zero action and zero gradient;
 * pure gauges have zero action and zero gradient;
 * non-flat fields have non-zero curvature and a non-zero action gradient.
 
-This is a force audit, not a dynamical gauge update rule.  Full SU(N) force
+This is a force audit, not a production HMC implementation.  The
+left-trivialized force is computed by differentiating compact left
+perturbations ``exp(omega_a T_a) U``.  Focused finite-difference tests pin the
+convention before a future vectorized staple formula.  Full SU(N) force
 projection and leapfrog/heatbath dynamics remain future work.
 """
 
@@ -43,6 +47,11 @@ def _validate_su2_link_algebra(theta: jnp.ndarray) -> None:
 def _validate_su2_site_algebra(site_theta: jnp.ndarray) -> None:
     if site_theta.ndim != 4 or site_theta.shape[-1] != 3:
         raise ValueError("SU(2) site algebra coordinates must have shape (nx, ny, nz, 3)")
+
+
+def _validate_su2_links(links: jnp.ndarray) -> None:
+    if links.ndim != 6 or links.shape[3:] != (8, 2, 2):
+        raise ValueError("SU(2) BCC links must have shape (nx, ny, nz, 8, 2, 2)")
 
 
 def jax_so2_rotation(theta: jnp.ndarray) -> jnp.ndarray:
@@ -139,6 +148,25 @@ def jax_su2_generators(dtype: jnp.dtype = jnp.complex64) -> jnp.ndarray:
     return -0.5j * jnp.stack((sigma_x, sigma_y, sigma_z), axis=0)
 
 
+def jax_su2_project_antihermitian_to_algebra(matrix: jnp.ndarray) -> jnp.ndarray:
+    """Project anti-Hermitian traceless matrices onto SU(2) coordinates.
+
+    The generator convention is ``T_a = -i sigma_a / 2``.  For
+    ``A = theta_a T_a`` the returned coordinates are ``theta_a``.  The
+    projection uses the Hilbert-Schmidt inner product
+    ``theta_a = 2 Re Tr(T_a^dagger A)`` and accepts arrays with shape
+    ``(..., 2, 2)``.
+    """
+
+    if matrix.shape[-2:] != (2, 2):
+        raise ValueError("SU(2) algebra matrices must have trailing shape (2, 2)")
+
+    generators = jax_su2_generators(dtype=jnp.result_type(matrix, 1j))
+    generator_daggers = jnp.swapaxes(jnp.conj(generators), -1, -2)
+    inner_products = jnp.einsum("aij,...ji->...a", generator_daggers, matrix)
+    return 2 * jnp.real(inner_products)
+
+
 def jax_su2_link_from_algebra(theta: jnp.ndarray) -> jnp.ndarray:
     """Return compact SU(2) matrices from Lie-algebra coordinates.
 
@@ -223,3 +251,97 @@ def jax_su2_wilson_action_gradient(
     """
 
     return jax.grad(lambda coordinates: jax_su2_wilson_action_density(coordinates, shapes))(theta)
+
+
+def jax_su2_left_force(
+    links: jnp.ndarray,
+    *,
+    epsilon: float = 1e-3,
+    shapes: tuple[PlaquetteShape, ...] | None = None,
+) -> jnp.ndarray:
+    """Return the left-trivialized Wilson force.
+
+    For each link ``U[x,h]`` and generator ``T_a`` this computes
+
+    ``d/deps S(..., exp(eps T_a) U[x,h], ...)|_{eps=0}``
+
+    by differentiating the action with respect to left-perturbation
+    coordinates.  The returned array has shape ``(nx, ny, nz, 8, 3)``.
+    ``epsilon`` is retained for Session 31 finite-difference callers that
+    check the same convention; the force itself uses JAX autodiff.
+    """
+
+    _validate_su2_links(links)
+    if epsilon <= 0:
+        raise ValueError("epsilon must be positive")
+
+    real_dtype = jnp.real(jnp.asarray(0, dtype=links.dtype)).dtype
+    zero_perturbation = jnp.zeros((*links.shape[:4], 3), dtype=real_dtype)
+
+    def action_from_left_perturbation(perturbation: jnp.ndarray) -> jnp.ndarray:
+        return jax_average_wilson_action_density(
+            _jax_su2_apply_left_coordinates(links, perturbation),
+            shapes,
+        )
+
+    return jax.grad(action_from_left_perturbation)(zero_perturbation)
+
+
+def jax_su2_left_force_from_algebra(
+    theta: jnp.ndarray,
+    *,
+    epsilon: float = 1e-3,
+    shapes: tuple[PlaquetteShape, ...] | None = None,
+) -> jnp.ndarray:
+    """Return left-trivialized SU(2) force for coordinate-built links."""
+
+    return jax_su2_left_force(
+        jax_su2_link_field_from_algebra(theta),
+        epsilon=epsilon,
+        shapes=shapes,
+    )
+
+
+def jax_su2_apply_left_update(
+    links: jnp.ndarray,
+    force: jnp.ndarray,
+    *,
+    step_size: float,
+) -> jnp.ndarray:
+    """Apply a compact left gradient-descent update to SU(2) links.
+
+    The update convention is
+    ``U[x,h] -> exp(-step_size * force[x,h,a] T_a) U[x,h]``.  Since the
+    update is a group exponential multiplied into the link, compactness is
+    preserved up to numerical precision.
+    """
+
+    _validate_su2_links(links)
+    if force.shape != (*links.shape[:4], 3):
+        raise ValueError("force must have shape (nx, ny, nz, 8, 3)")
+
+    return _jax_su2_apply_left_coordinates(links, -jnp.asarray(step_size, dtype=force.dtype) * force)
+
+
+def jax_su2_action_descent_step(
+    links: jnp.ndarray,
+    *,
+    step_size: float = 0.05,
+    epsilon: float = 1e-3,
+    shapes: tuple[PlaquetteShape, ...] | None = None,
+) -> tuple[jnp.ndarray, jnp.ndarray]:
+    """Return ``(updated_links, force)`` for one compact Wilson descent step."""
+
+    force = jax_su2_left_force(links, epsilon=epsilon, shapes=shapes)
+    return jax_su2_apply_left_update(links, force, step_size=step_size), force
+
+
+def _jax_su2_apply_left_coordinates(links: jnp.ndarray, coordinates: jnp.ndarray) -> jnp.ndarray:
+    """Apply ``exp(coordinates_a T_a)`` to each link from the left."""
+
+    _validate_su2_links(links)
+    if coordinates.shape != (*links.shape[:4], 3):
+        raise ValueError("coordinates must have shape (nx, ny, nz, 8, 3)")
+
+    updates = jax_su2_link_from_algebra(coordinates)
+    return jnp.einsum("...ij,...jk->...ik", updates, links)

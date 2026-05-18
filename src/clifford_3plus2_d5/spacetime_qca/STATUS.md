@@ -1,11 +1,11 @@
 # spacetime_qca — Status
 
-**Status**: in progress. Sessions 20-30 complete through finite real-space
+**Status**: in progress. Sessions 20-31 complete through finite real-space
 BCC stepping, representation-level Higgs/Yukawa audit, position-dependent
 background gauge covariance, BCC plaquette holonomy geometry, and a static
 Higgs/Yukawa map-layer audit, a JAX numerical backend, Wilson plaquette
 observables/action normalization, SO(2) Wilson-action gradients, and SU(2)
-nonabelian Wilson-force controls.
+nonabelian Wilson-force controls with compact left-trivialized descent.
 
 This module builds the 3D spatial side of the QCA: a BCC Weyl walk
 (Bialynicki-Birula 1994) and its chiral assembly into a 4D Dirac carrier,
@@ -39,7 +39,7 @@ scalars.  A compressed explicit `C^16_internal` basis is not implemented yet.
 - `wilson.py`, `jax_wilson.py` — exact and numerical Wilson plaquette
   observables and action densities.
 - `jax_gauge_force.py` — SO(2) and SU(2) compact-link JAX Wilson-action
-  gradients.
+  gradients, SU(2) left-trivialized force, and compact action descent.
 - `lattice.py`, `state.py`, `step.py` — finite periodic real-space BCC step.
 - `audit.py` — result payloads for the report.
 - `SESSION_20_BCC_DIRAC.md` — Session 20 result report.
@@ -54,7 +54,8 @@ scalars.  A compressed explicit `C^16_internal` basis is not implemented yet.
 - `SESSION_28_WILSON_ACTION.md` — Session 28 result report.
 - `SESSION_29_WILSON_GRADIENTS.md` — Session 29 result report.
 - `SESSION_30_SU2_FORCE.md` — Session 30 result report.
-- 97 passing tests.
+- `SESSION_31_SU2_LEFT_FORCE.md` — Session 31 result report.
+- 105 passing tests.
 
 ## Session 20 result
 
@@ -97,13 +98,14 @@ scalars.  A compressed explicit `C^16_internal` basis is not implemented yet.
 - Dynamic Higgs-Yukawa layer.
 - Dynamical gauge fields.
 - SU(3), SU(4), or Pati-Salam Wilson-action gradients and force projection.
+- Vectorized SU(2) staple force and reversible/symplectic gauge updates.
 - Lorentz boost recovery beyond the `alpha . k` continuum precursor.
 - Numerical performance benchmarks and long-time stability tests.
 
 ## Sessions ahead
 
 - Session 20b: full symbolic BCC unitarity and no-doubling hardening.
-- Session 31: nonabelian force projection or dynamical gauge update
+- Session 32: SU(3)/Pati-Salam force projection or reversible gauge-update
   feasibility audit.
 
 See [PLAN.md](PLAN.md) for the detailed Session 20 plan and
@@ -125,7 +127,7 @@ BCC Dirac, BCC Wilson, and Wilson-force policy remains in `spacetime_qca`.
 uv run pytest src/clifford_3plus2_d5/spacetime_qca/tests/ -q
 ```
 
-Expected: 97 tests green.
+Expected: 105 tests green.
 
 ## Session 21 result
 
@@ -274,6 +276,28 @@ is not yet a nonabelian force projection or a dynamical gauge update.
 Interpretation: the Wilson-action layer now supports a compact nonabelian
 force audit.  This is still not a left-trivialized force projection or a
 dynamical gauge-field update.
+
+## Session 31 result
+
+- Anti-Hermitian traceless `2 x 2` matrices can be projected back to SU(2)
+  generator coordinates with the convention
+  `theta_a = 2 Re Tr(T_a^dagger A)`.
+- The SU(2) Wilson action now exposes a left-trivialized force for compact
+  perturbations `U[x,h] -> exp(omega_a T_a) U[x,h]`.
+- Zero links and finite pure-gauge SU(2) links have zero left force.
+- The left force matches a centered finite difference along a deterministic
+  left-perturbation direction.
+- A deterministic non-flat SU(2) field has non-zero left force.
+- Compact left updates
+  `U -> exp(-eta force_a T_a) U` preserve unitarity and determinant `1`.
+- One deterministic compact descent step lowers the Wilson action.
+- The descended action is invariant under finite site-local gauge transforms.
+- The left-force helper is `jax.jit` compilable.
+
+Interpretation: the module now has the first compact nonabelian update control:
+curvature observable, Wilson action, left-trivialized force, and compact
+descent are all present.  This is still steepest-descent infrastructure, not a
+physical gauge-field evolution rule.
 
 ## Session 24 result
 
