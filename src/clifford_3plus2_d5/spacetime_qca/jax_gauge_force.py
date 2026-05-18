@@ -1,16 +1,16 @@
-"""JAX gauge-force helpers for compact SO(2) BCC link fields.
+"""JAX gauge-force helpers for compact BCC link fields.
 
-Session 29 intentionally uses the smallest compact gauge testbed: every BCC
-link is an SO(2) rotation parameterized by one real angle.  This keeps the
-Wilson action differentiable through ordinary JAX arrays while preserving the
-important lattice-gauge controls:
+Session 29 introduced the smallest compact gauge testbed: every BCC link is an
+SO(2) rotation parameterized by one real angle.  Session 30 extends the same
+Wilson-gradient audit to fundamental SU(2) links, the smallest compact
+nonabelian testbed.
 
 * zero field has zero action and zero gradient;
 * pure gauges have zero action and zero gradient;
 * non-flat fields have non-zero curvature and a non-zero action gradient.
 
-This is a force audit, not a dynamical gauge update rule.  Nonabelian SU(N)
-force projection and leapfrog/heatbath dynamics remain future work.
+This is a force audit, not a dynamical gauge update rule.  Full SU(N) force
+projection and leapfrog/heatbath dynamics remain future work.
 """
 
 from __future__ import annotations
@@ -28,6 +28,16 @@ from clifford_3plus2_d5.spacetime_qca.plaquette import PlaquetteShape
 def _validate_so2_angles(theta: jnp.ndarray) -> None:
     if theta.ndim != 4 or theta.shape[-1] != 8:
         raise ValueError("SO(2) link angles must have shape (nx, ny, nz, 8)")
+
+
+def _validate_su2_link_algebra(theta: jnp.ndarray) -> None:
+    if theta.ndim != 5 or theta.shape[-2:] != (8, 3):
+        raise ValueError("SU(2) link algebra coordinates must have shape (nx, ny, nz, 8, 3)")
+
+
+def _validate_su2_site_algebra(site_theta: jnp.ndarray) -> None:
+    if site_theta.ndim != 4 or site_theta.shape[-1] != 3:
+        raise ValueError("SU(2) site algebra coordinates must have shape (nx, ny, nz, 3)")
 
 
 def jax_so2_rotation(theta: jnp.ndarray) -> jnp.ndarray:
@@ -114,3 +124,125 @@ def jax_centered_finite_difference(
 
     step = jnp.asarray(epsilon, dtype=theta.dtype)
     return (fn(theta + step * direction) - fn(theta - step * direction)) / (2 * step)
+
+
+def jax_su2_generators(dtype: jnp.dtype = jnp.complex64) -> jnp.ndarray:
+    """Return anti-Hermitian fundamental SU(2) generators ``T_a = -i sigma_a/2``."""
+
+    zero = jnp.asarray(0, dtype=dtype)
+    one = jnp.asarray(1, dtype=dtype)
+    imag = jnp.asarray(1j, dtype=dtype)
+    sigma_x = jnp.asarray(((zero, one), (one, zero)), dtype=dtype)
+    sigma_y = jnp.asarray(((zero, -imag), (imag, zero)), dtype=dtype)
+    sigma_z = jnp.asarray(((one, zero), (zero, -one)), dtype=dtype)
+    return -0.5j * jnp.stack((sigma_x, sigma_y, sigma_z), axis=0)
+
+
+def jax_su2_link_from_algebra(theta: jnp.ndarray) -> jnp.ndarray:
+    """Return compact SU(2) matrices from Lie-algebra coordinates.
+
+    ``theta`` has shape ``(..., 3)`` and represents
+    ``exp(theta_a T_a)`` with ``T_a = -i sigma_a / 2``.  The closed form uses
+    ``exp(-i theta.sigma / 2)`` with a stable small-angle branch.
+    """
+
+    if theta.shape[-1:] != (3,):
+        raise ValueError("SU(2) algebra coordinates must have trailing dimension 3")
+
+    dtype = jnp.result_type(theta, 1j)
+    coordinates = theta.astype(jnp.real(jnp.asarray(0, dtype=dtype)).dtype)
+    generators = jax_su2_generators(dtype=dtype)
+    algebra = jnp.einsum("...a,aij->...ij", coordinates, generators)
+    radius_squared = jnp.sum(coordinates * coordinates, axis=-1)
+    small = radius_squared < 1e-12
+    safe_radius = jnp.sqrt(jnp.where(small, jnp.ones_like(radius_squared), radius_squared))
+    exact_cos = jnp.cos(0.5 * safe_radius)
+    exact_scale = 2 * jnp.sin(0.5 * safe_radius) / safe_radius
+    series_cos = 1 - radius_squared / 8 + radius_squared**2 / 384
+    series_scale = 1 - radius_squared / 24 + radius_squared**2 / 1920
+    cos_factor = jnp.where(small, series_cos, exact_cos)
+    scale = jnp.where(small, series_scale, exact_scale)
+    eye = jnp.eye(2, dtype=dtype)
+    return cos_factor[..., None, None] * eye + scale[..., None, None] * algebra
+
+
+def jax_su2_link_field_from_algebra(theta: jnp.ndarray) -> jnp.ndarray:
+    """Return a BCC JAX link field from SU(2) link-algebra coordinates."""
+
+    _validate_su2_link_algebra(theta)
+    return jax_su2_link_from_algebra(theta)
+
+
+def jax_su2_site_field_from_algebra(site_theta: jnp.ndarray) -> jnp.ndarray:
+    """Return site-local SU(2) gauge matrices from algebra coordinates."""
+
+    _validate_su2_site_algebra(site_theta)
+    return jax_su2_link_from_algebra(site_theta)
+
+
+def jax_transform_link_field(links: jnp.ndarray, site_gauge: jnp.ndarray) -> jnp.ndarray:
+    """Apply finite site-local gauge transforms to BCC pull-convention links.
+
+    The convention matches the exact backend:
+    ``U[x,h] -> G[x] U[x,h] G[x+h]^dagger``.
+    """
+
+    if links.ndim != 6 or links.shape[3] != 8:
+        raise ValueError("links must have shape (nx, ny, nz, 8, internal_dim, internal_dim)")
+    if site_gauge.ndim != 5 or site_gauge.shape[:3] != links.shape[:3]:
+        raise ValueError("site_gauge must have shape (nx, ny, nz, internal_dim, internal_dim)")
+    if links.shape[-2:] != site_gauge.shape[-2:] or links.shape[-1] != links.shape[-2]:
+        raise ValueError("site gauges and link matrices must have matching square dimensions")
+
+    transformed = []
+    for index, displacement in enumerate(jax_bcc_displacements()):
+        source_gauge = jnp.roll(
+            site_gauge,
+            shift=tuple(-component for component in displacement),
+            axis=(0, 1, 2),
+        )
+        source_dagger = jnp.swapaxes(jnp.conj(source_gauge), -1, -2)
+        transformed.append(
+            jnp.einsum(
+                "...ab,...bc,...cd->...ad",
+                site_gauge,
+                links[..., index, :, :],
+                source_dagger,
+            ),
+        )
+    return jnp.stack(transformed, axis=3)
+
+
+def jax_su2_pure_gauge_links_from_site_algebra(site_theta: jnp.ndarray) -> jnp.ndarray:
+    """Return pure-gauge SU(2) BCC links generated by site-local gauges."""
+
+    site_gauge = jax_su2_site_field_from_algebra(site_theta)
+    eye = jnp.eye(2, dtype=site_gauge.dtype)
+    identity_links = jnp.broadcast_to(eye, (*site_gauge.shape[:3], 8, 2, 2))
+    return jax_transform_link_field(identity_links, site_gauge)
+
+
+def jax_su2_wilson_action_density(
+    theta: jnp.ndarray,
+    shapes: tuple[PlaquetteShape, ...] | None = None,
+) -> jnp.ndarray:
+    """Return Wilson action density for SU(2)-parameterized BCC links."""
+
+    return jax_average_wilson_action_density(
+        jax_su2_link_field_from_algebra(theta),
+        shapes,
+    )
+
+
+def jax_su2_wilson_action_gradient(
+    theta: jnp.ndarray,
+    shapes: tuple[PlaquetteShape, ...] | None = None,
+) -> jnp.ndarray:
+    """Return the Lie-coordinate gradient of the SU(2) Wilson action.
+
+    This is the gradient with respect to the unconstrained coordinates
+    ``theta_a`` used in ``exp(theta_a T_a)``.  It is not yet a
+    left-trivialized HMC force.
+    """
+
+    return jax.grad(lambda coordinates: jax_su2_wilson_action_density(coordinates, shapes))(theta)

@@ -1,10 +1,11 @@
 # spacetime_qca — Status
 
-**Status**: in progress. Sessions 20-29 complete through finite real-space
+**Status**: in progress. Sessions 20-30 complete through finite real-space
 BCC stepping, representation-level Higgs/Yukawa audit, position-dependent
 background gauge covariance, BCC plaquette holonomy geometry, and a static
 Higgs/Yukawa map-layer audit, a JAX numerical backend, Wilson plaquette
-observables/action normalization, and SO(2) Wilson-action gradients.
+observables/action normalization, SO(2) Wilson-action gradients, and SU(2)
+nonabelian Wilson-force controls.
 
 This module builds the 3D spatial side of the QCA: a BCC Weyl walk
 (Bialynicki-Birula 1994) and its chiral assembly into a 4D Dirac carrier,
@@ -35,7 +36,8 @@ scalars.  A compressed explicit `C^16_internal` basis is not implemented yet.
   layout and BCC Dirac step kernels.
 - `wilson.py`, `jax_wilson.py` — exact and numerical Wilson plaquette
   observables and action densities.
-- `jax_gauge_force.py` — SO(2)-parameterized JAX Wilson-action gradients.
+- `jax_gauge_force.py` — SO(2) and SU(2) compact-link JAX Wilson-action
+  gradients.
 - `lattice.py`, `state.py`, `step.py` — finite periodic real-space BCC step.
 - `audit.py` — result payloads for the report.
 - `SESSION_20_BCC_DIRAC.md` — Session 20 result report.
@@ -49,7 +51,8 @@ scalars.  A compressed explicit `C^16_internal` basis is not implemented yet.
 - `SESSION_27_WILSON_OBSERVABLES.md` — Session 27 result report.
 - `SESSION_28_WILSON_ACTION.md` — Session 28 result report.
 - `SESSION_29_WILSON_GRADIENTS.md` — Session 29 result report.
-- 88 passing tests.
+- `SESSION_30_SU2_FORCE.md` — Session 30 result report.
+- 97 passing tests.
 
 ## Session 20 result
 
@@ -91,14 +94,14 @@ scalars.  A compressed explicit `C^16_internal` basis is not implemented yet.
 - Vectorized Wilson action evaluation for large lattices.
 - Dynamic Higgs-Yukawa layer.
 - Dynamical gauge fields.
-- Nonabelian SU(N) Wilson-action gradients and force projection.
+- SU(3), SU(4), or Pati-Salam Wilson-action gradients and force projection.
 - Lorentz boost recovery beyond the `alpha . k` continuum precursor.
 - Numerical performance benchmarks and long-time stability tests.
 
 ## Sessions ahead
 
 - Session 20b: full symbolic BCC unitarity and no-doubling hardening.
-- Session 30: nonabelian gauge-force projection or dynamical gauge update
+- Session 31: nonabelian force projection or dynamical gauge update
   feasibility audit.
 
 See [PLAN.md](PLAN.md) for the detailed Session 20 plan and
@@ -117,7 +120,7 @@ interfaces.
 uv run pytest src/clifford_3plus2_d5/spacetime_qca/tests/ -q
 ```
 
-Expected: 88 tests green.
+Expected: 97 tests green.
 
 ## Session 21 result
 
@@ -243,6 +246,29 @@ not a dynamical gauge-field update.
 Interpretation: the Wilson-action layer is now differentiable in compact
 SO(2) link variables and has the expected abelian gauge-force controls.  This
 is not yet a nonabelian force projection or a dynamical gauge update.
+
+## Session 30 result
+
+- Fundamental SU(2) generators `T_a = -i sigma_a / 2` are implemented in JAX.
+- Compact SU(2) links are built from Lie-algebra coordinates using a closed
+  form exponential with a stable small-angle branch.
+- Site-local SU(2) gauge fields and finite link-field gauge transforms are
+  implemented in the existing BCC pull convention.
+- Pure-gauge SU(2) links can be generated from site-local gauges.
+- SU(2) Wilson action density and coordinate gradients are implemented with
+  `jax.grad`.
+- Zero fields and Cartan-subgroup pure-gauge coordinates have zero action and
+  zero gradient.
+- Full finite pure-gauge links have zero action.
+- A deterministic non-flat SU(2) field has positive action and non-zero
+  gradient.
+- The SU(2) gradient matches centered directional finite differences.
+- Finite site-local SU(2) gauge transforms preserve the Wilson action density.
+- The SU(2) gradient helper is `jax.jit` compilable.
+
+Interpretation: the Wilson-action layer now supports a compact nonabelian
+force audit.  This is still not a left-trivialized force projection or a
+dynamical gauge-field update.
 
 ## Session 24 result
 
