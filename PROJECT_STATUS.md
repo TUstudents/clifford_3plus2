@@ -157,6 +157,92 @@ complete.
 - Wilson action normalization and dynamical gauge fields.
 - Numerical performance benchmarks and long-time stability tests.
 
+## triality — closed: negative result
+
+**Goal**: test whether the explicit Spin(8) triality outer automorphism can
+produce three equivalent SM-generation carriers from one chiral-16, without
+declaring three generations by hand.
+
+**Result**: K1 FAIL.  Triality maps each of the three SM-inside-Spin(8)
+Cartan generators outside the SM Cartan subspace:
+
+| SM Cartan generator | Cartan coords | Image under triality |
+|---|---|---|
+| SU(3)_c v_0 | (-1, 1, 0, 0) | (0, 0, -1, 1) — outside |
+| SU(3)_c v_1 | (-1, 0, 1, 0) | (0, -1, 0, 1) — outside |
+| Y'         | (1/3, 1/3, 1/3, 1/2) | (3/4, -1/12, -1/12, -1/12) — outside |
+
+Therefore the Spin(8) triality outer automorphism does not preserve
+`g_SM(8) = SU(3)_c ⊕ U(1)_{Y'}` as a subalgebra, and the three rotated
+chiral-16 carriers carry inequivalent SM-content positions.
+
+**Underlying tension**: Spin(8) triality is the D_4 Dynkin Z/3 symmetry
+acting symmetrically on the four Cartan elements `H_0..H_3`, but the
+Pati-Salam factorization `Cl(0,6) ⊗ Cl(0,4)` makes `H_3` qualitatively
+different.  Triality does not respect the Pati-Salam asymmetry.
+
+**Implemented**:
+- 28 Spin(8) generators on the chiral-16 via Cl(0,10) index `{0..7}`
+  embedding.
+- 4×4 triality Cartan matrix `T`: orthogonal, order 3, det +1.
+- Spin(8)-restricted hypercharge `Y' = (1/3, 1/3, 1/3, 1/2)`.
+- K1 test (Cartan-subspace preservation) and K2 spectrum diagnostic.
+
+**Tests**: 21 passing.
+
+**What this rules out vs preserves**: see
+`src/clifford_3plus2_d5/triality/SESSION_T_KILL_TEST.md`.
+
+**Open** (intentionally out of scope): non-natural Spin(8) embeddings,
+approximate / broken triality (see ``broken_triality``), discrete-flavor
+models without Spin(8) origin.
+
+## broken_triality — closed: negative result
+
+**Goal**: follow-up after the exact-triality K1 failure.  Reinterpret the
+failure direction as a forced flavor structure: build a 3×3 Yukawa from
+triality-rotated, SM-projected vectors and ask whether the resulting
+spectrum can support SM mass hierarchy + CP phase.
+
+**Result**: BT-1 PASS (with caveat), BT-2 FAIL.
+
+| Kill | Verdict | Detail |
+|---|---|---|
+| BT-1 (Yukawa overlap structure)  | PASS  | 3 distinct eigenvalues {5/7, 31/72, 0}, off-diagonals non-zero, rank 2 |
+| BT-2 (mass hierarchy)            | **FAIL** | non-zero ratio 360/217 ≈ 1.66, far below fail threshold 10 |
+| BT-3 (CP phase)                  | skipped | program closed at BT-2 |
+| BT-4 (parameter audit)           | skipped | program closed at BT-2 |
+
+The default starting vector `v_* = Y'` has an `H_1 ↔ H_2` swap symmetry
+that survives the triality cycle and SM projection, forcing the Yukawa
+to be rank 2.  The two non-zero eigenvalues differ by a factor of only
+~1.66 — essentially flat compared to the SM's 10²–10⁵ ratios within a
+sector.
+
+**Combined message with triality/**: both sidecars died on the same
+structural mismatch.  Spin(8) triality is symmetric across `H_0..H_3`;
+the Pati-Salam-aligned SM Cartan picks out `H_3`.  Whichever direction
+you push the construction, the alignment fails.
+
+**Implemented**:
+- BT-1 (`yukawa_overlaps.py`): triality orbit + SM Cartan projection +
+  3×3 overlap matrix + audit payload.
+- BT-2 (`mass_hierarchy.py`): non-zero eigenvalue ratio against pass/fail
+  thresholds.
+- No new octonion / Clifford / Pati-Salam code; all algebra comes from
+  ``triality/reuse.py``.
+
+**Tests**: 17 passing.
+
+**What this rules out vs preserves**: see
+`src/clifford_3plus2_d5/broken_triality/SESSION_BT_KILL_TESTS.md`.  The
+"approximate embedding / CP from BCC lattice anisotropy" hope is
+**orthogonal** to triality and not addressed here.
+
+**Effort spent**: ~4 hours of focused work.  Original sidecar sketch
+budget was 3-6 months; the early-kill discipline returned a publishable
+negative result in ~1% of that.
+
 ## Workspace meta
 
 - [`docs/PUBLICATION_PLAN.md`](docs/PUBLICATION_PLAN.md) — publication plan for the obstruction_r10 paper.
@@ -171,8 +257,12 @@ complete.
 | `lepton.*` | `algebra.*` | Shared exact rational matrix algebra. |
 | `spacetime_qca.*` | `algebra.*` | Shared matrix utilities. |
 | `spacetime_qca.tests.*` | `lepton.checkerboard_patisalam`, `lepton.clifford_patisalam`, `lepton.patisalam_sm`, `lepton.sm_hypercharge` | Sessions 20-21 verify tensor lift and mass compatibility with real Pati-Salam / SM internal generators. |
+| `triality.reuse` | `lepton.clifford_octonion`, `lepton.clifford_patisalam`, `lepton.patisalam_sm`, `lepton.sm_hypercharge` | Single import surface for the triality kill test. |
+| `broken_triality.reuse` | `triality.*` | All algebra from triality (which itself imports from lepton); no new octonion / Clifford code. |
 | `obstruction_r10.qca.*` | `algebra.*` | Shared matrix utilities. |
 
-Runtime sidecar code remains mostly factored.  The visible sidecar coupling
-today is test-level: `spacetime_qca` verifies tensor compatibility against a
-small set of real internal generators from `lepton`.
+Runtime sidecar code remains mostly factored.  The visible sidecar couplings
+today: `spacetime_qca` verifies tensor compatibility against a small set of
+real internal generators from `lepton`; `triality` and `broken_triality`
+import from `lepton` through their own thin `reuse.py` modules without
+duplicating any algebra.

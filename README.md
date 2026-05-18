@@ -11,7 +11,9 @@ matrix algebra, exterior algebra, Spin(10) branching).
 |---|---|---|
 | [`obstruction_r10`](src/clifford_3plus2_d5/obstruction_r10/) | **Frozen for publication** | Carrier-first QCA derivation of the chiral-16 of Spin(10) on `R^10`, with five structural obstruction propositions. The five propositions plus two corollaries close specified primitive classes; conjectural Proposition 4b has a finite census witness. |
 | [`lepton`](src/clifford_3plus2_d5/lepton/) | **Positive result, active** | Cl(0,10) Pati-Salam factorization producing the full SM gauge content (`SU(3) × SU(2)_L × U(1)_Y`), a compatible complex structure, and the correct one-generation hypercharge spectrum, with 1+1D massless-Dirac/Weyl continuum dynamics under background gauge links. |
-| [`spacetime_qca`](src/clifford_3plus2_d5/spacetime_qca/) | **In progress** | 3D BCC Weyl walk (Bialynicki-Birula 1994), Dirac chiral assembly, hypercubic doubling control, and tensor lift toward the lepton module's internal carrier. Session 20 scaffolding present; full continuum audit not yet complete. |
+| [`spacetime_qca`](src/clifford_3plus2_d5/spacetime_qca/) | **In progress** | 3D BCC Weyl walk (Bialynicki-Birula 1994), Dirac chiral assembly, hypercubic doubling control, tensor lift to the lepton internal carrier, position-dependent background gauge covariance, JAX numerical backend, and Wilson plaquette observables/action. |
+| [`triality`](src/clifford_3plus2_d5/triality/) | **Closed: negative result** | Spin(8) triality kill test. K1 failed: the natural Pati-Salam-aligned SM Cartan is not preserved as a subspace by the order-3 outer automorphism. Three triality copies cannot represent three equivalent SM generations under this embedding. |
+| [`broken_triality`](src/clifford_3plus2_d5/broken_triality/) | **Closed: negative result** | Broken-Z/3 follow-on to the triality kill test.  BT-1 passed (3 distinct Yukawa eigenvalues with non-zero mixing) but BT-2 failed: non-zero eigenvalue ratio `360/217 ≈ 1.66`, essentially flat.  Pure triality projection of a hypercharge-aligned vector does not produce SM mass hierarchy. |
 
 ## Read the project status
 
@@ -27,8 +29,10 @@ These live at the package root and are imported by multiple modules:
 
 ## Cross-module dependencies
 
-- `lepton` depends on `obstruction_r10.qca.rule_verdict` (VerdictProfile-based verdict path). This is the one cross-module coupling.
-- `spacetime_qca` has no cross-module dependencies outside `algebra/`.
+- `lepton` depends on `obstruction_r10.qca.rule_verdict` (VerdictProfile-based verdict path).
+- `spacetime_qca` test-level imports from `lepton` (Pati-Salam / SM generators for tensor-lift audits).
+- `triality` imports from `lepton` (Cl(0,10) gammas, SM gauge generators, hypercharge) through its own `reuse.py`.
+- `broken_triality` imports from `triality` (which itself imports from `lepton`).  No new octonion / Clifford code.
 
 ## Working in a module
 
@@ -42,6 +46,8 @@ uv run pytest -q
 uv run pytest src/clifford_3plus2_d5/obstruction_r10/tests/ -q
 uv run pytest src/clifford_3plus2_d5/lepton/tests/ -q
 uv run pytest src/clifford_3plus2_d5/spacetime_qca/tests/ -q
+uv run pytest src/clifford_3plus2_d5/triality/tests/ -q
+uv run pytest src/clifford_3plus2_d5/broken_triality/tests/ -q
 
 # Run a script via module invocation
 uv run python -m clifford_3plus2_d5.obstruction_r10.scripts.gauge_equivalence_check --check
