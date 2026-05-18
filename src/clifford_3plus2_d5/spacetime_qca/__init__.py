@@ -47,6 +47,7 @@ from clifford_3plus2_d5.spacetime_qca.continuum import (
     first_order_in_epsilon,
     hamiltonian_from_generator,
     matrix_zero,
+    nth_order_in_epsilon,
 )
 from clifford_3plus2_d5.spacetime_qca.dirac import (
     alpha_matrices,
@@ -71,9 +72,18 @@ from clifford_3plus2_d5.spacetime_qca.hypercube_control import (
     hypercube_is_gapless_at,
     naive_hypercube_hamiltonian,
 )
-from clifford_3plus2_d5.spacetime_qca.jax_links import (
+from clifford_3plus2_d5.sim.links import (
     jax_constant_link_field,
     jax_identity_link_field,
+)
+from clifford_3plus2_d5.sim.state import (
+    flatten_dirac_internal_state,
+    sympy_matrix_to_numpy,
+    sympy_scalar_to_complex,
+    zero_jax_dirac_internal_state,
+    zero_jax_dirac_state,
+)
+from clifford_3plus2_d5.spacetime_qca.jax_links import (
     sympy_link_field_to_jax,
 )
 from clifford_3plus2_d5.spacetime_qca.jax_gauge_force import (
@@ -93,13 +103,8 @@ from clifford_3plus2_d5.spacetime_qca.jax_gauge_force import (
     jax_transform_link_field,
 )
 from clifford_3plus2_d5.spacetime_qca.jax_state import (
-    flatten_dirac_internal_state,
-    sympy_matrix_to_numpy,
-    sympy_scalar_to_complex,
     sympy_state_to_jax_dirac_internal,
     sympy_state_to_jax_flat,
-    zero_jax_dirac_internal_state,
-    zero_jax_dirac_state,
 )
 from clifford_3plus2_d5.spacetime_qca.jax_step import (
     jax_bcc_displacements,

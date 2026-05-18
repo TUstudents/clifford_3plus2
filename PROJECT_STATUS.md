@@ -56,6 +56,23 @@ three generations.
 
 **Tests**: 120+ green.
 
+## sim — shared infrastructure
+
+**Goal**: shared JAX simulation helpers that can be reused by sidecars without
+encoding Pati-Salam, Spin(10), BCC Dirac, Wilson plaquette, or gauge-force
+physics policy.
+
+**Implemented**:
+- JAX dtype/device helpers and compile/run timing.
+- Periodic 3D pull-roll helpers.
+- Generic JAX state allocation, flattening, and norm diagnostics.
+- Generic identity/constant pull-link fields and finite site-local gauge
+  transforms.
+- Basic finite-value/state-transition diagnostics and benchmark wrapper.
+
+**Boundary**: BCC Weyl/Dirac kernels, BCC plaquettes, Wilson observables, and
+SO(2)/SU(2) force policy remain in `spacetime_qca`.
+
 ## spacetime_qca — in progress
 
 **Goal**: 3D BCC Weyl walk (Bialynicki-Birula 1994) → 4D Dirac chiral
@@ -82,6 +99,8 @@ gradients complete; 30 SU(2) nonabelian Wilson-force controls complete.
 - Position-dependent internal link fields and exact finite-lattice site-local
   gauge covariance for the Dirac step.
 - BCC elementary plaquette shapes and holonomy covariance.
+- Shared generic JAX state/link/diagnostic helpers are imported from `sim`;
+  BCC/QCA physics remains local to `spacetime_qca`.
 - JAX numerical backend for flat Dirac states, `Dirac x internal` tensor
   states, identity/constant/position-dependent link fields, and BCC Dirac
   steps.
@@ -275,6 +294,7 @@ negative result in ~1% of that.
 | `lepton.*` | `obstruction_r10.qca.rule_verdict` | The trunk's VerdictProfile / predicate machinery is reused by Lab A / Lab B verdicts. |
 | `lepton.*` | `algebra.*` | Shared exact rational matrix algebra. |
 | `spacetime_qca.*` | `algebra.*` | Shared matrix utilities. |
+| `spacetime_qca.*` | `sim.*` | Shared JAX state/link/diagnostic infrastructure; physics-specific kernels stay in `spacetime_qca`. |
 | `spacetime_qca.tests.*` | `lepton.checkerboard_patisalam`, `lepton.clifford_patisalam`, `lepton.patisalam_sm`, `lepton.sm_hypercharge` | Sessions 20-21 verify tensor lift and mass compatibility with real Pati-Salam / SM internal generators. |
 | `triality.reuse` | `lepton.clifford_octonion`, `lepton.clifford_patisalam`, `lepton.patisalam_sm`, `lepton.sm_hypercharge` | Single import surface for the triality kill test. |
 | `broken_triality.reuse` | `triality.*` | All algebra from triality (which itself imports from lepton); no new octonion / Clifford code. |

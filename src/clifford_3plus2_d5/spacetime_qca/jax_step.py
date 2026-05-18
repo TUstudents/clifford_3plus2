@@ -6,14 +6,15 @@ from typing import Any
 
 import jax.numpy as jnp
 
+from clifford_3plus2_d5.sim.lattice import source_roll
+from clifford_3plus2_d5.sim.links import jax_constant_link_field
+from clifford_3plus2_d5.sim.state import sympy_matrix_to_numpy
 from clifford_3plus2_d5.spacetime_qca.bcc_weyl import (
     bialynicki_birula_directions,
     bialynicki_birula_hops,
     opposite_helicity_hops,
 )
 from clifford_3plus2_d5.spacetime_qca.dirac import block_diag
-from clifford_3plus2_d5.spacetime_qca.jax_links import jax_constant_link_field
-from clifford_3plus2_d5.spacetime_qca.jax_state import sympy_matrix_to_numpy
 
 
 def jax_bcc_displacements() -> tuple[tuple[int, int, int], ...]:
@@ -42,16 +43,6 @@ def jax_dirac_hops(*, dtype: Any = jnp.complex64) -> jnp.ndarray:
     )
 
 
-def _source_roll(state: jnp.ndarray, displacement: tuple[int, int, int]) -> jnp.ndarray:
-    """Return ``state[x+h]`` at target index ``x`` for pull-form displacement ``h``."""
-
-    return jnp.roll(
-        state,
-        shift=tuple(-component for component in displacement),
-        axis=(0, 1, 2),
-    )
-
-
 def jax_dirac_step(state: jnp.ndarray) -> jnp.ndarray:
     """Apply the ungauged BCC Dirac step to ``(nx, ny, nz, 4)`` state arrays."""
 
@@ -60,7 +51,7 @@ def jax_dirac_step(state: jnp.ndarray) -> jnp.ndarray:
     hops = jax_dirac_hops(dtype=state.dtype)
     out = jnp.zeros_like(state)
     for index, displacement in enumerate(jax_bcc_displacements()):
-        source = _source_roll(state, displacement)
+        source = source_roll(state, displacement)
         out = out + jnp.einsum("ab,...b->...a", hops[index], source)
     return out
 
@@ -83,7 +74,7 @@ def jax_dirac_step_with_links(state: jnp.ndarray, links: jnp.ndarray) -> jnp.nda
     hops = jax_dirac_hops(dtype=state.dtype)
     out = jnp.zeros_like(state)
     for index, displacement in enumerate(jax_bcc_displacements()):
-        source = _source_roll(state, displacement)
+        source = source_roll(state, displacement)
         linked = jnp.einsum("...ab,...sb->...sa", links[..., index, :, :], source)
         out = out + jnp.einsum("rs,...sd->...rd", hops[index], linked)
     return out

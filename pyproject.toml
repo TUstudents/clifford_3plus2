@@ -1,7 +1,7 @@
 [project]
 name = "clifford-3plus2-d5"
 version = "0.1.0"
-description = "Workspace for QCA-derivation modules: obstruction_r10, lepton, spacetime_qca"
+description = "Workspace for QCA-derivation modules: obstruction_r10, lepton, spacetime_qca, sim"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
@@ -38,5 +38,6 @@ target-version = "py312"
 testpaths = [
     "src/clifford_3plus2_d5/obstruction_r10/tests",
     "src/clifford_3plus2_d5/lepton/tests",
+    "src/clifford_3plus2_d5/sim/tests",
     "src/clifford_3plus2_d5/spacetime_qca/tests",
 ]

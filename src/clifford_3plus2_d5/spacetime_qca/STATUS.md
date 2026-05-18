@@ -32,8 +32,10 @@ scalars.  A compressed explicit `C^16_internal` basis is not implemented yet.
 - `mass.py` — Dirac mass-layer and gauge-compatibility helpers.
 - `yukawa.py` — representation-level Higgs/Yukawa charge-shift and static
   control audits.
-- `jax_state.py`, `jax_links.py`, `jax_step.py` — numerical JAX state/link
-  layout and BCC Dirac step kernels.
+- `jax_state.py`, `jax_links.py` — compatibility wrappers and exact-backend
+  converters over shared `sim` JAX state/link helpers.
+- `jax_step.py` — BCC-specific numerical Dirac step kernels using shared
+  `sim` roll/link primitives.
 - `wilson.py`, `jax_wilson.py` — exact and numerical Wilson plaquette
   observables and action densities.
 - `jax_gauge_force.py` — SO(2) and SU(2) compact-link JAX Wilson-action
@@ -113,6 +115,9 @@ The Session 20 gauge-lift test and Session 21 mass-compatibility tests import
 real Pati-Salam / SM generators from `lepton`.  The spacetime pieces remain
 factored, and future coupling should continue through explicit tensor-lift
 interfaces.
+
+The generic JAX simulation infrastructure now lives in `sim`.  Physics-specific
+BCC Dirac, BCC Wilson, and Wilson-force policy remains in `spacetime_qca`.
 
 ## Tests
 
