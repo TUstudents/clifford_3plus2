@@ -86,7 +86,8 @@ audit complete; 24 position-dependent background gauge covariance complete;
 complete; 26 JAX numerical backend complete; 27 Wilson plaquette observables
 complete; 28 Wilson action normalization complete; 29 SO(2) Wilson-action
 gradients complete; 30 SU(2) nonabelian Wilson-force controls complete; 31
-left-trivialized SU(2) force and compact descent complete.
+left-trivialized SU(2) force and compact descent complete; 32 reversible SU(2)
+leapfrog gauge dynamics complete.
 
 **Implemented**:
 - BCC geometry (8 body diagonals).
@@ -113,6 +114,8 @@ left-trivialized SU(2) force and compact descent complete.
   invariance, pure-gauge controls, and `jax.jit` gradient support.
 - SU(2) left-trivialized Wilson force, compact left updates, and deterministic
   action-descent controls.
+- SU(2) compact momentum fields, Hamiltonian-density helper, and reversible
+  leapfrog update.
 - Real-form internal convention: the internal chiral-16 is kept as `R^32`
   with compatible `J`, equivalent to `C^16` but not compressed to a
   `16 x 16` complex basis.  Tensor-lift matrices currently have size
@@ -135,7 +138,8 @@ left-trivialized SU(2) force and compact descent complete.
 - Session 29 report: `src/clifford_3plus2_d5/spacetime_qca/SESSION_29_WILSON_GRADIENTS.md`.
 - Session 30 report: `src/clifford_3plus2_d5/spacetime_qca/SESSION_30_SU2_FORCE.md`.
 - Session 31 report: `src/clifford_3plus2_d5/spacetime_qca/SESSION_31_SU2_LEFT_FORCE.md`.
-- 105 passing tests.
+- Session 32 report: `src/clifford_3plus2_d5/spacetime_qca/SESSION_32_SU2_LEAPFROG.md`.
+- 114 passing tests.
 
 **Result**:
 - `H_R(k) = sigma . k`.
@@ -192,6 +196,10 @@ left-trivialized SU(2) force and compact descent complete.
 - SU(2) compact-link left-trivialized forces are implemented in JAX; zero and
   finite pure-gauge links have zero left force; non-flat fields have non-zero
   force; compact descent preserves SU(2) links and lowers the Wilson action.
+- SU(2) compact gauge dynamics now has a reversible leapfrog prototype:
+  momentum fields transform by target-site adjoint action, Hamiltonian-density
+  drift is small and step-size sensitive, compactness is preserved, and finite
+  gauge covariance holds.
 
 **Open**:
 - Full fundamental-BCC-Brillouin-zone no-doubling proof.
@@ -200,8 +208,8 @@ left-trivialized SU(2) force and compact descent complete.
 - Dynamical Higgs-Yukawa layer and realistic Yukawa mass matrices.
 - SU(3), SU(4), or Pati-Salam Wilson-action gradients / force projection and
   dynamical gauge fields.
-- Reversible/symplectic gauge-field update rules beyond deterministic compact
-  descent.
+- Gauss-law constraints, fermion backreaction, and full physical gauge-field
+  evolution beyond the current SU(2) leapfrog prototype.
 - Numerical performance benchmarks and long-time stability tests.
 
 ## triality — closed: negative result

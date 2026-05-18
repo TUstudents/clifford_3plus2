@@ -86,6 +86,14 @@ from clifford_3plus2_d5.sim.state import (
 from clifford_3plus2_d5.spacetime_qca.jax_links import (
     sympy_link_field_to_jax,
 )
+from clifford_3plus2_d5.spacetime_qca.jax_gauge_dynamics import (
+    jax_su2_algebra_matrix,
+    jax_su2_apply_momentum_update,
+    jax_su2_gauge_hamiltonian_density,
+    jax_su2_leapfrog_step,
+    jax_su2_momentum_kinetic_energy_density,
+    jax_su2_transform_momentum_field,
+)
 from clifford_3plus2_d5.spacetime_qca.jax_gauge_force import (
     jax_centered_finite_difference,
     jax_so2_link_field_from_angles,
@@ -353,16 +361,22 @@ __all__ = [
     "jax_so2_rotation",
     "jax_so2_wilson_action_density",
     "jax_so2_wilson_action_gradient",
+    "jax_su2_algebra_matrix",
     "jax_su2_action_descent_step",
     "jax_su2_apply_left_update",
+    "jax_su2_apply_momentum_update",
+    "jax_su2_gauge_hamiltonian_density",
     "jax_su2_generators",
+    "jax_su2_leapfrog_step",
     "jax_su2_left_force",
     "jax_su2_left_force_from_algebra",
     "jax_su2_link_field_from_algebra",
     "jax_su2_link_from_algebra",
+    "jax_su2_momentum_kinetic_energy_density",
     "jax_su2_project_antihermitian_to_algebra",
     "jax_su2_pure_gauge_links_from_site_algebra",
     "jax_su2_site_field_from_algebra",
+    "jax_su2_transform_momentum_field",
     "jax_su2_wilson_action_density",
     "jax_su2_wilson_action_gradient",
     "jax_total_wilson_action",

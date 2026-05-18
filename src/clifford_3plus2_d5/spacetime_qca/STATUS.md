@@ -1,11 +1,12 @@
 # spacetime_qca — Status
 
-**Status**: in progress. Sessions 20-31 complete through finite real-space
+**Status**: in progress. Sessions 20-32 complete through finite real-space
 BCC stepping, representation-level Higgs/Yukawa audit, position-dependent
 background gauge covariance, BCC plaquette holonomy geometry, and a static
 Higgs/Yukawa map-layer audit, a JAX numerical backend, Wilson plaquette
 observables/action normalization, SO(2) Wilson-action gradients, and SU(2)
-nonabelian Wilson-force controls with compact left-trivialized descent.
+nonabelian Wilson-force controls with compact left-trivialized descent and
+reversible leapfrog dynamics.
 
 This module builds the 3D spatial side of the QCA: a BCC Weyl walk
 (Bialynicki-Birula 1994) and its chiral assembly into a 4D Dirac carrier,
@@ -40,6 +41,8 @@ scalars.  A compressed explicit `C^16_internal` basis is not implemented yet.
   observables and action densities.
 - `jax_gauge_force.py` — SO(2) and SU(2) compact-link JAX Wilson-action
   gradients, SU(2) left-trivialized force, and compact action descent.
+- `jax_gauge_dynamics.py` — SU(2) momentum fields, Hamiltonian-density helper,
+  and compact leapfrog update.
 - `lattice.py`, `state.py`, `step.py` — finite periodic real-space BCC step.
 - `audit.py` — result payloads for the report.
 - `SESSION_20_BCC_DIRAC.md` — Session 20 result report.
@@ -55,7 +58,8 @@ scalars.  A compressed explicit `C^16_internal` basis is not implemented yet.
 - `SESSION_29_WILSON_GRADIENTS.md` — Session 29 result report.
 - `SESSION_30_SU2_FORCE.md` — Session 30 result report.
 - `SESSION_31_SU2_LEFT_FORCE.md` — Session 31 result report.
-- 105 passing tests.
+- `SESSION_32_SU2_LEAPFROG.md` — Session 32 result report.
+- 114 passing tests.
 
 ## Session 20 result
 
@@ -96,17 +100,17 @@ scalars.  A compressed explicit `C^16_internal` basis is not implemented yet.
   form.
 - Vectorized Wilson action evaluation for large lattices.
 - Dynamic Higgs-Yukawa layer.
-- Dynamical gauge fields.
+- Dynamical gauge fields beyond the current SU(2) leapfrog prototype.
 - SU(3), SU(4), or Pati-Salam Wilson-action gradients and force projection.
-- Vectorized SU(2) staple force and reversible/symplectic gauge updates.
+- Vectorized SU(2) staple force and Gauss-law constraints.
 - Lorentz boost recovery beyond the `alpha . k` continuum precursor.
 - Numerical performance benchmarks and long-time stability tests.
 
 ## Sessions ahead
 
 - Session 20b: full symbolic BCC unitarity and no-doubling hardening.
-- Session 32: SU(3)/Pati-Salam force projection or reversible gauge-update
-  feasibility audit.
+- Session 33: SU(3)/Pati-Salam force projection or fermion-coupled gauge-link
+  evolution.
 
 See [PLAN.md](PLAN.md) for the detailed Session 20 plan and
 [SESSION_20_BCC_DIRAC.md](SESSION_20_BCC_DIRAC.md) for the running report.
@@ -127,7 +131,7 @@ BCC Dirac, BCC Wilson, and Wilson-force policy remains in `spacetime_qca`.
 uv run pytest src/clifford_3plus2_d5/spacetime_qca/tests/ -q
 ```
 
-Expected: 105 tests green.
+Expected: 114 tests green.
 
 ## Session 21 result
 
@@ -298,6 +302,30 @@ Interpretation: the module now has the first compact nonabelian update control:
 curvature observable, Wilson action, left-trivialized force, and compact
 descent are all present.  This is still steepest-descent infrastructure, not a
 physical gauge-field evolution rule.
+
+## Session 32 result
+
+- SU(2) momentum coordinates lift to anti-Hermitian traceless matrices.
+- Target-site adjoint gauge transforms of momentum fields preserve kinetic
+  energy density.
+- The SU(2) gauge Hamiltonian-density helper combines
+  `0.5 mean_link ||P||^2` with `beta * S_W_density`.
+- Compact momentum updates apply `U -> exp(dt P_a T_a) U`.
+- The leapfrog update uses half momentum, full compact link, half momentum
+  updates against the Session 31 left force.
+- Identity links and finite pure-gauge links with zero momenta are fixed by
+  leapfrog.
+- Momentum and leapfrog updates preserve link unitarity and determinant `1`.
+- Forward then negative-time leapfrog recovers links and momenta within
+  numerical tolerance.
+- Hamiltonian-density drift is finite and smaller at smaller step size.
+- Leapfrog is covariant under finite site-local gauge transforms.
+- The leapfrog helper is `jax.jit` compilable.
+
+Interpretation: the module now has a first reversible compact SU(2)
+gauge-field dynamics prototype.  It is still not a full physical Yang-Mills
+QCA: there is no Gauss-law projection, no fermion backreaction, and no SU(3) or
+Pati-Salam force projection yet.
 
 ## Session 24 result
 
