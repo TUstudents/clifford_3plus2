@@ -70,3 +70,44 @@ def test_beta_audit_payload_passes_with_maximal_mixing() -> None:
     assert payload.chosen_j_commuting_norm_squared == 128
     assert payload.chosen_j_anticommuting_norm_squared == 128
     assert "maximal mixing" in payload.interpretation
+
+
+# ---- Multi-element beta audit tests ----
+
+
+def test_multi_element_beta_payload_passes_robustly() -> None:
+    from clifford_3plus2_d5.cp.j_misalignment import multi_element_beta_audit_payload
+
+    payload = multi_element_beta_audit_payload()
+    assert payload.basis_dimension == 4
+    assert payload.passes
+    assert payload.all_equal_one_half
+    assert not payload.any_zero
+    assert "ROBUST PASS" in payload.verdict
+
+
+def test_multi_element_per_basis_all_one_half() -> None:
+    from clifford_3plus2_d5.cp.j_misalignment import multi_element_beta_audit_payload
+
+    payload = multi_element_beta_audit_payload()
+    half = sp.Rational(1, 2)
+    assert len(payload.per_basis_fractions) == 4
+    for fraction in payload.per_basis_fractions:
+        assert fraction == half
+
+
+def test_multi_element_per_transpose_all_one_half() -> None:
+    from clifford_3plus2_d5.cp.j_misalignment import multi_element_beta_audit_payload
+
+    payload = multi_element_beta_audit_payload()
+    half = sp.Rational(1, 2)
+    assert len(payload.per_transpose_fractions) == 4
+    for fraction in payload.per_transpose_fractions:
+        assert fraction == half
+
+
+def test_multi_element_interpretation_mentions_universal() -> None:
+    from clifford_3plus2_d5.cp.j_misalignment import multi_element_beta_audit_payload
+
+    payload = multi_element_beta_audit_payload()
+    assert "universal" in payload.interpretation

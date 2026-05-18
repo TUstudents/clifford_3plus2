@@ -43,6 +43,10 @@ from clifford_3plus2_d5.cp.reuse import (
     patisalam_chiral16_block_matrix,
     patisalam_chosen_complex_structure,
 )
+from clifford_3plus2_d5.spacetime_qca.yukawa import (
+    color_singlet_charge_shift_basis,
+    conjugate_charge_shift_component,
+)
 
 
 def _frobenius_squared(matrix: sp.Matrix) -> sp.Expr:
@@ -167,5 +171,94 @@ def beta_audit_payload() -> BetaAuditPayload:
         higgs_commutes_with_chosen_j=commutes,
         passes=passes,
         verdict=("BETA PASS" if passes else "BETA FAIL"),
+        interpretation=interpretation,
+    )
+
+
+# ---- Multi-element beta audit (covers all 4 basis + 4 transposes) ----
+
+
+@dataclass(frozen=True)
+class MultiElementBetaAuditPayload:
+    basis_dimension: int
+    per_basis_fractions: tuple[sp.Expr, ...]
+    per_transpose_fractions: tuple[sp.Expr, ...]
+    all_equal_one_half: bool
+    any_zero: bool
+    passes: bool
+    verdict: str
+    interpretation: str
+
+
+def multi_element_beta_audit_payload() -> MultiElementBetaAuditPayload:
+    """Iterate the full dim-4 Higgs-like basis and the 4 transposes.
+
+    Computes the J-anticommuting Frobenius fraction for each.  Verdict
+    distinguishes:
+
+    - all 8 equal exactly 1/2 (ROBUST PASS),
+    - all 8 non-zero but not all 1/2 (PASS),
+    - some zero (MIXED),
+    - all zero (FAIL).
+    """
+
+    j_chosen = patisalam_chosen_complex_structure()
+    basis = color_singlet_charge_shift_basis()
+    per_basis: list[sp.Expr] = []
+    per_transpose: list[sp.Expr] = []
+    for matrix in basis:
+        per_basis.append(cp_violating_fraction(matrix, j_chosen))
+        per_transpose.append(
+            cp_violating_fraction(conjugate_charge_shift_component(matrix), j_chosen),
+        )
+
+    all_fractions = tuple(per_basis) + tuple(per_transpose)
+    half = sp.Rational(1, 2)
+    all_equal_half = all(sp.simplify(f - half) == 0 for f in all_fractions)
+    any_zero = any(sp.simplify(f) == 0 for f in all_fractions)
+    all_nonzero = all(sp.simplify(f) != 0 for f in all_fractions)
+
+    passes = all_nonzero
+
+    if all_equal_half:
+        verdict = "BETA-MULTI ROBUST PASS"
+        interpretation = (
+            "All 4 basis elements and all 4 transpose components have "
+            "CP-violating fraction exactly 1/2 under the chosen J.  The "
+            "50/50 mixing is a universal feature of the dim-4 Higgs-like "
+            "space, not an artifact of basis[0]."
+        )
+    elif passes:
+        verdict = "BETA-MULTI PASS"
+        interpretation = (
+            "All 8 elements have non-zero CP-violating fraction, but "
+            "magnitudes differ.  Algebraic CP content is generic but the "
+            "exact 1/2 value was basis[0]-specific.  Downgrade the "
+            "structural strength claim but the beta audit still passes."
+        )
+    elif any_zero:
+        zero_count = sum(1 for f in all_fractions if sp.simplify(f) == 0)
+        verdict = "BETA-MULTI MIXED"
+        interpretation = (
+            f"{zero_count} of {len(all_fractions)} elements have CP-violating "
+            f"fraction zero.  CP content is basis-dependent within the dim-4 "
+            f"space.  Report the distribution; the 50/50 result is not "
+            f"universal."
+        )
+    else:
+        verdict = "BETA-MULTI FAIL"
+        interpretation = (
+            "All elements have CP-violating fraction zero.  This would "
+            "contradict the basis[0] result and indicates a regression."
+        )
+
+    return MultiElementBetaAuditPayload(
+        basis_dimension=len(basis),
+        per_basis_fractions=tuple(per_basis),
+        per_transpose_fractions=tuple(per_transpose),
+        all_equal_one_half=all_equal_half,
+        any_zero=any_zero,
+        passes=passes,
+        verdict=verdict,
         interpretation=interpretation,
     )

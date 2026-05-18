@@ -20,6 +20,26 @@ def first_order_in_epsilon(matrix: sp.Matrix, epsilon: sp.Symbol) -> sp.Matrix:
     return expanded.applyfunc(lambda value: sp.expand(value).coeff(epsilon, 1)).applyfunc(sp.simplify)
 
 
+def nth_order_in_epsilon(matrix: sp.Matrix, epsilon: sp.Symbol, order: int) -> sp.Matrix:
+    """Return the coefficient of ``epsilon**order`` in a matrix expansion.
+
+    For ``order = 0`` returns ``matrix.subs(epsilon, 0)``.  For ``order >= 1``
+    Taylor-expands each entry to one term beyond the requested order and
+    extracts the ``epsilon**order`` coefficient.
+    """
+
+    if order < 0:
+        raise ValueError(f"order must be non-negative, got {order}")
+    if order == 0:
+        return matrix.applyfunc(lambda value: sp.simplify(value.subs(epsilon, 0)))
+    expanded = matrix.applyfunc(
+        lambda value: sp.series(value, epsilon, 0, order + 1).removeO(),
+    )
+    return expanded.applyfunc(
+        lambda value: sp.expand(value).coeff(epsilon, order),
+    ).applyfunc(sp.simplify)
+
+
 def effective_generator_from_floquet(
     floquet: sp.Matrix,
     *,

@@ -257,3 +257,16 @@ passed.
   slots exist regardless of how three generations are obtained.
 - ``../broken_triality/SESSION_BT_KILL_TESTS.md`` — earlier negative
   result on broken-triality flavor structure.  Same independence note.
+
+## Follow-on (2026-05-18)
+
+The robustness questions raised in "What this does NOT yet prove" were
+addressed by ``SESSION_CP_ORDER_EPS2.md``:
+
+- **Multi-element β audit** confirmed the 50/50 mixing across the full
+  dim-4 Higgs space (4 basis + 4 transposes, all = 1/2 exactly).
+- **O(ε) continuum audit** localized the walk-level CP-violation to
+  the T_{2g} cubic-harmonic irrep, with CP-violating fraction = 1 at
+  this order.
+
+The dual pass is now a dual ROBUST pass with structural localization.

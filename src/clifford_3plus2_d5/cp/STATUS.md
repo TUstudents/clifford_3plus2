@@ -1,8 +1,7 @@
 # cp — Status
 
-**Status**: DUAL PASS.  Both alpha and beta audits produce positive
-CP/CPT structure from the existing infrastructure.  See
-``SESSION_CP_ALPHA_BETA.md`` for the full verdict.
+**Status**: DUAL ROBUST PASS — strengthened with multi-element + O(ε)
+audits.  See ``SESSION_CP_ALPHA_BETA.md`` and ``SESSION_CP_ORDER_EPS2.md``.
 
 ## Result summary
 
@@ -10,12 +9,19 @@ CP/CPT structure from the existing infrastructure.  See
 |---|---|---|
 | alpha-2 (bare walk symmetries) | **PASS**  | CPT, P, CT exact; CP, T, C, PT broken at lattice |
 | alpha-3 (Yukawa-perturbed)     | confirms  | trivial internal action preserves same pattern |
-| beta (J-misalignment)          | **PASS**  | Higgs map has 50/50 J-commuting vs J-anticommuting parts |
+| **alpha-cont (O(ε) continuum)**| **PASS**  | H^(1) is 100% CP-odd, lives entirely in T_{2g} cubic-harmonic irrep |
+| beta (J-misalignment, basis[0])| **PASS**  | Higgs map basis[0] has 50/50 J-commuting vs J-anticommuting |
+| **beta-multi (all 4 basis)**   | **ROBUST PASS** | All 8 elements (4 basis + 4 transposes) give CP-violating fraction = 1/2 |
 
-This is the strongest CP result the program has produced.  The
-CP-from-quantization hope is **vindicated at the structural level**:
-the existing infrastructure contains two independent CP-violating,
-CPT-preserving slots.
+This is the strongest CP result the program has produced.  Two
+independent CP slots, both structurally clean:
+
+1. **Walk-level**: lattice CP violation at O(ε), localized in the
+   T_{2g} cubic-harmonic irrep.  CPT preserved; CP vanishes in
+   continuum limit ε → 0 with specific angular signature.
+2. **Algebra-level**: the dim-4 Higgs-like space has universal 50/50
+   J-commuting vs J-anticommuting Frobenius content.  Robust across
+   all 8 tested elements.
 
 ## What exists
 
@@ -26,11 +32,18 @@ CPT-preserving slots.
 - ``walk_symmetries.py`` — alpha-2 (massless audit) and alpha-3
   (Yukawa-perturbed audit).
 - ``j_misalignment.py`` — beta audit: J candidate enumeration,
-  J-decomposition of the Higgs map, CP-violating fraction.
+  J-decomposition of the Higgs map, CP-violating fraction, multi-element
+  audit over the full dim-4 basis.
+- ``cubic_harmonics.py`` — minimal O_h projector framework for degree-2
+  momentum polynomials (A_{1g}, E_g, T_{2g}).
+- ``continuum_cp.py`` — O(ε) effective-Hamiltonian extraction via BCH +
+  CP × cubic-harmonic decomposition.
 - ``PLAN.md`` — original audit design.
-- ``SESSION_CP_ALPHA_BETA.md`` — combined verdict report.
+- ``SESSION_CP_ALPHA_BETA.md`` — baseline verdict report.
+- ``SESSION_CP_ORDER_EPS2.md`` — multi-element β + O(ε) continuum report.
 - ``parameter_ledger.md`` — choices made.
-- ``tests/`` — 29 passing tests.
+- ``tests/`` — 57 passing tests (29 baseline + 4 multi-element + 10
+  cubic-harmonic + 14 continuum-CP).
 
 ## Headline findings
 
@@ -40,9 +53,18 @@ Bialynicki-Birula construction's complex ``q_± = (1±i)/4`` coefficients
 select a chirality direction, breaking T/C/CP/PT at the lattice while
 preserving CPT, P, CT.
 
+**Alpha-continuum (O(ε))**: the leading lattice correction
+``H^(1)(k) = i (B_2 - B_2^†)/2`` is **purely CP-odd** (CP-violating
+fraction = 1) and **localized in the T_{2g} cubic-harmonic irrep**
+(``k_x k_y, k_y k_z, k_z k_x``).  Norm ``||H^(1)||² = 12``.
+
 **Beta (J-misalignment)**: the Session 23 Higgs-like internal map ``M``
 satisfies ``||M_c||² = ||M_a||² = 128`` (Frobenius), giving CP-violating
 fraction **exactly 1/2**.  M has maximal CP mixing under the chosen J.
+
+**Beta-multi**: this 50/50 mixing is **universal** across the dim-4
+Higgs space.  All 4 basis elements + 4 transpose components yield
+CP-violating fraction = exactly 1/2.
 
 ## What this DOES NOT yet prove
 

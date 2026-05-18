@@ -43,16 +43,42 @@ None.  All audits are exact symbolic; no fitting parameters.
 Zero continuous, six discrete (numbers 5-10).  All forced once
 conventions are fixed.  Falsifiability is maximal.
 
-## Final verdicts
+## Multi-element β + O(ε²) audits (added 2026-05-18)
+
+11. **Monomial basis ordering** for degree-2 polynomials in
+    ``(k_x, k_y, k_z)``: ``(k_x², k_y², k_z², k_y k_z, k_z k_x, k_x k_y)``.
+    From ``cubic_harmonics.monomial_basis``.  Pinned.
+12. **O_h irrep choice for degree 2**: ``A_{1g} ⊕ E_g ⊕ T_{2g}``
+    (dimensions 1 + 2 + 3 = 6).  T_{1g} does not appear at degree 2
+    for symmetric rank-2 tensors.  Pinned.
+13. **Projector construction**: direct linear-algebra (not character
+    formula).  Equivalent to the 48-element O_h projector formula but
+    avoids hand-coding group elements.  Justified by the explicit basis
+    decomposition.  Pinned.
+14. **BCH extraction for H^(1)**: ``H^(1) = i (B_2 - B_2^†) / 2``
+    where ``B_2`` is the ε²-coefficient of the Bloch operator.  Pinned.
+15. **Polynomial-matrix norm**: ``Σ_ij Σ_α |c_α(M_ij)|^2`` over the
+    6-monomial basis, treating monomials as orthonormal.  Pinned in
+    ``continuum_cp.polynomial_matrix_norm_squared``.
+16. **CP action on polynomial-matrix operators**: ``CP_mat · M^* ·
+    CP_mat^{-1}`` (k unchanged, since CP has no momentum flip; entries
+    complex-conjugated by antiunitary).  Pinned.
+
+## Final verdicts (updated)
 
 - Alpha-2 (massless walk): **PASS** — CPT, P, CT exact; T, C, CP, PT
   broken at the lattice.
 - Alpha-3 (Yukawa-perturbed): confirms — trivial internal action
   preserves the alpha-2 pattern.
-- Beta (J-misalignment): **PASS** — Higgs map ``M`` has CP-violating
-  fraction **exactly 1/2** under the chosen J.
+- **Alpha-cont (O(ε) continuum)**: **PASS** — H^(1) is purely CP-odd
+  (CP-violating fraction = exactly 1) and lives entirely in the
+  T_{2g} cubic-harmonic irrep.  ||H^(1)||² = 12.
+- Beta (J-misalignment, basis[0]): **PASS** — CP-violating fraction
+  exactly 1/2.
+- **Beta-multi (all 4 basis + 4 transposes)**: **ROBUST PASS** — all 8
+  elements give fraction exactly 1/2.  50/50 mixing is universal.
 
-Combined: **DUAL PASS**.  Both audits independently produce
-CP-violating, CPT-preserving structure from the existing infrastructure.
+Combined: **DUAL ROBUST PASS** with structural localization.
 
-See ``SESSION_CP_ALPHA_BETA.md`` for the full report.
+See ``SESSION_CP_ALPHA_BETA.md`` for the baseline and
+``SESSION_CP_ORDER_EPS2.md`` for the multi-element + O(ε) report.
