@@ -1,13 +1,14 @@
 # spacetime_qca — Status
 
-**Status**: in progress. Sessions 20-33 complete through finite real-space
+**Status**: in progress. Sessions 20-34 complete through finite real-space
 BCC stepping, representation-level Higgs/Yukawa audit, position-dependent
 background gauge covariance, BCC plaquette holonomy geometry, and a static
 Higgs/Yukawa map-layer audit, a JAX numerical backend, Wilson plaquette
 observables/action normalization, SO(2) Wilson-action gradients, and SU(2)
 nonabelian Wilson-force controls with compact left-trivialized descent and
 reversible leapfrog dynamics, plus compact SU(3) force/descent and reversible
-leapfrog controls.
+leapfrog controls, and basis-based chiral16 Pati-Salam SU(4) compact
+dynamics.
 
 This module builds the 3D spatial side of the QCA: a BCC Weyl walk
 (Bialynicki-Birula 1994) and its chiral assembly into a 4D Dirac carrier,
@@ -40,11 +41,13 @@ scalars.  A compressed explicit `C^16_internal` basis is not implemented yet.
   `sim` roll/link primitives.
 - `wilson.py`, `jax_wilson.py` — exact and numerical Wilson plaquette
   observables and action densities.
-- `jax_gauge_force.py` — SO(2), SU(2), and SU(3) compact-link JAX
-  Wilson-action gradients/forces, left-trivialized force controls, and compact
-  action descent.
-- `jax_gauge_dynamics.py` — SU(2)/SU(3) momentum fields,
-  Hamiltonian-density helpers, and compact leapfrog updates.
+- `jax_gauge_force.py` — SO(2), SU(2), SU(3), and generic basis-based
+  compact-link JAX Wilson-action gradients/forces, left-trivialized force
+  controls, and compact action descent.
+- `jax_gauge_dynamics.py` — SU(2)/SU(3) and generic basis-coordinate momentum
+  fields, Hamiltonian-density helpers, and compact leapfrog updates.
+- `jax_patisalam.py` — chiral16 Pati-Salam SU(4) JAX adapters over the exact
+  `lepton` generator basis.
 - `lattice.py`, `state.py`, `step.py` — finite periodic real-space BCC step.
 - `audit.py` — result payloads for the report.
 - `SESSION_20_BCC_DIRAC.md` — Session 20 result report.
@@ -62,7 +65,8 @@ scalars.  A compressed explicit `C^16_internal` basis is not implemented yet.
 - `SESSION_31_SU2_LEFT_FORCE.md` — Session 31 result report.
 - `SESSION_32_SU2_LEAPFROG.md` — Session 32 result report.
 - `SESSION_33_SU3_DYNAMICS.md` — Session 33 result report.
-- 130 passing tests.
+- `SESSION_34_PATISALAM_SU4_DYNAMICS.md` — Session 34 result report.
+- 147 passing tests.
 
 ## Session 20 result
 
@@ -103,8 +107,9 @@ scalars.  A compressed explicit `C^16_internal` basis is not implemented yet.
   form.
 - Vectorized Wilson action evaluation for large lattices.
 - Dynamic Higgs-Yukawa layer.
-- Dynamical gauge fields beyond the current SU(2)/SU(3) leapfrog prototypes.
-- SU(4) or full Pati-Salam Wilson-action gradients and force projection.
+- Dynamical gauge fields beyond the current SU(2)/SU(3)/SU(4) leapfrog
+  prototypes.
+- SU(2)_L, U(1)_Y, or full SM-specific adapters on top of the new basis API.
 - Vectorized SU(2) staple force and Gauss-law constraints.
 - Lorentz boost recovery beyond the `alpha . k` continuum precursor.
 - Numerical performance benchmarks and long-time stability tests.
@@ -112,8 +117,8 @@ scalars.  A compressed explicit `C^16_internal` basis is not implemented yet.
 ## Sessions ahead
 
 - Session 20b: full symbolic BCC unitarity and no-doubling hardening.
-- Session 34: SU(4)/Pati-Salam force projection or fermion-coupled gauge-link
-  evolution.
+- Session 35 candidate: fermion-coupled gauge-link evolution, Gauss-law
+  constraints, or SM-subgroup adapters over the Session 34 basis API.
 
 See [PLAN.md](PLAN.md) for the detailed Session 20 plan and
 [SESSION_20_BCC_DIRAC.md](SESSION_20_BCC_DIRAC.md) for the running report.
@@ -134,12 +139,13 @@ BCC Dirac, BCC Wilson, and Wilson-force policy remains in `spacetime_qca`.
 uv run pytest src/clifford_3plus2_d5/spacetime_qca/tests/ -q
 ```
 
-Expected: 130 tests green.
+Expected: 147 tests green.
 
 On memory-constrained machines, prefer running the JAX dynamics files in
 smaller groups.  JAX compilation caches can accumulate across the full
-`spacetime_qca` suite, and the SU(3) force path currently differentiates
-through batched matrix exponentials.
+`spacetime_qca` suite.  The SU(3) force path currently differentiates through
+batched matrix exponentials; the chiral16 SU(4) path defaults to a slower but
+memory-safe finite-difference force.
 
 ## Session 21 result
 
@@ -367,10 +373,42 @@ Pati-Salam force projection yet.
 Interpretation: the module now has a compact SU(3) color-gauge dynamics
 prototype matching the SU(2) force/leapfrog convention.  It is still a gauge
 simulation-control layer: no Gauss-law projection, no fermion backreaction,
-and no SU(4) / Pati-Salam compact dynamics yet.  The SU(3) left force still
-uses reverse-mode autodiff through compact perturbation exponentials, so
+and no fermion-coupled compact dynamics yet.  The SU(3) left force still uses
+reverse-mode autodiff through compact perturbation exponentials, so
 JIT-compiling the full SU(3) leapfrog is intentionally not part of the default
 test suite until a staple/vectorized force is implemented.
+
+## Session 34 result
+
+- A public basis-based compact Lie JAX API now builds algebra matrices, compact
+  links, site gauges, pure gauges, left forces, compact descent, momentum
+  transforms, Hamiltonian densities, momentum updates, and leapfrog steps from
+  an explicit generator basis.
+- Coordinate projection uses the real Hilbert-Schmidt Gram matrix, so
+  non-fundamental and non-unit-normalized representations are handled
+  correctly.
+- The generic momentum kinetic energy uses the same Gram metric, not a naive
+  coordinate Euclidean norm.
+- `jax_patisalam.py` adapts the exact `lepton` chiral16 `Spin(0,6) ~= SU(4)`
+  basis to JAX.
+- The Pati-Salam SU(4) adapter exposes compact links in the `32 x 32`
+  chiral16 representation with only 15 algebra coordinates.
+- Chiral16 SU(4) projection recovers all 15 coordinates.
+- Chiral16 SU(4) compact links preserve unitarity.
+- Chiral16 SU(4) pure gauges have zero Wilson action.
+- Chiral16 SU(4) finite-difference left force is finite and lowers a
+  deterministic non-flat Wilson action under compact descent.
+- Chiral16 SU(4) momentum transforms preserve Gram-metric kinetic energy.
+- Chiral16 SU(4) compact momentum updates and leapfrog updates preserve
+  compact links.
+- The Pati-Salam SU(4) left force defaults to finite differences to avoid the
+  memory failure mode from reverse-mode autodiff through many `32 x 32`
+  exponentials.
+
+Interpretation: the Pati-Salam SU(4) force-projection gap is closed without
+pretending that a `32 x 32` chiral16 representation is fundamental SU(32).
+This is still a compact gauge-dynamics control; Gauss-law projection, fermion
+backreaction, and dynamical Higgs/Yukawa fields remain open.
 
 ## Session 24 result
 

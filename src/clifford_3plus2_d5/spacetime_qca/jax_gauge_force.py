@@ -5,7 +5,9 @@ SO(2) rotation parameterized by one real angle.  Session 30 extends the same
 Wilson-gradient audit to fundamental SU(2) links, the smallest compact
 nonabelian testbed.  Session 31 adds a left-trivialized SU(2) force audit and
 compact action-descent update.  Session 33 mirrors the compact force stack for
-fundamental SU(3) color links.
+fundamental SU(3) color links.  Session 34 adds a public basis-based compact
+Lie API so non-fundamental representations, such as the chiral16 SU(4) Pati-
+Salam action, do not pretend to be SU(N) fundamentals.
 
 * zero field has zero action and zero gradient;
 * pure gauges have zero action and zero gradient;
@@ -13,17 +15,20 @@ fundamental SU(3) color links.
 
 This is a force audit, not a production HMC implementation.  The
 left-trivialized force is computed by differentiating compact left
-perturbations ``exp(omega_a T_a) U``.  Focused finite-difference tests pin the
-convention before a future vectorized staple formula.  Generic SU(N) force
-projection and heatbath dynamics remain future work.
+perturbations ``exp(omega_a T_a) U``.  The generic basis API supports autodiff
+for small matrices and coordinate-wise finite differences for large exact
+representations where reverse-mode differentiation through many matrix
+exponentials is not memory-safe.
 """
 
 from __future__ import annotations
 
 from collections.abc import Callable
+from typing import Literal
 
 import jax
 import jax.numpy as jnp
+import numpy as np
 from jax.scipy.linalg import expm as jax_matrix_expm
 
 from clifford_3plus2_d5.sim.lattice import source_roll
@@ -79,6 +84,285 @@ def _jax_matrix_expm_batch(matrices: jnp.ndarray) -> jnp.ndarray:
     flat = jnp.reshape(matrices, (-1, dimension, dimension))
     exponentials = jax.vmap(jax_matrix_expm)(flat)
     return jnp.reshape(exponentials, matrices.shape)
+
+
+def _validate_compact_lie_generators(generators: jnp.ndarray) -> tuple[int, int]:
+    if generators.ndim != 3:
+        raise ValueError("generators must have shape (generator_count, matrix_dim, matrix_dim)")
+    if generators.shape[-1] != generators.shape[-2]:
+        raise ValueError("generators must be square matrices")
+    return int(generators.shape[0]), int(generators.shape[-1])
+
+
+def _validate_compact_lie_links(links: jnp.ndarray, generators: jnp.ndarray) -> tuple[int, int]:
+    generator_count, matrix_dim = _validate_compact_lie_generators(generators)
+    if links.ndim != 6 or links.shape[3] != 8 or links.shape[-2:] != (matrix_dim, matrix_dim):
+        raise ValueError(
+            "links must have shape (nx, ny, nz, 8, matrix_dim, matrix_dim) "
+            "matching the generator representation",
+        )
+    return generator_count, matrix_dim
+
+
+def _validate_compact_lie_momenta(momenta: jnp.ndarray, generators: jnp.ndarray) -> tuple[int, int]:
+    generator_count, matrix_dim = _validate_compact_lie_generators(generators)
+    if momenta.ndim != 5 or momenta.shape[-2:] != (8, generator_count):
+        raise ValueError(
+            "momenta or force coordinates must have shape "
+            "(nx, ny, nz, 8, generator_count)",
+        )
+    return generator_count, matrix_dim
+
+
+def jax_compact_lie_algebra_matrix(theta: jnp.ndarray, generators: jnp.ndarray) -> jnp.ndarray:
+    """Return representation matrices from compact Lie-algebra coordinates.
+
+    ``generators`` has shape ``(a, d, d)`` and should contain anti-Hermitian
+    matrices in the chosen representation.  ``theta`` may have any leading
+    shape, but its last axis must have length ``a``.  The returned array has
+    trailing shape ``(d, d)``.
+    """
+
+    generator_count, _ = _validate_compact_lie_generators(generators)
+    if theta.shape[-1:] != (generator_count,):
+        raise ValueError(f"algebra coordinates must have trailing dimension {generator_count}")
+
+    dtype = jnp.result_type(theta, generators, 1j)
+    coordinates = theta.astype(jnp.real(jnp.asarray(0, dtype=dtype)).dtype)
+    basis = generators.astype(dtype)
+    return jnp.einsum("...a,aij->...ij", coordinates, basis)
+
+
+def jax_compact_lie_project_to_coordinates(matrix: jnp.ndarray, generators: jnp.ndarray) -> jnp.ndarray:
+    """Project matrices onto a possibly non-orthonormal generator basis.
+
+    The projection uses the real Hilbert-Schmidt Gram matrix
+    ``G_ab = Re Tr(T_a^dagger T_b)`` and solves
+    ``G theta = Re Tr(T_a^dagger A)``.  For ``A = theta_a T_a`` this recovers
+    the coordinates even when the representation basis is not normalized like
+    the fundamental SU(2)/SU(3) conventions.
+    """
+
+    generator_count, matrix_dim = _validate_compact_lie_generators(generators)
+    if matrix.shape[-2:] != (matrix_dim, matrix_dim):
+        raise ValueError(f"matrix must have trailing shape ({matrix_dim}, {matrix_dim})")
+
+    dtype = jnp.result_type(matrix, generators, 1j)
+    basis = generators.astype(dtype)
+    basis_daggers = jnp.swapaxes(jnp.conj(basis), -1, -2)
+    gram = jnp.real(jnp.einsum("aij,bji->ab", basis_daggers, basis))
+    rhs = jnp.real(jnp.einsum("aij,...ji->...a", basis_daggers, matrix.astype(dtype)))
+    flat_rhs = jnp.reshape(rhs, (-1, generator_count))
+    flat_coordinates = jnp.linalg.solve(gram, flat_rhs.T).T
+    return jnp.reshape(flat_coordinates, rhs.shape)
+
+
+def jax_compact_lie_link_from_algebra(theta: jnp.ndarray, generators: jnp.ndarray) -> jnp.ndarray:
+    """Return compact representation matrices ``exp(theta_a T_a)``."""
+
+    return _jax_matrix_expm_batch(jax_compact_lie_algebra_matrix(theta, generators))
+
+
+def jax_compact_lie_link_field_from_algebra(theta: jnp.ndarray, generators: jnp.ndarray) -> jnp.ndarray:
+    """Return BCC links from basis coordinates.
+
+    Input shape is ``(nx, ny, nz, 8, generator_count)``.  Output shape is
+    ``(nx, ny, nz, 8, matrix_dim, matrix_dim)``.
+    """
+
+    generator_count, _ = _validate_compact_lie_generators(generators)
+    if theta.ndim != 5 or theta.shape[-2:] != (8, generator_count):
+        raise ValueError(
+            "link algebra coordinates must have shape "
+            "(nx, ny, nz, 8, generator_count)",
+        )
+    return jax_compact_lie_link_from_algebra(theta, generators)
+
+
+def jax_compact_lie_site_field_from_algebra(site_theta: jnp.ndarray, generators: jnp.ndarray) -> jnp.ndarray:
+    """Return site-local gauge matrices from compact Lie-algebra coordinates."""
+
+    generator_count, _ = _validate_compact_lie_generators(generators)
+    if site_theta.ndim != 4 or site_theta.shape[-1] != generator_count:
+        raise ValueError("site algebra coordinates must have shape (nx, ny, nz, generator_count)")
+    return jax_compact_lie_link_from_algebra(site_theta, generators)
+
+
+def jax_compact_lie_pure_gauge_links_from_site_algebra(
+    site_theta: jnp.ndarray,
+    generators: jnp.ndarray,
+) -> jnp.ndarray:
+    """Return pure-gauge BCC links generated by site-local gauges."""
+
+    _, matrix_dim = _validate_compact_lie_generators(generators)
+    site_gauge = jax_compact_lie_site_field_from_algebra(site_theta, generators)
+    identity_links = jax_identity_link_field(site_gauge.shape[:3], matrix_dim, dtype=site_gauge.dtype)
+    return jax_transform_link_field(identity_links, site_gauge)
+
+
+def _jax_compact_lie_apply_left_coordinates(
+    links: jnp.ndarray,
+    coordinates: jnp.ndarray,
+    generators: jnp.ndarray,
+) -> jnp.ndarray:
+    """Apply ``exp(coordinates_a T_a)`` to each link from the left."""
+
+    generator_count, _ = _validate_compact_lie_links(links, generators)
+    if coordinates.shape != (*links.shape[:4], generator_count):
+        raise ValueError("coordinates must have shape (nx, ny, nz, 8, generator_count)")
+
+    updates = jax_compact_lie_link_from_algebra(coordinates, generators)
+    return jnp.einsum("...ij,...jk->...ik", updates, links)
+
+
+def _jax_compact_lie_apply_single_left_coordinate(
+    links: jnp.ndarray,
+    generator: jnp.ndarray,
+    link_index: tuple[int, int, int, int],
+    coordinate: jnp.ndarray,
+) -> jnp.ndarray:
+    update = jax_matrix_expm(coordinate * generator)
+    updated_link = update @ links[link_index]
+    return links.at[link_index].set(updated_link)
+
+
+def _jax_compact_lie_left_force_finite_difference(
+    links: jnp.ndarray,
+    generators: jnp.ndarray,
+    *,
+    epsilon: float,
+    shapes: tuple[PlaquetteShape, ...] | None,
+) -> jnp.ndarray:
+    generator_count, _ = _validate_compact_lie_links(links, generators)
+    real_dtype = jnp.real(jnp.asarray(0, dtype=links.dtype)).dtype
+    step = jnp.asarray(epsilon, dtype=real_dtype)
+    force = jnp.zeros((*links.shape[:4], generator_count), dtype=real_dtype)
+    basis = generators.astype(links.dtype)
+
+    for x, y, z, hop, generator_index in np.ndindex(*links.shape[:4], generator_count):
+        link_index = (x, y, z, hop)
+        generator = basis[generator_index]
+        plus_links = _jax_compact_lie_apply_single_left_coordinate(
+            links,
+            generator,
+            link_index,
+            step,
+        )
+        minus_links = _jax_compact_lie_apply_single_left_coordinate(
+            links,
+            generator,
+            link_index,
+            -step,
+        )
+        derivative = (
+            jax_average_wilson_action_density(plus_links, shapes)
+            - jax_average_wilson_action_density(minus_links, shapes)
+        ) / (2 * step)
+        force = force.at[x, y, z, hop, generator_index].set(derivative)
+    return force
+
+
+def jax_compact_lie_left_force(
+    links: jnp.ndarray,
+    generators: jnp.ndarray,
+    *,
+    epsilon: float = 1e-3,
+    shapes: tuple[PlaquetteShape, ...] | None = None,
+    method: Literal["autodiff", "finite_difference"] = "autodiff",
+) -> jnp.ndarray:
+    """Return the left-trivialized Wilson force in a chosen representation.
+
+    ``method="autodiff"`` differentiates all left perturbation coordinates at
+    once and is suitable for small fundamental representations.  ``method=
+    "finite_difference"`` perturbs one link and generator at a time; it is
+    slower, but it avoids the large reverse-mode matrix-exponential graph that
+    can exhaust memory for chiral16 SU(4) links.
+    """
+
+    generator_count, _ = _validate_compact_lie_links(links, generators)
+    if epsilon <= 0:
+        raise ValueError("epsilon must be positive")
+    if method not in {"autodiff", "finite_difference"}:
+        raise ValueError("method must be 'autodiff' or 'finite_difference'")
+
+    if method == "finite_difference":
+        return _jax_compact_lie_left_force_finite_difference(
+            links,
+            generators,
+            epsilon=epsilon,
+            shapes=shapes,
+        )
+
+    real_dtype = jnp.real(jnp.asarray(0, dtype=links.dtype)).dtype
+    zero_perturbation = jnp.zeros((*links.shape[:4], generator_count), dtype=real_dtype)
+
+    def action_from_left_perturbation(perturbation: jnp.ndarray) -> jnp.ndarray:
+        return jax_average_wilson_action_density(
+            _jax_compact_lie_apply_left_coordinates(links, perturbation, generators),
+            shapes,
+        )
+
+    return jax.grad(action_from_left_perturbation)(zero_perturbation)
+
+
+def jax_compact_lie_left_force_from_algebra(
+    theta: jnp.ndarray,
+    generators: jnp.ndarray,
+    *,
+    epsilon: float = 1e-3,
+    shapes: tuple[PlaquetteShape, ...] | None = None,
+    method: Literal["autodiff", "finite_difference"] = "autodiff",
+) -> jnp.ndarray:
+    """Return a left-trivialized force for coordinate-built compact links."""
+
+    return jax_compact_lie_left_force(
+        jax_compact_lie_link_field_from_algebra(theta, generators),
+        generators,
+        epsilon=epsilon,
+        shapes=shapes,
+        method=method,
+    )
+
+
+def jax_compact_lie_apply_left_update(
+    links: jnp.ndarray,
+    force: jnp.ndarray,
+    generators: jnp.ndarray,
+    *,
+    step_size: float,
+) -> jnp.ndarray:
+    """Apply ``U[x,h] -> exp(-step_size * force[x,h,a] T_a) U[x,h]``."""
+
+    generator_count, _ = _validate_compact_lie_links(links, generators)
+    if force.shape != (*links.shape[:4], generator_count):
+        raise ValueError("force must have shape (nx, ny, nz, 8, generator_count)")
+
+    return _jax_compact_lie_apply_left_coordinates(
+        links,
+        -jnp.asarray(step_size, dtype=force.dtype) * force,
+        generators,
+    )
+
+
+def jax_compact_lie_action_descent_step(
+    links: jnp.ndarray,
+    generators: jnp.ndarray,
+    *,
+    step_size: float = 0.05,
+    epsilon: float = 1e-3,
+    shapes: tuple[PlaquetteShape, ...] | None = None,
+    method: Literal["autodiff", "finite_difference"] = "autodiff",
+) -> tuple[jnp.ndarray, jnp.ndarray]:
+    """Return ``(updated_links, force)`` for one compact Wilson descent step."""
+
+    force = jax_compact_lie_left_force(
+        links,
+        generators,
+        epsilon=epsilon,
+        shapes=shapes,
+        method=method,
+    )
+    return jax_compact_lie_apply_left_update(links, force, generators, step_size=step_size), force
 
 
 def jax_so2_rotation(theta: jnp.ndarray) -> jnp.ndarray:
