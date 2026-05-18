@@ -93,9 +93,12 @@ from clifford_3plus2_d5.spacetime_qca.jax_step import (
     jax_dirac_step_with_links,
 )
 from clifford_3plus2_d5.spacetime_qca.jax_wilson import (
+    jax_average_wilson_action_density,
     jax_average_normalized_wilson_loop,
     jax_normalized_wilson_loop,
     jax_plaquette_holonomy,
+    jax_total_wilson_action,
+    jax_wilson_plaquette_energy,
     jax_wilson_loop_trace,
 )
 from clifford_3plus2_d5.spacetime_qca.lattice import Displacement, PeriodicLattice3D, Site
@@ -207,8 +210,11 @@ from clifford_3plus2_d5.spacetime_qca.yukawa import (
     yukawa_spacetime_coupler,
 )
 from clifford_3plus2_d5.spacetime_qca.wilson import (
+    average_wilson_action_density,
     average_normalized_wilson_loop,
     normalized_wilson_loop,
+    total_wilson_action,
+    wilson_plaquette_energy,
     wilson_loop_trace,
 )
 
@@ -233,6 +239,7 @@ __all__ = [
     "alpha_matrices",
     "audit_yukawa_candidate",
     "average_normalized_wilson_loop",
+    "average_wilson_action_density",
     "background_gauge_hamiltonian",
     "beta_anticommutes_with_alpha",
     "beta_is_off_diagonal_between_chiralities",
@@ -305,6 +312,7 @@ __all__ = [
     "is_unitary",
     "jax_bcc_displacements",
     "jax_average_normalized_wilson_loop",
+    "jax_average_wilson_action_density",
     "jax_constant_link_field",
     "jax_dirac_hops",
     "jax_dirac_step",
@@ -313,6 +321,8 @@ __all__ = [
     "jax_identity_link_field",
     "jax_normalized_wilson_loop",
     "jax_plaquette_holonomy",
+    "jax_total_wilson_action",
+    "jax_wilson_plaquette_energy",
     "jax_wilson_loop_trace",
     "k0_scalar_mass_spectrum",
     "left_right_projectors",
@@ -363,6 +373,7 @@ __all__ = [
     "sympy_state_to_jax_dirac_internal",
     "sympy_state_to_jax_flat",
     "tensor_internal",
+    "total_wilson_action",
     "transform_internal_state",
     "transform_link_field",
     "universal_scalar_yukawa_audit",
@@ -374,6 +385,7 @@ __all__ = [
     "weyl_plane_wave_matches_bloch",
     "weyl_step",
     "wilson_loop_trace",
+    "wilson_plaquette_energy",
     "yukawa_representation_audit_payload",
     "yukawa_spacetime_coupler",
     "zero_dirac_state",

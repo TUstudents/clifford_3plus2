@@ -1,10 +1,10 @@
 # spacetime_qca — Status
 
-**Status**: in progress. Sessions 20-27 complete through finite real-space
+**Status**: in progress. Sessions 20-28 complete through finite real-space
 BCC stepping, representation-level Higgs/Yukawa audit, position-dependent
 background gauge covariance, BCC plaquette holonomy geometry, and a static
 Higgs/Yukawa map-layer audit, a JAX numerical backend, and Wilson plaquette
-observables.
+observables/action normalization.
 
 This module builds the 3D spatial side of the QCA: a BCC Weyl walk
 (Bialynicki-Birula 1994) and its chiral assembly into a 4D Dirac carrier,
@@ -34,7 +34,7 @@ scalars.  A compressed explicit `C^16_internal` basis is not implemented yet.
 - `jax_state.py`, `jax_links.py`, `jax_step.py` — numerical JAX state/link
   layout and BCC Dirac step kernels.
 - `wilson.py`, `jax_wilson.py` — exact and numerical Wilson plaquette
-  observables.
+  observables and action densities.
 - `lattice.py`, `state.py`, `step.py` — finite periodic real-space BCC step.
 - `audit.py` — result payloads for the report.
 - `SESSION_20_BCC_DIRAC.md` — Session 20 result report.
@@ -46,7 +46,8 @@ scalars.  A compressed explicit `C^16_internal` basis is not implemented yet.
 - `SESSION_25_STATIC_YUKAWA.md` — Session 25 result report.
 - `SESSION_26_JAX_BACKEND.md` — Session 26 result report.
 - `SESSION_27_WILSON_OBSERVABLES.md` — Session 27 result report.
-- 76 passing tests.
+- `SESSION_28_WILSON_ACTION.md` — Session 28 result report.
+- 81 passing tests.
 
 ## Session 20 result
 
@@ -85,7 +86,7 @@ scalars.  A compressed explicit `C^16_internal` basis is not implemented yet.
 - Explicit `J`-adapted `C^16` internal basis, if we want code dimensions to
   match the compressed complex carrier rather than the current `R^32` real
   form.
-- Plaquette action / Wilson observable normalization.
+- Vectorized Wilson action evaluation for large lattices.
 - Dynamic Higgs-Yukawa layer.
 - Dynamical gauge fields.
 - Lorentz boost recovery beyond the `alpha . k` continuum precursor.
@@ -94,7 +95,7 @@ scalars.  A compressed explicit `C^16_internal` basis is not implemented yet.
 ## Sessions ahead
 
 - Session 20b: full symbolic BCC unitarity and no-doubling hardening.
-- Session 28: Wilson action normalization / gauge-energy audit.
+- Session 29: Wilson-action gradients / gauge-force audit.
 
 See [PLAN.md](PLAN.md) for the detailed Session 20 plan and
 [SESSION_20_BCC_DIRAC.md](SESSION_20_BCC_DIRAC.md) for the running report.
@@ -112,7 +113,7 @@ interfaces.
 uv run pytest src/clifford_3plus2_d5/spacetime_qca/tests/ -q
 ```
 
-Expected: 76 tests green.
+Expected: 81 tests green.
 
 ## Session 21 result
 
@@ -203,6 +204,24 @@ SymPy backend remains the reference implementation.
 
 Interpretation: the module now has the gauge-invariant curvature-observable
 layer needed before a Wilson action or dynamical gauge update.
+
+## Session 28 result
+
+- Exact Wilson plaquette energy implemented as
+  `1 - Re(Tr(H) / internal_dim)`.
+- Exact average action density and total Wilson action implemented with
+  configurable `beta`.
+- JAX plaquette energy, average action density, and total action implemented
+  with the same normalization.
+- Identity and pure-gauge links have zero action density.
+- A nontrivial sign/flip link field has nonzero, nonnegative action density.
+- Exact and JAX action values are invariant under finite site-local gauge
+  transforms.
+- JAX action values match exact SymPy values on tiny lattices.
+
+Interpretation: the module now has a fixed-background gauge-energy observable.
+This is the last observable layer before gradient/dynamics work; it is still
+not a dynamical gauge-field update.
 
 ## Session 24 result
 

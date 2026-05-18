@@ -67,7 +67,7 @@ complete; 22 finite real-space step complete; 23 Higgs/Yukawa representation
 audit complete; 24 position-dependent background gauge covariance complete;
 24b BCC plaquette holonomy complete; 25 static Higgs/Yukawa map-layer audit
 complete; 26 JAX numerical backend complete; 27 Wilson plaquette observables
-complete.
+complete; 28 Wilson action normalization complete.
 
 **Implemented**:
 - BCC geometry (8 body diagonals).
@@ -85,7 +85,7 @@ complete.
   states, identity/constant/position-dependent link fields, and BCC Dirac
   steps.
 - Exact and JAX Wilson plaquette observables over the six canonical BCC
-  plaquette shapes.
+  plaquette shapes, including action density and total Wilson action.
 - Real-form internal convention: the internal chiral-16 is kept as `R^32`
   with compatible `J`, equivalent to `C^16` but not compressed to a
   `16 x 16` complex basis.  Tensor-lift matrices currently have size
@@ -104,7 +104,8 @@ complete.
 - Session 25 report: `src/clifford_3plus2_d5/spacetime_qca/SESSION_25_STATIC_YUKAWA.md`.
 - Session 26 report: `src/clifford_3plus2_d5/spacetime_qca/SESSION_26_JAX_BACKEND.md`.
 - Session 27 report: `src/clifford_3plus2_d5/spacetime_qca/SESSION_27_WILSON_OBSERVABLES.md`.
-- 76 passing tests.
+- Session 28 report: `src/clifford_3plus2_d5/spacetime_qca/SESSION_28_WILSON_ACTION.md`.
+- 81 passing tests.
 
 **Result**:
 - `H_R(k) = sigma . k`.
@@ -147,6 +148,9 @@ complete.
 - Wilson-loop traces and normalized averages are implemented exactly and in
   JAX; identity/pure-gauge fields give normalized Wilson loop `1`, and traces
   are gauge invariant under finite site-local transforms.
+- Wilson plaquette energy `1 - Re(Tr(H)/N)`, average action density, and total
+  action are implemented exactly and in JAX; identity/pure-gauge fields have
+  zero action density, and action values are gauge invariant.
 
 **Open**:
 - Full fundamental-BCC-Brillouin-zone no-doubling proof.
@@ -154,7 +158,7 @@ complete.
 - Optional conversion to a `J`-adapted explicit `C^16` internal basis.
 - Plaquette action / Wilson observable normalization.
 - Dynamical Higgs-Yukawa layer and realistic Yukawa mass matrices.
-- Wilson action normalization and dynamical gauge fields.
+- Wilson-action gradients and dynamical gauge fields.
 - Numerical performance benchmarks and long-time stability tests.
 
 ## triality — closed: negative result

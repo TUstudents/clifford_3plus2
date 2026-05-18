@@ -101,3 +101,52 @@ def jax_average_normalized_wilson_loop(
                     total = total + jax_normalized_wilson_loop(links, (x, y, z), shape)
                     count += 1
     return total / count
+
+
+def jax_wilson_plaquette_energy(
+    links: jnp.ndarray,
+    base_site: Site,
+    shape: PlaquetteShape,
+) -> jnp.ndarray:
+    """Return ``1 - Re(Tr(H) / internal_dim)`` for one JAX BCC plaquette."""
+
+    return 1 - jnp.real(jax_normalized_wilson_loop(links, base_site, shape))
+
+
+def jax_average_wilson_action_density(
+    links: jnp.ndarray,
+    shapes: tuple[PlaquetteShape, ...] | None = None,
+) -> jnp.ndarray:
+    """Return the uniform site/shape average Wilson plaquette energy."""
+
+    _validate_jax_links(links)
+    selected_shapes = shapes or canonical_bcc_plaquette_shapes()
+    if not selected_shapes:
+        raise ValueError("at least one plaquette shape is required")
+
+    total = jnp.asarray(0, dtype=jnp.real(jnp.asarray(0, dtype=links.dtype)).dtype)
+    count = 0
+    nx, ny, nz = (int(size) for size in links.shape[:3])
+    for x in range(nx):
+        for y in range(ny):
+            for z in range(nz):
+                for shape in selected_shapes:
+                    total = total + jax_wilson_plaquette_energy(links, (x, y, z), shape)
+                    count += 1
+    return total / count
+
+
+def jax_total_wilson_action(
+    links: jnp.ndarray,
+    *,
+    beta: float = 1.0,
+    shapes: tuple[PlaquetteShape, ...] | None = None,
+) -> jnp.ndarray:
+    """Return ``beta * sum_p (1 - Re(Tr(H_p) / internal_dim))``."""
+
+    selected_shapes = shapes or canonical_bcc_plaquette_shapes()
+    if not selected_shapes:
+        raise ValueError("at least one plaquette shape is required")
+    density = jax_average_wilson_action_density(links, selected_shapes)
+    site_count = int(links.shape[0] * links.shape[1] * links.shape[2])
+    return beta * density * site_count * len(selected_shapes)
