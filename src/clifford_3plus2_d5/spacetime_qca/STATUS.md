@@ -1,10 +1,10 @@
 # spacetime_qca — Status
 
-**Status**: in progress. Sessions 20-28 complete through finite real-space
+**Status**: in progress. Sessions 20-29 complete through finite real-space
 BCC stepping, representation-level Higgs/Yukawa audit, position-dependent
 background gauge covariance, BCC plaquette holonomy geometry, and a static
-Higgs/Yukawa map-layer audit, a JAX numerical backend, and Wilson plaquette
-observables/action normalization.
+Higgs/Yukawa map-layer audit, a JAX numerical backend, Wilson plaquette
+observables/action normalization, and SO(2) Wilson-action gradients.
 
 This module builds the 3D spatial side of the QCA: a BCC Weyl walk
 (Bialynicki-Birula 1994) and its chiral assembly into a 4D Dirac carrier,
@@ -35,6 +35,7 @@ scalars.  A compressed explicit `C^16_internal` basis is not implemented yet.
   layout and BCC Dirac step kernels.
 - `wilson.py`, `jax_wilson.py` — exact and numerical Wilson plaquette
   observables and action densities.
+- `jax_gauge_force.py` — SO(2)-parameterized JAX Wilson-action gradients.
 - `lattice.py`, `state.py`, `step.py` — finite periodic real-space BCC step.
 - `audit.py` — result payloads for the report.
 - `SESSION_20_BCC_DIRAC.md` — Session 20 result report.
@@ -47,7 +48,8 @@ scalars.  A compressed explicit `C^16_internal` basis is not implemented yet.
 - `SESSION_26_JAX_BACKEND.md` — Session 26 result report.
 - `SESSION_27_WILSON_OBSERVABLES.md` — Session 27 result report.
 - `SESSION_28_WILSON_ACTION.md` — Session 28 result report.
-- 81 passing tests.
+- `SESSION_29_WILSON_GRADIENTS.md` — Session 29 result report.
+- 88 passing tests.
 
 ## Session 20 result
 
@@ -89,13 +91,15 @@ scalars.  A compressed explicit `C^16_internal` basis is not implemented yet.
 - Vectorized Wilson action evaluation for large lattices.
 - Dynamic Higgs-Yukawa layer.
 - Dynamical gauge fields.
+- Nonabelian SU(N) Wilson-action gradients and force projection.
 - Lorentz boost recovery beyond the `alpha . k` continuum precursor.
 - Numerical performance benchmarks and long-time stability tests.
 
 ## Sessions ahead
 
 - Session 20b: full symbolic BCC unitarity and no-doubling hardening.
-- Session 29: Wilson-action gradients / gauge-force audit.
+- Session 30: nonabelian gauge-force projection or dynamical gauge update
+  feasibility audit.
 
 See [PLAN.md](PLAN.md) for the detailed Session 20 plan and
 [SESSION_20_BCC_DIRAC.md](SESSION_20_BCC_DIRAC.md) for the running report.
@@ -113,7 +117,7 @@ interfaces.
 uv run pytest src/clifford_3plus2_d5/spacetime_qca/tests/ -q
 ```
 
-Expected: 81 tests green.
+Expected: 88 tests green.
 
 ## Session 21 result
 
@@ -222,6 +226,23 @@ layer needed before a Wilson action or dynamical gauge update.
 Interpretation: the module now has a fixed-background gauge-energy observable.
 This is the last observable layer before gradient/dynamics work; it is still
 not a dynamical gauge-field update.
+
+## Session 29 result
+
+- SO(2) BCC link fields are parameterized by compact link angles.
+- Pure-gauge SO(2) fields use the existing pull-link convention
+  `theta[x,h] = phi[x] - phi[x+h]`.
+- JAX Wilson action gradients are implemented with `jax.grad`.
+- Zero fields and pure gauges have zero action density and zero gradient.
+- A deterministic non-flat field has positive action density and non-zero
+  gradient.
+- The analytic JAX gradient matches centered directional finite differences.
+- The action gradient is orthogonal to pure-gauge perturbation directions.
+- The gradient helper is `jax.jit` compilable.
+
+Interpretation: the Wilson-action layer is now differentiable in compact
+SO(2) link variables and has the expected abelian gauge-force controls.  This
+is not yet a nonabelian force projection or a dynamical gauge update.
 
 ## Session 24 result
 

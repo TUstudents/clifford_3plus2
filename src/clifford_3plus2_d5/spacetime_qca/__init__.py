@@ -76,6 +76,14 @@ from clifford_3plus2_d5.spacetime_qca.jax_links import (
     jax_identity_link_field,
     sympy_link_field_to_jax,
 )
+from clifford_3plus2_d5.spacetime_qca.jax_gauge_force import (
+    jax_centered_finite_difference,
+    jax_so2_link_field_from_angles,
+    jax_so2_pure_gauge_angles,
+    jax_so2_rotation,
+    jax_so2_wilson_action_density,
+    jax_so2_wilson_action_gradient,
+)
 from clifford_3plus2_d5.spacetime_qca.jax_state import (
     flatten_dirac_internal_state,
     sympy_matrix_to_numpy,
@@ -313,6 +321,7 @@ __all__ = [
     "jax_bcc_displacements",
     "jax_average_normalized_wilson_loop",
     "jax_average_wilson_action_density",
+    "jax_centered_finite_difference",
     "jax_constant_link_field",
     "jax_dirac_hops",
     "jax_dirac_step",
@@ -321,6 +330,11 @@ __all__ = [
     "jax_identity_link_field",
     "jax_normalized_wilson_loop",
     "jax_plaquette_holonomy",
+    "jax_so2_link_field_from_angles",
+    "jax_so2_pure_gauge_angles",
+    "jax_so2_rotation",
+    "jax_so2_wilson_action_density",
+    "jax_so2_wilson_action_gradient",
     "jax_total_wilson_action",
     "jax_wilson_plaquette_energy",
     "jax_wilson_loop_trace",

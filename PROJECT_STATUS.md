@@ -67,7 +67,8 @@ complete; 22 finite real-space step complete; 23 Higgs/Yukawa representation
 audit complete; 24 position-dependent background gauge covariance complete;
 24b BCC plaquette holonomy complete; 25 static Higgs/Yukawa map-layer audit
 complete; 26 JAX numerical backend complete; 27 Wilson plaquette observables
-complete; 28 Wilson action normalization complete.
+complete; 28 Wilson action normalization complete; 29 SO(2) Wilson-action
+gradients complete.
 
 **Implemented**:
 - BCC geometry (8 body diagonals).
@@ -86,6 +87,8 @@ complete; 28 Wilson action normalization complete.
   steps.
 - Exact and JAX Wilson plaquette observables over the six canonical BCC
   plaquette shapes, including action density and total Wilson action.
+- SO(2)-parameterized JAX Wilson-action gradients, finite-difference checks,
+  pure-gauge flatness checks, and `jax.jit` gradient support.
 - Real-form internal convention: the internal chiral-16 is kept as `R^32`
   with compatible `J`, equivalent to `C^16` but not compressed to a
   `16 x 16` complex basis.  Tensor-lift matrices currently have size
@@ -105,7 +108,8 @@ complete; 28 Wilson action normalization complete.
 - Session 26 report: `src/clifford_3plus2_d5/spacetime_qca/SESSION_26_JAX_BACKEND.md`.
 - Session 27 report: `src/clifford_3plus2_d5/spacetime_qca/SESSION_27_WILSON_OBSERVABLES.md`.
 - Session 28 report: `src/clifford_3plus2_d5/spacetime_qca/SESSION_28_WILSON_ACTION.md`.
-- 81 passing tests.
+- Session 29 report: `src/clifford_3plus2_d5/spacetime_qca/SESSION_29_WILSON_GRADIENTS.md`.
+- 88 passing tests.
 
 **Result**:
 - `H_R(k) = sigma . k`.
@@ -151,14 +155,18 @@ complete; 28 Wilson action normalization complete.
 - Wilson plaquette energy `1 - Re(Tr(H)/N)`, average action density, and total
   action are implemented exactly and in JAX; identity/pure-gauge fields have
   zero action density, and action values are gauge invariant.
+- SO(2) compact-link Wilson-action gradients are implemented in JAX; zero and
+  pure-gauge fields have zero gradient, non-flat fields have non-zero
+  gradient, the gradient matches centered finite differences, and the force is
+  orthogonal to pure-gauge directions.
 
 **Open**:
 - Full fundamental-BCC-Brillouin-zone no-doubling proof.
 - Full symbolic all-momentum BCC Bloch-symbol unitarity proof.
 - Optional conversion to a `J`-adapted explicit `C^16` internal basis.
-- Plaquette action / Wilson observable normalization.
 - Dynamical Higgs-Yukawa layer and realistic Yukawa mass matrices.
-- Wilson-action gradients and dynamical gauge fields.
+- Nonabelian SU(N) Wilson-action gradients / force projection and dynamical
+  gauge fields.
 - Numerical performance benchmarks and long-time stability tests.
 
 ## triality — closed: negative result
