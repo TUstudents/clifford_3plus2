@@ -14,6 +14,9 @@ Sessions 20-36 have built the static and simulation-control stack:
   charge pattern and neutral-VEV breaking pattern.
 - A no-backreaction fermion/gauge wrapper: gauge links evolve by pure-gauge
   leapfrog, then fermions are transported through the updated links.
+- A first Gauss-law/backreaction prototype: electric divergence, fermion
+  charge density, finite-difference link current, and explicit momentum
+  source kick.
 
 The module now has enough infrastructure to move from background-gauge
 kinematics toward coupled field dynamics.  The remaining work is not one
@@ -23,8 +26,13 @@ feature; it is a sequence of increasingly physical constraints.
 
 ### Session 37 — Gauss Law And Fermion Backreaction
 
-Goal: turn the Session 36 wrapper from "fermions in an evolving background" to
-the first constrained gauge/fermion prototype.
+Status: complete.  Result report:
+[SESSION_37_GAUSS_BACKREACTION.md](SESSION_37_GAUSS_BACKREACTION.md).  Original
+implementation plan:
+[SESSION_37_GAUSS_BACKREACTION_PLAN.md](SESSION_37_GAUSS_BACKREACTION_PLAN.md).
+
+Session 37 turned the Session 36 wrapper from "fermions in an evolving
+background" into the first constrained gauge/fermion prototype.
 
 Detailed plan: [SESSION_37_GAUSS_BACKREACTION_PLAN.md](SESSION_37_GAUSS_BACKREACTION_PLAN.md).
 
@@ -40,17 +48,17 @@ Deliverables:
   sector-current term.
 - Verify the update is gauge-covariant on tiny lattices.
 
-Non-goals:
+Still non-goals after Session 37:
 
 - Production HMC.
 - Quantum-current operator ordering.
 - Dynamical Higgs coupling.
 - Full constraint projection on large lattices.
 
-Why this comes next: dynamical gauge fields are already represented by compact
+Why it mattered: dynamical gauge fields were already represented by compact
 link/momentum evolution, but a physically coupled theory needs Gauss-law
-constraints and matter current.  Without this layer, the gauge field is only a
-pure Wilson simulation control.
+constraints and matter current.  Session 37 supplies the first residual/source
+prototype while keeping full constraint projection as an open task.
 
 ### Session 38 — General Hermitian Yukawa Operator
 
@@ -178,15 +186,19 @@ Done:
 - Reversible leapfrog prototypes.
 - Pati-Salam/SM sector adapters.
 - No-backreaction coupling to fermion transport.
+- Target-site electric divergence and Gauss residual.
+- Fermion charge density in sector coordinates.
+- Finite-difference matter current and explicit momentum source kick.
 
 Still open:
 
 - Gauss-law residuals and projection.
-- Fermion current backreaction.
+- Full Gauss-law projection / constraint solving.
+- Analytic matter current and long-time stability.
 - Physical coupling constants per gauge factor.
 - Stability and scaling tests.
 
-Roadmap owner: Session 37 first, then Session 40 and Session 41.
+Roadmap owner: Session 40 and Session 41 for the next coupled-field audits.
 
 ### Dynamical Higgs
 
@@ -231,9 +243,10 @@ Roadmap owner: Session 38.
 
 After Session 37:
 
-- If Gauss-law/backreaction is coherent, proceed to Yukawa/Higgs.
-- If it is not, stop and fix the gauge constraint layer before adding more
-  fields.
+- Gauss-law/backreaction is coherent enough to proceed to the static Hermitian
+  Yukawa operator.
+- Full constraint projection and analytic current remain future hardening
+  tasks.
 
 After Session 38:
 

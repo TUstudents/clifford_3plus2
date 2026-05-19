@@ -8,8 +8,8 @@ observables/action normalization, SO(2) Wilson-action gradients, and SU(2)
 nonabelian Wilson-force controls with compact left-trivialized descent and
 reversible leapfrog dynamics, plus compact SU(3) force/descent and reversible
 leapfrog controls, and basis-based chiral16 Pati-Salam SU(4) compact
-dynamics plus Pati-Salam/SM subgroup adapters and a no-backreaction
-fermion/gauge coupling wrapper.
+dynamics plus Pati-Salam/SM subgroup adapters, a no-backreaction
+fermion/gauge coupling wrapper, and a first Gauss-law/backreaction prototype.
 
 This module builds the 3D spatial side of the QCA: a BCC Weyl walk
 (Bialynicki-Birula 1994) and its chiral assembly into a 4D Dirac carrier,
@@ -51,6 +51,8 @@ scalars.  A compressed explicit `C^16_internal` basis is not implemented yet.
   the exact `lepton` generator bases.
 - `jax_fermion_gauge.py` — no-backreaction coupling between the BCC Dirac
   fermion step and evolving Pati-Salam/SM links.
+- `jax_gauss.py` — Gauss residual, fermion charge density, finite-difference
+  matter current, and explicit momentum-source kick helpers.
 - `lattice.py`, `state.py`, `step.py` — finite periodic real-space BCC step.
 - `audit.py` — result payloads for the report.
 - `SESSION_20_BCC_DIRAC.md` — Session 20 result report.
@@ -72,9 +74,10 @@ scalars.  A compressed explicit `C^16_internal` basis is not implemented yet.
 - `SESSION_35_SM_GAUGE_ADAPTERS.md` — Session 35 result report.
 - `SESSION_36_FERMION_GAUGE_COUPLING.md` — Session 36 result report.
 - `SESSION_37_GAUSS_BACKREACTION_PLAN.md` — Session 37 implementation plan.
+- `SESSION_37_GAUSS_BACKREACTION.md` — Session 37 result report.
 - `ROADMAP.md` — roadmap from no-backreaction coupling toward constrained
   gauge/fermion/Higgs dynamics.
-- 190 passing tests.
+- 204 passing tests.
 
 ## Session 20 result
 
@@ -120,8 +123,8 @@ scalars.  A compressed explicit `C^16_internal` basis is not implemented yet.
   diagnostics.
 - Dynamical gauge fields beyond the current SU(2)/SU(3)/SU(4) leapfrog
   prototypes.
-- Fermion current backreaction and Gauss-law constraints for the
-  Pati-Salam/SM sectors.
+- Full Gauss-law projection / constraint solving beyond the Session 37
+  residual and source-kick prototype.
 - Vectorized SU(2) staple force and Gauss-law constraints.
 - Lorentz boost recovery beyond the `alpha . k` continuum precursor.
 - Numerical performance benchmarks and long-time stability tests.
@@ -129,9 +132,6 @@ scalars.  A compressed explicit `C^16_internal` basis is not implemented yet.
 ## Sessions ahead
 
 - Session 20b: full symbolic BCC unitarity and no-doubling hardening.
-- Session 37: Gauss-law residuals and fermion-current backreaction over the
-  Session 36 coupled wrapper.  See
-  [SESSION_37_GAUSS_BACKREACTION_PLAN.md](SESSION_37_GAUSS_BACKREACTION_PLAN.md).
 - Session 38: general Hermitian Yukawa operator `Y(Phi)`.
 - Session 39: site-local dynamical Higgs field with gauge covariance.
 - Session 40: first coupled fermion + gauge + Higgs step on tiny lattices.
@@ -158,7 +158,7 @@ BCC Dirac, BCC Wilson, and Wilson-force policy remains in `spacetime_qca`.
 uv run pytest src/clifford_3plus2_d5/spacetime_qca/tests/ -q
 ```
 
-Expected: 190 tests green.
+Expected: 204 tests green.
 
 On memory-constrained machines, prefer running the JAX dynamics files in
 smaller groups.  JAX compilation caches can accumulate across the full
@@ -475,6 +475,31 @@ transport and evolving Pati-Salam/SM link fields.  It is still a
 no-backreaction background-gauge simulation wrapper: fermion current,
 Gauss-law constraints, and dynamical Higgs/Yukawa coupling remain the next
 roadmap items.
+
+## Session 37 result
+
+- `jax_gauss.py` adds a target-site electric-divergence residual in the BCC
+  pull-link convention.
+- Link momenta can be converted from sector coordinates to anti-Hermitian
+  `32 x 32` algebra matrices.
+- Fermion charge density is computed from `Q_a = i T_a`, with both raw moments
+  and Gram-dual basis coordinates.
+- The Gauss residual is `divE - g rho`.
+- A finite-difference link current is defined from the compact left variation
+  of `Re <psi, D_U psi>`.
+- `jax_patisalam_apply_fermion_backreaction` applies the explicit source kick
+  `P -> P + dt * g * J`.
+- `jax_patisalam_fermion_gauge_step_with_backreaction` adds the current kick
+  before calling the Session 36 no-backreaction wrapper.
+- Focused tests verify anti-Hermiticity, zero-divergence/zero-charge controls,
+  gauge covariance of divergence, charge, and residual, zero-state current,
+  finite `U(1)_Y` current invariance, nonabelian current covariance, linear
+  source kicks, and zero-coupling regression to Session 36.
+
+Interpretation: this is the first constrained matter/gauge prototype.  It is
+not yet a full Gauss-law projector or production dynamical gauge simulation:
+analytic current formulas, constraint solving, physical coupling constants,
+and long-time stability remain open.
 
 ## Session 24 result
 
