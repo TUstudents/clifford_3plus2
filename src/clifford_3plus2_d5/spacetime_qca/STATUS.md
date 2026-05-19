@@ -71,6 +71,9 @@ scalars.  A compressed explicit `C^16_internal` basis is not implemented yet.
 - `SESSION_34_PATISALAM_SU4_DYNAMICS.md` — Session 34 result report.
 - `SESSION_35_SM_GAUGE_ADAPTERS.md` — Session 35 result report.
 - `SESSION_36_FERMION_GAUGE_COUPLING.md` — Session 36 result report.
+- `SESSION_37_GAUSS_BACKREACTION_PLAN.md` — Session 37 implementation plan.
+- `ROADMAP.md` — roadmap from no-backreaction coupling toward constrained
+  gauge/fermion/Higgs dynamics.
 - 190 passing tests.
 
 ## Session 20 result
@@ -111,7 +114,10 @@ scalars.  A compressed explicit `C^16_internal` basis is not implemented yet.
   match the compressed complex carrier rather than the current `R^32` real
   form.
 - Vectorized Wilson action evaluation for large lattices.
-- Dynamic Higgs-Yukawa layer.
+- General Hermitian Yukawa operator `Y(Phi)` from the dim-4 Higgs-like map
+  space.
+- Site-local dynamical Higgs field with gauge-covariant kinetic/potential
+  diagnostics.
 - Dynamical gauge fields beyond the current SU(2)/SU(3)/SU(4) leapfrog
   prototypes.
 - Fermion current backreaction and Gauss-law constraints for the
@@ -123,11 +129,18 @@ scalars.  A compressed explicit `C^16_internal` basis is not implemented yet.
 ## Sessions ahead
 
 - Session 20b: full symbolic BCC unitarity and no-doubling hardening.
-- Session 37 candidate: fermion current/backreaction audit or Gauss-law
-  constraints over the Session 36 coupled wrapper.
+- Session 37: Gauss-law residuals and fermion-current backreaction over the
+  Session 36 coupled wrapper.  See
+  [SESSION_37_GAUSS_BACKREACTION_PLAN.md](SESSION_37_GAUSS_BACKREACTION_PLAN.md).
+- Session 38: general Hermitian Yukawa operator `Y(Phi)`.
+- Session 39: site-local dynamical Higgs field with gauge covariance.
+- Session 40: first coupled fermion + gauge + Higgs step on tiny lattices.
+- Session 41+: anomaly/current diagnostics, Lorentz recovery, scaling, and
+  performance work.
 
 See [PLAN.md](PLAN.md) for the detailed Session 20 plan and
-[SESSION_20_BCC_DIRAC.md](SESSION_20_BCC_DIRAC.md) for the running report.
+[SESSION_20_BCC_DIRAC.md](SESSION_20_BCC_DIRAC.md) for the initial running
+report.  See [ROADMAP.md](ROADMAP.md) for the current post-Session-36 roadmap.
 
 ## Cross-module dependency
 
@@ -439,6 +452,29 @@ Interpretation: the module now has a uniform compact gauge adapter for the
 full Pati-Salam and SM gauge-content layer.  Combined `pati_salam` and `sm`
 sectors are representation-level convenience bases; independent physical
 couplings and Gauss-law constraints remain future work.
+
+## Session 36 result
+
+- `jax_fermion_gauge.py` adds the first no-backreaction coupling between the
+  BCC Dirac fermion step and evolving Pati-Salam/SM links.
+- `jax_patisalam_dirac_step` validates and applies the BCC Dirac step through
+  `(nx, ny, nz, 8, 32, 32)` chiral16 links.
+- `jax_patisalam_fermion_gauge_step` evolves `(links, momenta)` by pure-gauge
+  leapfrog, then transports the fermion state through the updated links.
+- `jax_transform_patisalam_dirac_state` supplies the site-local internal gauge
+  transform for `(nx, ny, nz, 4, 32)` states.
+- Identity links and zero momenta reduce the wrapper to the ordinary Dirac
+  step.
+- A zero fermion state leaves gauge evolution identical to pure-gauge
+  leapfrog, making the no-backreaction convention explicit.
+- The Dirac step is site-local gauge covariant, and the zero-time coupled
+  wrapper is covariant under the existing pull-link convention.
+
+Interpretation: the module now has an executable bridge between fermion
+transport and evolving Pati-Salam/SM link fields.  It is still a
+no-backreaction background-gauge simulation wrapper: fermion current,
+Gauss-law constraints, and dynamical Higgs/Yukawa coupling remain the next
+roadmap items.
 
 ## Session 24 result
 

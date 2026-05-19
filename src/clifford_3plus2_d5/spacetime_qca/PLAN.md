@@ -410,3 +410,32 @@ Move from Bloch-symbol audits to an exact finite real-space QCA:
 - comparison to Bloch-symbol predictions on periodic lattices.
 
 Only after this should the package approach dynamical gauge fields.
+
+## Current Roadmap After Session 36
+
+Sessions 20-36 have now completed the original Session 20-22 launch arc and
+added the first compact gauge-dynamics stack.  The package has:
+
+- finite BCC Dirac stepping;
+- position-dependent background gauge covariance;
+- Wilson plaquette observables and action densities;
+- compact Wilson forces and leapfrog prototypes for SU(2), SU(3), SU(4), and
+  Pati-Salam/SM sectors;
+- static Higgs/Yukawa representation controls;
+- a no-backreaction fermion/gauge wrapper.
+
+The next roadmap is tracked in [ROADMAP.md](ROADMAP.md).  The short sequence is:
+
+1. Session 37 — Gauss-law residuals and fermion-current backreaction.
+2. Session 38 — general Hermitian Yukawa operator `Y(Phi)` from the dim-4
+   Higgs-like map space.
+3. Session 39 — site-local dynamical Higgs field with gauge covariance,
+   kinetic energy, and potential diagnostics.
+4. Session 40 — first coupled fermion + gauge + Higgs step on tiny lattices.
+5. Session 41+ — anomaly/current diagnostics, Lorentz recovery beyond
+   `alpha . k`, renormalization/scaling checks, and performance work.
+
+The key priority is ordering.  Gauge constraints and matter current should be
+audited before adding a dynamical Higgs field, and the static Hermitian Yukawa
+operator should be audited before inserting a site-local Higgs into the time
+step.
