@@ -1,6 +1,6 @@
 # spacetime_qca — Status
 
-**Status**: in progress. Sessions 20-38 complete through finite real-space
+**Status**: in progress. Sessions 20-39 complete through finite real-space
 BCC stepping, representation-level Higgs/Yukawa audit, position-dependent
 background gauge covariance, BCC plaquette holonomy geometry, and a static
 Higgs/Yukawa map-layer audit, a JAX numerical backend, Wilson plaquette
@@ -10,7 +10,10 @@ reversible leapfrog dynamics, plus compact SU(3) force/descent and reversible
 leapfrog controls, and basis-based chiral16 Pati-Salam SU(4) compact
 dynamics plus Pati-Salam/SM subgroup adapters, a no-backreaction
 fermion/gauge coupling wrapper, a first Gauss-law/backreaction prototype, and
-a static Hermitian Yukawa `Y(Phi)` layer with JAX parity.
+a static Hermitian Yukawa `Y(Phi)` layer with JAX parity, plus a site-local
+Higgs field layer with finite `SU(2)_L x U(1)_Y` gauge covariance,
+BCC covariant differences, kinetic/potential diagnostics, and a sitewise
+Yukawa bridge.
 
 This module builds the 3D spatial side of the QCA: a BCC Weyl walk
 (Bialynicki-Birula 1994) and its chiral assembly into a 4D Dirac carrier,
@@ -55,6 +58,9 @@ scalars.  A compressed explicit `C^16_internal` basis is not implemented yet.
 - `jax_gauss.py` — Gauss residual, fermion charge density, finite-difference
   matter current, and explicit momentum-source kick helpers.
 - `jax_yukawa.py` — numerical mirrors of the static Hermitian `Y(Phi)` layer.
+- `jax_higgs.py` — site-local Higgs field, electroweak gauge transforms,
+  BCC covariant differences, Higgs energy diagnostics, and sitewise Yukawa
+  bridge helpers.
 - `lattice.py`, `state.py`, `step.py` — finite periodic real-space BCC step.
 - `audit.py` — result payloads for the report.
 - `SESSION_20_BCC_DIRAC.md` — Session 20 result report.
@@ -78,9 +84,10 @@ scalars.  A compressed explicit `C^16_internal` basis is not implemented yet.
 - `SESSION_37_GAUSS_BACKREACTION_PLAN.md` — Session 37 implementation plan.
 - `SESSION_37_GAUSS_BACKREACTION.md` — Session 37 result report.
 - `SESSION_38_HERMITIAN_YUKAWA.md` — Session 38 result report.
+- `SESSION_39_DYNAMICAL_HIGGS.md` — Session 39 result report.
 - `ROADMAP.md` — roadmap from no-backreaction coupling toward constrained
   gauge/fermion/Higgs dynamics.
-- 213 passing tests.
+- 221 passing tests; slow exact/JAX bridge tests are marked with `slow`.
 
 ## Session 20 result
 
@@ -535,6 +542,30 @@ and long-time stability remain open.
 Interpretation: this closes the static Yukawa insertion gap.  It is still a
 fixed-background Hermitian Yukawa layer, not a site-local dynamical Higgs
 field, Higgs potential, or Yukawa hierarchy.
+
+## Session 39 result
+
+- `jax_higgs.py` adds a site-local Higgs field layout:
+  `Phi.shape == (nx, ny, nz, 2)` with `(phi_plus, phi_zero)`.
+- The finite gauge coordinate order is
+  `(su2_x, su2_y, su2_z, u1_y)`.
+- Fundamental anti-Hermitian generators use
+  `T_a = -i sigma_a / 2` and `T_Y = -i I_2 / 2`, so
+  `i(T_3 + T_Y)` has charges `(+1, 0)`.
+- BCC covariant differences use the existing pull-link convention:
+  `D_h Phi[x] = U[x,h] Phi[x+h] - Phi[x]`.
+- Kinetic and Mexican-hat potential diagnostics are implemented sitewise.
+- Pure-gauge links make a gauge-transformed constant Higgs field covariantly
+  constant.
+- Sitewise bridge helpers evaluate Session 38's `Y(Phi[x])` and
+  `beta x Y(Phi[x])` on every lattice site.
+- The heavy sitewise Yukawa bridge tests are marked `slow`; the gauge-field
+  and potential tests stay in the fast suite.
+
+Interpretation: this closes the first dynamical-Higgs infrastructure gap.
+`Phi(x)` is now a gauge-covariant lattice field with energy diagnostics.  It is
+not yet a complete Higgs time-evolution rule, and it is not yet inserted into
+the coupled fermion/gauge update.
 
 ## Session 24 result
 

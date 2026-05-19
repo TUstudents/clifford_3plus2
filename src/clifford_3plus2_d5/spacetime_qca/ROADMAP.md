@@ -1,8 +1,8 @@
-# spacetime_qca — Roadmap After Session 38
+# spacetime_qca — Roadmap After Session 39
 
 ## Current Position
 
-Sessions 20-38 have built the static and simulation-control stack:
+Sessions 20-39 have built the static and simulation-control stack:
 
 - BCC Weyl/Dirac spacetime walk with the `alpha . k` continuum precursor.
 - Finite periodic real-space BCC stepping.
@@ -19,6 +19,9 @@ Sessions 20-38 have built the static and simulation-control stack:
   source kick.
 - A static Hermitian Yukawa `Y(Phi)` layer on a deterministic two-complex
   Higgs-like map slice, with exact SymPy and JAX parity.
+- A site-local Higgs field `Phi(x)` with finite `SU(2)_L x U(1)_Y` gauge
+  transforms, BCC covariant differences, kinetic/potential diagnostics, and a
+  sitewise bridge back to the static `Y(Phi)` layer.
 
 The module now has enough infrastructure to move from background-gauge
 kinematics toward coupled field dynamics.  The remaining work is not one
@@ -103,10 +106,13 @@ operator is unambiguous.
 
 ### Session 39 — Site-Local Dynamical Higgs Field
 
+Status: complete.  Result report:
+[SESSION_39_DYNAMICAL_HIGGS.md](SESSION_39_DYNAMICAL_HIGGS.md).
+
 Goal: introduce `Phi(x)` as a lattice field with gauge transformation,
 covariant transport, kinetic energy, and potential diagnostics.
 
-Deliverables:
+Delivered:
 
 - Define a site-local Higgs field layout, initially in the static doublet basis
   from Session 38.
@@ -114,6 +120,7 @@ Deliverables:
 - Define gauge-covariant finite differences using BCC links.
 - Add Higgs kinetic energy and Mexican-hat potential diagnostics.
 - Verify gauge invariance of Higgs energy on tiny lattices.
+- Add sitewise `Y(Phi[x])` bridge helpers for the Session 38 Yukawa layer.
 
 Non-goals:
 
