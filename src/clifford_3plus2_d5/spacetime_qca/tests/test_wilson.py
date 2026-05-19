@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import numpy as np
+import pytest
 import sympy as sp
 
 from clifford_3plus2_d5.spacetime_qca import (
@@ -81,6 +82,7 @@ def test_exact_wilson_trace_is_gauge_invariant() -> None:
     )
 
 
+@pytest.mark.slow
 def test_jax_plaquette_holonomy_matches_exact_sympy_holonomy() -> None:
     lattice = PeriodicLattice3D((4, 4, 4))
     links = _varied_links(lattice)
@@ -93,6 +95,7 @@ def test_jax_plaquette_holonomy_matches_exact_sympy_holonomy() -> None:
     np.testing.assert_allclose(np.asarray(actual), np.asarray(expected.tolist(), dtype=np.complex64))
 
 
+@pytest.mark.slow
 def test_jax_normalized_wilson_loop_matches_exact_sympy_value() -> None:
     lattice = PeriodicLattice3D((4, 4, 4))
     links = _varied_links(lattice)
@@ -105,6 +108,7 @@ def test_jax_normalized_wilson_loop_matches_exact_sympy_value() -> None:
     np.testing.assert_allclose(np.asarray(actual), np.asarray(expected, dtype=np.complex64))
 
 
+@pytest.mark.slow
 def test_jax_identity_and_pure_gauge_average_wilson_loop_are_one() -> None:
     lattice = PeriodicLattice3D((4, 4, 4))
     identity = identity_link_field(lattice, internal_dim=2)
@@ -120,6 +124,7 @@ def test_jax_identity_and_pure_gauge_average_wilson_loop_are_one() -> None:
     )
 
 
+@pytest.mark.slow
 def test_jax_wilson_trace_is_gauge_invariant_against_transformed_links() -> None:
     lattice = PeriodicLattice3D((4, 4, 4))
     links = _varied_links(lattice)
@@ -169,6 +174,7 @@ def test_exact_wilson_action_is_gauge_invariant_and_nonnegative_for_nontrivial_l
     )
 
 
+@pytest.mark.slow
 def test_jax_wilson_action_density_matches_exact_sympy_value() -> None:
     lattice = PeriodicLattice3D((4, 4, 4))
     links = _varied_links(lattice)
@@ -185,6 +191,7 @@ def test_jax_wilson_action_density_matches_exact_sympy_value() -> None:
     np.testing.assert_allclose(np.asarray(actual_density), np.asarray(expected_density, dtype=np.float32))
 
 
+@pytest.mark.slow
 def test_jax_identity_and_pure_gauge_wilson_action_density_are_zero() -> None:
     lattice = PeriodicLattice3D((4, 4, 4))
     identity = identity_link_field(lattice, internal_dim=2)
@@ -200,6 +207,7 @@ def test_jax_identity_and_pure_gauge_wilson_action_density_are_zero() -> None:
     )
 
 
+@pytest.mark.slow
 def test_jax_total_wilson_action_matches_density_formula_and_is_gauge_invariant() -> None:
     lattice = PeriodicLattice3D((4, 4, 4))
     links = _varied_links(lattice)

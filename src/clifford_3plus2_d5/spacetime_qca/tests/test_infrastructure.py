@@ -226,6 +226,7 @@ def test_constant_background_link_floquet_expands_to_tensor_gauge_hamiltonian() 
     assert same_matrix(effective_h, expected)
 
 
+@pytest.mark.slow
 def test_constant_background_link_lifts_real_patisalam_generator() -> None:
     epsilon, k = sp.symbols("epsilon k")
     generator = patisalam_background_generator("su2_l", 0)

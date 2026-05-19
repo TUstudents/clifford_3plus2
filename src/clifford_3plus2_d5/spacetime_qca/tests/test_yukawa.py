@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import pytest
 import sympy as sp
 
 from clifford_3plus2_d5.lepton.sm_hypercharge import (
@@ -12,6 +13,7 @@ from clifford_3plus2_d5.lepton.sm_hypercharge import (
     physical_hypercharge_generator,
 )
 from clifford_3plus2_d5.spacetime_qca import (
+    audit_hermitian_yukawa_phi,
     beta_is_off_diagonal_between_chiralities,
     color_singlet_charge_shift_basis,
     conjugate_charge_shift_component,
@@ -19,6 +21,9 @@ from clifford_3plus2_d5.spacetime_qca import (
     electromagnetic_charge_observable,
     gauge_breaking_summary,
     has_charge_shift,
+    hermitian_yukawa_hamiltonian,
+    hermitian_yukawa_internal_control,
+    higgs_phi_raising_map,
     higgs_doublet_map_audit_payload,
     higgs_like_doublet_map_basis,
     higgs_like_charge_shift_candidate,
@@ -27,10 +32,13 @@ from clifford_3plus2_d5.spacetime_qca import (
     is_higgs_like_charge_shift,
     left_right_projectors,
     matrix_is_real_symmetric,
+    neutral_yukawa_hamiltonian,
+    neutral_yukawa_internal_control,
     preserves_electromagnetism,
     projector_control_mass,
     projector_control_yukawa_audit,
     same_matrix,
+    selected_higgs_phi_basis,
     scalar_internal_mass,
     static_higgs_doublet_hamiltonian,
     static_higgs_doublet_internal_control,
@@ -45,6 +53,8 @@ from clifford_3plus2_d5.spacetime_qca import (
 )
 from clifford_3plus2_d5.lepton.clifford_patisalam import su2_l_generators_from_spin04
 from clifford_3plus2_d5.lepton.patisalam_sm import su3_c_generators_from_su4
+
+pytestmark = pytest.mark.slow
 
 
 def test_beta_is_off_diagonal_between_spacetime_chiralities() -> None:
@@ -186,6 +196,92 @@ def test_neutral_higgs_vev_preserves_electromagnetism_only() -> None:
         normalized_t3_l_observable() * control - control * normalized_t3_l_observable(),
         sp.zeros(32),
     )
+
+
+def test_hermitian_yukawa_phi_zero_and_selected_basis_construction() -> None:
+    zero = hermitian_yukawa_internal_control(
+        phi_plus=(sp.Integer(0), sp.Integer(0)),
+        phi_zero=(sp.Integer(0), sp.Integer(0)),
+    )
+    assert same_matrix(zero, sp.zeros(32))
+    assert same_matrix(hermitian_yukawa_hamiltonian((0, 0), (0, 0)), sp.zeros(128))
+
+    phi_plus = (sp.Integer(2), sp.Integer(-3))
+    phi_zero = (sp.Rational(5, 2), sp.Rational(7, 3))
+    upper_re, upper_im, lower_re, lower_im = selected_higgs_phi_basis()
+    raising = (
+        phi_plus[0] * upper_re
+        + phi_plus[1] * upper_im
+        + phi_zero[0] * lower_re
+        + phi_zero[1] * lower_im
+    ).applyfunc(sp.simplify)
+    assert same_matrix(higgs_phi_raising_map(phi_plus, phi_zero), raising)
+    assert same_matrix(hermitian_yukawa_internal_control(phi_plus, phi_zero), raising + raising.T)
+
+
+def test_hermitian_yukawa_phi_is_linear_and_hermitian() -> None:
+    left = hermitian_yukawa_internal_control(
+        phi_plus=(sp.Integer(1), sp.Integer(2)),
+        phi_zero=(sp.Integer(3), sp.Integer(4)),
+    )
+    right = hermitian_yukawa_internal_control(
+        phi_plus=(sp.Integer(5), sp.Integer(6)),
+        phi_zero=(sp.Integer(7), sp.Integer(8)),
+    )
+    combined = hermitian_yukawa_internal_control(
+        phi_plus=(sp.Integer(6), sp.Integer(8)),
+        phi_zero=(sp.Integer(10), sp.Integer(12)),
+    )
+    hamiltonian = hermitian_yukawa_hamiltonian(
+        phi_plus=(sp.Integer(2), sp.Integer(-3)),
+        phi_zero=(sp.Rational(5, 2), sp.Rational(7, 3)),
+    )
+    assert same_matrix(combined, left + right)
+    assert matrix_is_real_symmetric(combined)
+    assert same_matrix(hamiltonian, hamiltonian.H)
+
+
+def test_neutral_yukawa_phi_preserves_electromagnetism_only() -> None:
+    control = neutral_yukawa_internal_control(sp.Integer(1))
+    hamiltonian = neutral_yukawa_hamiltonian(sp.Integer(1))
+    assert matrix_is_real_symmetric(control)
+    assert same_matrix(hamiltonian, hamiltonian.H)
+    assert preserves_electromagnetism(control)
+    assert not same_matrix(
+        hypercharge_observable() * control - control * hypercharge_observable(),
+        sp.zeros(32),
+    )
+    assert not same_matrix(
+        normalized_t3_l_observable() * control - control * normalized_t3_l_observable(),
+        sp.zeros(32),
+    )
+
+
+def test_charged_yukawa_phi_breaks_electromagnetism() -> None:
+    control = hermitian_yukawa_internal_control(
+        phi_plus=(sp.Integer(1), sp.Integer(0)),
+        phi_zero=(sp.Integer(0), sp.Integer(0)),
+    )
+    assert not preserves_electromagnetism(control)
+
+
+def test_hermitian_yukawa_phi_audit_payload_records_boundaries() -> None:
+    payload = audit_hermitian_yukawa_phi()
+    assert payload.phi_api == "two_complex_explicit_re_im"
+    assert payload.selected_upper_dimension == 2
+    assert payload.selected_lower_dimension == 2
+    assert payload.zero_phi_is_zero
+    assert payload.linearity_passed
+    assert payload.internal_control_symmetric
+    assert payload.hamiltonian_hermitian
+    assert payload.neutral_preserves_color
+    assert payload.neutral_preserves_electromagnetism
+    assert payload.neutral_breaks_hypercharge
+    assert payload.neutral_breaks_t3_l
+    assert payload.charged_component_breaks_electromagnetism
+    assert payload.neutral_rank > 0
+    assert payload.neutral_nullity < 32
+    assert "static background Yukawa layer" in payload.interpretation
 
 
 def test_higgs_doublet_map_audit_payload_records_boundaries() -> None:

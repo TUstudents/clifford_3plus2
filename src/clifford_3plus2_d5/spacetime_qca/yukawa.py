@@ -19,7 +19,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from functools import lru_cache
-from typing import Sequence
+from typing import Sequence, TypeAlias
 
 import sympy as sp
 
@@ -45,6 +45,8 @@ from clifford_3plus2_d5.spacetime_qca.mass import (
     projector_control_mass,
     scalar_internal_mass,
 )
+
+ComplexPair: TypeAlias = tuple[sp.Expr, sp.Expr]
 
 
 def _zero(rows: int, cols: int | None = None) -> sp.Matrix:
@@ -377,6 +379,99 @@ def static_neutral_higgs_vev_hamiltonian(
     return mass_hamiltonian(static_neutral_higgs_vev_control(coefficients))
 
 
+def selected_higgs_phi_basis() -> tuple[sp.Matrix, sp.Matrix, sp.Matrix, sp.Matrix]:
+    """Return the canonical two-complex ``Phi`` map slice.
+
+    The full upper and lower Higgs-like map spaces are each four-dimensional
+    over the real carrier.  Session 38 exposes a physics-facing static Higgs
+    doublet API by selecting the first two deterministic basis maps from each
+    component:
+
+    ``(U0, U1, L0, L1) = (upper[0], upper[1], lower[0], lower[1])``.
+
+    A complex coefficient is represented on the exact real carrier by its
+    explicit real and imaginary coordinates against those two selected maps.
+    This is a fixed two-complex slice of the known module, not a claim that the
+    whole eight-real-dimensional map module has been complex-basis reduced.
+    """
+
+    upper, lower = higgs_like_doublet_map_basis()
+    if len(upper) < 2 or len(lower) < 2:
+        raise RuntimeError("Higgs-like doublet map spaces must each have at least two basis maps")
+    return upper[0], upper[1], lower[0], lower[1]
+
+
+def _validate_complex_pair(name: str, value: ComplexPair) -> ComplexPair:
+    """Return exact real/imaginary coordinates for a SymPy complex scalar."""
+
+    if len(value) != 2:
+        raise ValueError(f"{name} must be an explicit (real, imag) pair")
+    return sp.sympify(value[0]), sp.sympify(value[1])
+
+
+def higgs_phi_raising_map(
+    phi_plus: ComplexPair = (sp.Integer(0), sp.Integer(0)),
+    phi_zero: ComplexPair = (sp.Integer(1), sp.Integer(0)),
+) -> sp.Matrix:
+    """Return the non-Hermitian charge-raising map ``A(Phi)``.
+
+    ``phi_plus`` and ``phi_zero`` are explicit real-form complex pairs
+    ``(real_part, imag_part)``.  The default is the neutral VEV direction
+    ``Phi = (0, 1)``.
+    """
+
+    plus_re, plus_im = _validate_complex_pair("phi_plus", phi_plus)
+    zero_re, zero_im = _validate_complex_pair("phi_zero", phi_zero)
+    upper_re, upper_im, lower_re, lower_im = selected_higgs_phi_basis()
+    return (
+        plus_re * upper_re
+        + plus_im * upper_im
+        + zero_re * lower_re
+        + zero_im * lower_im
+    ).applyfunc(sp.simplify)
+
+
+def hermitian_yukawa_internal_control(
+    phi_plus: ComplexPair = (sp.Integer(0), sp.Integer(0)),
+    phi_zero: ComplexPair = (sp.Integer(1), sp.Integer(0)),
+) -> sp.Matrix:
+    """Return the real-form Hermitian internal Yukawa control ``Y(Phi)``.
+
+    For ``A(Phi)`` in the selected Higgs-doublet map slice, the internal
+    control is ``A(Phi) + A(Phi).T``.  The transpose is the real-form
+    opposite-charge counterpart used by Sessions 23 and 25.  This is the
+    Hermitian static-control construction; it is not yet a full complex
+    dynamical Higgs-field conjugation law.
+    """
+
+    raising = higgs_phi_raising_map(phi_plus=phi_plus, phi_zero=phi_zero)
+    return (raising + raising.T).applyfunc(sp.simplify)
+
+
+def hermitian_yukawa_hamiltonian(
+    phi_plus: ComplexPair = (sp.Integer(0), sp.Integer(0)),
+    phi_zero: ComplexPair = (sp.Integer(1), sp.Integer(0)),
+) -> sp.Matrix:
+    """Return ``beta x Y(Phi)`` for the static Hermitian Yukawa control."""
+
+    return mass_hamiltonian(hermitian_yukawa_internal_control(phi_plus=phi_plus, phi_zero=phi_zero))
+
+
+def neutral_yukawa_internal_control(vev: sp.Expr = sp.Integer(1)) -> sp.Matrix:
+    """Return ``Y(Phi)`` for the neutral Higgs direction ``Phi = (0, vev)``."""
+
+    return hermitian_yukawa_internal_control(
+        phi_plus=(sp.Integer(0), sp.Integer(0)),
+        phi_zero=(sp.sympify(vev), sp.Integer(0)),
+    )
+
+
+def neutral_yukawa_hamiltonian(vev: sp.Expr = sp.Integer(1)) -> sp.Matrix:
+    """Return ``beta x Y(Phi)`` for the neutral Higgs direction."""
+
+    return mass_hamiltonian(neutral_yukawa_internal_control(vev))
+
+
 def preserves_electromagnetism(matrix: sp.Matrix) -> bool:
     """Return whether ``matrix`` commutes with ``Q_em = Y + T3_L``."""
 
@@ -435,6 +530,25 @@ class HiggsDoubletMapAudit:
     neutral_vev_breaks_t3_l: bool
     neutral_vev_rank: int
     neutral_vev_nullity: int
+    interpretation: str
+
+
+@dataclass(frozen=True)
+class HermitianYukawaPhiAudit:
+    phi_api: str
+    selected_upper_dimension: int
+    selected_lower_dimension: int
+    zero_phi_is_zero: bool
+    linearity_passed: bool
+    internal_control_symmetric: bool
+    hamiltonian_hermitian: bool
+    neutral_preserves_color: bool
+    neutral_preserves_electromagnetism: bool
+    neutral_breaks_hypercharge: bool
+    neutral_breaks_t3_l: bool
+    charged_component_breaks_electromagnetism: bool
+    neutral_rank: int
+    neutral_nullity: int
     interpretation: str
 
 
@@ -558,6 +672,63 @@ def higgs_doublet_map_audit_payload() -> HiggsDoubletMapAudit:
             "themselves.  The lower-component static VEV preserves Q_em while "
             "breaking Y and T3_L separately.  These controls are fixed "
             "backgrounds, not dynamical Higgs fields."
+        ),
+    )
+
+
+def audit_hermitian_yukawa_phi() -> HermitianYukawaPhiAudit:
+    """Return the Session 38 Hermitian ``Y(Phi)`` audit payload."""
+
+    zero = hermitian_yukawa_internal_control(
+        phi_plus=(sp.Integer(0), sp.Integer(0)),
+        phi_zero=(sp.Integer(0), sp.Integer(0)),
+    )
+    sample = hermitian_yukawa_internal_control(
+        phi_plus=(sp.Integer(2), sp.Integer(-3)),
+        phi_zero=(sp.Rational(5, 2), sp.Rational(7, 3)),
+    )
+    sample_hamiltonian = hermitian_yukawa_hamiltonian(
+        phi_plus=(sp.Integer(2), sp.Integer(-3)),
+        phi_zero=(sp.Rational(5, 2), sp.Rational(7, 3)),
+    )
+    left = hermitian_yukawa_internal_control(
+        phi_plus=(sp.Integer(1), sp.Integer(2)),
+        phi_zero=(sp.Integer(3), sp.Integer(4)),
+    )
+    right = hermitian_yukawa_internal_control(
+        phi_plus=(sp.Integer(5), sp.Integer(6)),
+        phi_zero=(sp.Integer(7), sp.Integer(8)),
+    )
+    combined = hermitian_yukawa_internal_control(
+        phi_plus=(sp.Integer(6), sp.Integer(8)),
+        phi_zero=(sp.Integer(10), sp.Integer(12)),
+    )
+    neutral = neutral_yukawa_internal_control(sp.Integer(1))
+    charged = hermitian_yukawa_internal_control(
+        phi_plus=(sp.Integer(1), sp.Integer(0)),
+        phi_zero=(sp.Integer(0), sp.Integer(0)),
+    )
+    neutral_rank, neutral_nullity = matrix_rank_nullity(neutral)
+    return HermitianYukawaPhiAudit(
+        phi_api="two_complex_explicit_re_im",
+        selected_upper_dimension=2,
+        selected_lower_dimension=2,
+        zero_phi_is_zero=_same_matrix(zero, _zero(32)),
+        linearity_passed=_same_matrix(combined, left + right),
+        internal_control_symmetric=matrix_is_real_symmetric(sample),
+        hamiltonian_hermitian=_same_matrix(sample_hamiltonian, sample_hamiltonian.H),
+        neutral_preserves_color=commutes_with_all(neutral, su3_c_generators_from_su4()),
+        neutral_preserves_electromagnetism=preserves_electromagnetism(neutral),
+        neutral_breaks_hypercharge=not commutes_with_all(neutral, (hypercharge_observable(),)),
+        neutral_breaks_t3_l=not commutes_with_all(neutral, (normalized_t3_l_observable(),)),
+        charged_component_breaks_electromagnetism=not preserves_electromagnetism(charged),
+        neutral_rank=neutral_rank,
+        neutral_nullity=neutral_nullity,
+        interpretation=(
+            "Session 38 promotes the static Higgs-like map module to a "
+            "Hermitian two-complex Phi control on a deterministic real-form "
+            "slice.  It is still a static background Yukawa layer, not a "
+            "site-local dynamical Higgs field or Yukawa hierarchy."
         ),
     )
 

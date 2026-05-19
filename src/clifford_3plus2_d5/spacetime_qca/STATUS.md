@@ -1,6 +1,6 @@
 # spacetime_qca — Status
 
-**Status**: in progress. Sessions 20-36 complete through finite real-space
+**Status**: in progress. Sessions 20-38 complete through finite real-space
 BCC stepping, representation-level Higgs/Yukawa audit, position-dependent
 background gauge covariance, BCC plaquette holonomy geometry, and a static
 Higgs/Yukawa map-layer audit, a JAX numerical backend, Wilson plaquette
@@ -9,7 +9,8 @@ nonabelian Wilson-force controls with compact left-trivialized descent and
 reversible leapfrog dynamics, plus compact SU(3) force/descent and reversible
 leapfrog controls, and basis-based chiral16 Pati-Salam SU(4) compact
 dynamics plus Pati-Salam/SM subgroup adapters, a no-backreaction
-fermion/gauge coupling wrapper, and a first Gauss-law/backreaction prototype.
+fermion/gauge coupling wrapper, a first Gauss-law/backreaction prototype, and
+a static Hermitian Yukawa `Y(Phi)` layer with JAX parity.
 
 This module builds the 3D spatial side of the QCA: a BCC Weyl walk
 (Bialynicki-Birula 1994) and its chiral assembly into a 4D Dirac carrier,
@@ -34,8 +35,8 @@ scalars.  A compressed explicit `C^16_internal` basis is not implemented yet.
 - `links.py` — finite-lattice position-dependent internal link fields.
 - `plaquette.py` — BCC elementary plaquette shapes and holonomy covariance.
 - `mass.py` — Dirac mass-layer and gauge-compatibility helpers.
-- `yukawa.py` — representation-level Higgs/Yukawa charge-shift and static
-  control audits.
+- `yukawa.py` — representation-level Higgs/Yukawa charge-shift, static
+  controls, and Hermitian `Y(Phi)` audits.
 - `jax_state.py`, `jax_links.py` — compatibility wrappers and exact-backend
   converters over shared `sim` JAX state/link helpers.
 - `jax_step.py` — BCC-specific numerical Dirac step kernels using shared
@@ -53,6 +54,7 @@ scalars.  A compressed explicit `C^16_internal` basis is not implemented yet.
   fermion step and evolving Pati-Salam/SM links.
 - `jax_gauss.py` — Gauss residual, fermion charge density, finite-difference
   matter current, and explicit momentum-source kick helpers.
+- `jax_yukawa.py` — numerical mirrors of the static Hermitian `Y(Phi)` layer.
 - `lattice.py`, `state.py`, `step.py` — finite periodic real-space BCC step.
 - `audit.py` — result payloads for the report.
 - `SESSION_20_BCC_DIRAC.md` — Session 20 result report.
@@ -75,9 +77,10 @@ scalars.  A compressed explicit `C^16_internal` basis is not implemented yet.
 - `SESSION_36_FERMION_GAUGE_COUPLING.md` — Session 36 result report.
 - `SESSION_37_GAUSS_BACKREACTION_PLAN.md` — Session 37 implementation plan.
 - `SESSION_37_GAUSS_BACKREACTION.md` — Session 37 result report.
+- `SESSION_38_HERMITIAN_YUKAWA.md` — Session 38 result report.
 - `ROADMAP.md` — roadmap from no-backreaction coupling toward constrained
   gauge/fermion/Higgs dynamics.
-- 204 passing tests.
+- 213 passing tests.
 
 ## Session 20 result
 
@@ -117,8 +120,6 @@ scalars.  A compressed explicit `C^16_internal` basis is not implemented yet.
   match the compressed complex carrier rather than the current `R^32` real
   form.
 - Vectorized Wilson action evaluation for large lattices.
-- General Hermitian Yukawa operator `Y(Phi)` from the dim-4 Higgs-like map
-  space.
 - Site-local dynamical Higgs field with gauge-covariant kinetic/potential
   diagnostics.
 - Dynamical gauge fields beyond the current SU(2)/SU(3)/SU(4) leapfrog
@@ -132,7 +133,6 @@ scalars.  A compressed explicit `C^16_internal` basis is not implemented yet.
 ## Sessions ahead
 
 - Session 20b: full symbolic BCC unitarity and no-doubling hardening.
-- Session 38: general Hermitian Yukawa operator `Y(Phi)`.
 - Session 39: site-local dynamical Higgs field with gauge covariance.
 - Session 40: first coupled fermion + gauge + Higgs step on tiny lattices.
 - Session 41+: anomaly/current diagnostics, Lorentz recovery, scaling, and
@@ -140,7 +140,7 @@ scalars.  A compressed explicit `C^16_internal` basis is not implemented yet.
 
 See [PLAN.md](PLAN.md) for the detailed Session 20 plan and
 [SESSION_20_BCC_DIRAC.md](SESSION_20_BCC_DIRAC.md) for the initial running
-report.  See [ROADMAP.md](ROADMAP.md) for the current post-Session-36 roadmap.
+report.  See [ROADMAP.md](ROADMAP.md) for the current post-Session-38 roadmap.
 
 ## Cross-module dependency
 
@@ -155,10 +155,23 @@ BCC Dirac, BCC Wilson, and Wilson-force policy remains in `spacetime_qca`.
 ## Tests
 
 ```bash
-uv run pytest src/clifford_3plus2_d5/spacetime_qca/tests/ -q
+uv run pytest src/clifford_3plus2_d5/spacetime_qca/tests -m "not slow" -q
 ```
 
-Expected: 204 tests green.
+Expected fast-path result: `96 passed, 117 deselected` in about 45 seconds on
+the current CPU environment.
+
+Slow exact-symbolic and JAX dynamics/parity suites are marked with
+`pytest.mark.slow`.
+Run the full module suite, including slow tests, with:
+
+```bash
+uv run pytest src/clifford_3plus2_d5/spacetime_qca/tests -q
+```
+
+Expected full result: `213 passed`.  The full run currently takes several
+minutes because it includes exact Higgs-map nullspace construction and JAX
+gradient/leapfrog checks.
 
 On memory-constrained machines, prefer running the JAX dynamics files in
 smaller groups.  JAX compilation caches can accumulate across the full
@@ -500,6 +513,28 @@ Interpretation: this is the first constrained matter/gauge prototype.  It is
 not yet a full Gauss-law projector or production dynamical gauge simulation:
 analytic current formulas, constraint solving, physical coupling constants,
 and long-time stability remain open.
+
+## Session 38 result
+
+- `yukawa.py` adds a deterministic two-complex static Higgs API:
+  `Phi = (phi_plus, phi_zero)` with exact `(real, imag)` SymPy coordinates.
+- The selected map slice is `(upper[0], upper[1], lower[0], lower[1])` from
+  the existing Higgs-like doublet map spaces.
+- `higgs_phi_raising_map` builds the non-Hermitian charge-raising map
+  `A(Phi)`.
+- `hermitian_yukawa_internal_control` builds
+  `Y_internal(Phi) = A(Phi) + A(Phi)^T`.
+- `hermitian_yukawa_hamiltonian` builds `beta x Y_internal(Phi)`.
+- Neutral helpers implement the static `Phi = (0, vev)` direction.
+- `jax_yukawa.py` mirrors the construction for numerical code with native
+  complex scalar inputs.
+- Focused tests verify zero `Phi`, linearity, Hermiticity, neutral-VEV
+  `Q_em` preservation, charged-component `Q_em` breaking, and JAX/SymPy
+  parity.
+
+Interpretation: this closes the static Yukawa insertion gap.  It is still a
+fixed-background Hermitian Yukawa layer, not a site-local dynamical Higgs
+field, Higgs potential, or Yukawa hierarchy.
 
 ## Session 24 result
 

@@ -5,6 +5,7 @@ from __future__ import annotations
 import jax
 import jax.numpy as jnp
 import numpy as np
+import pytest
 
 from clifford_3plus2_d5.spacetime_qca import (
     canonical_bcc_plaquette_shapes,
@@ -22,6 +23,8 @@ from clifford_3plus2_d5.spacetime_qca.jax_gauge_dynamics import (
     jax_su2_momentum_kinetic_energy_density,
     jax_su2_transform_momentum_field,
 )
+
+pytestmark = pytest.mark.slow
 
 
 def _nontrivial_su2_theta(shape: tuple[int, int, int] = (2, 2, 2)) -> jnp.ndarray:

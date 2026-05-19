@@ -41,3 +41,6 @@ testpaths = [
     "src/clifford_3plus2_d5/sim/tests",
     "src/clifford_3plus2_d5/spacetime_qca/tests",
 ]
+markers = [
+    "slow: exact symbolic or large numerical tests that are not part of the default fast development loop",
+]

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import jax.numpy as jnp
 import numpy as np
+import pytest
 
 from clifford_3plus2_d5.spacetime_qca import (
     canonical_bcc_plaquette_shapes,
@@ -24,6 +25,8 @@ from clifford_3plus2_d5.spacetime_qca import (
     jax_patisalam_su4_transform_momentum_field,
     jax_transform_link_field,
 )
+
+pytestmark = pytest.mark.slow
 
 
 def _shapes():

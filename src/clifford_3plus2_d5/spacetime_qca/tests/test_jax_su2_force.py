@@ -5,6 +5,7 @@ from __future__ import annotations
 import jax
 import jax.numpy as jnp
 import numpy as np
+import pytest
 
 from clifford_3plus2_d5.spacetime_qca import (
     jax_average_wilson_action_density,
@@ -19,6 +20,8 @@ from clifford_3plus2_d5.spacetime_qca import (
     jax_su2_wilson_action_gradient,
     jax_transform_link_field,
 )
+
+pytestmark = pytest.mark.slow
 
 
 def _nontrivial_su2_theta(shape: tuple[int, int, int] = (3, 3, 3)) -> jnp.ndarray:

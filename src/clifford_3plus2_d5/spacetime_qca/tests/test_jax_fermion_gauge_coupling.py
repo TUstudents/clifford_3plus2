@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import jax.numpy as jnp
 import numpy as np
+import pytest
 
 from clifford_3plus2_d5.spacetime_qca import (
     PATISALAM_INTERNAL_DIM,
@@ -29,6 +30,8 @@ SECTOR_DIMS: dict[PatiSalamGaugeSector, int] = {
     "u1_y": 1,
     "sm": 12,
 }
+
+pytestmark = pytest.mark.slow
 
 
 def _shapes():

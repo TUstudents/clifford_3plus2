@@ -131,6 +131,7 @@ def test_patisalam_sector_pure_gauge_has_zero_action(sector: PatiSalamGaugeSecto
     np.testing.assert_allclose(np.asarray(action), np.asarray(0, dtype=np.float32), atol=4e-6)
 
 
+@pytest.mark.slow
 @pytest.mark.parametrize("sector", ["su2_l", "su3_c", "u1_y"])
 def test_patisalam_sector_finite_difference_force_lowers_action(sector: PatiSalamGaugeSector) -> None:
     links = jax_patisalam_link_field_from_algebra(_theta(sector), sector=sector)
@@ -166,6 +167,7 @@ def test_patisalam_sector_momentum_transform_preserves_kinetic_energy(
     )
 
 
+@pytest.mark.slow
 @pytest.mark.parametrize("sector", ["su2_l", "su3_c", "u1_y"])
 def test_patisalam_sector_identity_links_with_zero_momenta_are_fixed_by_leapfrog(
     sector: PatiSalamGaugeSector,

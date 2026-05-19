@@ -427,8 +427,8 @@ added the first compact gauge-dynamics stack.  The package has:
 The next roadmap is tracked in [ROADMAP.md](ROADMAP.md).  The short sequence is:
 
 1. Session 37 — Gauss-law residuals and fermion-current backreaction.
-2. Session 38 — general Hermitian Yukawa operator `Y(Phi)` from the dim-4
-   Higgs-like map space.
+2. Session 38 — general static Hermitian Yukawa operator `Y(Phi)` from a
+   deterministic two-complex Higgs-like map slice.
 3. Session 39 — site-local dynamical Higgs field with gauge covariance,
    kinetic energy, and potential diagnostics.
 4. Session 40 — first coupled fermion + gauge + Higgs step on tiny lattices.

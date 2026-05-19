@@ -1,8 +1,8 @@
-# spacetime_qca — Roadmap After Session 36
+# spacetime_qca — Roadmap After Session 38
 
 ## Current Position
 
-Sessions 20-36 have built the static and simulation-control stack:
+Sessions 20-38 have built the static and simulation-control stack:
 
 - BCC Weyl/Dirac spacetime walk with the `alpha . k` continuum precursor.
 - Finite periodic real-space BCC stepping.
@@ -17,6 +17,8 @@ Sessions 20-36 have built the static and simulation-control stack:
 - A first Gauss-law/backreaction prototype: electric divergence, fermion
   charge density, finite-difference link current, and explicit momentum
   source kick.
+- A static Hermitian Yukawa `Y(Phi)` layer on a deterministic two-complex
+  Higgs-like map slice, with exact SymPy and JAX parity.
 
 The module now has enough infrastructure to move from background-gauge
 kinematics toward coupled field dynamics.  The remaining work is not one
@@ -62,6 +64,9 @@ prototype while keeping full constraint projection as an open task.
 
 ### Session 38 — General Hermitian Yukawa Operator
 
+Status: complete.  Result report:
+[SESSION_38_HERMITIAN_YUKAWA.md](SESSION_38_HERMITIAN_YUKAWA.md).
+
 Goal: promote the Session 23/25 Higgs-like map space into a general static
 Hermitian Yukawa operator.
 
@@ -71,17 +76,19 @@ Target form:
 Y(Phi) = beta x (sum_a Phi_a M_a + conjugate(Phi_a) M_a^dagger)
 ```
 
-where `M_a` spans the Higgs-like internal map module and `Phi` is a static
-complex Higgs-doublet value.
+where `M_a` spans a deterministic selected slice of the Higgs-like internal
+map module and `Phi` is a static complex Higgs-doublet value.
 
-Deliverables:
+Delivered:
 
-- Choose an explicit complex coordinate convention for the 4-real-dimensional
-  Higgs map space.
-- Implement `Y(Phi)` in the current real-form carrier convention.
-- Prove Hermiticity for arbitrary static `Phi`.
-- Verify neutral-VEV `Phi` preserves `Q_em` and breaks `Y` / `T3_L`.
-- Compute the induced `k = 0` mass-gap controls for representative `Phi`.
+- Exact SymPy API using explicit `(real, imag)` coordinates for
+  `phi_plus` and `phi_zero`.
+- Deterministic selected basis `(upper[0], upper[1], lower[0], lower[1])`
+  for the two-complex `Phi` slice.
+- `Y_internal(Phi) = A(Phi) + A(Phi)^T` and `beta x Y_internal(Phi)`.
+- JAX mirrors using native complex scalar inputs.
+- Tests for zero `Phi`, linearity, Hermiticity, neutral-VEV `Q_em`
+  preservation, charged-component `Q_em` breaking, and JAX/SymPy parity.
 
 Non-goals:
 
