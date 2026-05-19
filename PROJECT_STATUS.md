@@ -307,6 +307,55 @@ you push the construction, the alignment fails.
 budget was 3-6 months; the early-kill discipline returned a publishable
 negative result in ~1% of that.
 
+## topology — closed: negative result
+
+**Goal**: kill-disciplined audit of topological mechanisms for three SM
+generations on the BCC × chiral-16 carrier.  Four candidates ordered
+cheapest-first: spatial body-diagonal Z_3, color SU(3)_c Z_3 center,
+``π_3(G/H)`` for carrier-relevant cosets, and discrete anomaly forcing
+N = 3.
+
+**Result**: all four phases produced clean negatives.
+
+| Phase | Verdict | Detail |
+|---|---|---|
+| D-1 (spatial Z_3 on BCC × chiral-16) | TOPOLOGY KILL | chiral-16 internal is built from Cl(0,10) gammas; spatial Z_3 acts trivially → 16 = 16 + 0 + 0 |
+| D-2 (color Z_3 center)                | COLOR Z_3 KILL | chiral-16 = (8, 4, 4) under ``g_3 = diag(1, ω, ω²)`` — asymmetric, not three equal generations |
+| D-3 (π_3 literature note)             | PI3 KILL | every carrier-relevant ``G/H`` has ``π_3`` ∈ {0, Z}; no Z/3 torsion |
+| D-5 (discrete anomaly forcing N = 3)  | ANOMALY KILL | SM anomalies cancel per generation; Witten satisfied for any N; constraint reduces to 0 = 0 |
+
+**Bonus finding**: the Bialynicki-Birula BCC hops are NOT Z_3-equivariant
+in the spatial × Dirac sector (all 8 hop residuals non-zero).  Orthogonal
+to the three-generation question — recorded for a future walk-symmetry
+audit.
+
+**Implemented**:
+- ``bcc_z3_rotation.py``: 3×3 cyclic rotation + spinor SU(2) lift
+  (cubes to -I) + 4-spinor block-diagonal lift.
+- ``hop_equivariance.py``: BB hops Z_3-equivariance audit (bonus
+  finding).
+- ``internal_triviality.py``: chiral-16 spatial Z_3-trivial by
+  construction.
+- ``color_center_z3.py``: 16 = 8 + 4 + 4 decomposition.
+- ``PI3_LITERATURE_NOTE.md``: 1-page markdown note citing
+  Mimura-Toda, Husemoller, Bott-Tu.
+- ``anomaly_cancellation/``: continuous SM anomaly polynomial,
+  Witten global SU(2) check, combined N-constraint extraction,
+  audit payload.
+
+**Tests**: 53 passing.
+
+**What this rules out vs preserves**: see
+`src/clifford_3plus2_d5/topology/SESSION_TOPOLOGY.md`.  The closure is
+specific to the BCC × chiral-16 carrier; higher-rank carriers (E_6, E_8),
+instanton / Pontryagin (D-4 deferred), and cobordism / TQFT routes
+remain open and orthogonal.
+
+**Effort spent**: well within the ~4-5 week committed budget;
+kill-discipline ordering meant D-1 / D-2 / D-3 closed in days and
+D-5 closed structurally rather than through a multi-week lattice
+computation.
+
 ## Workspace meta
 
 - [`docs/PUBLICATION_PLAN.md`](docs/PUBLICATION_PLAN.md) — publication plan for the obstruction_r10 paper.
@@ -324,6 +373,7 @@ negative result in ~1% of that.
 | `spacetime_qca.tests.*` | `lepton.checkerboard_patisalam`, `lepton.clifford_patisalam`, `lepton.patisalam_sm`, `lepton.sm_hypercharge` | Sessions 20-21 verify tensor lift and mass compatibility with real Pati-Salam / SM internal generators. |
 | `triality.reuse` | `lepton.clifford_octonion`, `lepton.clifford_patisalam`, `lepton.patisalam_sm`, `lepton.sm_hypercharge` | Single import surface for the triality kill test. |
 | `broken_triality.reuse` | `triality.*` | All algebra from triality (which itself imports from lepton); no new octonion / Clifford code. |
+| `topology.reuse` | `spacetime_qca.bcc_weyl`, `spacetime_qca.dirac`, `lepton.patisalam_sm` | Single import surface for the topology audits (BB hops, Dirac gammas, chiral-16 SU(3)_c). |
 | `obstruction_r10.qca.*` | `algebra.*` | Shared matrix utilities. |
 
 Runtime sidecar code remains mostly factored.  The visible sidecar couplings
