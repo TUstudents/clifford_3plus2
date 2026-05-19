@@ -1,6 +1,6 @@
 # spacetime_qca — Status
 
-**Status**: in progress. Sessions 20-34 complete through finite real-space
+**Status**: in progress. Sessions 20-35 complete through finite real-space
 BCC stepping, representation-level Higgs/Yukawa audit, position-dependent
 background gauge covariance, BCC plaquette holonomy geometry, and a static
 Higgs/Yukawa map-layer audit, a JAX numerical backend, Wilson plaquette
@@ -8,7 +8,7 @@ observables/action normalization, SO(2) Wilson-action gradients, and SU(2)
 nonabelian Wilson-force controls with compact left-trivialized descent and
 reversible leapfrog dynamics, plus compact SU(3) force/descent and reversible
 leapfrog controls, and basis-based chiral16 Pati-Salam SU(4) compact
-dynamics.
+dynamics plus Pati-Salam/SM subgroup adapters.
 
 This module builds the 3D spatial side of the QCA: a BCC Weyl walk
 (Bialynicki-Birula 1994) and its chiral assembly into a 4D Dirac carrier,
@@ -46,8 +46,8 @@ scalars.  A compressed explicit `C^16_internal` basis is not implemented yet.
   controls, and compact action descent.
 - `jax_gauge_dynamics.py` — SU(2)/SU(3) and generic basis-coordinate momentum
   fields, Hamiltonian-density helpers, and compact leapfrog updates.
-- `jax_patisalam.py` — chiral16 Pati-Salam SU(4) JAX adapters over the exact
-  `lepton` generator basis.
+- `jax_patisalam.py` — chiral16 Pati-Salam and SM sector JAX adapters over
+  the exact `lepton` generator bases.
 - `lattice.py`, `state.py`, `step.py` — finite periodic real-space BCC step.
 - `audit.py` — result payloads for the report.
 - `SESSION_20_BCC_DIRAC.md` — Session 20 result report.
@@ -66,7 +66,8 @@ scalars.  A compressed explicit `C^16_internal` basis is not implemented yet.
 - `SESSION_32_SU2_LEAPFROG.md` — Session 32 result report.
 - `SESSION_33_SU3_DYNAMICS.md` — Session 33 result report.
 - `SESSION_34_PATISALAM_SU4_DYNAMICS.md` — Session 34 result report.
-- 147 passing tests.
+- `SESSION_35_SM_GAUGE_ADAPTERS.md` — Session 35 result report.
+- 185 passing tests.
 
 ## Session 20 result
 
@@ -109,7 +110,7 @@ scalars.  A compressed explicit `C^16_internal` basis is not implemented yet.
 - Dynamic Higgs-Yukawa layer.
 - Dynamical gauge fields beyond the current SU(2)/SU(3)/SU(4) leapfrog
   prototypes.
-- SU(2)_L, U(1)_Y, or full SM-specific adapters on top of the new basis API.
+- Fermion-coupled gauge-link evolution for the Pati-Salam/SM sectors.
 - Vectorized SU(2) staple force and Gauss-law constraints.
 - Lorentz boost recovery beyond the `alpha . k` continuum precursor.
 - Numerical performance benchmarks and long-time stability tests.
@@ -117,8 +118,8 @@ scalars.  A compressed explicit `C^16_internal` basis is not implemented yet.
 ## Sessions ahead
 
 - Session 20b: full symbolic BCC unitarity and no-doubling hardening.
-- Session 35 candidate: fermion-coupled gauge-link evolution, Gauss-law
-  constraints, or SM-subgroup adapters over the Session 34 basis API.
+- Session 36 candidate: fermion-coupled gauge-link evolution or Gauss-law
+  constraints over the Session 35 gauge-sector adapters.
 
 See [PLAN.md](PLAN.md) for the detailed Session 20 plan and
 [SESSION_20_BCC_DIRAC.md](SESSION_20_BCC_DIRAC.md) for the running report.
@@ -139,7 +140,7 @@ BCC Dirac, BCC Wilson, and Wilson-force policy remains in `spacetime_qca`.
 uv run pytest src/clifford_3plus2_d5/spacetime_qca/tests/ -q
 ```
 
-Expected: 147 tests green.
+Expected: 185 tests green.
 
 On memory-constrained machines, prefer running the JAX dynamics files in
 smaller groups.  JAX compilation caches can accumulate across the full
@@ -409,6 +410,30 @@ Interpretation: the Pati-Salam SU(4) force-projection gap is closed without
 pretending that a `32 x 32` chiral16 representation is fundamental SU(32).
 This is still a compact gauge-dynamics control; Gauss-law projection, fermion
 backreaction, and dynamical Higgs/Yukawa fields remain open.
+
+## Session 35 result
+
+- `jax_patisalam.py` now exposes a sector-generic chiral16 gauge adapter.
+- Supported sectors are `su4`, `su2_l`, `su2_r`, `pati_salam`, `su3_c`,
+  `u1_y`, and `sm`.
+- Existing `jax_patisalam_su4_*` functions remain stable as wrappers over
+  `sector="su4"`.
+- Every sector uses explicit `lepton` generator bases and the Session 34
+  Gram-metric projection.
+- Sector dimensions are `15`, `3`, `3`, `21`, `8`, `1`, and `12`
+  respectively.
+- Projection recovers coordinates, compact exponentials preserve unitarity,
+  and pure gauges have zero Wilson action in the representative sectors.
+- Independent SM factor links commute for `SU(3)_c`, `SU(2)_L`, and `U(1)_Y`.
+- Representative finite-difference forces lower non-flat Wilson action for
+  `SU(2)_L`, `SU(3)_c`, and `U(1)_Y`.
+- Momentum transforms preserve Gram-metric kinetic energy for representative
+  sectors and for the combined `sm` basis.
+
+Interpretation: the module now has a uniform compact gauge adapter for the
+full Pati-Salam and SM gauge-content layer.  Combined `pati_salam` and `sm`
+sectors are representation-level convenience bases; independent physical
+couplings and Gauss-law constraints remain future work.
 
 ## Session 24 result
 
