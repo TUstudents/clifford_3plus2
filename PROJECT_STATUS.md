@@ -356,6 +356,52 @@ kill-discipline ordering meant D-1 / D-2 / D-3 closed in days and
 D-5 closed structurally rather than through a multi-week lattice
 computation.
 
+## sme — closed: UNFALSIFIABLE PASS
+
+**Goal**: Bold A audit.  Bridge the cp/ sidecar's (CP-odd, T_{2g}) cell
+of H^(1) to the Standard Model Extension (SME) framework and compute
+the maximum allowed ε from current experimental bounds.
+
+**Result**: UNFALSIFIABLE PASS at ε ≲ 2 × 10⁻³³ m (~10² × Planck length).
+
+| Phase | Verdict | Detail |
+|---|---|---|
+| A-1 (SME framework identification) | dim-5 non-minimal SME, fermion sector, CP-odd spin-tensor | five symmetry classes pinned by cp/ verified directly |
+| A-2 (H^(1) → SME tensor mapping)   | three non-zero d^{(5)} components | axial-vector × 2 derivatives, CPT-even, CP-odd; per chirality: σ^x k_y k_z, −σ^y k_x k_z, σ^z k_x k_y |
+| A-3 (SME_LITERATURE_NOTE.md)       | |d^{(5)}| ≲ 10⁻¹⁷ GeV⁻¹ representative | Kostelecky-Russell entry-id verification + 2024-2025 atom-interferometry cross-check flagged for follow-up |
+| A-4 (symbolic ε constraint)        | ε ≲ 2 × 10⁻³³ m, ~10² ℓ_P | UNFALSIFIABLE PASS verdict class |
+| A-5 (combined audit)               | program alive but unfalsifiable in this channel | clean PASS, not a kill |
+
+**Underlying message**: the program is structurally consistent with
+current experimental bounds at the representative ε scale.  No
+experimental discrepancy forces a re-examination of the BCC × chiral-16
+carrier or the cp/ dual-positive result.  However, the bound on ε from
+this channel is ~10⁸ above current observational reach — the program
+is currently unfalsifiable in the d^{(5)} channel.
+
+**Implemented**:
+- ``sme_framework_identification.py``: re-verify 5 symmetry classes from
+  cp/; declare SME sector.
+- ``sme_tensor_mapping.py``: Pauli decomposition of (CP-odd, T_{2g})
+  cell → 3 non-zero T^{aij} entries → ``d^{(5)}_{αβγ}`` SME components.
+- ``SME_LITERATURE_NOTE.md``: cited representative bounds with
+  Kostelecky-Russell, Kostelecky-Mewes, Mattingly, Liberati references.
+- ``epsilon_constraint.py``: Planck-length conversion + tightest-face
+  rule + four-class verdict.
+- ``sme_audit.py``: combined payload.
+
+**Tests**: 37 passing.
+
+**Follow-up flags**:
+1. Verify Kostelecky-Russell entry ids for the three d^{(5)} components.
+2. Cross-check against 2024-2025 atom-interferometry papers; update
+   ``DIM5_FERMION_BOUND_GEV_INVERSE`` if tightened.
+3. Check field-redefinition triviality (F-sme-5).
+4. Consider parallel photon-sector audit using (k_F)^(5) bounds.
+
+**Effort spent**: well within the ~2-week committed budget.  Scaffold
++ all five phases + tests in a single session.
+
 ## Workspace meta
 
 - [`docs/PUBLICATION_PLAN.md`](docs/PUBLICATION_PLAN.md) — publication plan for the obstruction_r10 paper.
@@ -374,6 +420,7 @@ computation.
 | `triality.reuse` | `lepton.clifford_octonion`, `lepton.clifford_patisalam`, `lepton.patisalam_sm`, `lepton.sm_hypercharge` | Single import surface for the triality kill test. |
 | `broken_triality.reuse` | `triality.*` | All algebra from triality (which itself imports from lepton); no new octonion / Clifford code. |
 | `topology.reuse` | `spacetime_qca.bcc_weyl`, `spacetime_qca.dirac`, `lepton.patisalam_sm` | Single import surface for the topology audits (BB hops, Dirac gammas, chiral-16 SU(3)_c). |
+| `sme.reuse` | `cp.continuum_cp`, `cp.cubic_harmonics`, `spacetime_qca.dirac` | Single import surface for the SME audit (H^(1), T_{2g} projector, γ matrices). |
 | `obstruction_r10.qca.*` | `algebra.*` | Shared matrix utilities. |
 
 Runtime sidecar code remains mostly factored.  The visible sidecar couplings
