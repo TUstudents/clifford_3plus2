@@ -1,6 +1,6 @@
 # spacetime_qca — Status
 
-**Status**: in progress. Sessions 20-35 complete through finite real-space
+**Status**: in progress. Sessions 20-36 complete through finite real-space
 BCC stepping, representation-level Higgs/Yukawa audit, position-dependent
 background gauge covariance, BCC plaquette holonomy geometry, and a static
 Higgs/Yukawa map-layer audit, a JAX numerical backend, Wilson plaquette
@@ -8,7 +8,8 @@ observables/action normalization, SO(2) Wilson-action gradients, and SU(2)
 nonabelian Wilson-force controls with compact left-trivialized descent and
 reversible leapfrog dynamics, plus compact SU(3) force/descent and reversible
 leapfrog controls, and basis-based chiral16 Pati-Salam SU(4) compact
-dynamics plus Pati-Salam/SM subgroup adapters.
+dynamics plus Pati-Salam/SM subgroup adapters and a no-backreaction
+fermion/gauge coupling wrapper.
 
 This module builds the 3D spatial side of the QCA: a BCC Weyl walk
 (Bialynicki-Birula 1994) and its chiral assembly into a 4D Dirac carrier,
@@ -48,6 +49,8 @@ scalars.  A compressed explicit `C^16_internal` basis is not implemented yet.
   fields, Hamiltonian-density helpers, and compact leapfrog updates.
 - `jax_patisalam.py` — chiral16 Pati-Salam and SM sector JAX adapters over
   the exact `lepton` generator bases.
+- `jax_fermion_gauge.py` — no-backreaction coupling between the BCC Dirac
+  fermion step and evolving Pati-Salam/SM links.
 - `lattice.py`, `state.py`, `step.py` — finite periodic real-space BCC step.
 - `audit.py` — result payloads for the report.
 - `SESSION_20_BCC_DIRAC.md` — Session 20 result report.
@@ -67,7 +70,8 @@ scalars.  A compressed explicit `C^16_internal` basis is not implemented yet.
 - `SESSION_33_SU3_DYNAMICS.md` — Session 33 result report.
 - `SESSION_34_PATISALAM_SU4_DYNAMICS.md` — Session 34 result report.
 - `SESSION_35_SM_GAUGE_ADAPTERS.md` — Session 35 result report.
-- 185 passing tests.
+- `SESSION_36_FERMION_GAUGE_COUPLING.md` — Session 36 result report.
+- 190 passing tests.
 
 ## Session 20 result
 
@@ -110,7 +114,8 @@ scalars.  A compressed explicit `C^16_internal` basis is not implemented yet.
 - Dynamic Higgs-Yukawa layer.
 - Dynamical gauge fields beyond the current SU(2)/SU(3)/SU(4) leapfrog
   prototypes.
-- Fermion-coupled gauge-link evolution for the Pati-Salam/SM sectors.
+- Fermion current backreaction and Gauss-law constraints for the
+  Pati-Salam/SM sectors.
 - Vectorized SU(2) staple force and Gauss-law constraints.
 - Lorentz boost recovery beyond the `alpha . k` continuum precursor.
 - Numerical performance benchmarks and long-time stability tests.
@@ -118,8 +123,8 @@ scalars.  A compressed explicit `C^16_internal` basis is not implemented yet.
 ## Sessions ahead
 
 - Session 20b: full symbolic BCC unitarity and no-doubling hardening.
-- Session 36 candidate: fermion-coupled gauge-link evolution or Gauss-law
-  constraints over the Session 35 gauge-sector adapters.
+- Session 37 candidate: fermion current/backreaction audit or Gauss-law
+  constraints over the Session 36 coupled wrapper.
 
 See [PLAN.md](PLAN.md) for the detailed Session 20 plan and
 [SESSION_20_BCC_DIRAC.md](SESSION_20_BCC_DIRAC.md) for the running report.
@@ -140,7 +145,7 @@ BCC Dirac, BCC Wilson, and Wilson-force policy remains in `spacetime_qca`.
 uv run pytest src/clifford_3plus2_d5/spacetime_qca/tests/ -q
 ```
 
-Expected: 185 tests green.
+Expected: 190 tests green.
 
 On memory-constrained machines, prefer running the JAX dynamics files in
 smaller groups.  JAX compilation caches can accumulate across the full

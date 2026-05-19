@@ -147,6 +147,14 @@ from clifford_3plus2_d5.spacetime_qca.jax_gauge_force import (
     jax_su3_wilson_action_density,
     jax_transform_link_field,
 )
+from clifford_3plus2_d5.spacetime_qca.jax_fermion_gauge import (
+    PATISALAM_INTERNAL_DIM,
+    PatiSalamFermionGaugeDiagnostics,
+    jax_patisalam_dirac_step,
+    jax_patisalam_fermion_gauge_energy_density,
+    jax_patisalam_fermion_gauge_step,
+    jax_transform_patisalam_dirac_state,
+)
 from clifford_3plus2_d5.spacetime_qca.jax_patisalam import (
     PatiSalamGaugeSector,
     jax_patisalam_action_descent_step,
@@ -329,8 +337,10 @@ __all__ = [
     "LinkKey",
     "MassCompatibilityAudit",
     "PeriodicLattice3D",
+    "PATISALAM_INTERNAL_DIM",
     "PlaquetteKey",
     "PlaquetteShape",
+    "PatiSalamFermionGaugeDiagnostics",
     "PatiSalamGaugeSector",
     "Site",
     "State",
@@ -443,6 +453,9 @@ __all__ = [
     "jax_patisalam_algebra_matrix",
     "jax_patisalam_apply_left_update",
     "jax_patisalam_apply_momentum_update",
+    "jax_patisalam_dirac_step",
+    "jax_patisalam_fermion_gauge_energy_density",
+    "jax_patisalam_fermion_gauge_step",
     "jax_patisalam_gauge_hamiltonian_density",
     "jax_patisalam_generators_chiral16",
     "jax_patisalam_leapfrog_step",
@@ -513,6 +526,7 @@ __all__ = [
     "jax_su3_wilson_action_density",
     "jax_total_wilson_action",
     "jax_transform_link_field",
+    "jax_transform_patisalam_dirac_state",
     "jax_wilson_plaquette_energy",
     "jax_wilson_loop_trace",
     "k0_scalar_mass_spectrum",
