@@ -40,6 +40,14 @@ testpaths = [
     "src/clifford_3plus2_d5/lepton/tests",
     "src/clifford_3plus2_d5/sim/tests",
     "src/clifford_3plus2_d5/spacetime_qca/tests",
+    "src/clifford_3plus2_d5/triality/tests",
+    "src/clifford_3plus2_d5/broken_triality/tests",
+    "src/clifford_3plus2_d5/exceptional/tests",
+    "src/clifford_3plus2_d5/cp/tests",
+    "src/clifford_3plus2_d5/topology/tests",
+    "src/clifford_3plus2_d5/sme/tests",
+    "src/clifford_3plus2_d5/strongcp/tests",
+    "src/clifford_3plus2_d5/koide/tests",
 ]
 markers = [
     "slow: exact symbolic or large numerical tests that are not part of the default fast development loop",

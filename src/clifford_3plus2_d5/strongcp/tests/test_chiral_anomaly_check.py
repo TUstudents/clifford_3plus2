@@ -1,6 +1,14 @@
-"""Tests for ``chiral_anomaly_check.py``."""
+"""Tests for ``chiral_anomaly_check.py``.
+
+Slow: depends on H^(2) BCH extraction via ``higher_order_parity``,
+which is SymPy-heavy (~10s per test).
+"""
 
 from __future__ import annotations
+
+import pytest
+
+pytestmark = pytest.mark.slow
 
 from clifford_3plus2_d5.strongcp.chiral_anomaly_check import (
     chiral_anomaly_check_payload,

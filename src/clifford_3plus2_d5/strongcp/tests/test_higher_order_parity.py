@@ -1,8 +1,16 @@
-"""Tests for ``higher_order_parity.py``."""
+"""Tests for ``higher_order_parity.py``.
+
+Slow: exact symbolic BCH extraction at O(ε²) (computing H^(2) from
+the ε³ coefficient of log U on the BCC Dirac Bloch operator) is
+SymPy-heavy and takes 10-20s per test.
+"""
 
 from __future__ import annotations
 
+import pytest
 import sympy as sp
+
+pytestmark = pytest.mark.slow
 
 from clifford_3plus2_d5.strongcp.higher_order_parity import (
     effective_hamiltonian_second_correction,

@@ -1,6 +1,14 @@
-"""Tests for ``strong_cp_audit.py`` (aggregates SC-1..SC-5)."""
+"""Tests for ``strong_cp_audit.py`` (aggregates SC-1..SC-5).
+
+Slow: aggregates the H^(2) BCH-heavy SC-3 and SC-5 sub-phases; each
+test triggers the full ~30s symbolic computation chain.
+"""
 
 from __future__ import annotations
+
+import pytest
+
+pytestmark = pytest.mark.slow
 
 from clifford_3plus2_d5.strongcp.strong_cp_audit import strong_cp_audit_payload
 from clifford_3plus2_d5.strongcp.theta_bar_constraint import (
