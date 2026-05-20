@@ -411,9 +411,9 @@ Move from Bloch-symbol audits to an exact finite real-space QCA:
 
 Only after this should the package approach dynamical gauge fields.
 
-## Current Roadmap After Session 39
+## Current Roadmap After Session 40
 
-Sessions 20-39 have now completed the original Session 20-22 launch arc and
+Sessions 20-40 have now completed the original Session 20-22 launch arc and
 added the first compact gauge-dynamics and Higgs-field infrastructure stack.
 The package has:
 
@@ -426,14 +426,18 @@ The package has:
 - a no-backreaction fermion/gauge wrapper;
 - Gauss-law and matter-current backreaction prototypes;
 - a site-local Higgs field with gauge-covariant BCC differences, kinetic and
-  potential diagnostics, and a sitewise bridge back to `Y(Phi)`.
+  potential diagnostics, and a sitewise bridge back to `Y(Phi)`;
+- a first coupled fermion/gauge/Higgs prototype with Higgs conjugate momentum,
+  fixed-link Higgs leapfrog, and a first-order site-local Yukawa kick.
 
 The next roadmap is tracked in [ROADMAP.md](ROADMAP.md).  The short sequence is:
 
-1. Session 40 — first coupled fermion + gauge + Higgs step on tiny lattices.
-2. Session 41+ — anomaly/current diagnostics, Lorentz recovery beyond
+1. Session 41 — anomaly/current diagnostics.
+2. Session 42+ — Lorentz recovery beyond
    `alpha . k`, renormalization/scaling checks, and performance work.
 
 The key priority is ordering.  Gauge constraints and matter current should be
 audited before adding a dynamical Higgs field, and the site-local Higgs field
 should be audited before inserting `Y(Phi[x])` into the coupled time step.
+Those prerequisites are now in place; the next priority is checking the
+charge/current consistency of the coupled dynamics before extending it.

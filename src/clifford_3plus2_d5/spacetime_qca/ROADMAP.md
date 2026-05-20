@@ -1,8 +1,8 @@
-# spacetime_qca — Roadmap After Session 39
+# spacetime_qca — Roadmap After Session 40
 
 ## Current Position
 
-Sessions 20-39 have built the static and simulation-control stack:
+Sessions 20-40 have built the static and simulation-control stack:
 
 - BCC Weyl/Dirac spacetime walk with the `alpha . k` continuum precursor.
 - Finite periodic real-space BCC stepping.
@@ -22,6 +22,9 @@ Sessions 20-39 have built the static and simulation-control stack:
 - A site-local Higgs field `Phi(x)` with finite `SU(2)_L x U(1)_Y` gauge
   transforms, BCC covariant differences, kinetic/potential diagnostics, and a
   sitewise bridge back to the static `Y(Phi)` layer.
+- A first coupled fermion/gauge/Higgs prototype with Higgs conjugate momentum,
+  fixed-link Higgs leapfrog, a first-order site-local Yukawa kick, and
+  finite diagnostics for all field sectors.
 
 The module now has enough infrastructure to move from background-gauge
 kinematics toward coupled field dynamics.  The remaining work is not one
@@ -134,14 +137,18 @@ it can safely enter the QCA step.
 
 ### Session 40 — Coupled Fermion + Gauge + Higgs Step
 
+Status: complete.  Result report:
+[SESSION_40_COUPLED_HIGGS_STEP.md](SESSION_40_COUPLED_HIGGS_STEP.md).
+
 Goal: combine the pieces into the first small-lattice coupled update.
 
-Deliverables:
+Delivered:
 
 - Fermion step with BCC kinetic transport plus static or site-local Yukawa
   insertion.
 - Gauge leapfrog with matter-current source from Session 37.
-- Higgs update using the Session 39 kinetic/potential controls.
+- Higgs conjugate momentum and a fixed-link leapfrog update using the Session
+  39 kinetic/potential controls.
 - Diagnostics for norm drift, gauge Hamiltonian, Higgs energy, and Gauss-law
   residual before/after one step.
 - Tiny-lattice smoke tests for `u1_y`, `su2_l`, and `sm` sectors.

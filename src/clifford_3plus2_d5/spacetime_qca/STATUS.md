@@ -1,6 +1,6 @@
 # spacetime_qca — Status
 
-**Status**: in progress. Sessions 20-39 complete through finite real-space
+**Status**: in progress. Sessions 20-40 complete through finite real-space
 BCC stepping, representation-level Higgs/Yukawa audit, position-dependent
 background gauge covariance, BCC plaquette holonomy geometry, and a static
 Higgs/Yukawa map-layer audit, a JAX numerical backend, Wilson plaquette
@@ -13,7 +13,9 @@ fermion/gauge coupling wrapper, a first Gauss-law/backreaction prototype, and
 a static Hermitian Yukawa `Y(Phi)` layer with JAX parity, plus a site-local
 Higgs field layer with finite `SU(2)_L x U(1)_Y` gauge covariance,
 BCC covariant differences, kinetic/potential diagnostics, and a sitewise
-Yukawa bridge.
+Yukawa bridge, and the first small-lattice coupled fermion/gauge/Higgs
+prototype with Higgs conjugate momentum and a first-order site-local Yukawa
+kick.
 
 This module builds the 3D spatial side of the QCA: a BCC Weyl walk
 (Bialynicki-Birula 1994) and its chiral assembly into a 4D Dirac carrier,
@@ -61,6 +63,9 @@ scalars.  A compressed explicit `C^16_internal` basis is not implemented yet.
 - `jax_higgs.py` — site-local Higgs field, electroweak gauge transforms,
   BCC covariant differences, Higgs energy diagnostics, and sitewise Yukawa
   bridge helpers.
+- `jax_coupled_higgs.py` — Higgs conjugate momentum, Higgs leapfrog force,
+  electroweak sector adapters, first-order site-local Yukawa kick, and the
+  coupled fermion/gauge/Higgs prototype wrapper.
 - `lattice.py`, `state.py`, `step.py` — finite periodic real-space BCC step.
 - `audit.py` — result payloads for the report.
 - `SESSION_20_BCC_DIRAC.md` — Session 20 result report.
@@ -85,9 +90,12 @@ scalars.  A compressed explicit `C^16_internal` basis is not implemented yet.
 - `SESSION_37_GAUSS_BACKREACTION.md` — Session 37 result report.
 - `SESSION_38_HERMITIAN_YUKAWA.md` — Session 38 result report.
 - `SESSION_39_DYNAMICAL_HIGGS.md` — Session 39 result report.
+- `SESSION_40_COUPLED_HIGGS_STEP.md` — Session 40 result report.
 - `ROADMAP.md` — roadmap from no-backreaction coupling toward constrained
   gauge/fermion/Higgs dynamics.
-- 221 passing tests; slow exact/JAX bridge tests are marked with `slow`.
+- 236 collected tests in the scoped `spacetime_qca` suite; the fast suite has
+  111 passing tests, and slow exact/JAX bridge and coupled-dynamics tests are
+  marked with `slow`.
 
 ## Session 20 result
 
@@ -566,6 +574,33 @@ Interpretation: this closes the first dynamical-Higgs infrastructure gap.
 `Phi(x)` is now a gauge-covariant lattice field with energy diagnostics.  It is
 not yet a complete Higgs time-evolution rule, and it is not yet inserted into
 the coupled fermion/gauge update.
+
+## Session 40 result
+
+- `jax_coupled_higgs.py` adds Higgs conjugate momentum
+  `Pi.shape == Phi.shape == (nx, ny, nz, 2)`.
+- Higgs momentum transforms like the Higgs doublet and has sitewise
+  `0.5 |Pi|^2` energy.
+- `jax_higgs_force` computes `-dH_H/dPhi` by JAX autodiff over explicit
+  real/imaginary coordinates.
+- `jax_higgs_leapfrog_step` updates `(Phi, Pi)` with fixed electroweak Higgs
+  links.
+- Sector adapters map `u1_y`, `su2_l`, and `sm` coordinates into the
+  fundamental Higgs representation.
+- The coupled wrapper rejects color-only sectors for the v1 Higgs coupling.
+- `jax_apply_site_local_yukawa_kick` applies the first-order explicit
+  `psi -> psi - i dt (beta x Y(Phi[x])) psi` kick.
+- `jax_patisalam_fermion_gauge_higgs_step` composes half Yukawa kick, Session
+  37 sourced gauge/fermion step, Higgs leapfrog, and a second half Yukawa
+  kick.
+- Diagnostics report fermion norm, gauge Hamiltonian density, Higgs
+  momentum/kinetic/potential/total energy, Gauss residual norm, and Yukawa
+  norm drift.
+
+Interpretation: this is the first executable prototype with fermions, gauge
+fields, and a Higgs field in one update path.  It is still a research control:
+Higgs links are fixed inputs, Higgs current does not backreact on gauge
+momenta, and the Yukawa kick is not yet an exact local unitary exponential.
 
 ## Session 24 result
 
