@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import json
+
 import jax.numpy as jnp
 import numpy as np
 import pytest
@@ -83,6 +85,26 @@ def test_benchmark_helper_returns_nonnegative_timing() -> None:
 
     assert timing.compile_seconds >= 0
     assert timing.run_seconds >= 0
+
+
+def test_profile_callable_returns_json_safe_payload() -> None:
+    def add_one(value: jnp.ndarray) -> jnp.ndarray:
+        return value + 1
+
+    profile = sim.profile_callable(
+        "add_one",
+        add_one,
+        args=(jnp.ones((4,), dtype=jnp.float32),),
+        include_jit=True,
+    )
+    payload = profile.as_payload()
+
+    assert payload["label"] == "add_one"
+    assert payload["python_seconds"] >= 0
+    assert payload["jit_compile_seconds"] >= 0
+    assert payload["jit_run_seconds"] >= 0
+    assert payload["all_finite"] is True
+    json.dumps(payload)
 
 
 def test_recorded_loop_records_initial_requested_and_final_steps() -> None:

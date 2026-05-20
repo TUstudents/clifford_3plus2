@@ -43,6 +43,7 @@ Sessions 20-48 have built the static and simulation-control stack:
 - A clean simulator split: prototype lab runner, reusable generic `sim`
   runner/io helpers, and a scan-backed main `spacetime_qca.simulator` API.
 - Import-boundary tests and package notes that pin the lab/main/sim split.
+- A bounded scan-backed simulator profiling CLI and first bottleneck report.
 
 The module now has enough infrastructure to move from background-gauge
 kinematics toward coupled field dynamics.  The remaining work is not one
@@ -97,6 +98,22 @@ Delivered:
 
 Next: run focused profiling on the scan-backed simulator to identify the first
 physics-kernel bottleneck.
+
+### Session 49 — Simulator Profiling And Bottleneck Report
+
+Status: complete. Result report:
+[SESSION_49_SIMULATOR_PROFILING.md](SESSION_49_SIMULATOR_PROFILING.md).
+
+Delivered:
+
+- Generic `sim.profiling` callable profiles with JSON-safe payloads.
+- `spacetime_qca.simulator.profiling` bounded `(1, 1, 1)` profile cases.
+- `profile_sim` CLI for JSON profiling output.
+- Local non-JIT bottleneck report identifying full-SM sector gauge force/link
+  algebra as the first optimization target.
+
+Next: add warm steady-state timing for physics kernels, then optimize the
+full-SM sector force/link path before increasing lattice size.
 
 ## Immediate Priorities
 
@@ -424,3 +441,9 @@ After Session 48:
   performance hardening, because the prototype lab and scan-backed main
   simulator split is now pinned by tests and reusable multi-step controls
   already exist.
+
+After Session 49:
+
+- The first optimization target is full-SM sector gauge force/link algebra.
+- Future profiles need warmup/repeat timing so cold JAX setup does not distort
+  physics-kernel comparisons.

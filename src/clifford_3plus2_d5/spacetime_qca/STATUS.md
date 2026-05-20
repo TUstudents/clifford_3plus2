@@ -1,6 +1,6 @@
 # spacetime_qca — Status
 
-**Status**: in progress. Sessions 20-48 complete through finite real-space
+**Status**: in progress. Sessions 20-49 complete through finite real-space
 BCC stepping, representation-level Higgs/Yukawa audit, position-dependent
 background gauge covariance, BCC plaquette holonomy geometry, and a static
 Higgs/Yukawa map-layer audit, a JAX numerical backend, Wilson plaquette
@@ -23,7 +23,8 @@ multi-step tiny-lattice trajectory/timing probes, and the first deterministic
 tiny-lattice simulation runner with `.npz`/JSON output.  The runner layer is
 now split into a prototype `lab` path, generic shared `sim` infrastructure,
 and a scan-backed main `simulator` path.  The split has import-boundary tests
-and package-local usage notes.
+and package-local usage notes, plus a bounded profiling CLI and bottleneck
+report for the scan-backed simulator.
 
 This module builds the 3D spatial side of the QCA: a BCC Weyl walk
 (Bialynicki-Birula 1994) and its chiral assembly into a 4D Dirac carrier,
@@ -119,6 +120,7 @@ scalars.  A compressed explicit `C^16_internal` basis is not implemented yet.
 - `SESSION_46_SIMULATION_RUNNER.md` — Session 46 result report.
 - `SESSION_47_SIMULATOR_SPLIT.md` — Session 47 result report.
 - `SESSION_48_SPLIT_STABILIZATION.md` — Session 48 result report.
+- `SESSION_49_SIMULATOR_PROFILING.md` — Session 49 result report.
 - `ROADMAP.md` — roadmap from no-backreaction coupling toward constrained
   gauge/fermion/Higgs dynamics.
 - 299 collected tests in the scoped `spacetime_qca` suite; the fast suite has
@@ -774,6 +776,23 @@ used inside the scan rather than continue expanding the old lab runner.
 Interpretation: the split is now pinned by tests and local package docs.  The
 next session should profile the scan-backed simulator rather than continue
 reorganizing paths.
+
+## Session 49 result
+
+- `sim.profiling` adds generic JSON-safe callable profiling payloads.
+- `spacetime_qca.simulator.profiling` adds bounded `(1, 1, 1)` profiling cases
+  for runner overhead, scan overhead, physics-step cost, matter-current cost,
+  and sector sweep cost.
+- `simulator/scripts/profile_sim.py` emits JSON profiling summaries and can
+  write a full payload with `--output`.
+- The local non-JIT profile identifies full-SM sector gauge force/link algebra
+  as the first optimization target.  It also exposes a cold-start timing
+  outlier, so future profiles should include warmup or repeated timing when
+  comparing physics kernels.
+
+Interpretation: the simulator now has an evidence-producing profiling path.
+The next implementation step should optimize the full-SM sector force/link
+path or add warm steady-state profiling before increasing lattice size.
 
 ## Session 24 result
 

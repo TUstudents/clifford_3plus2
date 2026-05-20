@@ -42,6 +42,7 @@ from clifford_3plus2_d5.sim.observables import (
     select_observation_steps,
     stack_observations,
 )
+from clifford_3plus2_d5.sim.profiling import CallProfile, profile_callable
 from clifford_3plus2_d5.sim.runner import (
     GenericRunConfig,
     GenericRunResult,
@@ -70,6 +71,7 @@ __all__ = [
     "JaxTiming",
     "LatticeShape3D",
     "ObservableMap",
+    "CallProfile",
     "SimulationMetrics",
     "all_finite",
     "as_jax",
@@ -83,6 +85,7 @@ __all__ = [
     "load_json_metadata",
     "norm_drift",
     "observations_all_finite",
+    "profile_callable",
     "pytree_all_finite",
     "recorded_step_indices",
     "run_recorded_loop",

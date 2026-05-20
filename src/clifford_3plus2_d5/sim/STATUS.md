@@ -22,6 +22,8 @@ Wilson plaquette normalization, or gauge-force physics policy.
   runners over arbitrary JAX pytrees.
 - `io.py` — generic `.npz` plus JSON sidecar persistence.
 - `benchmarks.py` — stable benchmark wrapper for JAX kernels.
+- `profiling.py` — JSON-safe callable profiling payloads for simulator
+  callables and bounded benchmark reports.
 
 ## Boundary
 
@@ -39,4 +41,4 @@ confirmed.  In particular, these stay in `spacetime_qca`:
 uv run pytest src/clifford_3plus2_d5/sim/tests -q
 ```
 
-Expected current result: `11 passed`.
+Expected current result: `12 passed`.
