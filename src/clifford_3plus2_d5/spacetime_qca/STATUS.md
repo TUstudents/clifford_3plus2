@@ -1,6 +1,6 @@
 # spacetime_qca — Status
 
-**Status**: in progress. Sessions 20-43 complete through finite real-space
+**Status**: in progress. Sessions 20-45 complete through finite real-space
 BCC stepping, representation-level Higgs/Yukawa audit, position-dependent
 background gauge covariance, BCC plaquette holonomy geometry, and a static
 Higgs/Yukawa map-layer audit, a JAX numerical backend, Wilson plaquette
@@ -17,8 +17,9 @@ Yukawa bridge, and the first small-lattice coupled fermion/gauge/Higgs
 prototype with Higgs conjugate momentum and a first-order site-local Yukawa
 kick, and an exact one-generation anomaly/physical-hypercharge audit for the
 active SM sector convention, plus finite-spacing BCC Dirac dispersion
-anisotropy diagnostics, and tiny-lattice scaling/stability diagnostics for
-the coupled prototype.
+anisotropy diagnostics, tiny-lattice scaling/stability diagnostics for the
+coupled prototype, an optional exact unitary site-local Yukawa insertion, and
+multi-step tiny-lattice trajectory/timing probes.
 
 This module builds the 3D spatial side of the QCA: a BCC Weyl walk
 (Bialynicki-Birula 1994) and its chiral assembly into a 4D Dirac carrier,
@@ -67,10 +68,11 @@ scalars.  A compressed explicit `C^16_internal` basis is not implemented yet.
   BCC covariant differences, Higgs energy diagnostics, and sitewise Yukawa
   bridge helpers.
 - `jax_coupled_higgs.py` — Higgs conjugate momentum, Higgs leapfrog force,
-  electroweak sector adapters, first-order site-local Yukawa kick, and the
-  coupled fermion/gauge/Higgs prototype wrapper.
-- `jax_scaling.py` — tiny-lattice scaling snapshots, one-step drift trials,
-  neutral-vacuum density probes, and Session 43 audit payloads.
+  electroweak sector adapters, first-order and exact-unitary site-local
+  Yukawa updates, and the coupled fermion/gauge/Higgs prototype wrapper.
+- `jax_scaling.py` — tiny-lattice scaling snapshots, one-step and multi-step
+  drift trials, neutral-vacuum density probes, timing probes, and Session 43
+  audit payloads.
 - `lorentz_recovery.py` — exact finite-spacing dispersion anisotropy
   diagnostics for BCC Weyl/Dirac and the naive hypercube control.
 - `lattice.py`, `state.py`, `step.py` — finite periodic real-space BCC step.
@@ -101,10 +103,12 @@ scalars.  A compressed explicit `C^16_internal` basis is not implemented yet.
 - `SESSION_41_ANOMALY_CURRENT.md` — Session 41 result report.
 - `SESSION_42_LORENTZ_RECOVERY.md` — Session 42 result report.
 - `SESSION_43_SCALING_DIAGNOSTICS.md` — Session 43 result report.
+- `SESSION_44_PERFORMANCE_STABILITY.md` — Session 44 result report.
+- `SESSION_45_UNITARY_YUKAWA.md` — Session 45 result report.
 - `ROADMAP.md` — roadmap from no-backreaction coupling toward constrained
   gauge/fermion/Higgs dynamics.
-- 266 collected tests in the scoped `spacetime_qca` suite; the fast suite has
-  138 passing tests, and slow exact/JAX bridge and coupled-dynamics tests are
+- 282 collected tests in the scoped `spacetime_qca` suite; the fast suite has
+  147 passing tests, and slow exact/JAX bridge and coupled-dynamics tests are
   marked with `slow`.
 
 ## Session 20 result
@@ -146,19 +150,17 @@ scalars.  A compressed explicit `C^16_internal` basis is not implemented yet.
   form.
 - Vectorized Wilson action evaluation for large lattices.
 - Higgs current backreaction into gauge momenta.
-- Exact unitary Yukawa insertion in the coupled update.
 - Dynamical gauge fields beyond the current SU(2)/SU(3)/SU(4)/Pati-Salam/SM
   leapfrog prototypes.
 - Full Gauss-law projection / constraint solving beyond the Session 37
   residual and source-kick prototype.
 - Vectorized SU(2) staple force and Gauss-law constraints.
 - Lorentz boost recovery beyond the free-dispersion anisotropy audit.
-- Numerical performance benchmarks and long-time stability tests.
+- Production-scale performance benchmarks and long-time stability tests.
 
 ## Sessions ahead
 
 - Session 20b: full symbolic BCC unitarity and no-doubling hardening.
-- Session 43: renormalization/scaling diagnostics.
 - Later: boost covariance and interacting-field Lorentz recovery.
 - Parallel: performance work and simulation scale-up.
 
@@ -182,8 +184,8 @@ BCC Dirac, BCC Wilson, and Wilson-force policy remains in `spacetime_qca`.
 uv run pytest src/clifford_3plus2_d5/spacetime_qca/tests -m "not slow" -q
 ```
 
-Expected fast-path result after Session 43: `138 passed, 128 deselected` in
-about 80 seconds on the current CPU environment.
+Expected fast-path result after Session 44/45: `147 passed, 135 deselected` in
+about 75-90 seconds on the current CPU environment.
 
 Slow exact-symbolic and JAX dynamics/parity suites are marked with
 `pytest.mark.slow`.
@@ -193,7 +195,7 @@ Run the full module suite, including slow tests, with:
 uv run pytest src/clifford_3plus2_d5/spacetime_qca/tests -q
 ```
 
-Expected full result after Session 43: `266 passed`.  The full run currently
+Expected full result after Session 44/45: `282 passed`.  The full run currently
 takes several minutes because it includes exact Higgs-map nullspace
 construction and JAX gradient/leapfrog checks.
 
@@ -599,17 +601,20 @@ the coupled fermion/gauge update.
 - The coupled wrapper rejects color-only sectors for the v1 Higgs coupling.
 - `jax_apply_site_local_yukawa_kick` applies the first-order explicit
   `psi -> psi - i dt (beta x Y(Phi[x])) psi` kick.
+- `jax_apply_site_local_yukawa_unitary` provides an optional exact local
+  `exp(-i dt beta x Y(Phi[x]))` insertion.
 - `jax_patisalam_fermion_gauge_higgs_step` composes half Yukawa kick, Session
   37 sourced gauge/fermion step, Higgs leapfrog, and a second half Yukawa
-  kick.
+  update, with first-order mode kept as the default compatibility path.
 - Diagnostics report fermion norm, gauge Hamiltonian density, Higgs
   momentum/kinetic/potential/total energy, Gauss residual norm, and Yukawa
   norm drift.
 
 Interpretation: this is the first executable prototype with fermions, gauge
 fields, and a Higgs field in one update path.  It is still a research control:
-Higgs links are fixed inputs, Higgs current does not backreact on gauge
-momenta, and the Yukawa kick is not yet an exact local unitary exponential.
+Higgs links are fixed inputs and Higgs current does not backreact on gauge
+momenta.  Session 45 adds an exact local unitary Yukawa option, but the full
+coupled update is still a research control.
 
 ## Session 41 result
 
@@ -668,6 +673,47 @@ not a full interacting Lorentz-invariance proof.
 Interpretation: this is a stability and normalization audit, not a continuum
 renormalization proof.  It gives future numerical work a stable place to
 measure scaling behavior.
+
+## Session 44 result
+
+- `jax_coupled_scaling_trajectory` records bounded multi-step tiny-lattice
+  diagnostics at step 0, requested intervals, and the final step.
+- `ScalingTrajectorySample` and `ScalingTrajectory` report drift-from-initial
+  values and max-drift summaries for fermion norm, gauge energy, Higgs energy,
+  Gauss residual, and the total-energy proxy.
+- Zero-step-size trajectories short-circuit field evolution, keeping control
+  tests fast and avoiding unnecessary force calls.
+- `jax_compare_yukawa_modes` compares first-order and exact-unitary Yukawa
+  trajectories from identical deterministic initial data.
+- `jax_scaling_timing_probe` exposes a tiny jitted timing probe through the
+  shared `sim` benchmark helper without adding machine-dependent speed
+  thresholds.
+- The new public trajectory/timing API is covered by an export smoke test.
+
+Interpretation: this extends Session 43 from one-step diagnostics to bounded
+multi-step stability probes.  It is still a tiny-lattice measurement harness,
+not a production simulation or continuum renormalization result.
+
+## Session 45 result
+
+- `jax_apply_site_local_yukawa_unitary` applies the exact local unitary
+  `exp(-i dt y beta x Y(Phi[x]))` using
+  `I x cos(dt y Y) - i beta x sin(dt y Y)`.
+- The implementation eigendecomposes the site-local Hermitian `32 x 32`
+  internal Yukawa matrix instead of exponentiating a full `128 x 128`
+  Hamiltonian.
+- `jax_apply_site_local_yukawa_update` selects `"first_order"` or `"unitary"`;
+  the existing first-order update remains the default.
+- `jax_patisalam_fermion_gauge_higgs_step` accepts `yukawa_mode`.
+- `ScalingRunConfig` also accepts `yukawa_mode`, so Session 43 drift probes can
+  compare the first-order and unitary paths.
+- Tests verify zero controls, norm preservation for fixed `Phi`, first-order
+  agreement at small step, coupled-step compatibility, and reduced norm drift
+  in the deterministic scaling setup.
+
+Interpretation: this closes the local Yukawa-unitarity gap for fixed Higgs
+backgrounds.  It does not solve Higgs current backreaction, Gauss projection,
+or long-time interacting stability.
 
 ## Session 24 result
 

@@ -5,12 +5,13 @@ Session 40 is the first ``spacetime_qca`` layer with all field types present:
 * BCC Dirac fermions on the chiral16 internal carrier;
 * compact Pati-Salam/SM gauge links and momenta;
 * a site-local electroweak Higgs doublet with a conjugate momentum;
-* a first-order site-local Yukawa kick sourced by ``Phi(x)``.
+* a site-local Yukawa update sourced by ``Phi(x)``.
 
 The implementation is intentionally conservative.  Higgs links are explicit
 ``2 x 2`` electroweak links, not inferred from the ``32 x 32`` chiral16 gauge
-links.  The Yukawa kick is first-order explicit, not an exact local unitary
-exponential.  Higgs current backreaction into gauge momenta is future work.
+links.  The default Yukawa update remains the Session 40 first-order explicit
+kick for compatibility, while Session 45 adds an exact local unitary option.
+Higgs current backreaction into gauge momenta is future work.
 """
 
 from __future__ import annotations
@@ -45,6 +46,7 @@ from clifford_3plus2_d5.spacetime_qca.mass import beta_matrix
 from clifford_3plus2_d5.spacetime_qca.plaquette import PlaquetteShape
 
 HiggsCoupledSector = Literal["u1_y", "su2_l", "sm"]
+YukawaUpdateMode = Literal["first_order", "unitary"]
 
 
 class PatiSalamFermionGaugeHiggsDiagnostics(TypedDict):
@@ -305,6 +307,77 @@ def jax_apply_site_local_yukawa_kick(
     return state - 1j * dt * action
 
 
+def _matrix_from_eigh(eigenvectors: jnp.ndarray, function_values: jnp.ndarray) -> jnp.ndarray:
+    return jnp.einsum("...ik,...k,...jk->...ij", eigenvectors, function_values, jnp.conj(eigenvectors))
+
+
+def _cos_sin_from_eigh(hermitian: jnp.ndarray, scale: jnp.ndarray) -> tuple[jnp.ndarray, jnp.ndarray]:
+    eigenvalues, eigenvectors = jnp.linalg.eigh(hermitian)
+    return (
+        _matrix_from_eigh(eigenvectors, jnp.cos(scale * eigenvalues)),
+        _matrix_from_eigh(eigenvectors, jnp.sin(scale * eigenvalues)),
+    )
+
+
+def jax_apply_site_local_yukawa_unitary(
+    state: jnp.ndarray,
+    phi: jnp.ndarray,
+    *,
+    step_size: float,
+    yukawa_coupling: float = 1.0,
+) -> jnp.ndarray:
+    """Apply exact local unitary ``exp(-i dt y beta x Y(Phi[x]))``.
+
+    Since ``beta^2 = I`` and ``beta`` commutes with the internal matrix,
+
+    ``exp(-i a beta x Y) = I x cos(aY) - i beta x sin(aY)``.
+
+    The implementation evaluates ``cos(aY)`` and ``sin(aY)`` through the
+    Hermitian ``32 x 32`` site-local Yukawa matrix instead of exponentiating a
+    full ``128 x 128`` matrix at each site.
+    """
+
+    lattice_shape = _validate_patisalam_state(state)
+    _validate_higgs_field(phi, lattice_shape)
+    if step_size == 0 or yukawa_coupling == 0:
+        return state
+
+    internal = jax_higgs_yukawa_internal_control_field(phi, dtype=state.dtype)
+    dt = jnp.asarray(step_size * yukawa_coupling, dtype=jnp.real(state).dtype)
+    cos_internal, sin_internal = _cos_sin_from_eigh(internal, dt)
+    cos_action = jnp.einsum("...ij,...aj->...ai", cos_internal, state)
+    sin_internal_action = jnp.einsum("...ij,...aj->...ai", sin_internal, state)
+    beta_action = jnp.einsum("ab,...bj->...aj", _dirac_beta(state.dtype), sin_internal_action)
+    return cos_action - 1j * beta_action
+
+
+def jax_apply_site_local_yukawa_update(
+    state: jnp.ndarray,
+    phi: jnp.ndarray,
+    *,
+    step_size: float,
+    yukawa_coupling: float = 1.0,
+    mode: YukawaUpdateMode = "first_order",
+) -> jnp.ndarray:
+    """Apply the selected site-local Yukawa update."""
+
+    if mode == "first_order":
+        return jax_apply_site_local_yukawa_kick(
+            state,
+            phi,
+            step_size=step_size,
+            yukawa_coupling=yukawa_coupling,
+        )
+    if mode == "unitary":
+        return jax_apply_site_local_yukawa_unitary(
+            state,
+            phi,
+            step_size=step_size,
+            yukawa_coupling=yukawa_coupling,
+        )
+    raise ValueError(f"unknown Yukawa update mode: {mode!r}")
+
+
 def jax_patisalam_fermion_gauge_higgs_step(
     state: jnp.ndarray,
     links: jnp.ndarray,
@@ -324,6 +397,7 @@ def jax_patisalam_fermion_gauge_higgs_step(
     force_method: Literal["autodiff", "finite_difference"] = "finite_difference",
     force_epsilon: float = 1e-3,
     current_epsilon: float = 1e-3,
+    yukawa_mode: YukawaUpdateMode = "first_order",
 ) -> tuple[jnp.ndarray, jnp.ndarray, jnp.ndarray, jnp.ndarray, jnp.ndarray, jnp.ndarray]:
     """Return one small coupled ``(fermion, gauge, Higgs)`` prototype step."""
 
@@ -335,11 +409,12 @@ def jax_patisalam_fermion_gauge_higgs_step(
     _validate_higgs_field(higgs_momentum, lattice_shape)
     _validate_higgs_links(higgs_links, lattice_shape)
 
-    half_kicked_state = jax_apply_site_local_yukawa_kick(
+    half_kicked_state = jax_apply_site_local_yukawa_update(
         state,
         phi,
         step_size=0.5 * step_size,
         yukawa_coupling=yukawa_coupling,
+        mode=yukawa_mode,
     )
     updated_state, updated_links, updated_momenta = jax_patisalam_fermion_gauge_step_with_backreaction(
         half_kicked_state,
@@ -362,11 +437,12 @@ def jax_patisalam_fermion_gauge_higgs_step(
         vev_squared=vev_squared,
         quartic=quartic,
     )
-    final_state = jax_apply_site_local_yukawa_kick(
+    final_state = jax_apply_site_local_yukawa_update(
         updated_state,
         updated_phi,
         step_size=0.5 * step_size,
         yukawa_coupling=yukawa_coupling,
+        mode=yukawa_mode,
     )
     return final_state, updated_links, updated_momenta, updated_phi, updated_higgs_momentum, higgs_links
 

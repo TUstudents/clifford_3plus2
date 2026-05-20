@@ -1,8 +1,8 @@
-# spacetime_qca — Roadmap After Session 43
+# spacetime_qca — Roadmap After Sessions 44-45
 
 ## Current Position
 
-Sessions 20-43 have built the static and simulation-control stack:
+Sessions 20-45 have built the static and simulation-control stack:
 
 - BCC Weyl/Dirac spacetime walk with the `alpha . k` continuum precursor.
 - Finite periodic real-space BCC stepping.
@@ -34,6 +34,10 @@ Sessions 20-43 have built the static and simulation-control stack:
 - Tiny-lattice scaling/stability diagnostics for the coupled prototype:
   neutral-vacuum density probes, scalarized snapshots, one-step drift trials,
   and bounded step-size sweeps.
+- Optional exact local unitary Yukawa insertion for fixed `Phi`, while keeping
+  the first-order kick as the default regression path.
+- Bounded multi-step tiny-lattice trajectory diagnostics and timing probes for
+  the coupled prototype.
 
 The module now has enough infrastructure to move from background-gauge
 kinematics toward coupled field dynamics.  The remaining work is not one
@@ -232,11 +236,38 @@ renormalization proof.
 
 ### Session 44 — Performance And Longer Stability Runs
 
-- Vectorize the slowest Wilson/gauge-force paths where possible.
-- Add benchmark scripts for tiny and small lattice runs.
-- Use Session 43 snapshots to measure short-run drift over multiple steps.
-- Keep memory-safe defaults and mark long runs as `slow` or scripts, not fast
-  tests.
+Status: complete. Result report:
+[SESSION_44_PERFORMANCE_STABILITY.md](SESSION_44_PERFORMANCE_STABILITY.md).
+
+Delivered:
+
+- Multi-step tiny-lattice trajectories with drift-from-initial summaries.
+- First-order versus exact-unitary Yukawa trajectory comparisons.
+- A tiny jitted timing probe through the shared `sim` benchmark helper.
+- Memory-safe defaults and slow tagging for nonzero coupled trajectories.
+
+Non-goal: this is a bounded stability/timing harness, not production-scale
+simulation or a full vectorized Wilson-force rewrite.
+
+### Session 45 — Exact Unitary Yukawa Insertion
+
+Status: complete. Result report:
+[SESSION_45_UNITARY_YUKAWA.md](SESSION_45_UNITARY_YUKAWA.md).
+
+Delivered:
+
+- Exact site-local `exp(-i dt y beta x Y(Phi[x]))` update using
+  `I x cos(dt y Y) - i beta x sin(dt y Y)`.
+- Eigensystem-based `32 x 32` internal matrix functions instead of full
+  `128 x 128` matrix exponentials.
+- `yukawa_mode="first_order" | "unitary"` in the coupled wrapper.
+- `yukawa_mode` support in Session 43 scaling configs.
+- Slow tests proving norm preservation and reduced norm drift in the tiny
+  deterministic scaling setup.
+
+Non-goal: this fixes the local Yukawa substep only.  Higgs current
+backreaction, Gauss projection, and long-time interacting stability remain
+future work.
 
 ### Parallel Track — Performance
 
@@ -269,7 +300,7 @@ Still open:
 - Full Gauss-law projection / constraint solving.
 - Analytic matter current and long-time stability.
 - Physical coupling constants per gauge factor.
-- Stability and scaling tests.
+- Longer stability and scaling tests.
 
 Roadmap owner: Session 40 and Session 41 for the next coupled-field audits.
 
@@ -287,11 +318,11 @@ Done:
 - BCC covariant finite difference, kinetic energy, and Mexican-hat potential.
 - Higgs conjugate momentum and fixed-link leapfrog.
 - First coupled fermion/gauge/Higgs smoke path.
+- Exact local unitary Yukawa insertion for fixed `Phi`.
 
 Still open:
 
 - Higgs current backreaction into gauge momenta.
-- Exact unitary Yukawa insertion.
 - Long-time stability and scaling diagnostics.
 
 Roadmap owner: Sessions 39-40 implemented the v1 field/update path; future
@@ -313,7 +344,6 @@ Done:
 
 Still open:
 
-- Exact unitary insertion in the coupled update.
 - Yukawa hierarchy/family structure.
 
 Roadmap owner: Session 38.
@@ -333,7 +363,8 @@ After Session 38:
 - If the real-form/J-adapted convention is messy, add a compressed explicit
   `C^16` internal basis before going dynamic.
 
-After Session 43:
+After Sessions 44-45:
 
 - The next project goal should be numerical simulation scale-up and
-  performance hardening, because a reusable scaling harness now exists.
+  performance hardening, because reusable multi-step scaling probes and a
+  norm-safe local Yukawa mode now exist.

@@ -13,9 +13,12 @@ from typing import TypedDict
 
 import jax.numpy as jnp
 
+from clifford_3plus2_d5.sim.benchmarks import benchmark_jitted_kernel
+from clifford_3plus2_d5.sim.backend import JaxTiming
 from clifford_3plus2_d5.sim.links import jax_identity_link_field
 from clifford_3plus2_d5.spacetime_qca.jax_coupled_higgs import (
     HiggsCoupledSector,
+    YukawaUpdateMode,
     jax_higgs_link_field_from_patisalam_sector,
     jax_patisalam_fermion_gauge_higgs_diagnostics,
     jax_patisalam_fermion_gauge_higgs_step,
@@ -50,6 +53,7 @@ class ScalingRunConfig:
     quartic: float = 1.0
     force_epsilon: float = 1e-3
     current_epsilon: float = 1e-3
+    yukawa_mode: YukawaUpdateMode = "first_order"
     shapes: tuple[PlaquetteShape, ...] | None = None
 
 
@@ -89,6 +93,45 @@ class ScalingTrial:
     higgs_energy_drift: jnp.ndarray
     gauss_residual_drift: jnp.ndarray
     total_energy_proxy_drift: jnp.ndarray
+    all_finite: jnp.ndarray
+
+
+@dataclass(frozen=True)
+class ScalingTrajectorySample:
+    """One recorded sample in a multi-step scaling trajectory."""
+
+    step_index: int
+    snapshot: ScalingSnapshot
+    fermion_norm_drift: jnp.ndarray
+    gauge_energy_drift: jnp.ndarray
+    higgs_energy_drift: jnp.ndarray
+    gauss_residual_drift: jnp.ndarray
+    total_energy_proxy_drift: jnp.ndarray
+
+
+@dataclass(frozen=True)
+class ScalingTrajectory:
+    """Recorded tiny-lattice trajectory with drift summaries."""
+
+    samples: tuple[ScalingTrajectorySample, ...]
+    initial: ScalingTrajectorySample
+    final: ScalingTrajectorySample
+    max_fermion_norm_drift: jnp.ndarray
+    max_gauge_energy_drift: jnp.ndarray
+    max_higgs_energy_drift: jnp.ndarray
+    max_gauss_residual_drift: jnp.ndarray
+    max_total_energy_proxy_drift: jnp.ndarray
+    all_finite: jnp.ndarray
+
+
+@dataclass(frozen=True)
+class YukawaModeComparison:
+    """Paired first-order/unitary Yukawa trajectory comparison."""
+
+    first_order: ScalingTrajectory
+    unitary: ScalingTrajectory
+    fermion_norm_drift_ratio: jnp.ndarray
+    total_energy_proxy_drift_ratio: jnp.ndarray
     all_finite: jnp.ndarray
 
 
@@ -255,21 +298,12 @@ def _finite_snapshot(snapshot: ScalingSnapshot) -> jnp.ndarray:
     return jnp.all(jnp.asarray([jnp.all(jnp.isfinite(value)) for value in _snapshot_values(snapshot)]))
 
 
-def jax_coupled_scaling_trial(config: ScalingRunConfig) -> ScalingTrial:
-    """Return one before/after coupled-step scaling trial."""
+def _advance_scaling_fields(fields: ScalingInitialState, config: ScalingRunConfig) -> ScalingInitialState:
+    """Advance one coupled step, preserving exact zero-step controls cheaply."""
 
-    fields = jax_default_scaling_initial_state(config)
-    before = jax_scaling_snapshot(
-        fields.state,
-        fields.links,
-        fields.momenta,
-        fields.phi,
-        fields.higgs_momentum,
-        fields.higgs_links,
-        config=config,
-        reference_state=fields.state,
-    )
-    after_fields = jax_patisalam_fermion_gauge_higgs_step(
+    if config.step_size == 0:
+        return fields
+    stepped = jax_patisalam_fermion_gauge_higgs_step(
         fields.state,
         fields.links,
         fields.momenta,
@@ -286,14 +320,40 @@ def jax_coupled_scaling_trial(config: ScalingRunConfig) -> ScalingTrial:
         shapes=_selected_shapes(config),
         force_epsilon=config.force_epsilon,
         current_epsilon=config.current_epsilon,
+        yukawa_mode=config.yukawa_mode,
     )
+    return ScalingInitialState(
+        state=stepped[0],
+        links=stepped[1],
+        momenta=stepped[2],
+        phi=stepped[3],
+        higgs_momentum=stepped[4],
+        higgs_links=stepped[5],
+    )
+
+
+def jax_coupled_scaling_trial(config: ScalingRunConfig) -> ScalingTrial:
+    """Return one before/after coupled-step scaling trial."""
+
+    fields = jax_default_scaling_initial_state(config)
+    before = jax_scaling_snapshot(
+        fields.state,
+        fields.links,
+        fields.momenta,
+        fields.phi,
+        fields.higgs_momentum,
+        fields.higgs_links,
+        config=config,
+        reference_state=fields.state,
+    )
+    after_fields = _advance_scaling_fields(fields, config)
     after = jax_scaling_snapshot(
-        after_fields[0],
-        after_fields[1],
-        after_fields[2],
-        after_fields[3],
-        after_fields[4],
-        after_fields[5],
+        after_fields.state,
+        after_fields.links,
+        after_fields.momenta,
+        after_fields.phi,
+        after_fields.higgs_momentum,
+        after_fields.higgs_links,
         config=config,
         reference_state=fields.state,
     )
@@ -306,6 +366,201 @@ def jax_coupled_scaling_trial(config: ScalingRunConfig) -> ScalingTrial:
         gauss_residual_drift=jnp.abs(after.gauss_residual_norm - before.gauss_residual_norm),
         total_energy_proxy_drift=jnp.abs(after.total_energy_proxy - before.total_energy_proxy),
         all_finite=_finite_snapshot(before) & _finite_snapshot(after),
+    )
+
+
+def _trajectory_sample(
+    step_index: int,
+    snapshot: ScalingSnapshot,
+    initial_snapshot: ScalingSnapshot,
+) -> ScalingTrajectorySample:
+    return ScalingTrajectorySample(
+        step_index=step_index,
+        snapshot=snapshot,
+        fermion_norm_drift=jnp.abs(snapshot.fermion_norm - initial_snapshot.fermion_norm),
+        gauge_energy_drift=jnp.abs(snapshot.gauge_hamiltonian_density - initial_snapshot.gauge_hamiltonian_density),
+        higgs_energy_drift=jnp.abs(snapshot.higgs_total_energy - initial_snapshot.higgs_total_energy),
+        gauss_residual_drift=jnp.abs(snapshot.gauss_residual_norm - initial_snapshot.gauss_residual_norm),
+        total_energy_proxy_drift=jnp.abs(snapshot.total_energy_proxy - initial_snapshot.total_energy_proxy),
+    )
+
+
+def _max_sample_value(samples: tuple[ScalingTrajectorySample, ...], attr: str) -> jnp.ndarray:
+    return jnp.max(jnp.asarray([getattr(sample, attr) for sample in samples]))
+
+
+def _finite_sample(sample: ScalingTrajectorySample) -> jnp.ndarray:
+    return _finite_snapshot(sample.snapshot) & jnp.all(
+        jnp.asarray(
+            [
+                jnp.isfinite(sample.fermion_norm_drift),
+                jnp.isfinite(sample.gauge_energy_drift),
+                jnp.isfinite(sample.higgs_energy_drift),
+                jnp.isfinite(sample.gauss_residual_drift),
+                jnp.isfinite(sample.total_energy_proxy_drift),
+            ],
+        ),
+    )
+
+
+def jax_coupled_scaling_trajectory(
+    config: ScalingRunConfig,
+    *,
+    steps: int = 4,
+    record_every: int = 1,
+) -> ScalingTrajectory:
+    """Return a recorded tiny-lattice trajectory for the coupled prototype.
+
+    This is a Python-level measurement helper, not a jitted simulation loop.
+    Keep `steps` small and use it for bounded diagnostics.
+    """
+
+    if steps < 0:
+        raise ValueError(f"steps must be nonnegative, got {steps}")
+    if record_every <= 0:
+        raise ValueError(f"record_every must be positive, got {record_every}")
+
+    initial_fields = jax_default_scaling_initial_state(config)
+    fields = initial_fields
+    initial_snapshot = jax_scaling_snapshot(
+        fields.state,
+        fields.links,
+        fields.momenta,
+        fields.phi,
+        fields.higgs_momentum,
+        fields.higgs_links,
+        config=config,
+        reference_state=initial_fields.state,
+    )
+    samples = [_trajectory_sample(0, initial_snapshot, initial_snapshot)]
+
+    for step_index in range(1, steps + 1):
+        fields = _advance_scaling_fields(fields, config)
+        should_record = step_index % record_every == 0 or step_index == steps
+        if should_record:
+            snapshot = jax_scaling_snapshot(
+                fields.state,
+                fields.links,
+                fields.momenta,
+                fields.phi,
+                fields.higgs_momentum,
+                fields.higgs_links,
+                config=config,
+                reference_state=initial_fields.state,
+            )
+            samples.append(_trajectory_sample(step_index, snapshot, initial_snapshot))
+
+    sample_tuple = tuple(samples)
+    return ScalingTrajectory(
+        samples=sample_tuple,
+        initial=sample_tuple[0],
+        final=sample_tuple[-1],
+        max_fermion_norm_drift=_max_sample_value(sample_tuple, "fermion_norm_drift"),
+        max_gauge_energy_drift=_max_sample_value(sample_tuple, "gauge_energy_drift"),
+        max_higgs_energy_drift=_max_sample_value(sample_tuple, "higgs_energy_drift"),
+        max_gauss_residual_drift=_max_sample_value(sample_tuple, "gauss_residual_drift"),
+        max_total_energy_proxy_drift=_max_sample_value(sample_tuple, "total_energy_proxy_drift"),
+        all_finite=jnp.all(jnp.asarray([_finite_sample(sample) for sample in sample_tuple])),
+    )
+
+
+def _safe_ratio(numerator: jnp.ndarray, denominator: jnp.ndarray) -> jnp.ndarray:
+    return jnp.where(denominator == 0, jnp.where(numerator == 0, 0.0, jnp.inf), numerator / denominator)
+
+
+def jax_compare_yukawa_modes(
+    config: ScalingRunConfig,
+    *,
+    steps: int = 4,
+    record_every: int = 1,
+) -> YukawaModeComparison:
+    """Compare first-order and exact-unitary Yukawa updates on the same probe."""
+
+    first_order = jax_coupled_scaling_trajectory(
+        replace(config, yukawa_mode="first_order"),
+        steps=steps,
+        record_every=record_every,
+    )
+    unitary = jax_coupled_scaling_trajectory(
+        replace(config, yukawa_mode="unitary"),
+        steps=steps,
+        record_every=record_every,
+    )
+    return YukawaModeComparison(
+        first_order=first_order,
+        unitary=unitary,
+        fermion_norm_drift_ratio=_safe_ratio(
+            unitary.max_fermion_norm_drift,
+            first_order.max_fermion_norm_drift,
+        ),
+        total_energy_proxy_drift_ratio=_safe_ratio(
+            unitary.max_total_energy_proxy_drift,
+            first_order.max_total_energy_proxy_drift,
+        ),
+        all_finite=first_order.all_finite & unitary.all_finite,
+    )
+
+
+def jax_scaling_timing_probe(config: ScalingRunConfig, *, steps: int = 2) -> JaxTiming:
+    """Return compile/run timings for a tiny jitted coupled-step kernel.
+
+    The returned timings are informational.  A zero `step_size` compiles only
+    the field-packing/summarization path, which is useful as a cheap timing
+    smoke test without entering the coupled force kernels.
+    """
+
+    if steps < 0:
+        raise ValueError(f"steps must be nonnegative, got {steps}")
+
+    fields = jax_default_scaling_initial_state(config)
+
+    def kernel(
+        state: jnp.ndarray,
+        links: jnp.ndarray,
+        momenta: jnp.ndarray,
+        phi: jnp.ndarray,
+        higgs_momentum: jnp.ndarray,
+        higgs_links: jnp.ndarray,
+    ) -> jnp.ndarray:
+        current = (state, links, momenta, phi, higgs_momentum, higgs_links)
+        if config.step_size != 0:
+            for _ in range(steps):
+                current = jax_patisalam_fermion_gauge_higgs_step(
+                    current[0],
+                    current[1],
+                    current[2],
+                    current[3],
+                    current[4],
+                    current[5],
+                    sector=config.sector,
+                    step_size=config.step_size,
+                    matter_coupling=config.matter_coupling,
+                    yukawa_coupling=config.yukawa_coupling,
+                    beta=config.beta,
+                    vev_squared=config.vev_squared,
+                    quartic=config.quartic,
+                    shapes=_selected_shapes(config),
+                    force_epsilon=config.force_epsilon,
+                    current_epsilon=config.current_epsilon,
+                    yukawa_mode=config.yukawa_mode,
+                )
+        return (
+            jnp.real(jnp.sum(current[0]))
+            + jnp.real(jnp.sum(current[1]))
+            + jnp.sum(current[2])
+            + jnp.real(jnp.sum(current[3]))
+            + jnp.real(jnp.sum(current[4]))
+            + jnp.real(jnp.sum(current[5]))
+        )
+
+    return benchmark_jitted_kernel(
+        kernel,
+        fields.state,
+        fields.links,
+        fields.momenta,
+        fields.phi,
+        fields.higgs_momentum,
+        fields.higgs_links,
     )
 
 
