@@ -14,11 +14,16 @@ from clifford_3plus2_d5.spacetime_qca.jax_coupled_higgs import (
     jax_higgs_leapfrog_step,
     jax_patisalam_fermion_gauge_higgs_diagnostics,
 )
-from clifford_3plus2_d5.spacetime_qca.jax_fermion_gauge import jax_patisalam_fermion_gauge_step
+from clifford_3plus2_d5.spacetime_qca.jax_fermion_gauge import (
+    jax_patisalam_dirac_step,
+    jax_patisalam_fermion_gauge_step,
+)
 from clifford_3plus2_d5.spacetime_qca.jax_gauss import jax_patisalam_gauss_residual
 from clifford_3plus2_d5.spacetime_qca.jax_patisalam import (
+    jax_patisalam_apply_momentum_update,
     jax_patisalam_gauge_hamiltonian_density,
     jax_patisalam_left_force,
+    jax_patisalam_leapfrog_step,
 )
 from clifford_3plus2_d5.spacetime_qca.jax_scaling import jax_default_scaling_initial_state
 from clifford_3plus2_d5.spacetime_qca.simulator.config import (
@@ -36,6 +41,11 @@ StepBreakdownKind = Literal[
     "gauss_residual",
     "gauge_hamiltonian",
     "left_force",
+    "gauge_leapfrog",
+    "dirac_transport",
+    "momentum_update",
+    "first_left_force",
+    "second_left_force",
 ]
 
 
@@ -110,6 +120,80 @@ def default_step_breakdown_cases() -> tuple[StepBreakdownCase, ...]:
             kind="left_force",
             purpose="Compute the finite-difference SM Wilson left-force only.",
             config=replace(base, label="breakdown_left_force_sm"),
+        ),
+        StepBreakdownCase(
+            name="left_force_batched_sm",
+            kind="left_force",
+            purpose="Compute the batched finite-difference SM Wilson left-force only.",
+            config=replace(
+                base,
+                force_method="finite_difference_batched",
+                force_chunk_size=16,
+                label="breakdown_left_force_batched_sm",
+            ),
+        ),
+        StepBreakdownCase(
+            name="gauge_leapfrog_sm",
+            kind="gauge_leapfrog",
+            purpose="Run the pure SM gauge leapfrog without Dirac transport.",
+            config=replace(base, label="breakdown_gauge_leapfrog_sm"),
+        ),
+        StepBreakdownCase(
+            name="gauge_leapfrog_batched_sm",
+            kind="gauge_leapfrog",
+            purpose="Run the pure SM gauge leapfrog with batched finite-difference forces.",
+            config=replace(
+                base,
+                force_method="finite_difference_batched",
+                force_chunk_size=16,
+                label="breakdown_gauge_leapfrog_batched_sm",
+            ),
+        ),
+        StepBreakdownCase(
+            name="dirac_transport_sm",
+            kind="dirac_transport",
+            purpose="Run BCC Dirac transport through prebuilt SM links only.",
+            config=replace(base, label="breakdown_dirac_transport_sm"),
+        ),
+        StepBreakdownCase(
+            name="momentum_update_sm",
+            kind="momentum_update",
+            purpose="Apply one compact SM momentum link update only.",
+            config=replace(base, label="breakdown_momentum_update_sm"),
+        ),
+        StepBreakdownCase(
+            name="first_left_force_sm",
+            kind="first_left_force",
+            purpose="Compute the first finite-difference SM Wilson left-force on initial links.",
+            config=replace(base, label="breakdown_first_left_force_sm"),
+        ),
+        StepBreakdownCase(
+            name="first_left_force_batched_sm",
+            kind="first_left_force",
+            purpose="Compute the first batched finite-difference SM Wilson left-force on initial links.",
+            config=replace(
+                base,
+                force_method="finite_difference_batched",
+                force_chunk_size=16,
+                label="breakdown_first_left_force_batched_sm",
+            ),
+        ),
+        StepBreakdownCase(
+            name="second_left_force_sm",
+            kind="second_left_force",
+            purpose="Compute the second finite-difference SM Wilson left-force after one momentum update.",
+            config=replace(base, label="breakdown_second_left_force_sm"),
+        ),
+        StepBreakdownCase(
+            name="second_left_force_batched_sm",
+            kind="second_left_force",
+            purpose="Compute the second batched finite-difference SM Wilson left-force after one momentum update.",
+            config=replace(
+                base,
+                force_method="finite_difference_batched",
+                force_chunk_size=16,
+                label="breakdown_second_left_force_batched_sm",
+            ),
         ),
     )
 
@@ -205,7 +289,9 @@ def _step_breakdown_callable_and_summary(case: StepBreakdownCase) -> tuple[Any, 
                 step_size=scaling_config.step_size,
                 beta=scaling_config.beta,
                 shapes=scaling_config.shapes,
+                force_method=scaling_config.force_method,
                 force_epsilon=scaling_config.force_epsilon,
+                force_chunk_size=scaling_config.force_chunk_size,
             ),
             _tuple_summary,
         )
@@ -295,7 +381,74 @@ def _step_breakdown_callable_and_summary(case: StepBreakdownCase) -> tuple[Any, 
                 sector=scaling_config.sector,
                 epsilon=scaling_config.force_epsilon,
                 shapes=scaling_config.shapes,
-                method="finite_difference",
+                method=scaling_config.force_method,
+                chunk_size=scaling_config.force_chunk_size,
+            ),
+            _array_summary,
+        )
+
+    if case.kind == "gauge_leapfrog":
+        return (
+            lambda: jax_patisalam_leapfrog_step(
+                fields.links,
+                fields.momenta,
+                sector=scaling_config.sector,
+                step_size=scaling_config.step_size,
+                beta=scaling_config.beta,
+                shapes=scaling_config.shapes,
+                force_method=scaling_config.force_method,
+                force_epsilon=scaling_config.force_epsilon,
+                force_chunk_size=scaling_config.force_chunk_size,
+            ),
+            _tuple_summary,
+        )
+
+    if case.kind == "dirac_transport":
+        return (
+            lambda: jax_patisalam_dirac_step(fields.state, fields.links),
+            _array_summary,
+        )
+
+    if case.kind == "momentum_update":
+        return (
+            lambda: jax_patisalam_apply_momentum_update(
+                fields.links,
+                fields.momenta,
+                sector=scaling_config.sector,
+                step_size=scaling_config.step_size,
+            ),
+            _array_summary,
+        )
+
+    if case.kind == "first_left_force":
+        return (
+            lambda: jax_patisalam_left_force(
+                fields.links,
+                sector=scaling_config.sector,
+                epsilon=scaling_config.force_epsilon,
+                shapes=scaling_config.shapes,
+                method=scaling_config.force_method,
+                chunk_size=scaling_config.force_chunk_size,
+            ),
+            _array_summary,
+        )
+
+    if case.kind == "second_left_force":
+        updated_links = jax_patisalam_apply_momentum_update(
+            fields.links,
+            fields.momenta,
+            sector=scaling_config.sector,
+            step_size=scaling_config.step_size,
+        )
+        _block_until_ready(updated_links)
+        return (
+            lambda: jax_patisalam_left_force(
+                updated_links,
+                sector=scaling_config.sector,
+                epsilon=scaling_config.force_epsilon,
+                shapes=scaling_config.shapes,
+                method=scaling_config.force_method,
+                chunk_size=scaling_config.force_chunk_size,
             ),
             _array_summary,
         )
@@ -338,10 +491,21 @@ def recommend_step_breakdown_bottleneck(case_payloads: tuple[dict[str, Any], ...
         return "No step-breakdown cases were run; no bottleneck recommendation is available."
 
     dominant = max(means, key=means.get)
-    if dominant == "left_force_sm":
-        return "First target: SM finite-difference left-force; replace or vectorize the Wilson force path."
-    if dominant == "fermion_gauge_no_matter_sm":
+    if dominant in {
+        "left_force_sm",
+        "first_left_force_sm",
+        "second_left_force_sm",
+        "left_force_batched_sm",
+        "first_left_force_batched_sm",
+        "second_left_force_batched_sm",
+    }:
+        return "First target: SM finite-difference left-force; compare batched force with a staple-like Wilson force path."
+    if dominant in {"fermion_gauge_no_matter_sm", "gauge_leapfrog_sm", "gauge_leapfrog_batched_sm"}:
         return "First target: SM no-backreaction fermion/gauge step; decompose leapfrog force versus Dirac transport."
+    if dominant == "dirac_transport_sm":
+        return "First target: BCC Dirac transport through SM links; optimize internal-link transport."
+    if dominant == "momentum_update_sm":
+        return "First target: compact SM momentum link update; optimize chiral16 matrix exponentials."
     if dominant in {"gauge_hamiltonian_sm", "diagnostics_sm", "gauss_residual_sm"}:
         return f"First target: {dominant}; diagnostics or constraint probes dominate this breakdown."
     if dominant in {"yukawa_half_kick_sm", "yukawa_final_half_kick_sm"}:

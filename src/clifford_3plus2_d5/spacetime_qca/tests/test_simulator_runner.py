@@ -53,6 +53,9 @@ def test_main_simulator_rejects_invalid_controls() -> None:
     with pytest.raises(ValueError, match="lattice_shape must contain three positive sizes"):
         run_spacetime_simulation(SpacetimeSimulationConfig(lattice_shape=(1, 0, 1)))
 
+    with pytest.raises(ValueError, match="force_chunk_size must be positive"):
+        run_spacetime_simulation(SpacetimeSimulationConfig(force_chunk_size=0))
+
 
 def test_main_simulator_presets_are_memory_safe() -> None:
     assert u1_y_tiny().sector == "u1_y"
@@ -83,7 +86,28 @@ def test_main_simulator_cli_prints_json(capsys) -> None:
     payload = json.loads(capsys.readouterr().out)
     assert payload["steps"] == 0
     assert payload["all_finite"] is True
+    assert payload["force_method"] == "finite_difference"
     assert payload["use_jit"] is False
+
+
+def test_main_simulator_cli_accepts_batched_force_method(capsys) -> None:
+    exit_code = main_sim_cli(
+        (
+            "--steps",
+            "0",
+            "--step-size",
+            "0.0",
+            "--force-method",
+            "finite_difference_batched",
+            "--force-chunk-size",
+            "16",
+        ),
+    )
+
+    assert exit_code == 0
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["force_method"] == "finite_difference_batched"
+    assert payload["force_chunk_size"] == 16
 
 
 def test_main_simulator_cli_output_writes_metadata(tmp_path, capsys) -> None:

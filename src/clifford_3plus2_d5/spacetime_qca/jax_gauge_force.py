@@ -40,6 +40,8 @@ from clifford_3plus2_d5.spacetime_qca.jax_step import jax_bcc_displacements
 from clifford_3plus2_d5.spacetime_qca.jax_wilson import jax_average_wilson_action_density
 from clifford_3plus2_d5.spacetime_qca.plaquette import PlaquetteShape
 
+CompactLieForceMethod = Literal["autodiff", "finite_difference", "finite_difference_batched"]
+
 
 def _validate_so2_angles(theta: jnp.ndarray) -> None:
     if theta.ndim != 4 or theta.shape[-1] != 8:
@@ -262,13 +264,69 @@ def _jax_compact_lie_left_force_finite_difference(
     return force
 
 
+def _validate_force_chunk_size(chunk_size: int | None, total_coordinates: int) -> int:
+    if chunk_size is None:
+        return min(16, total_coordinates)
+    if chunk_size <= 0:
+        raise ValueError(f"chunk_size must be positive, got {chunk_size}")
+    return min(int(chunk_size), total_coordinates)
+
+
+def _force_coordinate_indices(links: jnp.ndarray, generator_count: int) -> np.ndarray:
+    return np.asarray(list(np.ndindex(*links.shape[:4], generator_count)), dtype=np.int32)
+
+
+def _jax_compact_lie_left_force_finite_difference_batched(
+    links: jnp.ndarray,
+    generators: jnp.ndarray,
+    *,
+    epsilon: float,
+    shapes: tuple[PlaquetteShape, ...] | None,
+    chunk_size: int | None,
+) -> jnp.ndarray:
+    generator_count, _ = _validate_compact_lie_links(links, generators)
+    real_dtype = jnp.real(jnp.asarray(0, dtype=links.dtype)).dtype
+    step = jnp.asarray(epsilon, dtype=real_dtype)
+    basis = generators.astype(links.dtype)
+    coordinate_indices = _force_coordinate_indices(links, generator_count)
+    batch_size = _validate_force_chunk_size(chunk_size, int(coordinate_indices.shape[0]))
+    force = jnp.zeros((*links.shape[:4], generator_count), dtype=real_dtype)
+
+    def apply_indexed_perturbation(index: jnp.ndarray, sign: jnp.ndarray) -> jnp.ndarray:
+        update = jax_matrix_expm(sign * step * basis[index[4]])
+        updated_link = update @ links[index[0], index[1], index[2], index[3]]
+        return links.at[index[0], index[1], index[2], index[3]].set(updated_link)
+
+    def action_for_index(index: jnp.ndarray, sign: jnp.ndarray) -> jnp.ndarray:
+        return jax_average_wilson_action_density(
+            apply_indexed_perturbation(index, sign),
+            shapes,
+        )
+
+    batched_action = jax.vmap(action_for_index, in_axes=(0, None))
+    for start in range(0, int(coordinate_indices.shape[0]), batch_size):
+        chunk = jnp.asarray(coordinate_indices[start : start + batch_size])
+        plus_actions = batched_action(chunk, jnp.asarray(1, dtype=real_dtype))
+        minus_actions = batched_action(chunk, jnp.asarray(-1, dtype=real_dtype))
+        derivatives = (plus_actions - minus_actions) / (2 * step)
+        force = force.at[
+            chunk[:, 0],
+            chunk[:, 1],
+            chunk[:, 2],
+            chunk[:, 3],
+            chunk[:, 4],
+        ].set(derivatives)
+    return force
+
+
 def jax_compact_lie_left_force(
     links: jnp.ndarray,
     generators: jnp.ndarray,
     *,
     epsilon: float = 1e-3,
     shapes: tuple[PlaquetteShape, ...] | None = None,
-    method: Literal["autodiff", "finite_difference"] = "autodiff",
+    method: CompactLieForceMethod = "autodiff",
+    chunk_size: int | None = None,
 ) -> jnp.ndarray:
     """Return the left-trivialized Wilson force in a chosen representation.
 
@@ -276,14 +334,16 @@ def jax_compact_lie_left_force(
     once and is suitable for small fundamental representations.  ``method=
     "finite_difference"`` perturbs one link and generator at a time; it is
     slower, but it avoids the large reverse-mode matrix-exponential graph that
-    can exhaust memory for chiral16 SU(4) links.
+    can exhaust memory for chiral16 SU(4) links.  ``method=
+    "finite_difference_batched"`` evaluates the same centered differences in
+    small batches; ``chunk_size`` limits the batch width.
     """
 
     generator_count, _ = _validate_compact_lie_links(links, generators)
     if epsilon <= 0:
         raise ValueError("epsilon must be positive")
-    if method not in {"autodiff", "finite_difference"}:
-        raise ValueError("method must be 'autodiff' or 'finite_difference'")
+    if method not in {"autodiff", "finite_difference", "finite_difference_batched"}:
+        raise ValueError("method must be 'autodiff', 'finite_difference', or 'finite_difference_batched'")
 
     if method == "finite_difference":
         return _jax_compact_lie_left_force_finite_difference(
@@ -291,6 +351,14 @@ def jax_compact_lie_left_force(
             generators,
             epsilon=epsilon,
             shapes=shapes,
+        )
+    if method == "finite_difference_batched":
+        return _jax_compact_lie_left_force_finite_difference_batched(
+            links,
+            generators,
+            epsilon=epsilon,
+            shapes=shapes,
+            chunk_size=chunk_size,
         )
 
     real_dtype = jnp.real(jnp.asarray(0, dtype=links.dtype)).dtype
@@ -311,7 +379,8 @@ def jax_compact_lie_left_force_from_algebra(
     *,
     epsilon: float = 1e-3,
     shapes: tuple[PlaquetteShape, ...] | None = None,
-    method: Literal["autodiff", "finite_difference"] = "autodiff",
+    method: CompactLieForceMethod = "autodiff",
+    chunk_size: int | None = None,
 ) -> jnp.ndarray:
     """Return a left-trivialized force for coordinate-built compact links."""
 
@@ -321,6 +390,7 @@ def jax_compact_lie_left_force_from_algebra(
         epsilon=epsilon,
         shapes=shapes,
         method=method,
+        chunk_size=chunk_size,
     )
 
 
@@ -351,7 +421,8 @@ def jax_compact_lie_action_descent_step(
     step_size: float = 0.05,
     epsilon: float = 1e-3,
     shapes: tuple[PlaquetteShape, ...] | None = None,
-    method: Literal["autodiff", "finite_difference"] = "autodiff",
+    method: CompactLieForceMethod = "autodiff",
+    chunk_size: int | None = None,
 ) -> tuple[jnp.ndarray, jnp.ndarray]:
     """Return ``(updated_links, force)`` for one compact Wilson descent step."""
 
@@ -361,6 +432,7 @@ def jax_compact_lie_action_descent_step(
         epsilon=epsilon,
         shapes=shapes,
         method=method,
+        chunk_size=chunk_size,
     )
     return jax_compact_lie_apply_left_update(links, force, generators, step_size=step_size), force
 

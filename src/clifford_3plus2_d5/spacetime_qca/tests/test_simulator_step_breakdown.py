@@ -30,6 +30,15 @@ def test_step_breakdown_case_names_are_unique_and_sm_scoped() -> None:
         "gauss_residual_sm",
         "gauge_hamiltonian_sm",
         "left_force_sm",
+        "left_force_batched_sm",
+        "gauge_leapfrog_sm",
+        "gauge_leapfrog_batched_sm",
+        "dirac_transport_sm",
+        "momentum_update_sm",
+        "first_left_force_sm",
+        "first_left_force_batched_sm",
+        "second_left_force_sm",
+        "second_left_force_batched_sm",
     } <= set(names)
     assert {case.config.sector for case in cases} == {"sm"}
     assert {case.config.lattice_shape for case in cases} == {(1, 1, 1)}
@@ -60,6 +69,21 @@ def test_step_breakdown_default_profile_is_single_safe_case() -> None:
     assert payload["metadata"]["default_case"] is True
     assert payload["metadata"]["case_count"] == 1
     assert payload["cases"][0]["label"] == "higgs_leapfrog_sm"
+
+
+@pytest.mark.parametrize("case_name", ("dirac_transport_sm", "momentum_update_sm"))
+def test_step_breakdown_safe_microcase_is_json_safe(case_name: str) -> None:
+    payload = run_spacetime_step_breakdown_profile(
+        case_names=(case_name,),
+        warmup_runs=0,
+        timed_runs=1,
+    )
+
+    assert payload["metadata"]["case_count"] == 1
+    assert payload["cases"][0]["label"] == case_name
+    assert payload["cases"][0]["all_finite"] is True
+    assert payload["cases"][0]["output_summary"]["type"] == "array"
+    json.dumps(payload)
 
 
 def test_step_breakdown_rejects_unknown_case() -> None:
@@ -100,10 +124,42 @@ def test_step_breakdown_cli_writes_output(tmp_path, capsys) -> None:
 def test_step_breakdown_recommendation_flags_left_force() -> None:
     recommendation = recommend_step_breakdown_bottleneck(
         (
-            {"label": "left_force_sm", "mean_seconds": 10.0},
+            {"label": "first_left_force_sm", "mean_seconds": 10.0},
+            {"label": "first_left_force_batched_sm", "mean_seconds": 8.0},
             {"label": "fermion_gauge_no_matter_sm", "mean_seconds": 3.0},
             {"label": "yukawa_half_kick_sm", "mean_seconds": 1.0},
         ),
     )
 
     assert "finite-difference left-force" in recommendation
+
+
+def test_step_breakdown_batched_force_cases_pin_force_method() -> None:
+    cases = {case.name: case for case in default_step_breakdown_cases()}
+
+    assert cases["left_force_batched_sm"].config.force_method == "finite_difference_batched"
+    assert cases["first_left_force_batched_sm"].config.force_method == "finite_difference_batched"
+    assert cases["second_left_force_batched_sm"].config.force_method == "finite_difference_batched"
+    assert cases["gauge_leapfrog_batched_sm"].config.force_chunk_size == 16
+
+
+def test_step_breakdown_recommendation_flags_dirac_transport() -> None:
+    recommendation = recommend_step_breakdown_bottleneck(
+        (
+            {"label": "dirac_transport_sm", "mean_seconds": 7.0},
+            {"label": "momentum_update_sm", "mean_seconds": 3.0},
+        ),
+    )
+
+    assert "Dirac transport" in recommendation
+
+
+def test_step_breakdown_recommendation_flags_momentum_update() -> None:
+    recommendation = recommend_step_breakdown_bottleneck(
+        (
+            {"label": "momentum_update_sm", "mean_seconds": 7.0},
+            {"label": "dirac_transport_sm", "mean_seconds": 3.0},
+        ),
+    )
+
+    assert "momentum link update" in recommendation

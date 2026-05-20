@@ -38,6 +38,7 @@ from clifford_3plus2_d5.spacetime_qca.jax_gauge_dynamics import (
     jax_compact_lie_transform_momentum_field,
 )
 from clifford_3plus2_d5.spacetime_qca.jax_gauge_force import (
+    CompactLieForceMethod,
     jax_compact_lie_action_descent_step,
     jax_compact_lie_algebra_matrix,
     jax_compact_lie_apply_left_update,
@@ -235,7 +236,8 @@ def jax_patisalam_left_force(
     sector: PatiSalamGaugeSector = "su4",
     epsilon: float = 1e-3,
     shapes: tuple[PlaquetteShape, ...] | None = None,
-    method: Literal["autodiff", "finite_difference"] = "finite_difference",
+    method: CompactLieForceMethod = "finite_difference",
+    chunk_size: int | None = None,
 ) -> jnp.ndarray:
     """Return the chiral16 sector left force."""
 
@@ -246,6 +248,7 @@ def jax_patisalam_left_force(
         epsilon=epsilon,
         shapes=shapes,
         method=method,
+        chunk_size=chunk_size,
     )
 
 
@@ -254,7 +257,8 @@ def jax_patisalam_su4_left_force(
     *,
     epsilon: float = 1e-3,
     shapes: tuple[PlaquetteShape, ...] | None = None,
-    method: Literal["autodiff", "finite_difference"] = "finite_difference",
+    method: CompactLieForceMethod = "finite_difference",
+    chunk_size: int | None = None,
 ) -> jnp.ndarray:
     """Return the chiral16 SU(4) left force."""
 
@@ -264,6 +268,7 @@ def jax_patisalam_su4_left_force(
         epsilon=epsilon,
         shapes=shapes,
         method=method,
+        chunk_size=chunk_size,
     )
 
 
@@ -273,7 +278,8 @@ def jax_patisalam_left_force_from_algebra(
     sector: PatiSalamGaugeSector = "su4",
     epsilon: float = 1e-3,
     shapes: tuple[PlaquetteShape, ...] | None = None,
-    method: Literal["autodiff", "finite_difference"] = "finite_difference",
+    method: CompactLieForceMethod = "finite_difference",
+    chunk_size: int | None = None,
 ) -> jnp.ndarray:
     """Return the chiral16 sector left force for coordinate-built links."""
 
@@ -284,6 +290,7 @@ def jax_patisalam_left_force_from_algebra(
         epsilon=epsilon,
         shapes=shapes,
         method=method,
+        chunk_size=chunk_size,
     )
 
 
@@ -292,7 +299,8 @@ def jax_patisalam_su4_left_force_from_algebra(
     *,
     epsilon: float = 1e-3,
     shapes: tuple[PlaquetteShape, ...] | None = None,
-    method: Literal["autodiff", "finite_difference"] = "finite_difference",
+    method: CompactLieForceMethod = "finite_difference",
+    chunk_size: int | None = None,
 ) -> jnp.ndarray:
     """Return the chiral16 SU(4) left force for coordinate-built links."""
 
@@ -302,6 +310,7 @@ def jax_patisalam_su4_left_force_from_algebra(
         epsilon=epsilon,
         shapes=shapes,
         method=method,
+        chunk_size=chunk_size,
     )
 
 
@@ -336,7 +345,8 @@ def jax_patisalam_action_descent_step(
     step_size: float = 0.05,
     epsilon: float = 1e-3,
     shapes: tuple[PlaquetteShape, ...] | None = None,
-    method: Literal["autodiff", "finite_difference"] = "finite_difference",
+    method: CompactLieForceMethod = "finite_difference",
+    chunk_size: int | None = None,
 ) -> tuple[jnp.ndarray, jnp.ndarray]:
     """Return ``(updated_links, force)`` for one sector Wilson descent step."""
 
@@ -348,6 +358,7 @@ def jax_patisalam_action_descent_step(
         epsilon=epsilon,
         shapes=shapes,
         method=method,
+        chunk_size=chunk_size,
     )
 
 
@@ -357,7 +368,8 @@ def jax_patisalam_su4_action_descent_step(
     step_size: float = 0.05,
     epsilon: float = 1e-3,
     shapes: tuple[PlaquetteShape, ...] | None = None,
-    method: Literal["autodiff", "finite_difference"] = "finite_difference",
+    method: CompactLieForceMethod = "finite_difference",
+    chunk_size: int | None = None,
 ) -> tuple[jnp.ndarray, jnp.ndarray]:
     """Return ``(updated_links, force)`` for one SU(4) Wilson descent step."""
 
@@ -368,6 +380,7 @@ def jax_patisalam_su4_action_descent_step(
         epsilon=epsilon,
         shapes=shapes,
         method=method,
+        chunk_size=chunk_size,
     )
 
 
@@ -489,8 +502,9 @@ def jax_patisalam_leapfrog_step(
     step_size: float,
     beta: float = 1.0,
     shapes: tuple[PlaquetteShape, ...] | None = None,
-    force_method: Literal["autodiff", "finite_difference"] = "finite_difference",
+    force_method: CompactLieForceMethod = "finite_difference",
     force_epsilon: float = 1e-3,
+    force_chunk_size: int | None = None,
 ) -> tuple[jnp.ndarray, jnp.ndarray]:
     """Return one reversible leapfrog step for a chiral16 gauge sector."""
 
@@ -504,6 +518,7 @@ def jax_patisalam_leapfrog_step(
         shapes=shapes,
         force_method=force_method,
         force_epsilon=force_epsilon,
+        force_chunk_size=force_chunk_size,
     )
 
 
@@ -514,8 +529,9 @@ def jax_patisalam_su4_leapfrog_step(
     step_size: float,
     beta: float = 1.0,
     shapes: tuple[PlaquetteShape, ...] | None = None,
-    force_method: Literal["autodiff", "finite_difference"] = "finite_difference",
+    force_method: CompactLieForceMethod = "finite_difference",
     force_epsilon: float = 1e-3,
+    force_chunk_size: int | None = None,
 ) -> tuple[jnp.ndarray, jnp.ndarray]:
     """Return one reversible leapfrog step for chiral16 SU(4) gauge fields."""
 
@@ -528,4 +544,5 @@ def jax_patisalam_su4_leapfrog_step(
         shapes=shapes,
         force_method=force_method,
         force_epsilon=force_epsilon,
+        force_chunk_size=force_chunk_size,
     )

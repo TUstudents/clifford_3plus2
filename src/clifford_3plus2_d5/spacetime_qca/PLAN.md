@@ -411,9 +411,9 @@ Move from Bloch-symbol audits to an exact finite real-space QCA:
 
 Only after this should the package approach dynamical gauge fields.
 
-## Current Roadmap After Session 51
+## Current Roadmap After Session 53
 
-Sessions 20-51 have now completed the original Session 20-22 launch arc and
+Sessions 20-53 have now completed the original Session 20-22 launch arc and
 added the first compact gauge-dynamics and Higgs-field infrastructure stack.
 The package has:
 
@@ -453,9 +453,16 @@ The package has:
 - full-SM coupled-step breakdown profiling for Yukawa kicks, no-backreaction
   fermion/gauge stepping, Higgs leapfrog, diagnostics, Gauss residual, gauge
   Hamiltonian density, and Wilson left-force.
+- SM gauge-step microbreakdown cases for gauge leapfrog, Dirac transport,
+  compact momentum update, and first/second finite-difference left-force
+  probes.
+- a batched finite-difference compact Wilson force path, exposed through
+  Pati-Salam adapters, simulator/scaling configs, and explicit step-breakdown
+  comparison cases.
 
 The key priority is now numerical credibility.  Gauge constraints, matter
 current, Higgs dynamics, exact local Yukawa insertion, anomaly diagnostics,
 Lorentz free-dispersion diagnostics, and a scaling harness are all in place.
-The next priority is running focused Session 51 breakdown cases and optimizing
-the dominant full-SM subpath before increasing lattice size.
+The next priority is comparing scalar versus batched force profiles and then
+deciding between chunk-size tuning and a staple-like analytic Wilson-force
+replacement before increasing lattice size.

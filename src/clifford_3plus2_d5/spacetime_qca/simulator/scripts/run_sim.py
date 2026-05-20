@@ -22,6 +22,12 @@ def _parser() -> argparse.ArgumentParser:
     parser.add_argument("--step-size", type=float, default=0.0025)
     parser.add_argument("--sector", choices=("u1_y", "su2_l", "sm"), default="u1_y")
     parser.add_argument("--yukawa-mode", choices=("first_order", "unitary"), default="unitary")
+    parser.add_argument(
+        "--force-method",
+        choices=("autodiff", "finite_difference", "finite_difference_batched"),
+        default="finite_difference",
+    )
+    parser.add_argument("--force-chunk-size", type=int, default=None)
     parser.add_argument("--jit", action="store_true", help="Enable JIT around the scan runner.")
     parser.add_argument("--output", type=Path, default=None, help="Optional .npz output path.")
     return parser
@@ -35,6 +41,8 @@ def main(argv: Sequence[str] | None = None) -> int:
         record_every=args.record_every,
         step_size=args.step_size,
         yukawa_mode=args.yukawa_mode,
+        force_method=args.force_method,
+        force_chunk_size=args.force_chunk_size,
         use_jit=args.jit,
     )
     result = run_spacetime_simulation(config)

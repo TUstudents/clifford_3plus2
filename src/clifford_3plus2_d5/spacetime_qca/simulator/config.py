@@ -9,6 +9,7 @@ from clifford_3plus2_d5.spacetime_qca.jax_coupled_higgs import (
     HiggsCoupledSector,
     YukawaUpdateMode,
 )
+from clifford_3plus2_d5.spacetime_qca.jax_gauge_force import CompactLieForceMethod
 from clifford_3plus2_d5.spacetime_qca.jax_scaling import ScalingRunConfig
 
 
@@ -26,7 +27,9 @@ class SpacetimeSimulationConfig:
     beta: float = 1.0
     vev_squared: float = 1.0
     quartic: float = 1.0
+    force_method: CompactLieForceMethod = "finite_difference"
     force_epsilon: float = 1e-3
+    force_chunk_size: int | None = None
     current_epsilon: float = 1e-3
     yukawa_mode: YukawaUpdateMode = "unitary"
     use_jit: bool = False
@@ -43,6 +46,8 @@ def validate_spacetime_simulation_config(config: SpacetimeSimulationConfig) -> N
         raise ValueError(f"steps must be nonnegative, got {config.steps}")
     if config.record_every <= 0:
         raise ValueError(f"record_every must be positive, got {config.record_every}")
+    if config.force_chunk_size is not None and config.force_chunk_size <= 0:
+        raise ValueError(f"force_chunk_size must be positive when set, got {config.force_chunk_size}")
 
 
 def scaling_config_from_spacetime_config(config: SpacetimeSimulationConfig) -> ScalingRunConfig:
@@ -57,7 +62,9 @@ def scaling_config_from_spacetime_config(config: SpacetimeSimulationConfig) -> S
         beta=config.beta,
         vev_squared=config.vev_squared,
         quartic=config.quartic,
+        force_method=config.force_method,
         force_epsilon=config.force_epsilon,
+        force_chunk_size=config.force_chunk_size,
         current_epsilon=config.current_epsilon,
         yukawa_mode=config.yukawa_mode,
     )

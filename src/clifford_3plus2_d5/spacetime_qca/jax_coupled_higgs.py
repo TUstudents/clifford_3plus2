@@ -29,6 +29,7 @@ from clifford_3plus2_d5.spacetime_qca.jax_gauss import (
     jax_patisalam_fermion_gauge_step_with_backreaction,
     jax_patisalam_gauss_residual,
 )
+from clifford_3plus2_d5.spacetime_qca.jax_gauge_force import CompactLieForceMethod
 from clifford_3plus2_d5.spacetime_qca.jax_higgs import (
     jax_higgs_energy_density,
     jax_higgs_kinetic_energy_density,
@@ -394,8 +395,9 @@ def jax_patisalam_fermion_gauge_higgs_step(
     vev_squared: float = 1.0,
     quartic: float = 1.0,
     shapes: tuple[PlaquetteShape, ...] | None = None,
-    force_method: Literal["autodiff", "finite_difference"] = "finite_difference",
+    force_method: CompactLieForceMethod = "finite_difference",
     force_epsilon: float = 1e-3,
+    force_chunk_size: int | None = None,
     current_epsilon: float = 1e-3,
     yukawa_mode: YukawaUpdateMode = "first_order",
 ) -> tuple[jnp.ndarray, jnp.ndarray, jnp.ndarray, jnp.ndarray, jnp.ndarray, jnp.ndarray]:
@@ -427,6 +429,7 @@ def jax_patisalam_fermion_gauge_higgs_step(
         shapes=shapes,
         force_method=force_method,
         force_epsilon=force_epsilon,
+        force_chunk_size=force_chunk_size,
         current_epsilon=current_epsilon,
     )
     updated_phi, updated_higgs_momentum = jax_higgs_leapfrog_step(

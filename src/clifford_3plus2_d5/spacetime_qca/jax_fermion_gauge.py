@@ -10,7 +10,7 @@ or backreaction term in this module.
 
 from __future__ import annotations
 
-from typing import Literal, TypedDict
+from typing import TypedDict
 
 import jax.numpy as jnp
 
@@ -20,6 +20,7 @@ from clifford_3plus2_d5.spacetime_qca.jax_patisalam import (
     jax_patisalam_gauge_hamiltonian_density,
     jax_patisalam_leapfrog_step,
 )
+from clifford_3plus2_d5.spacetime_qca.jax_gauge_force import CompactLieForceMethod
 from clifford_3plus2_d5.spacetime_qca.jax_step import jax_dirac_step_with_links
 from clifford_3plus2_d5.spacetime_qca.plaquette import PlaquetteShape
 
@@ -96,8 +97,9 @@ def jax_patisalam_fermion_gauge_step(
     step_size: float,
     beta: float = 1.0,
     shapes: tuple[PlaquetteShape, ...] | None = None,
-    force_method: Literal["autodiff", "finite_difference"] = "finite_difference",
+    force_method: CompactLieForceMethod = "finite_difference",
     force_epsilon: float = 1e-3,
+    force_chunk_size: int | None = None,
 ) -> tuple[jnp.ndarray, jnp.ndarray, jnp.ndarray]:
     """Return one no-backreaction ``(fermion, links, momenta)`` update.
 
@@ -119,6 +121,7 @@ def jax_patisalam_fermion_gauge_step(
         shapes=shapes,
         force_method=force_method,
         force_epsilon=force_epsilon,
+        force_chunk_size=force_chunk_size,
     )
     updated_state = jax_patisalam_dirac_step(state, updated_links)
     return updated_state, updated_links, updated_momenta

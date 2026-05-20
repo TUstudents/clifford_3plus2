@@ -9,11 +9,10 @@ testbed.
 
 from __future__ import annotations
 
-from typing import Literal
-
 import jax.numpy as jnp
 
 from clifford_3plus2_d5.spacetime_qca.jax_gauge_force import (
+    CompactLieForceMethod,
     jax_compact_lie_algebra_matrix,
     jax_compact_lie_left_force,
     jax_compact_lie_link_from_algebra,
@@ -190,8 +189,9 @@ def jax_compact_lie_leapfrog_step(
     step_size: float,
     beta: float = 1.0,
     shapes: tuple[PlaquetteShape, ...] | None = None,
-    force_method: Literal["autodiff", "finite_difference"] = "autodiff",
+    force_method: CompactLieForceMethod = "autodiff",
     force_epsilon: float = 1e-3,
+    force_chunk_size: int | None = None,
 ) -> tuple[jnp.ndarray, jnp.ndarray]:
     """Return one reversible leapfrog step for compact basis-coordinate links."""
 
@@ -207,6 +207,7 @@ def jax_compact_lie_leapfrog_step(
         epsilon=force_epsilon,
         shapes=shapes,
         method=force_method,
+        chunk_size=force_chunk_size,
     )
     half_momenta = momenta - 0.5 * dt * force
     updated_links = jax_compact_lie_apply_momentum_update(
@@ -221,6 +222,7 @@ def jax_compact_lie_leapfrog_step(
         epsilon=force_epsilon,
         shapes=shapes,
         method=force_method,
+        chunk_size=force_chunk_size,
     )
     updated_momenta = half_momenta - 0.5 * dt * updated_force
     return updated_links, updated_momenta

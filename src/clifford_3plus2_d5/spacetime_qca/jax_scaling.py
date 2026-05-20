@@ -24,6 +24,7 @@ from clifford_3plus2_d5.spacetime_qca.jax_coupled_higgs import (
     jax_patisalam_fermion_gauge_higgs_step,
 )
 from clifford_3plus2_d5.spacetime_qca.jax_fermion_gauge import PATISALAM_INTERNAL_DIM
+from clifford_3plus2_d5.spacetime_qca.jax_gauge_force import CompactLieForceMethod
 from clifford_3plus2_d5.spacetime_qca.jax_higgs import (
     jax_constant_higgs_field,
     jax_higgs_energy_density,
@@ -51,7 +52,9 @@ class ScalingRunConfig:
     beta: float = 1.0
     vev_squared: float = 1.0
     quartic: float = 1.0
+    force_method: CompactLieForceMethod = "finite_difference"
     force_epsilon: float = 1e-3
+    force_chunk_size: int | None = None
     current_epsilon: float = 1e-3
     yukawa_mode: YukawaUpdateMode = "first_order"
     shapes: tuple[PlaquetteShape, ...] | None = None
@@ -318,7 +321,9 @@ def _advance_scaling_fields(fields: ScalingInitialState, config: ScalingRunConfi
         vev_squared=config.vev_squared,
         quartic=config.quartic,
         shapes=_selected_shapes(config),
+        force_method=config.force_method,
         force_epsilon=config.force_epsilon,
+        force_chunk_size=config.force_chunk_size,
         current_epsilon=config.current_epsilon,
         yukawa_mode=config.yukawa_mode,
     )
@@ -546,7 +551,9 @@ def jax_scaling_timing_probe(config: ScalingRunConfig, *, steps: int = 2) -> Jax
                     vev_squared=config.vev_squared,
                     quartic=config.quartic,
                     shapes=_selected_shapes(config),
+                    force_method=config.force_method,
                     force_epsilon=config.force_epsilon,
+                    force_chunk_size=config.force_chunk_size,
                     current_epsilon=config.current_epsilon,
                     yukawa_mode=config.yukawa_mode,
                 )

@@ -20,6 +20,7 @@ from clifford_3plus2_d5.spacetime_qca import (
     jax_patisalam_gauge_hamiltonian_density,
     jax_patisalam_generators_chiral16,
     jax_patisalam_leapfrog_step,
+    jax_patisalam_left_force,
     jax_patisalam_link_field_from_algebra,
     jax_patisalam_link_from_algebra,
     jax_patisalam_momentum_kinetic_energy_density,
@@ -187,6 +188,28 @@ def test_patisalam_sector_finite_difference_force_lowers_action(sector: PatiSala
     assert force.shape == (1, 1, 1, 8, SECTOR_DIMS[sector])
     assert float(jnp.linalg.norm(force)) > 0
     assert float(action_after) < float(action_before)
+
+
+def test_patisalam_u1_batched_finite_difference_matches_scalar() -> None:
+    links = jax_patisalam_link_field_from_algebra(_theta("u1_y"), sector="u1_y")
+
+    scalar = jax_patisalam_left_force(
+        links,
+        sector="u1_y",
+        epsilon=5e-3,
+        shapes=_shapes(),
+        method="finite_difference",
+    )
+    batched = jax_patisalam_left_force(
+        links,
+        sector="u1_y",
+        epsilon=5e-3,
+        shapes=_shapes(),
+        method="finite_difference_batched",
+        chunk_size=3,
+    )
+
+    np.testing.assert_allclose(np.asarray(batched), np.asarray(scalar), atol=1e-5)
 
 
 @pytest.mark.parametrize("sector", ["su2_l", "su3_c", "u1_y", "sm"])

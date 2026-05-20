@@ -1,6 +1,6 @@
 # spacetime_qca — Status
 
-**Status**: in progress. Sessions 20-50 complete through finite real-space
+**Status**: in progress. Sessions 20-53 complete through finite real-space
 BCC stepping, representation-level Higgs/Yukawa audit, position-dependent
 background gauge covariance, BCC plaquette holonomy geometry, and a static
 Higgs/Yukawa map-layer audit, a JAX numerical backend, Wilson plaquette
@@ -24,7 +24,9 @@ tiny-lattice simulation runner with `.npz`/JSON output.  The runner layer is
 now split into a prototype `lab` path, generic shared `sim` infrastructure,
 and a scan-backed main `simulator` path.  The split has import-boundary tests
 and package-local usage notes, plus bounded simulator and warm kernel profiling
-CLIs with bottleneck reports for the scan-backed simulator.
+CLIs with bottleneck reports for the scan-backed simulator, full-SM
+microbreakdown cases, and a batched finite-difference Wilson-force path exposed
+through the simulator configs.
 
 This module builds the 3D spatial side of the QCA: a BCC Weyl walk
 (Bialynicki-Birula 1994) and its chiral assembly into a 4D Dirac carrier,
@@ -58,8 +60,9 @@ scalars.  A compressed explicit `C^16_internal` basis is not implemented yet.
 - `wilson.py`, `jax_wilson.py` — exact and numerical Wilson plaquette
   observables and action densities.
 - `jax_gauge_force.py` — SO(2), SU(2), SU(3), and generic basis-based
-  compact-link JAX Wilson-action gradients/forces, left-trivialized force
-  controls, and compact action descent.
+  compact-link JAX Wilson-action gradients/forces, scalar and batched
+  finite-difference left-trivialized force controls, and compact action
+  descent.
 - `jax_gauge_dynamics.py` — SU(2)/SU(3) and generic basis-coordinate momentum
   fields, Hamiltonian-density helpers, and compact leapfrog updates.
 - `jax_patisalam.py` — chiral16 Pati-Salam and SM sector JAX adapters over
@@ -122,6 +125,8 @@ scalars.  A compressed explicit `C^16_internal` basis is not implemented yet.
 - `SESSION_48_SPLIT_STABILIZATION.md` — Session 48 result report.
 - `SESSION_49_SIMULATOR_PROFILING.md` — Session 49 result report.
 - `SESSION_50_WARM_KERNEL_PROFILING.md` — Session 50 result report.
+- `SESSION_52_SM_GAUGE_MICROBREAKDOWN.md` — Session 52 result report.
+- `SESSION_53_BATCHED_FORCE.md` — Session 53 result report.
 - `ROADMAP.md` — roadmap from no-backreaction coupling toward constrained
   gauge/fermion/Higgs dynamics.
 - 299 collected tests in the scoped `spacetime_qca` suite; the fast suite has
@@ -825,6 +830,37 @@ before increasing lattice size.
 Interpretation: the simulator can now distinguish the Wilson left-force,
 fermion/gauge transport, Higgs leapfrog, Yukawa kicks, and diagnostics before
 optimizing the Session 50 bottleneck.
+
+## Session 52 result
+
+- The step-breakdown profiler now splits the SM no-matter gauge path into
+  gauge leapfrog, Dirac transport, compact momentum update, and first/second
+  finite-difference Wilson left-force probes.
+- Recommendation logic distinguishes finite-difference force, broader
+  leapfrog, BCC transport, and matrix-exponential momentum-update targets.
+- Force-heavy probes remain explicit `--case` selections; the CLI default stays
+  the cheap `higgs_leapfrog_sm` probe.
+
+Interpretation: the next optimization target can now be selected from focused
+microbreakdown timings instead of treating the full no-matter step as one
+opaque kernel.
+
+## Session 53 result
+
+- `jax_compact_lie_left_force` now supports
+  `method="finite_difference_batched"` with bounded `chunk_size`.
+- The batched method is exposed through Pati-Salam adapters, gauge leapfrog,
+  no-backreaction/backreaction coupling, coupled Higgs stepping,
+  `ScalingRunConfig`, and `SpacetimeSimulationConfig`.
+- Step-breakdown profiling now includes explicit batched comparison cases for
+  left-force and gauge-leapfrog probes.
+- A local `(1, 1, 1)` SM spot profile reduced one left-force probe from
+  `9.431 s` to `2.821 s` at `chunk_size=16`.
+
+Interpretation: the first concrete force optimization is in place without
+changing the default scalar force oracle.  The next profiling pass should
+compare scalar and batched force cases before deciding whether to tune chunking
+or implement an analytic staple-like Wilson force.
 
 ## Session 24 result
 

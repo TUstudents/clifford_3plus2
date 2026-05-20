@@ -1,4 +1,4 @@
-# spacetime_qca — Roadmap After Session 48
+# spacetime_qca — Roadmap After Session 53
 
 ## Current Position
 
@@ -46,6 +46,8 @@ Sessions 20-48 have built the static and simulation-control stack:
 - A bounded scan-backed simulator profiling CLI and first bottleneck report.
 - Warm kernel profiling that separates setup, link construction, observable
   extraction, no-matter coupled steps, and optional matter current.
+- Full-SM step microbreakdown profiling and a batched finite-difference Wilson
+  force path with explicit scalar-vs-batched comparison cases.
 
 The module now has enough infrastructure to move from background-gauge
 kinematics toward coupled field dynamics.  The remaining work is not one
@@ -479,3 +481,22 @@ After Session 51:
   Wilson left-force path first.
 - If `fermion_gauge_no_matter_sm` dominates without `left_force_sm`, split the
   gauge leapfrog and Dirac transport paths next.
+
+After Session 52:
+
+- Prefer focused `profile_step_breakdown --case ...` runs over broad profiles.
+- If `first_left_force_sm` or `second_left_force_sm` dominates, Session 53
+  should implement a vectorized/staple-like Wilson force path.
+- If `momentum_update_sm` dominates, optimize compact chiral16 matrix
+  exponentials before changing the force.
+- If `dirac_transport_sm` dominates, optimize BCC internal-link transport.
+
+After Session 53:
+
+- Compare `first_left_force_sm` against `first_left_force_batched_sm` and
+  `second_left_force_sm` against `second_left_force_batched_sm` before any
+  broader profiling pass.
+- If batched force remains dominant, Session 54 should implement an analytic
+  staple-like compact Wilson force for the current BCC plaquette convention.
+- If batched force is acceptable but `gauge_leapfrog_batched_sm` dominates,
+  tune force chunk size and compact matrix-exponential batching next.

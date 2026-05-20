@@ -101,6 +101,29 @@ def test_compact_lie_descent_lowers_nonflat_action() -> None:
     assert float(action_after) < float(action_before)
 
 
+def test_compact_lie_batched_finite_difference_matches_scalar() -> None:
+    generators = jax_su2_generators()
+    links = jax_compact_lie_link_field_from_algebra(_theta(), generators)
+
+    scalar = jax_compact_lie_left_force(
+        links,
+        generators,
+        shapes=_shapes(),
+        method="finite_difference",
+        epsilon=5e-3,
+    )
+    batched = jax_compact_lie_left_force(
+        links,
+        generators,
+        shapes=_shapes(),
+        method="finite_difference_batched",
+        epsilon=5e-3,
+        chunk_size=5,
+    )
+
+    np.testing.assert_allclose(np.asarray(batched), np.asarray(scalar), atol=1e-5)
+
+
 def test_compact_lie_momentum_transform_preserves_gram_kinetic_energy() -> None:
     generators = jax_su2_generators()
     momenta = _momenta()

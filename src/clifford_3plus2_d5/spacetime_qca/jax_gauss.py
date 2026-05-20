@@ -27,6 +27,7 @@ from clifford_3plus2_d5.spacetime_qca.jax_fermion_gauge import (
     jax_patisalam_dirac_step,
     jax_patisalam_fermion_gauge_step,
 )
+from clifford_3plus2_d5.spacetime_qca.jax_gauge_force import CompactLieForceMethod
 from clifford_3plus2_d5.spacetime_qca.jax_patisalam import (
     PatiSalamGaugeSector,
     jax_patisalam_algebra_matrix,
@@ -247,8 +248,9 @@ def jax_patisalam_fermion_gauge_step_with_backreaction(
     matter_coupling: float = 1.0,
     beta: float = 1.0,
     shapes: tuple[PlaquetteShape, ...] | None = None,
-    force_method: Literal["autodiff", "finite_difference"] = "finite_difference",
+    force_method: CompactLieForceMethod = "finite_difference",
     force_epsilon: float = 1e-3,
+    force_chunk_size: int | None = None,
     current_epsilon: float = 1e-3,
 ) -> tuple[jnp.ndarray, jnp.ndarray, jnp.ndarray]:
     """Return one source-kick plus pure-gauge leapfrog plus fermion step."""
@@ -264,6 +266,7 @@ def jax_patisalam_fermion_gauge_step_with_backreaction(
             shapes=shapes,
             force_method=force_method,
             force_epsilon=force_epsilon,
+            force_chunk_size=force_chunk_size,
         )
 
     current = jax_patisalam_fermion_link_current(
@@ -288,4 +291,5 @@ def jax_patisalam_fermion_gauge_step_with_backreaction(
         shapes=shapes,
         force_method=force_method,
         force_epsilon=force_epsilon,
+        force_chunk_size=force_chunk_size,
     )
