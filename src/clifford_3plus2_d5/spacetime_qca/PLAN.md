@@ -411,9 +411,9 @@ Move from Bloch-symbol audits to an exact finite real-space QCA:
 
 Only after this should the package approach dynamical gauge fields.
 
-## Current Roadmap After Session 47
+## Current Roadmap After Session 48
 
-Sessions 20-47 have now completed the original Session 20-22 launch arc and
+Sessions 20-48 have now completed the original Session 20-22 launch arc and
 added the first compact gauge-dynamics and Higgs-field infrastructure stack.
 The package has:
 
@@ -445,10 +445,12 @@ The package has:
 - a split simulator organization: prototype lab runner, generic shared `sim`
   loop/scan/io helpers, and a scan-backed main `spacetime_qca.simulator`
   interface.
+- import-boundary tests and local package notes that pin the lab/main/sim
+  split.
 
 The key priority is now numerical credibility.  Gauge constraints, matter
 current, Higgs dynamics, exact local Yukawa insertion, anomaly diagnostics,
 Lorentz free-dispersion diagnostics, and a scaling harness are all in place.
-The next priority is making the scan-backed simulator faster, replacing
-expensive finite-difference currents/forces where possible, and extending
+The next priority is profiling the scan-backed simulator, then replacing
+expensive finite-difference currents/forces where possible and extending
 stability measurements beyond tiny deterministic controls.

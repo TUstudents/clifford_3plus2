@@ -1,8 +1,8 @@
-# spacetime_qca — Roadmap After Session 47
+# spacetime_qca — Roadmap After Session 48
 
 ## Current Position
 
-Sessions 20-47 have built the static and simulation-control stack:
+Sessions 20-48 have built the static and simulation-control stack:
 
 - BCC Weyl/Dirac spacetime walk with the `alpha . k` continuum precursor.
 - Finite periodic real-space BCC stepping.
@@ -42,6 +42,7 @@ Sessions 20-47 have built the static and simulation-control stack:
   JSON summaries, and `.npz`/JSON output.
 - A clean simulator split: prototype lab runner, reusable generic `sim`
   runner/io helpers, and a scan-backed main `spacetime_qca.simulator` API.
+- Import-boundary tests and package notes that pin the lab/main/sim split.
 
 The module now has enough infrastructure to move from background-gauge
 kinematics toward coupled field dynamics.  The remaining work is not one
@@ -82,6 +83,20 @@ Delivered:
 
 Next: profile and optimize the physics kernels used by the scan-backed
 simulator, especially finite-difference current/force paths.
+
+### Session 48 — Split Stabilization
+
+Status: complete. Result report:
+[SESSION_48_SPLIT_STABILIZATION.md](SESSION_48_SPLIT_STABILIZATION.md).
+
+Delivered:
+
+- Local usage notes in `spacetime_qca.lab` and `spacetime_qca.simulator`.
+- Import-boundary tests for removed old runner paths and supported new paths.
+- Stable simulator CLI output coverage with JSON-sidecar metadata checks.
+
+Next: run focused profiling on the scan-backed simulator to identify the first
+physics-kernel bottleneck.
 
 ## Immediate Priorities
 
@@ -403,8 +418,9 @@ After Session 38:
 - If the real-form/J-adapted convention is messy, add a compressed explicit
   `C^16` internal basis before going dynamic.
 
-After Session 47:
+After Session 48:
 
 - The next project goal should be numerical simulation scale-up and
   performance hardening, because the prototype lab and scan-backed main
-  simulator are now split and reusable multi-step controls already exist.
+  simulator split is now pinned by tests and reusable multi-step controls
+  already exist.

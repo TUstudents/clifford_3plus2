@@ -1,6 +1,6 @@
 # spacetime_qca — Status
 
-**Status**: in progress. Sessions 20-47 complete through finite real-space
+**Status**: in progress. Sessions 20-48 complete through finite real-space
 BCC stepping, representation-level Higgs/Yukawa audit, position-dependent
 background gauge covariance, BCC plaquette holonomy geometry, and a static
 Higgs/Yukawa map-layer audit, a JAX numerical backend, Wilson plaquette
@@ -22,7 +22,8 @@ coupled prototype, an optional exact unitary site-local Yukawa insertion,
 multi-step tiny-lattice trajectory/timing probes, and the first deterministic
 tiny-lattice simulation runner with `.npz`/JSON output.  The runner layer is
 now split into a prototype `lab` path, generic shared `sim` infrastructure,
-and a scan-backed main `simulator` path.
+and a scan-backed main `simulator` path.  The split has import-boundary tests
+and package-local usage notes.
 
 This module builds the 3D spatial side of the QCA: a BCC Weyl walk
 (Bialynicki-Birula 1994) and its chiral assembly into a 4D Dirac carrier,
@@ -79,8 +80,10 @@ scalars.  A compressed explicit `C^16_internal` basis is not implemented yet.
 - `lab/tiny_runner.py` — Session 46 deterministic prototype runner,
   observable histories, JSON-safe summaries, and `.npz`/JSON output.
 - `lab/scripts/run_tiny_sim.py` — module CLI for the prototype tiny runner.
+- `lab/README.md` — prototype runner boundary and usage note.
 - `simulator/` — scan-backed main simulator API, field-bundle adapters,
   physics observables, small presets, and stable `run_sim.py` CLI.
+- `simulator/README.md` — main simulator boundary and usage note.
 - `lorentz_recovery.py` — exact finite-spacing dispersion anisotropy
   diagnostics for BCC Weyl/Dirac and the naive hypercube control.
 - `lattice.py`, `state.py`, `step.py` — finite periodic real-space BCC step.
@@ -115,6 +118,7 @@ scalars.  A compressed explicit `C^16_internal` basis is not implemented yet.
 - `SESSION_45_UNITARY_YUKAWA.md` — Session 45 result report.
 - `SESSION_46_SIMULATION_RUNNER.md` — Session 46 result report.
 - `SESSION_47_SIMULATOR_SPLIT.md` — Session 47 result report.
+- `SESSION_48_SPLIT_STABILIZATION.md` — Session 48 result report.
 - `ROADMAP.md` — roadmap from no-backreaction coupling toward constrained
   gauge/fermion/Higgs dynamics.
 - 299 collected tests in the scoped `spacetime_qca` suite; the fast suite has
@@ -757,6 +761,19 @@ not a production `jax.lax.scan` simulator.
 Interpretation: `spacetime_qca` now has a clean prototype-versus-main
 simulator split.  The next performance step is to optimize the physics kernels
 used inside the scan rather than continue expanding the old lab runner.
+
+## Session 48 result
+
+- `lab/README.md` and `simulator/README.md` document the prototype-vs-main
+  simulator split.
+- Import-boundary tests verify old runner paths fail, top-level runner exports
+  stay removed, and supported lab/simulator exports remain available.
+- The stable simulator CLI now has output-writing coverage, including JSON
+  sidecar metadata.
+
+Interpretation: the split is now pinned by tests and local package docs.  The
+next session should profile the scan-backed simulator rather than continue
+reorganizing paths.
 
 ## Session 24 result
 
