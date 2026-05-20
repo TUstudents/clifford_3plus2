@@ -1,8 +1,16 @@
-"""Tests for ``j_misalignment.py`` — beta audit."""
+"""Tests for ``j_misalignment.py`` — beta audit.
+
+Slow: J-decomposition reconstruction and multi-element β-multi payload
+are exact symbolic SymPy computations over the chiral-16 carrier with
+~32×32 matrices; each test takes ~2 minutes.
+"""
 
 from __future__ import annotations
 
+import pytest
 import sympy as sp
+
+pytestmark = pytest.mark.slow
 
 from clifford_3plus2_d5.cp.j_misalignment import (
     beta_audit_payload,

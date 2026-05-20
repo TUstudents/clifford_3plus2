@@ -1,6 +1,15 @@
-"""Tests for ``walk_symmetries.py`` — alpha-2 and alpha-3 audits."""
+"""Tests for ``walk_symmetries.py`` — alpha-2 and alpha-3 audits.
+
+Slow: each test triggers symbolic Bloch-symbol P/T/C/CP/CPT
+conjugation checks at O(ε²); 9 tests at ~13-27s each ≈ 2 minutes
+for the module.
+"""
 
 from __future__ import annotations
+
+import pytest
+
+pytestmark = pytest.mark.slow
 
 from clifford_3plus2_d5.cp.walk_symmetries import (
     massless_audit_payload,
