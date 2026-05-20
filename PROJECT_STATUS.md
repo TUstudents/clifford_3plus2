@@ -467,6 +467,69 @@ session (~3 days against the ~3-4 week committed budget).  SC-4 was
 budgeted ~5-7 days; the structural argument made it non-essential
 for the verdict.
 
+## koide — closed: KOIDE CONSISTENT (PDG NOT IN LOCUS)
+
+**Goal**: audit whether the BCC body-diagonal Z₃ structure of the
+program naturally predicts/permits/forbids the empirical Koide formula
+K = (m_e + m_μ + m_τ) / (√m_e + √m_μ + √m_τ)² = 2/3 for charged-lepton
+masses.  Triggered by the observation that the Koide cone direction
+(1,1,1)/√3 is exactly the BCC body-diagonal axis — a striking coincidence
+demanding direct test.
+
+**Result**: KOIDE CONSISTENT.  The BCC body-diagonal Z₃ structure
+admits Koide-satisfying Yukawa solutions but does not uniquely predict
+the PDG mass triple.
+
+| Phase | Verdict | Detail |
+|---|---|---|
+| KO-1 (empirical + cone geometry) | done | K_PDG = 0.666661 vs 2/3, deviation 6×10⁻⁶; three equivalent forms verified |
+| KO-2 (BCC body-diagonal Z₃ on σ^a) | done | R fixes (1,1,1)/√3; trace + 2D-non-trivial Z₃ irrep projectors commute with R |
+| KO-3 (BCC-Z₃-orbit 3×3 Yukawa) | done | Eigenvalues (3|v_t|², (3/2)|v_o|², (3/2)|v_o|²) — always 2-fold degenerate |
+| KO-4 (cone vs locus) | done | L_Z3 ∩ C = 1-parameter family at |v_t|/|v_o| = 3+2√2; L_Z3 ⊄ C; PDG ∉ L_Z3 |
+| KO-5 (combined audit) | done | KOIDE CONSISTENT aggregated and reported |
+
+**Geometric mechanism**: the Koide cone direction (1,1,1)/√3 IS the
+Z₃-trivial irrep direction of the BCC body-diagonal rotation.  The
+coincidence is real, not accidental.  The Z₃-equivariant Yukawa from
+the BCC body-diagonal orbit has a 1-parameter on-cone sub-family at
+|v_t|/|v_o| = 3 + 2√2 ≈ 5.83, where the non-degenerate-to-degenerate
+mass ratio is exactly 2(3+2√2)² = 2(17+12√2) ≈ 67.94.
+
+**Phenomenological limit**: the Z₃-equivariant construction ALWAYS
+gives 2-fold degenerate eigenvalues (m₂ = m₃ structurally), but PDG
+charged-lepton masses are all distinct.  Therefore PDG ∉ Z₃-equivariant
+locus.  Three distinct PDG masses require **Z₃-breaking input** —
+naturally via a dynamical Higgs VEV alignment that tilts the Yukawa
+off the equivariant locus.  Bold-B is the natural follow-up.
+
+**Implemented**:
+- ``koide_geometry.py``: PDG verification, three equivalent geometric
+  forms, cone parametrization.
+- ``bcc_z3_on_flavor.py``: BCC R on σ^a-space, Z₃-irrep projectors,
+  σ^a ↔ generation identification.
+- ``yukawa_eigenvalue_locus.py``: BCC-Z₃-orbit Yukawa with analytic
+  eigenvalue structure; Koide special ratio derivation.
+- ``cone_locus_compatibility.py``: PREDICTED/CONSISTENT/CONFLICT
+  classifier with PDG-in-locus tag.
+- ``koide_audit.py``: combined KoideAuditPayload.
+
+**Tests**: 54 passing.
+
+**Significance**: the audit settles the BCC↔Koide coincidence with a
+clear structural positive (the cone direction IS the Z₃-trivial axis,
+not accidental) and a clear phenomenological limit (PDG mass hierarchy
+requires Z₃-breaking input beyond carrier structure).
+
+**Follow-up flags**:
+1. Bold-B dynamical Higgs sector for VEV-driven cone selection.
+2. Quark Koide audit (K_up ≈ 0.85, K_down ≈ 0.73 — imprecise but
+   suggestive).
+3. Non-equivariant Yukawa scan to characterize the broader locus.
+
+**Effort spent**: all 5 phases completed in one session (~half a day
+against the ~3-4 week committed budget); the analytical structure of
+the circulant Yukawa made KO-3 / KO-4 tractable without numerical scan.
+
 ## Workspace meta
 
 - [`docs/PUBLICATION_PLAN.md`](docs/PUBLICATION_PLAN.md) — publication plan for the obstruction_r10 paper.
@@ -487,6 +550,7 @@ for the verdict.
 | `topology.reuse` | `spacetime_qca.bcc_weyl`, `spacetime_qca.dirac`, `lepton.patisalam_sm` | Single import surface for the topology audits (BB hops, Dirac gammas, chiral-16 SU(3)_c). |
 | `sme.reuse` | `cp.continuum_cp`, `cp.cubic_harmonics`, `spacetime_qca.dirac` | Single import surface for the SME audit (H^(1), T_{2g} projector, γ matrices). |
 | `strongcp.reuse` | `cp.continuum_cp`, `cp.cubic_harmonics`, `cp.discrete_symmetries`, `spacetime_qca.bcc_weyl`, `spacetime_qca.continuum` | Single import surface for the Strong-CP audit (H^(1), γ matrices, BCC walk, BCH machinery). |
+| `koide.reuse` | `cp.j_misalignment`, `cp.cubic_harmonics`, `cp.continuum_cp`, `topology.bcc_z3_rotation`, `broken_triality.yukawa_overlaps` | Single import surface for the Koide audit (Higgs map basis, BCC R rotation, 3×3 Yukawa-from-orbit template). |
 | `obstruction_r10.qca.*` | `algebra.*` | Shared matrix utilities. |
 
 Runtime sidecar code remains mostly factored.  The visible sidecar couplings
