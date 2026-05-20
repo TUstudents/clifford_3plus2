@@ -28,6 +28,7 @@ from clifford_3plus2_d5.lepton.patisalam_sm import (
     sm_gauge_generators,
     su3_c_generators_from_su4,
 )
+from clifford_3plus2_d5.lepton.sm_hypercharge import physical_hypercharge_generator
 from clifford_3plus2_d5.sim.state import sympy_matrix_to_numpy
 from clifford_3plus2_d5.spacetime_qca.jax_gauge_dynamics import (
     jax_compact_lie_apply_momentum_update,
@@ -57,7 +58,9 @@ PatiSalamGaugeSector: TypeAlias = Literal[
     "pati_salam",
     "su3_c",
     "u1_y",
+    "u1_y_raw",
     "sm",
+    "sm_raw",
 ]
 
 
@@ -77,13 +80,21 @@ def _sector_generators(sector: PatiSalamGaugeSector):
     if sector == "su3_c":
         return su3_c_generators_from_su4()
     if sector == "u1_y":
+        return (physical_hypercharge_generator(),)
+    if sector == "u1_y_raw":
         return (hypercharge_generator(),)
     if sector == "sm":
+        return (
+            *su3_c_generators_from_su4(),
+            *su2_l_generators_from_spin04(),
+            physical_hypercharge_generator(),
+        )
+    if sector == "sm_raw":
         return sm_gauge_generators()
     raise ValueError(f"unknown Pati-Salam gauge sector: {sector}")
 
 
-@lru_cache(maxsize=16)
+@lru_cache(maxsize=32)
 def _patisalam_generators_numpy(sector: PatiSalamGaugeSector, dtype_name: str) -> np.ndarray:
     dtype = np.dtype(dtype_name)
     return np.stack(
@@ -100,6 +111,9 @@ def jax_patisalam_generators_chiral16(
 
     Sector dimensions are ``su4=15``, ``su2_l=3``, ``su2_r=3``,
     ``pati_salam=21``, ``su3_c=8``, ``u1_y=1``, and ``sm=12``.
+    ``u1_y`` and ``sm`` use physical Session 19b hypercharge; the old
+    unnormalized Pati-Salam convention remains available as ``u1_y_raw`` and
+    ``sm_raw`` for regression comparisons.
     """
 
     dtype = np.dtype(dtype)

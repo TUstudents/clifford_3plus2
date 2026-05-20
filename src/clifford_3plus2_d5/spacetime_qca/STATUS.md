@@ -1,6 +1,6 @@
 # spacetime_qca — Status
 
-**Status**: in progress. Sessions 20-40 complete through finite real-space
+**Status**: in progress. Sessions 20-41 complete through finite real-space
 BCC stepping, representation-level Higgs/Yukawa audit, position-dependent
 background gauge covariance, BCC plaquette holonomy geometry, and a static
 Higgs/Yukawa map-layer audit, a JAX numerical backend, Wilson plaquette
@@ -15,7 +15,8 @@ Higgs field layer with finite `SU(2)_L x U(1)_Y` gauge covariance,
 BCC covariant differences, kinetic/potential diagnostics, and a sitewise
 Yukawa bridge, and the first small-lattice coupled fermion/gauge/Higgs
 prototype with Higgs conjugate momentum and a first-order site-local Yukawa
-kick.
+kick, and an exact one-generation anomaly/physical-hypercharge audit for the
+active SM sector convention.
 
 This module builds the 3D spatial side of the QCA: a BCC Weyl walk
 (Bialynicki-Birula 1994) and its chiral assembly into a 4D Dirac carrier,
@@ -91,10 +92,11 @@ scalars.  A compressed explicit `C^16_internal` basis is not implemented yet.
 - `SESSION_38_HERMITIAN_YUKAWA.md` — Session 38 result report.
 - `SESSION_39_DYNAMICAL_HIGGS.md` — Session 39 result report.
 - `SESSION_40_COUPLED_HIGGS_STEP.md` — Session 40 result report.
+- `SESSION_41_ANOMALY_CURRENT.md` — Session 41 result report.
 - `ROADMAP.md` — roadmap from no-backreaction coupling toward constrained
   gauge/fermion/Higgs dynamics.
-- 236 collected tests in the scoped `spacetime_qca` suite; the fast suite has
-  111 passing tests, and slow exact/JAX bridge and coupled-dynamics tests are
+- 251 collected tests in the scoped `spacetime_qca` suite; the fast suite has
+  126 passing tests, and slow exact/JAX bridge and coupled-dynamics tests are
   marked with `slow`.
 
 ## Session 20 result
@@ -135,10 +137,10 @@ scalars.  A compressed explicit `C^16_internal` basis is not implemented yet.
   match the compressed complex carrier rather than the current `R^32` real
   form.
 - Vectorized Wilson action evaluation for large lattices.
-- Site-local dynamical Higgs field with gauge-covariant kinetic/potential
-  diagnostics.
-- Dynamical gauge fields beyond the current SU(2)/SU(3)/SU(4) leapfrog
-  prototypes.
+- Higgs current backreaction into gauge momenta.
+- Exact unitary Yukawa insertion in the coupled update.
+- Dynamical gauge fields beyond the current SU(2)/SU(3)/SU(4)/Pati-Salam/SM
+  leapfrog prototypes.
 - Full Gauss-law projection / constraint solving beyond the Session 37
   residual and source-kick prototype.
 - Vectorized SU(2) staple force and Gauss-law constraints.
@@ -148,14 +150,13 @@ scalars.  A compressed explicit `C^16_internal` basis is not implemented yet.
 ## Sessions ahead
 
 - Session 20b: full symbolic BCC unitarity and no-doubling hardening.
-- Session 39: site-local dynamical Higgs field with gauge covariance.
-- Session 40: first coupled fermion + gauge + Higgs step on tiny lattices.
-- Session 41+: anomaly/current diagnostics, Lorentz recovery, scaling, and
-  performance work.
+- Session 42: Lorentz recovery beyond the `alpha . k` continuum precursor.
+- Session 43: renormalization/scaling diagnostics.
+- Parallel: performance work and simulation scale-up.
 
-See [PLAN.md](PLAN.md) for the detailed Session 20 plan and
+See [PLAN.md](PLAN.md) for the detailed launch plan and
 [SESSION_20_BCC_DIRAC.md](SESSION_20_BCC_DIRAC.md) for the initial running
-report.  See [ROADMAP.md](ROADMAP.md) for the current post-Session-38 roadmap.
+report.  See [ROADMAP.md](ROADMAP.md) for the current roadmap.
 
 ## Cross-module dependency
 
@@ -461,13 +462,13 @@ backreaction, and dynamical Higgs/Yukawa fields remain open.
 
 - `jax_patisalam.py` now exposes a sector-generic chiral16 gauge adapter.
 - Supported sectors are `su4`, `su2_l`, `su2_r`, `pati_salam`, `su3_c`,
-  `u1_y`, and `sm`.
+  `u1_y`, `u1_y_raw`, `sm`, and `sm_raw`.
 - Existing `jax_patisalam_su4_*` functions remain stable as wrappers over
   `sector="su4"`.
 - Every sector uses explicit `lepton` generator bases and the Session 34
   Gram-metric projection.
-- Sector dimensions are `15`, `3`, `3`, `21`, `8`, `1`, and `12`
-  respectively.
+- Sector dimensions are `15`, `3`, `3`, `21`, `8`, `1`, `1`, `12`, and
+  `12` respectively.
 - Projection recovers coordinates, compact exponentials preserve unitarity,
   and pure gauges have zero Wilson action in the representative sectors.
 - Independent SM factor links commute for `SU(3)_c`, `SU(2)_L`, and `U(1)_Y`.
@@ -601,6 +602,28 @@ Interpretation: this is the first executable prototype with fermions, gauge
 fields, and a Higgs field in one update path.  It is still a research control:
 Higgs links are fixed inputs, Higgs current does not backreact on gauge
 momenta, and the Yukawa kick is not yet an exact local unitary exponential.
+
+## Session 41 result
+
+- `anomaly.py` adds an exact one-generation SM anomaly audit using the
+  physical Session 19b charge table.
+- The JAX sector adapter now treats `u1_y` and `sm` as physical hypercharge
+  sectors.
+- The older unnormalized Pati-Salam hypercharge basis remains available as
+  `u1_y_raw` and `sm_raw`.
+- Exact diagnostics verify `Tr Y = 0`, `Tr Y^3 = 0`,
+  `SU(3)^2-U(1)_Y = 0`, `SU(2)^2-U(1)_Y = 0`, `SU(3)^3 = 0`, and an even
+  `SU(2)_L` doublet count.
+- Matrix trace diagnostics over the real 32-dimensional charge observable
+  match the field-table anomaly sums after the real-form factor of 2.
+- Focused JAX tests pin that charge density for `u1_y` now uses physical
+  hypercharge, while the raw alias remains distinct for regression purposes.
+
+Interpretation: this closes a charge-convention gap in the coupled dynamics.
+It is not a lattice-regulator anomaly theorem; it verifies that the
+one-generation representation used by the QCA dynamics has the expected SM
+anomaly cancellations and that future `u1_y` source terms use physical
+hypercharge by default.
 
 ## Session 24 result
 

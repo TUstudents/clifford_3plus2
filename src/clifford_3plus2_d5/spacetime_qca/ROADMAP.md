@@ -1,8 +1,8 @@
-# spacetime_qca — Roadmap After Session 40
+# spacetime_qca — Roadmap After Session 41
 
 ## Current Position
 
-Sessions 20-40 have built the static and simulation-control stack:
+Sessions 20-41 have built the static and simulation-control stack:
 
 - BCC Weyl/Dirac spacetime walk with the `alpha . k` continuum precursor.
 - Finite periodic real-space BCC stepping.
@@ -25,6 +25,9 @@ Sessions 20-40 have built the static and simulation-control stack:
 - A first coupled fermion/gauge/Higgs prototype with Higgs conjugate momentum,
   fixed-link Higgs leapfrog, a first-order site-local Yukawa kick, and
   finite diagnostics for all field sectors.
+- Physical `U(1)_Y` as the default spacetime-QCA sector convention, with exact
+  one-generation anomaly cancellation diagnostics and raw Pati-Salam
+  hypercharge kept only under explicit regression aliases.
 
 The module now has enough infrastructure to move from background-gauge
 kinematics toward coupled field dynamics.  The remaining work is not one
@@ -166,11 +169,23 @@ a research control, not a final Standard Model QCA.
 
 ### Session 41 — Anomaly And Charge-Current Diagnostics
 
-- Check that the one-generation chiral16 charge table used by the dynamics
-  has the expected anomaly cancellations.
-- Verify lattice current definitions respect the same cancellations in the
-  continuum/small-field limit.
-- Add regression tests for hypercharge normalization and sector traces.
+Status: complete. Result report:
+[SESSION_41_ANOMALY_CURRENT.md](SESSION_41_ANOMALY_CURRENT.md).
+
+Delivered:
+
+- Corrected the JAX sector convention so `u1_y` and `sm` use physical
+  Session 19b hypercharge.
+- Kept the old unnormalized Pati-Salam convention as explicit `u1_y_raw` and
+  `sm_raw` aliases.
+- Added exact one-generation anomaly diagnostics for `Tr Y`, `Tr Y^3`,
+  `SU(3)^2-U(1)_Y`, `SU(2)^2-U(1)_Y`, `SU(3)^3`, and the `SU(2)_L` Witten
+  doublet parity.
+- Added regression tests for physical hypercharge normalization and JAX
+  charge-density expectations.
+
+Non-goal: regulator-level anomaly analysis for the full interacting lattice
+theory remains future work.
 
 ### Session 42 — Lorentz Recovery Beyond `alpha . k`
 
@@ -223,40 +238,46 @@ Roadmap owner: Session 40 and Session 41 for the next coupled-field audits.
 
 ### Dynamical Higgs
 
-Current status: not implemented as a field.
+Current status: partially implemented as a site-local field and first coupled
+prototype.
 
 Done:
 
 - Higgs-like map space identified.
 - Static Higgs-doublet charge pattern verified.
 - Neutral-VEV breaking pattern verified.
+- Site-local Higgs field `Phi(x)` with `SU(2)_L x U(1)_Y` gauge law.
+- BCC covariant finite difference, kinetic energy, and Mexican-hat potential.
+- Higgs conjugate momentum and fixed-link leapfrog.
+- First coupled fermion/gauge/Higgs smoke path.
 
 Still open:
 
-- Site-local Higgs field `Phi(x)`.
-- Gauge transformation and covariant finite difference.
-- Kinetic energy and potential.
-- Higgs time update.
+- Higgs current backreaction into gauge momenta.
+- Exact unitary Yukawa insertion.
+- Long-time stability and scaling diagnostics.
 
-Roadmap owner: Session 39, then Session 40.
+Roadmap owner: Sessions 39-40 implemented the v1 field/update path; future
+hardening continues after Session 41.
 
 ### Hermitian Yukawa From The Dim-4 Space
 
-Current status: static controls exist, but the general Hermitian operator is
-not complete.
+Current status: complete for static controls.
 
 Done:
 
 - Charge-shift map basis exists.
 - Static Hermitian rank-control probes exist.
 - Neutral VEV preserves electromagnetism in the static audit.
-
-Still open:
-
 - General `Y(Phi)` construction.
 - Complex coordinate convention for `Phi`.
 - Hermiticity proof for arbitrary `Phi`.
 - Mass-gap diagnostics for representative Higgs backgrounds.
+
+Still open:
+
+- Exact unitary insertion in the coupled update.
+- Yukawa hierarchy/family structure.
 
 Roadmap owner: Session 38.
 
@@ -275,7 +296,7 @@ After Session 38:
 - If the real-form/J-adapted convention is messy, add a compressed explicit
   `C^16` internal basis before going dynamic.
 
-After Session 40:
+After Session 41:
 
-- Decide whether the next project goal is physics validation
-  (anomaly/Lorentz/renormalization) or numerical simulation scale-up.
+- Decide whether the next project goal is Lorentz/scaling validation or
+  numerical simulation scale-up.

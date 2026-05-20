@@ -46,8 +46,10 @@ su2_l       dimension 3
 su2_r       dimension 3
 pati_salam  dimension 21
 su3_c       dimension 8
-u1_y        dimension 1
-sm          dimension 12
+u1_y        dimension 1   # physical Session 19b hypercharge after Session 41
+u1_y_raw    dimension 1   # unnormalized Pati-Salam regression alias
+sm          dimension 12  # SU(3)_c + SU(2)_L + physical Y
+sm_raw      dimension 12  # old raw-Y regression alias
 ```
 
 Existing `jax_patisalam_su4_*` APIs remain stable and now delegate to the

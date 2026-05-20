@@ -8,6 +8,9 @@ import jax.numpy as jnp
 import numpy as np
 import pytest
 
+from clifford_3plus2_d5.lepton.patisalam_sm import hypercharge_generator, sm_gauge_generators
+from clifford_3plus2_d5.lepton.sm_hypercharge import physical_hypercharge_generator
+from clifford_3plus2_d5.sim.state import sympy_matrix_to_numpy
 from clifford_3plus2_d5.spacetime_qca import (
     canonical_bcc_plaquette_shapes,
     jax_average_wilson_action_density,
@@ -34,7 +37,9 @@ SECTOR_DIMS: dict[PatiSalamGaugeSector, int] = {
     "pati_salam": 21,
     "su3_c": 8,
     "u1_y": 1,
+    "u1_y_raw": 1,
     "sm": 12,
+    "sm_raw": 12,
 }
 
 
@@ -120,6 +125,39 @@ def test_sm_factor_links_commute_between_independent_subsectors() -> None:
             np.asarray(right @ left),
             atol=8e-6,
         )
+
+
+def test_u1_y_sector_uses_physical_hypercharge_with_raw_alias() -> None:
+    physical = sympy_matrix_to_numpy(physical_hypercharge_generator(), dtype=np.complex64)
+    raw = sympy_matrix_to_numpy(hypercharge_generator(), dtype=np.complex64)
+
+    np.testing.assert_allclose(
+        np.asarray(jax_patisalam_generators_chiral16("u1_y")[0]),
+        physical,
+        atol=1e-7,
+    )
+    np.testing.assert_allclose(
+        np.asarray(jax_patisalam_generators_chiral16("u1_y_raw")[0]),
+        raw,
+        atol=1e-7,
+    )
+    assert not np.allclose(physical, raw)
+
+
+def test_sm_sector_uses_physical_hypercharge_with_raw_alias() -> None:
+    physical = sympy_matrix_to_numpy(physical_hypercharge_generator(), dtype=np.complex64)
+    raw_sm = np.stack(
+        [sympy_matrix_to_numpy(generator, dtype=np.complex64) for generator in sm_gauge_generators()],
+        axis=0,
+    )
+
+    sm = np.asarray(jax_patisalam_generators_chiral16("sm"))
+    sm_raw = np.asarray(jax_patisalam_generators_chiral16("sm_raw"))
+
+    np.testing.assert_allclose(sm[-1], physical, atol=1e-7)
+    np.testing.assert_allclose(sm_raw, raw_sm, atol=1e-7)
+    np.testing.assert_allclose(sm[:-1], sm_raw[:-1], atol=1e-7)
+    assert not np.allclose(sm[-1], sm_raw[-1])
 
 
 @pytest.mark.parametrize("sector", ["su2_l", "su2_r", "su3_c", "u1_y", "sm"])
