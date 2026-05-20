@@ -1,6 +1,6 @@
 # spacetime_qca — Status
 
-**Status**: in progress. Sessions 20-45 complete through finite real-space
+**Status**: in progress. Sessions 20-46 complete through finite real-space
 BCC stepping, representation-level Higgs/Yukawa audit, position-dependent
 background gauge covariance, BCC plaquette holonomy geometry, and a static
 Higgs/Yukawa map-layer audit, a JAX numerical backend, Wilson plaquette
@@ -18,8 +18,9 @@ prototype with Higgs conjugate momentum and a first-order site-local Yukawa
 kick, and an exact one-generation anomaly/physical-hypercharge audit for the
 active SM sector convention, plus finite-spacing BCC Dirac dispersion
 anisotropy diagnostics, tiny-lattice scaling/stability diagnostics for the
-coupled prototype, an optional exact unitary site-local Yukawa insertion, and
-multi-step tiny-lattice trajectory/timing probes.
+coupled prototype, an optional exact unitary site-local Yukawa insertion,
+multi-step tiny-lattice trajectory/timing probes, and the first deterministic
+tiny-lattice simulation runner with `.npz`/JSON output.
 
 This module builds the 3D spatial side of the QCA: a BCC Weyl walk
 (Bialynicki-Birula 1994) and its chiral assembly into a 4D Dirac carrier,
@@ -73,6 +74,9 @@ scalars.  A compressed explicit `C^16_internal` basis is not implemented yet.
 - `jax_scaling.py` — tiny-lattice scaling snapshots, one-step and multi-step
   drift trials, neutral-vacuum density probes, timing probes, and Session 43
   audit payloads.
+- `jax_runner.py` — Session 46 deterministic tiny-lattice runner, observable
+  histories, JSON-safe summaries, and `.npz`/JSON output.
+- `scripts/run_tiny_sim.py` — module CLI for the Session 46 tiny runner.
 - `lorentz_recovery.py` — exact finite-spacing dispersion anisotropy
   diagnostics for BCC Weyl/Dirac and the naive hypercube control.
 - `lattice.py`, `state.py`, `step.py` — finite periodic real-space BCC step.
@@ -105,10 +109,11 @@ scalars.  A compressed explicit `C^16_internal` basis is not implemented yet.
 - `SESSION_43_SCALING_DIAGNOSTICS.md` — Session 43 result report.
 - `SESSION_44_PERFORMANCE_STABILITY.md` — Session 44 result report.
 - `SESSION_45_UNITARY_YUKAWA.md` — Session 45 result report.
+- `SESSION_46_SIMULATION_RUNNER.md` — Session 46 result report.
 - `ROADMAP.md` — roadmap from no-backreaction coupling toward constrained
   gauge/fermion/Higgs dynamics.
-- 282 collected tests in the scoped `spacetime_qca` suite; the fast suite has
-  147 passing tests, and slow exact/JAX bridge and coupled-dynamics tests are
+- 292 collected tests in the scoped `spacetime_qca` suite; the fast suite has
+  156 passing tests, and slow exact/JAX bridge and coupled-dynamics tests are
   marked with `slow`.
 
 ## Session 20 result
@@ -184,7 +189,7 @@ BCC Dirac, BCC Wilson, and Wilson-force policy remains in `spacetime_qca`.
 uv run pytest src/clifford_3plus2_d5/spacetime_qca/tests -m "not slow" -q
 ```
 
-Expected fast-path result after Session 44/45: `147 passed, 135 deselected` in
+Expected fast-path result after Session 46: `156 passed, 136 deselected` in
 about 75-90 seconds on the current CPU environment.
 
 Slow exact-symbolic and JAX dynamics/parity suites are marked with
@@ -195,7 +200,7 @@ Run the full module suite, including slow tests, with:
 uv run pytest src/clifford_3plus2_d5/spacetime_qca/tests -q
 ```
 
-Expected full result after Session 44/45: `282 passed`.  The full run currently
+Expected full result after Session 46: `292 passed`.  The full run currently
 takes several minutes because it includes exact Higgs-map nullspace
 construction and JAX gradient/leapfrog checks.
 
@@ -714,6 +719,23 @@ not a production simulation or continuum renormalization result.
 Interpretation: this closes the local Yukawa-unitarity gap for fixed Higgs
 backgrounds.  It does not solve Higgs current backreaction, Gauss projection,
 or long-time interacting stability.
+
+## Session 46 result
+
+- `jax_runner.py` adds `SimulationRunConfig`, `SimulationHistory`, and
+  `SimulationResult`.
+- `run_simulation` wraps deterministic Session 43 initial data, the existing
+  coupled fermion/gauge/Higgs step, and observable recording into a
+  simulator-shaped API.
+- `simulation_summary` returns a compact JSON-safe summary for console output.
+- `save_simulation_result` writes history arrays and final fields to `.npz`
+  plus a JSON metadata sidecar.
+- `scripts/run_tiny_sim.py` provides a module CLI for summary-only or
+  output-writing tiny runs.
+
+Interpretation: this is the first runnable simulator interface for
+`spacetime_qca`.  It is still a deterministic tiny-lattice research runner,
+not a production `jax.lax.scan` simulator.
 
 ## Session 24 result
 

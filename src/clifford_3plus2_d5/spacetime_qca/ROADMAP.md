@@ -1,8 +1,8 @@
-# spacetime_qca — Roadmap After Sessions 44-45
+# spacetime_qca — Roadmap After Session 46
 
 ## Current Position
 
-Sessions 20-45 have built the static and simulation-control stack:
+Sessions 20-46 have built the static and simulation-control stack:
 
 - BCC Weyl/Dirac spacetime walk with the `alpha . k` continuum precursor.
 - Finite periodic real-space BCC stepping.
@@ -38,10 +38,29 @@ Sessions 20-45 have built the static and simulation-control stack:
   the first-order kick as the default regression path.
 - Bounded multi-step tiny-lattice trajectory diagnostics and timing probes for
   the coupled prototype.
+- A deterministic tiny-lattice simulation runner with observable history,
+  JSON summaries, and `.npz`/JSON output.
 
 The module now has enough infrastructure to move from background-gauge
 kinematics toward coupled field dynamics.  The remaining work is not one
 feature; it is a sequence of increasingly physical constraints.
+
+### Session 46 — Minimal Simulation Runner
+
+Status: complete. Result report:
+[SESSION_46_SIMULATION_RUNNER.md](SESSION_46_SIMULATION_RUNNER.md).
+
+Delivered:
+
+- `run_simulation(config) -> SimulationResult` for deterministic tiny-lattice
+  coupled runs.
+- Observable histories for fermion norm, gauge energy, Higgs energy, Gauss
+  residual, Yukawa drift, and total energy proxy.
+- `.npz` plus JSON output for saved runs.
+- A small module CLI:
+  `python -m clifford_3plus2_d5.spacetime_qca.scripts.run_tiny_sim`.
+
+Non-goal: this is not yet a jitted `jax.lax.scan` production runner.
 
 ## Immediate Priorities
 
@@ -363,8 +382,8 @@ After Session 38:
 - If the real-form/J-adapted convention is messy, add a compressed explicit
   `C^16` internal basis before going dynamic.
 
-After Sessions 44-45:
+After Session 46:
 
 - The next project goal should be numerical simulation scale-up and
-  performance hardening, because reusable multi-step scaling probes and a
-  norm-safe local Yukawa mode now exist.
+  performance hardening, because a simulator-shaped runner, reusable
+  multi-step scaling probes, and a norm-safe local Yukawa mode now exist.

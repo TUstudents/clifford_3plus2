@@ -9,6 +9,7 @@ import pytest
 import clifford_3plus2_d5.spacetime_qca as spacetime_qca
 from clifford_3plus2_d5.spacetime_qca.jax_scaling import (
     ScalingRunConfig,
+    jax_advance_scaling_fields,
     jax_compare_yukawa_modes,
     jax_coupled_scaling_trajectory,
     jax_scaling_timing_probe,
@@ -78,6 +79,7 @@ def test_session44_public_exports_are_available() -> None:
     assert spacetime_qca.ScalingTrajectory is not None
     assert spacetime_qca.ScalingTrajectorySample is not None
     assert spacetime_qca.YukawaModeComparison is not None
+    assert spacetime_qca.jax_advance_scaling_fields is jax_advance_scaling_fields
     assert spacetime_qca.jax_coupled_scaling_trajectory is jax_coupled_scaling_trajectory
     assert spacetime_qca.jax_compare_yukawa_modes is jax_compare_yukawa_modes
     assert spacetime_qca.jax_scaling_timing_probe is jax_scaling_timing_probe

@@ -332,6 +332,12 @@ def _advance_scaling_fields(fields: ScalingInitialState, config: ScalingRunConfi
     )
 
 
+def jax_advance_scaling_fields(fields: ScalingInitialState, config: ScalingRunConfig) -> ScalingInitialState:
+    """Advance one deterministic coupled scaling state by one configured step."""
+
+    return _advance_scaling_fields(fields, config)
+
+
 def jax_coupled_scaling_trial(config: ScalingRunConfig) -> ScalingTrial:
     """Return one before/after coupled-step scaling trial."""
 

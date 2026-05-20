@@ -411,9 +411,9 @@ Move from Bloch-symbol audits to an exact finite real-space QCA:
 
 Only after this should the package approach dynamical gauge fields.
 
-## Current Roadmap After Sessions 44-45
+## Current Roadmap After Session 46
 
-Sessions 20-45 have now completed the original Session 20-22 launch arc and
+Sessions 20-46 have now completed the original Session 20-22 launch arc and
 added the first compact gauge-dynamics and Higgs-field infrastructure stack.
 The package has:
 
@@ -440,10 +440,12 @@ The package has:
   first-order update kept as the default compatibility path.
 - bounded multi-step tiny-lattice trajectory diagnostics and timing probes for
   the coupled prototype.
+- a deterministic tiny-lattice simulation runner with observable histories,
+  JSON summaries, and `.npz`/JSON output.
 
 The key priority is now numerical credibility.  Gauge constraints, matter
 current, Higgs dynamics, exact local Yukawa insertion, anomaly diagnostics,
 Lorentz free-dispersion diagnostics, and a scaling harness are all in place.
-The next priority is making small simulations faster, replacing expensive
-finite-difference currents/forces where possible, and extending stability
-measurements beyond tiny deterministic controls.
+The next priority is making the runner faster with a `jax.lax.scan` backend,
+replacing expensive finite-difference currents/forces where possible, and
+extending stability measurements beyond tiny deterministic controls.
