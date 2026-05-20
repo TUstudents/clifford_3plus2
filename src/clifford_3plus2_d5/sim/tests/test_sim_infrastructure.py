@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import jax.numpy as jnp
 import numpy as np
+import pytest
 
 from clifford_3plus2_d5 import sim
 from clifford_3plus2_d5.spacetime_qca import (
@@ -82,3 +83,66 @@ def test_benchmark_helper_returns_nonnegative_timing() -> None:
 
     assert timing.compile_seconds >= 0
     assert timing.run_seconds >= 0
+
+
+def test_recorded_loop_records_initial_requested_and_final_steps() -> None:
+    def step(value: jnp.ndarray) -> jnp.ndarray:
+        return value + 1
+
+    def observe(value: jnp.ndarray) -> dict[str, jnp.ndarray]:
+        return {"value": value, "double": 2 * value}
+
+    result = sim.run_recorded_loop(
+        jnp.asarray(0, dtype=jnp.int32),
+        step,
+        observe,
+        sim.GenericRunConfig(steps=5, record_every=2),
+    )
+
+    np.testing.assert_array_equal(np.asarray(result.step_indices), np.asarray((0, 2, 4, 5)))
+    np.testing.assert_array_equal(np.asarray(result.observations["value"]), np.asarray((0, 2, 4, 5)))
+    np.testing.assert_array_equal(np.asarray(result.observations["double"]), np.asarray((0, 4, 8, 10)))
+    assert bool(result.all_finite)
+
+
+def test_recorded_scan_matches_loop_for_toy_state() -> None:
+    def step(value: jnp.ndarray) -> jnp.ndarray:
+        return value + 1
+
+    def observe(value: jnp.ndarray) -> dict[str, jnp.ndarray]:
+        return {"value": value}
+
+    config = sim.GenericRunConfig(steps=4, record_every=3, use_jit=False)
+    loop = sim.run_recorded_loop(jnp.asarray(0, dtype=jnp.int32), step, observe, config)
+    scan = sim.run_recorded_scan(jnp.asarray(0, dtype=jnp.int32), step, observe, config)
+
+    np.testing.assert_array_equal(np.asarray(scan.step_indices), np.asarray(loop.step_indices))
+    np.testing.assert_array_equal(np.asarray(scan.observations["value"]), np.asarray(loop.observations["value"]))
+    np.testing.assert_array_equal(np.asarray(scan.final_state), np.asarray(loop.final_state))
+
+
+def test_generic_runner_rejects_invalid_controls() -> None:
+    with pytest.raises(ValueError, match="steps must be nonnegative"):
+        sim.recorded_step_indices(sim.GenericRunConfig(steps=-1))
+
+    with pytest.raises(ValueError, match="record_every must be positive"):
+        sim.recorded_step_indices(sim.GenericRunConfig(record_every=0))
+
+
+def test_save_npz_json_writes_arrays_and_metadata(tmp_path) -> None:
+    npz_path, json_path = sim.save_npz_json(
+        {"values": jnp.asarray((1, 2, 3))},
+        {"runner": "test"},
+        tmp_path / "run.npz",
+    )
+
+    assert npz_path.exists()
+    assert json_path.exists()
+    with np.load(npz_path) as payload:
+        np.testing.assert_array_equal(payload["values"], np.asarray((1, 2, 3)))
+    assert sim.load_json_metadata(json_path)["runner"] == "test"
+
+
+def test_save_npz_json_requires_npz_suffix(tmp_path) -> None:
+    with pytest.raises(ValueError, match="must end with .npz"):
+        sim.save_npz_json({"values": jnp.asarray((1,))}, {}, tmp_path / "run.data")

@@ -1,7 +1,8 @@
 # Session 46 - Minimal Simulation Runner
 
 Status: implemented as a deterministic tiny-lattice runner around the existing
-coupled fermion/gauge/Higgs prototype.
+coupled fermion/gauge/Higgs prototype.  Session 47 later moved this prototype
+runner into `spacetime_qca.lab`.
 
 ## Target
 
@@ -19,7 +20,7 @@ existing coupled kernels, not a new physics rule and not a production-scale
 
 ## Added API
 
-In `jax_runner.py`:
+In `lab/tiny_runner.py`:
 
 - `SimulationRunConfig`
 - `SimulationHistory`
@@ -47,7 +48,7 @@ yukawa_mode    unitary
 The module CLI is:
 
 ```bash
-uv run python -m clifford_3plus2_d5.spacetime_qca.scripts.run_tiny_sim
+uv run python -m clifford_3plus2_d5.spacetime_qca.lab.scripts.run_tiny_sim
 ```
 
 It prints a JSON summary and optionally writes `run.npz` plus `run.json`.
@@ -86,16 +87,16 @@ total_energy_proxy
 Scoped commands:
 
 ```bash
-uv run ruff check src/clifford_3plus2_d5/spacetime_qca/jax_runner.py \
+uv run ruff check src/clifford_3plus2_d5/spacetime_qca/lab/tiny_runner.py \
   src/clifford_3plus2_d5/spacetime_qca/jax_scaling.py \
-  src/clifford_3plus2_d5/spacetime_qca/scripts/run_tiny_sim.py \
-  src/clifford_3plus2_d5/spacetime_qca/tests/test_jax_runner.py \
+  src/clifford_3plus2_d5/spacetime_qca/lab/scripts/run_tiny_sim.py \
+  src/clifford_3plus2_d5/spacetime_qca/tests/test_lab_tiny_runner.py \
   src/clifford_3plus2_d5/spacetime_qca/tests/test_jax_scaling_trajectory.py \
   src/clifford_3plus2_d5/spacetime_qca/__init__.py
 
-uv run pytest src/clifford_3plus2_d5/spacetime_qca/tests/test_jax_runner.py -m "not slow" -q
+uv run pytest src/clifford_3plus2_d5/spacetime_qca/tests/test_lab_tiny_runner.py -m "not slow" -q
 
-uv run pytest src/clifford_3plus2_d5/spacetime_qca/tests/test_jax_runner.py -q
+uv run pytest src/clifford_3plus2_d5/spacetime_qca/tests/test_lab_tiny_runner.py -q
 ```
 
 Focused results:

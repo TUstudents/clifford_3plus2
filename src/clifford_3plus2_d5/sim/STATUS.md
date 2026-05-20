@@ -16,6 +16,11 @@ Wilson plaquette normalization, or gauge-force physics policy.
 - `links.py` — generic identity/constant pull-link fields and finite
   site-local gauge transforms.
 - `diagnostics.py` — finite-value and state-transition metrics.
+- `observables.py` — generic observable stacking, selection, and finite-value
+  checks.
+- `runner.py` — physics-agnostic Python-loop and `jax.lax.scan` recorded
+  runners over arbitrary JAX pytrees.
+- `io.py` — generic `.npz` plus JSON sidecar persistence.
 - `benchmarks.py` — stable benchmark wrapper for JAX kernels.
 
 ## Boundary
@@ -33,3 +38,5 @@ confirmed.  In particular, these stay in `spacetime_qca`:
 ```bash
 uv run pytest src/clifford_3plus2_d5/sim/tests -q
 ```
+
+Expected current result: `11 passed`.

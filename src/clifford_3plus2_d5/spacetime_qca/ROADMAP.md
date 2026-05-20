@@ -1,8 +1,8 @@
-# spacetime_qca — Roadmap After Session 46
+# spacetime_qca — Roadmap After Session 47
 
 ## Current Position
 
-Sessions 20-46 have built the static and simulation-control stack:
+Sessions 20-47 have built the static and simulation-control stack:
 
 - BCC Weyl/Dirac spacetime walk with the `alpha . k` continuum precursor.
 - Finite periodic real-space BCC stepping.
@@ -40,6 +40,8 @@ Sessions 20-46 have built the static and simulation-control stack:
   the coupled prototype.
 - A deterministic tiny-lattice simulation runner with observable history,
   JSON summaries, and `.npz`/JSON output.
+- A clean simulator split: prototype lab runner, reusable generic `sim`
+  runner/io helpers, and a scan-backed main `spacetime_qca.simulator` API.
 
 The module now has enough infrastructure to move from background-gauge
 kinematics toward coupled field dynamics.  The remaining work is not one
@@ -58,9 +60,28 @@ Delivered:
   residual, Yukawa drift, and total energy proxy.
 - `.npz` plus JSON output for saved runs.
 - A small module CLI:
-  `python -m clifford_3plus2_d5.spacetime_qca.scripts.run_tiny_sim`.
+  `python -m clifford_3plus2_d5.spacetime_qca.lab.scripts.run_tiny_sim`.
 
-Non-goal: this is not yet a jitted `jax.lax.scan` production runner.
+Non-goal: the lab runner remains a Python-stepped prototype.
+
+### Session 47 — Simulator Split And Generic Runner Infrastructure
+
+Status: complete.
+
+Delivered:
+
+- Moved the Session 46 runner into `spacetime_qca.lab.tiny_runner`.
+- Removed the old `spacetime_qca.jax_runner` import path.
+- Added generic `sim.runner`, `sim.observables`, and `sim.io` helpers.
+- Added `spacetime_qca.simulator` with a scan-backed main runner, field
+  adapters, physics observables, presets, and a stable CLI:
+  `python -m clifford_3plus2_d5.spacetime_qca.simulator.scripts.run_sim`.
+- The main simulator is scan-backed by default; JIT is opt-in with `--jit`
+  until the physics kernels are profiled for memory use.
+- Added lab/main equivalence tests on zero-step and one-step tiny runs.
+
+Next: profile and optimize the physics kernels used by the scan-backed
+simulator, especially finite-difference current/force paths.
 
 ## Immediate Priorities
 
@@ -382,8 +403,8 @@ After Session 38:
 - If the real-form/J-adapted convention is messy, add a compressed explicit
   `C^16` internal basis before going dynamic.
 
-After Session 46:
+After Session 47:
 
 - The next project goal should be numerical simulation scale-up and
-  performance hardening, because a simulator-shaped runner, reusable
-  multi-step scaling probes, and a norm-safe local Yukawa mode now exist.
+  performance hardening, because the prototype lab and scan-backed main
+  simulator are now split and reusable multi-step controls already exist.

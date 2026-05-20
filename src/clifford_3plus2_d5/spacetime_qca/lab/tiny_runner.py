@@ -1,14 +1,12 @@
-"""Tiny-lattice simulation runner for the spacetime-QCA coupled prototype.
+"""Prototype tiny-lattice runner for the spacetime-QCA coupled lab.
 
-Session 46 promotes the existing coupled-step and scaling diagnostics into a
-small reproducible runner.  This remains a research runner: it uses
-deterministic tiny-lattice initial data and Python-level stepping rather than a
-production ``jax.lax.scan`` simulation loop.
+This is the experimental Session 46 runner.  It intentionally stays in the
+``lab`` package: deterministic tiny-lattice data, Python-level stepping, and
+debug-friendly observable recording.
 """
 
 from __future__ import annotations
 
-import json
 from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Any
@@ -16,6 +14,7 @@ from typing import Any
 import jax.numpy as jnp
 import numpy as np
 
+from clifford_3plus2_d5.sim.io import save_npz_json
 from clifford_3plus2_d5.spacetime_qca.jax_coupled_higgs import (
     HiggsCoupledSector,
     YukawaUpdateMode,
@@ -166,7 +165,7 @@ def simulation_metadata(config: SimulationRunConfig) -> dict[str, Any]:
 
     metadata = asdict(config)
     metadata["lattice_shape"] = tuple(config.lattice_shape)
-    metadata["runner"] = "spacetime_qca.session46"
+    metadata["runner"] = "spacetime_qca.lab.tiny_runner"
     metadata["format"] = "npz-plus-json-v1"
     return metadata
 
@@ -247,32 +246,24 @@ def simulation_summary(result: SimulationResult) -> dict[str, Any]:
 def save_simulation_result(result: SimulationResult, path: str | Path) -> tuple[Path, Path]:
     """Save a result as ``.npz`` arrays plus a JSON metadata sidecar."""
 
-    npz_path = Path(path)
-    if npz_path.suffix != ".npz":
-        raise ValueError("simulation result path must end with .npz")
-    json_path = npz_path.with_suffix(".json")
-    npz_path.parent.mkdir(parents=True, exist_ok=True)
-
-    np.savez(
-        npz_path,
-        step_indices=np.asarray(result.history.step_indices),
-        fermion_norm=np.asarray(result.history.fermion_norm),
-        gauge_hamiltonian_density=np.asarray(result.history.gauge_hamiltonian_density),
-        higgs_total_energy=np.asarray(result.history.higgs_total_energy),
-        higgs_energy_density_mean=np.asarray(result.history.higgs_energy_density_mean),
-        gauss_residual_norm=np.asarray(result.history.gauss_residual_norm),
-        yukawa_norm_drift=np.asarray(result.history.yukawa_norm_drift),
-        total_energy_proxy=np.asarray(result.history.total_energy_proxy),
-        final_state=np.asarray(result.final_fields.state),
-        final_links=np.asarray(result.final_fields.links),
-        final_momenta=np.asarray(result.final_fields.momenta),
-        final_phi=np.asarray(result.final_fields.phi),
-        final_higgs_momentum=np.asarray(result.final_fields.higgs_momentum),
-        final_higgs_links=np.asarray(result.final_fields.higgs_links),
-    )
+    arrays = {
+        "step_indices": np.asarray(result.history.step_indices),
+        "fermion_norm": np.asarray(result.history.fermion_norm),
+        "gauge_hamiltonian_density": np.asarray(result.history.gauge_hamiltonian_density),
+        "higgs_total_energy": np.asarray(result.history.higgs_total_energy),
+        "higgs_energy_density_mean": np.asarray(result.history.higgs_energy_density_mean),
+        "gauss_residual_norm": np.asarray(result.history.gauss_residual_norm),
+        "yukawa_norm_drift": np.asarray(result.history.yukawa_norm_drift),
+        "total_energy_proxy": np.asarray(result.history.total_energy_proxy),
+        "final_state": np.asarray(result.final_fields.state),
+        "final_links": np.asarray(result.final_fields.links),
+        "final_momenta": np.asarray(result.final_fields.momenta),
+        "final_phi": np.asarray(result.final_fields.phi),
+        "final_higgs_momentum": np.asarray(result.final_fields.higgs_momentum),
+        "final_higgs_links": np.asarray(result.final_fields.higgs_links),
+    }
     json_payload = {
         "metadata": result.metadata,
         "summary": simulation_summary(result),
     }
-    json_path.write_text(json.dumps(json_payload, indent=2, sort_keys=True), encoding="utf-8")
-    return npz_path, json_path
+    return save_npz_json(arrays, json_payload, path)

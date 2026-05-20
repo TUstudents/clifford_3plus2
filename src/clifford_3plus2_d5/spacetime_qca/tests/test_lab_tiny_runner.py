@@ -1,4 +1,4 @@
-"""Session 46 tiny simulation runner tests."""
+"""Prototype tiny simulation lab runner tests."""
 
 from __future__ import annotations
 
@@ -8,14 +8,14 @@ import jax.numpy as jnp
 import numpy as np
 import pytest
 
-import clifford_3plus2_d5.spacetime_qca as spacetime_qca
-from clifford_3plus2_d5.spacetime_qca.jax_runner import (
+import clifford_3plus2_d5.spacetime_qca.lab as spacetime_lab
+from clifford_3plus2_d5.spacetime_qca.lab.tiny_runner import (
     SimulationRunConfig,
     run_simulation,
     save_simulation_result,
     simulation_summary,
 )
-from clifford_3plus2_d5.spacetime_qca.scripts.run_tiny_sim import main as tiny_sim_main
+from clifford_3plus2_d5.spacetime_qca.lab.scripts.run_tiny_sim import main as tiny_sim_main
 
 
 def test_default_runner_config_is_memory_safe() -> None:
@@ -82,7 +82,7 @@ def test_save_simulation_result_writes_npz_and_json(tmp_path) -> None:
         np.testing.assert_array_equal(payload["step_indices"], np.asarray((0, 1, 2)))
 
     metadata = json.loads(json_path.read_text(encoding="utf-8"))
-    assert metadata["metadata"]["runner"] == "spacetime_qca.session46"
+    assert metadata["metadata"]["runner"] == "spacetime_qca.lab.tiny_runner"
     assert metadata["summary"]["steps"] == 2
     assert metadata["summary"]["all_finite"] is True
 
@@ -116,10 +116,10 @@ def test_runner_output_cli_writes_files(tmp_path, capsys) -> None:
 
 
 def test_session46_public_exports_are_available() -> None:
-    assert spacetime_qca.SimulationRunConfig is SimulationRunConfig
-    assert spacetime_qca.run_simulation is run_simulation
-    assert spacetime_qca.save_simulation_result is save_simulation_result
-    assert spacetime_qca.simulation_summary is simulation_summary
+    assert spacetime_lab.SimulationRunConfig is SimulationRunConfig
+    assert spacetime_lab.run_simulation is run_simulation
+    assert spacetime_lab.save_simulation_result is save_simulation_result
+    assert spacetime_lab.simulation_summary is simulation_summary
 
 
 @pytest.mark.slow
@@ -133,4 +133,3 @@ def test_nonzero_unitary_runner_produces_finite_history() -> None:
     assert result.final_fields.links.shape == (1, 1, 1, 8, 32, 32)
     assert result.history.step_indices.shape == (2,)
     assert bool(jnp.all(jnp.isfinite(result.history.fermion_norm)))
-
