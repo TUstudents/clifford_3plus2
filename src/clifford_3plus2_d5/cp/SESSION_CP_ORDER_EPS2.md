@@ -4,10 +4,18 @@
 
 | Audit | Verdict | Key result |
 |---|---|---|
-| β-multi (all 4 basis + 4 transposes) | **ROBUST PASS** | All 8 elements give CP-violating fraction exactly 1/2 |
+| β-multi (all 4 basis + 4 transposes) | **ROBUST PASS** | All 8 elements give J-anticommuting fraction exactly 1/2 |
 | α-continuum (H^(1) at O(ε)) | **PASS** | H^(1) is purely CP-odd, lives entirely in T_{2g} cubic-harmonic irrep |
 
 57 passing tests (29 baseline → 57 with this milestone).
+
+**Note (2026-05-20 convention audit)**: the β-multi metric was renamed
+from `cp_violating_fraction` → `j_anticommuting_fraction`.  It is an
+algebraic property of the dim-4 Higgs-like map space under a chosen J,
+NOT a physical-CP measurement.  The 1/2 result is unchanged.  The
+α-continuum verdict (H^(1) CP-odd, T_{2g}-localized) is also unchanged
+under the corrected `cp_action_on_operator` (degree-2 polynomial is
+even under k → -k, so momentum-flip in CP is a no-op at this order).
 
 ## β-multi result
 
@@ -79,7 +87,7 @@ Decomposing the 6-dim space of degree-2 momentum polynomials under O_h:
 
 The entire H^(1) is:
 
-- **100% CP-odd** (CP-violating fraction at O(ε) = exactly 1),
+- **100% CP-odd** (CP-odd fraction at O(ε) = exactly 1),
 - **localized in T_{2g}** (cross-product monomials `k_x k_y, k_y k_z, k_z k_x`),
 - absent from A_{1g} (the SO(3)-isotropic part) and E_g (traceless
   diagonal).

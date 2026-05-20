@@ -61,20 +61,25 @@ Pinned conventions (logged in ``parameter_ledger.md``):
 ## Alpha-1: discrete operator construction
 
 The 7 named operators have the following ``(γ^0, γ^1, γ^2, γ^3)``
-conjugation patterns (with antiunitary K applied where applicable):
+conjugation patterns (with antiunitary K applied where applicable),
+under the **2026-05-20-audited** conventions (standard physical
+C = i·γ², hamiltonian_sign = +1 for all operators on the massless
+BCC walk, XNOR(antiunitary, +1-sign) dagger criterion):
 
-| Operator | Pattern | Antiunitary? | k-flip? |
-|---|---|---|---|
-| P   | ( 1, -1, -1, -1) | no  | yes |
-| T   | (-1,  1,  1,  1) | yes | yes |
-| C   | (-1,  1,  1,  1) | yes | yes |
-| PT  | (-1, -1, -1, -1) | yes | no  |
-| CP  | (-1, -1, -1, -1) | yes | no  |
-| CT  | ( 1,  1,  1,  1) | no  | no  |
-| CPT | ( 1, -1, -1, -1) | no  | yes |
+| Operator | Pattern | Antiunitary? | k-flip? | hamiltonian_sign |
+|---|---|---|---|---|
+| P   | ( 1, -1, -1, -1) | no  | yes | +1 |
+| T   | (-1,  1,  1,  1) | yes | yes | +1 |
+| C   | (-1, -1, -1, -1) | yes | no  | +1 |
+| PT  | (-1, -1, -1, -1) | yes | no  | +1 |
+| CP  | (-1,  1,  1,  1) | yes | yes | +1 |
+| CT  | ( 1, -1, -1, -1) | no  | yes | +1 |
+| CPT | ( 1,  1,  1,  1) | no  | no  | +1 |
 
-T and C have the same matrix structure (both ``γ^2 γ^0``); the
-operational distinction is physical interpretation, not algebra.
+T and C are structurally distinct under the corrected conventions:
+T uses ``γ²γ⁰`` (antiunitary, mom_flip), C uses ``i·γ²`` (antiunitary,
+no mom_flip, standard chiral-basis physical charge conjugation
+satisfying ``C γ^μ C^{-1} = -(γ^μ)^T``).
 
 ## Alpha-2: massless BCC Dirac walk symmetries
 
@@ -153,19 +158,27 @@ the chiral-16 carrier is therefore effectively pinned.
 
 Define
 ```text
-M_c = (M - J M J) / 2     commutes with J
-M_a = (M + J M J) / 2     anticommutes with J
+M_c = (M - J M J) / 2     J-commuting (real-linear under J)
+M_a = (M + J M J) / 2     J-anticommuting (anti-J-linear under J)
 ```
 
 For the Session 23 Higgs-like map ``M = higgs_like_charge_shift_candidate``:
 
 ```text
-||M||²_F                  = 256
-||M_c||²_F  (CP-even)    = 128
-||M_a||²_F  (CP-odd)     = 128
+||M||²_F                            = 256
+||M_c||²_F  (J-commuting)            = 128
+||M_a||²_F  (J-anticommuting)        = 128
 ```
 
 **The decomposition is exactly 50/50.**
+
+**Note (2026-05-20 audit)**: this is an algebraic property of the
+dim-4 Higgs-like map space under the chosen complex structure J.
+It is NOT a physical-CP measurement.  Prior versions of this
+document labelled ``M_c`` as "CP-even" and ``M_a`` as "CP-odd",
+and the function as ``cp_violating_fraction`` — those labels and
+that name have been retired.  The current name is
+``j_anticommuting_fraction``.
 
 CP-violating fraction:
 

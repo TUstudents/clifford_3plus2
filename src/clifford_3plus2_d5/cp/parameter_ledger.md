@@ -71,9 +71,16 @@ conventions are fixed.  Falsifiability is maximal.
 15. **Polynomial-matrix norm**: ``Σ_ij Σ_α |c_α(M_ij)|^2`` over the
     6-monomial basis, treating monomials as orthonormal.  Pinned in
     ``continuum_cp.polynomial_matrix_norm_squared``.
-16. **CP action on polynomial-matrix operators**: ``CP_mat · M^* ·
-    CP_mat^{-1}`` (k unchanged, since CP has no momentum flip; entries
-    complex-conjugated by antiunitary).  Pinned.
+16. **CP action on polynomial-matrix operators**: ``CP_mat · M(-k)*  ·
+    CP_mat^{-1}``.  Under the 2026-05-20-audited conventions, CP =
+    P ∘ C has ``momentum_flip = True`` (P flips, standard physical C
+    doesn't), so the k → -k substitution must be applied to the
+    polynomial entries BEFORE complex conjugation by the antiunitary K.
+    **2026-05-20 fix**: pre-audit version omitted the k-flip, which
+    gave correct verdicts on degree-2 H^(1) by coincidence (degree-2
+    polynomials are even under k → -k) but misclassified H^(0) = α·k
+    (sent CP-even → CP-odd).  Pinned in
+    ``continuum_cp.cp_action_on_operator``.
 
 ## Final verdicts (updated)
 

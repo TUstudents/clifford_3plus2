@@ -14,8 +14,19 @@ This is the Hermitian extraction; ``B_2`` itself is not Hermitian.
 The audit decomposes ``H^(1)(k)`` along two orthogonal axes:
 
 1. **CP**: CP-even vs CP-odd under ``cp_operator()`` from
-   ``cp/discrete_symmetries.py``.  CP is antiunitary with no momentum flip,
-   so its action on an operator ``M(k)`` is ``CP_mat · M(k)* · CP_mat^{-1}``.
+   ``cp/discrete_symmetries.py``.  CP is antiunitary, flips momentum
+   (``k → -k``), and has hamiltonian_sign=+1 in the BCC walk.
+   Its action on an operator ``M(k)`` is
+
+       (CP M)(k)  =  CP_mat · M(-k)*  · CP_mat^{-1}
+
+   For degree-2 polynomial entries (the H^(1) case), ``M(-k) = M(k)``,
+   so the momentum-flip is a no-op; but for odd-degree polynomial
+   entries (H^(0) = α·k, H^(2), ...), the k → -k matters and must
+   be applied explicitly.  **2026-05-20 fix**: this helper previously
+   omitted the k-flip, which gave correct verdicts on degree-2 H^(1)
+   by coincidence but misclassified H^(0) (sent α·k → -α·k instead
+   of the correct +α·k under CP).
 2. **Cubic-harmonic**: ``A_{1g} ⊕ E_g ⊕ T_{2g}`` irreducible representations
    of the cubic point group ``O_h`` on the 6-dim degree-2 polynomial space.
 
@@ -79,17 +90,35 @@ def effective_hamiltonian_first_correction() -> sp.Matrix:
 
 
 def cp_action_on_operator(matrix: sp.Matrix) -> sp.Matrix:
-    """Return ``CP_mat · M^* · CP_mat^{-1}``.
+    """Return ``CP_mat · M(k_image)*  · CP_mat^{-1}``.
 
-    CP is antiunitary with no momentum flip, so the spinor-level action on
-    an operator with polynomial-in-k entries is ``CP_mat · entry-conjugate
-    · CP_mat^{-1}`` (k coordinates are real and unchanged).
+    CP is antiunitary and flips momentum (``CP_mat = γ⁰ · (iγ²)*`` under
+    standard physical conventions; momentum_flip=True from compose
+    P∘C).  The action on an operator with polynomial-in-k entries is:
+
+        (CP M)(k)  =  CP_mat · M(-k)*  · CP_mat^{-1}
+
+    where the entrywise conjugation is applied AFTER the k → -k
+    substitution (and to all complex coefficients).
+
+    For degree-even polynomials in k (e.g., H^(1) at degree 2), the
+    k-flip is a no-op so this agrees with the pre-2026-05-20 helper.
+    For odd-degree polynomials (e.g., H^(0) = α·k), the k-flip matters.
     """
 
     op = cp_operator()
     cp_mat = op.spinor_matrix
     cp_inv = cp_mat.inv()
-    conjugated = matrix.applyfunc(sp.conjugate)
+
+    _, kx, ky, kz = symbolic_momentum()
+    if op.momentum_flip:
+        flipped = matrix.subs(
+            {kx: -kx, ky: -ky, kz: -kz},
+            simultaneous=True,
+        )
+    else:
+        flipped = matrix
+    conjugated = flipped.applyfunc(sp.conjugate)
     return (cp_mat * conjugated * cp_inv).applyfunc(sp.simplify)
 
 

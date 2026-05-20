@@ -7,8 +7,11 @@ Filled in as each phase pins choices.
 1. H^(1) extraction via Baker-Campbell-Hausdorff at O(ε)
    (`continuum_cp.effective_hamiltonian_first_correction`).
 2. CP action: spinor CP matrix from `cp.discrete_symmetries.parity_spinor`
-   composed with `charge_conjugation_spinor`; antiunitary on operators
-   (M → CP · M* · CP⁻¹).
+   composed with standard physical `charge_conjugation_spinor` (= i·γ²,
+   post-2026-05-20 audit); antiunitary on operators with k → -k
+   substitution (CP has momentum_flip=True): M(k) → CP · M(-k)* · CP⁻¹.
+   For degree-even polynomials (e.g., H^(1) at degree 2), the k-flip
+   is a no-op and the verdict (CP-odd in T_{2g}) is unchanged.
 3. T_{2g} basis ordering: `(k_y k_z, k_z k_x, k_x k_y)`.
 4. Chiral-basis γ matrices from `spacetime_qca.dirac`.
 5. ε is symbolic positive (SymPy).

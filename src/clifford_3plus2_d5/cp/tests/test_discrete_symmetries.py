@@ -120,6 +120,35 @@ def test_hamiltonian_signs_all_plus_one_for_massless_walk() -> None:
         )
 
 
+def test_hamiltonian_sign_metadata_matches_derived_action() -> None:
+    """Derive-check: for each operator A, compute A H A^{-1} for massless
+    H = α·k and confirm it equals ``op.hamiltonian_sign · H(k_image)``
+    where k_image = -k if op.momentum_flip else +k.
+
+    This is the load-bearing regression test for the
+    walk_respects_symmetry XNOR(antiunitary, hamiltonian_sign==+1)
+    criterion: the metadata must match the derived action.
+    """
+    from clifford_3plus2_d5.cp.reuse import dirac_hamiltonian, same_matrix
+
+    kx, ky, kz = sp.symbols("kx ky kz", real=True)
+    H_k = dirac_hamiltonian(kx, ky, kz)
+    H_minus_k = dirac_hamiltonian(-kx, -ky, -kz)
+
+    for op in all_seven_operators():
+        M = op.spinor_matrix
+        Minv = M.inv().applyfunc(sp.simplify)
+        inner = H_k.applyfunc(sp.conjugate) if op.antiunitary else H_k
+        derived = (M * inner * Minv).applyfunc(sp.simplify)
+        h_image = H_minus_k if op.momentum_flip else H_k
+        expected = (op.hamiltonian_sign * h_image).applyfunc(sp.simplify)
+        assert same_matrix(derived, expected), (
+            f"{op.name}: A·H·A^-1 ≠ {op.hamiltonian_sign:+d} · "
+            f"H({'(-k)' if op.momentum_flip else 'k'}).  "
+            f"Derived: {derived}.  Expected: {expected}."
+        )
+
+
 def test_kind_labels_are_present() -> None:
     """Every operator has a semantic kind label."""
     kinds = {op.name: op.kind for op in all_seven_operators()}
