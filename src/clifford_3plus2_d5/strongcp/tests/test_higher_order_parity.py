@@ -10,8 +10,6 @@ from __future__ import annotations
 import pytest
 import sympy as sp
 
-pytestmark = pytest.mark.slow
-
 from clifford_3plus2_d5.strongcp.higher_order_parity import (
     effective_hamiltonian_second_correction,
     h1_from_bch_matches_cp_implementation,
@@ -22,6 +20,8 @@ from clifford_3plus2_d5.strongcp.higher_order_parity import (
     h2_lives_entirely_in_t1u,
     higher_order_parity_payload,
 )
+
+pytestmark = pytest.mark.slow
 
 
 def test_h1_bch_matches_cp_implementation() -> None:

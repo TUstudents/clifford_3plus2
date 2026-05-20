@@ -2,17 +2,34 @@
 
 For each ``SymmetryOperator`` ``S`` with spinor matrix ``M``, the test is:
 
-- Unitary ``S``:    ``M B(k) M^{-1} = B(k_image)``
-- Antiunitary ``S``: ``M B(k)* M^{-1} = B(k_image)^†``
+    M · inner · M^{-1}  =  bloch_image^{σ}
 
-where ``k_image = -k`` if the operator flips momentum, ``+k`` otherwise.
-The dagger appears because an antiunitary symmetry commuting with the
-Hamiltonian satisfies ``S U S^{-1} = U^{-1}``.
+where:
+
+- ``inner = bloch_k`` if ``S`` is unitary, ``bloch_k*`` (entrywise
+  conjugation) if ``S`` is antiunitary;
+- ``bloch_image = B(-k)`` if ``S.momentum_flip``, else ``B(k)``;
+- ``σ = -1`` (i.e., dagger) iff
+  ``XNOR(S.antiunitary, S.hamiltonian_sign == +1)`` is True.
+
+The XNOR criterion comes from the four cases of (antiunitary or not) ×
+(``A H A^{-1} = +H`` or ``-H``):
+
+| antiunitary | hamiltonian_sign | A U A^{-1} | compare to |
+| ---         | ---              | ---        | ---        |
+| False (U)   | +1               | U          | B          |
+| False (U)   | -1               | U^{-1}     | B†         |
+| True  (A)   | +1               | U^{-1}     | B†         |
+| True  (A)   | -1               | U          | B          |
+
+I.e., dagger ⇔ XNOR(antiunitary, +1-sign).  This unifies the standard
+P/T/C symmetry tests and replaces the earlier (incorrect) rule
+"dagger for all antiunitary".
 
 This module exposes:
 
 - ``walk_respects_symmetry(op)``: bool verdict at symbolic momentum;
-- ``massless_audit_table()``: full table over the 7 named operators;
+- ``massless_audit_verdicts()``: full table over the 7 named operators;
 - ``MasslessAuditPayload``: dataclass for the alpha-2 report.
 
 Alpha-2 (massless): just the bare BCC Dirac walk.
@@ -50,7 +67,12 @@ def _bloch_at(eps: sp.Symbol, kx: sp.Expr, ky: sp.Expr, kz: sp.Expr) -> sp.Matri
 
 
 def walk_respects_symmetry(op: SymmetryOperator) -> bool:
-    """Return whether the bare BCC Dirac walk commutes with ``op`` symbolically."""
+    """Return whether the bare BCC Dirac walk commutes with ``op`` symbolically.
+
+    Uses the XNOR(antiunitary, hamiltonian_sign==+1) criterion to decide
+    whether to compare to ``B(k_image)`` (no dagger) or ``B(k_image)†``
+    (dagger).  See the module docstring for the full truth table.
+    """
 
     eps, kx, ky, kz = _symbolic_momentum()
     bloch_k = _bloch_at(eps, kx, ky, kz)
@@ -62,12 +84,11 @@ def walk_respects_symmetry(op: SymmetryOperator) -> bool:
     matrix = op.spinor_matrix
     inverse = matrix.inv().applyfunc(sp.simplify)
 
-    if op.antiunitary:
-        inner = bloch_k.applyfunc(sp.conjugate)
-        expected = bloch_image.H.applyfunc(sp.simplify)
-    else:
-        inner = bloch_k
-        expected = bloch_image
+    inner = bloch_k.applyfunc(sp.conjugate) if op.antiunitary else bloch_k
+
+    # XNOR(antiunitary, hamiltonian_sign == +1): dagger when both True or both False.
+    use_dagger = op.antiunitary == (op.hamiltonian_sign == +1)
+    expected = bloch_image.H.applyfunc(sp.simplify) if use_dagger else bloch_image
 
     transformed = (matrix * inner * inverse).applyfunc(sp.simplify)
     return same_matrix(transformed, expected)

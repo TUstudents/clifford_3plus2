@@ -17,7 +17,6 @@ from clifford_3plus2_d5.koide.yukawa_eigenvalue_locus import (
     yukawa_eigenvalue_triple,
     yukawa_koide_K,
     yukawa_locus_payload,
-    yukawa_mass_vector,
     z3_yukawa_has_degenerate_eigenvalues,
 )
 

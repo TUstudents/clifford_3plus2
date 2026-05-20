@@ -10,13 +10,10 @@ from __future__ import annotations
 import pytest
 import sympy as sp
 
-pytestmark = pytest.mark.slow
-
 from clifford_3plus2_d5.cp.j_misalignment import (
     beta_audit_payload,
-    cp_violating_fraction,
+    j_anticommuting_fraction,
     j_decomposition,
-    lift_cl04_j_to_chiral16,
     viable_j_candidates,
 )
 from clifford_3plus2_d5.cp.reuse import (
@@ -24,6 +21,8 @@ from clifford_3plus2_d5.cp.reuse import (
     higgs_like_charge_shift_candidate,
     patisalam_chosen_complex_structure,
 )
+
+pytestmark = pytest.mark.slow
 
 
 def test_cl04_has_three_complex_structure_candidates() -> None:
@@ -60,10 +59,10 @@ def test_higgs_does_not_commute_with_chosen_j() -> None:
     assert commutator != sp.zeros(higgs.rows, higgs.cols)
 
 
-def test_cp_violating_fraction_is_exactly_one_half() -> None:
+def test_j_anticommuting_fraction_is_exactly_one_half() -> None:
     higgs = higgs_like_charge_shift_candidate()
     j = patisalam_chosen_complex_structure()
-    fraction = cp_violating_fraction(higgs, j)
+    fraction = j_anticommuting_fraction(higgs, j)
     assert fraction == sp.Rational(1, 2)
 
 
@@ -72,8 +71,8 @@ def test_beta_audit_payload_passes_with_maximal_mixing() -> None:
     assert payload.passes
     assert "BETA PASS" in payload.verdict
     assert payload.j_candidate_count_in_cl04 == 3
-    assert payload.chosen_j_cp_violating_fraction == sp.Rational(1, 2)
-    assert payload.chosen_j_cp_violating_fraction_float == 0.5
+    assert payload.chosen_j_anticommuting_fraction == sp.Rational(1, 2)
+    assert payload.chosen_j_anticommuting_fraction_float == 0.5
     assert payload.higgs_frobenius_norm_squared == 256
     assert payload.chosen_j_commuting_norm_squared == 128
     assert payload.chosen_j_anticommuting_norm_squared == 128

@@ -8,8 +8,6 @@ from __future__ import annotations
 
 import pytest
 
-pytestmark = pytest.mark.slow
-
 from clifford_3plus2_d5.strongcp.chiral_anomaly_check import (
     chiral_anomaly_check_payload,
     chiral_cross_trace_h1_h2,
@@ -20,6 +18,8 @@ from clifford_3plus2_d5.strongcp.chiral_anomaly_check import (
     h2_is_purely_vector,
     no_direct_theta_bar_shift_at_leading_order,
 )
+
+pytestmark = pytest.mark.slow
 
 
 def test_chiral_trace_h1_vanishes() -> None:

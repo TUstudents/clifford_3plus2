@@ -21,18 +21,29 @@ Final form — both audits completed.
 6. **T spinor matrix**: ``γ^2 γ^0`` (antiunitary).  Satisfies Dirac-equation
    T-conjugation conditions in our chiral basis: anticommutes with γ^0
    and γ^2, commutes with γ^1 and γ^3.
-7. **C spinor matrix**: ``γ^2 γ^0`` (antiunitary).  Same matrix as T;
-   distinction is operational (C does not reverse walk direction in the
-   antiunitary commutation; T does, via [S, H] = 0 forcing S U S^{-1} =
-   U^{-1}).
+7. **C spinor matrix**: ``i·γ^2`` (antiunitary; standard chiral-basis
+   physical charge conjugation).  Satisfies ``C γ^μ C^{-1} = -(γ^μ)^T``;
+   conjugation pattern (-1, -1, -1, -1).  **2026-05-20 correction**:
+   was previously ``γ^2 γ^0`` (Bloch-level particle-hole, same matrix as
+   T).  Retained under ``bloch_particle_hole_spinor`` for backward
+   compatibility.
 8. **Composite ordering**: P then T then C, etc., in standard "rightmost
    first" notation; explicit ordering via ``compose(...)``.
 9. **Internal action for all 7 operators**: ``S_internal = I``.  Trivial
    internal action — the discrete spacetime symmetries do not act
    non-trivially on the internal R^32 carrier.
-10. **CP-violating fraction convention**: Frobenius-norm ratio
+10. **J-anticommuting fraction convention**: Frobenius-norm ratio
     ``||M_a||^2 / ||M||^2`` where ``M_a = (M + JMJ)/2`` is the
-    J-anticommuting part.
+    J-anticommuting part.  **2026-05-20 rename**: was previously called
+    "CP-violating fraction"; renamed to drop the unjustified physical-CP
+    identification.  The 50/50 result remains valid as an algebraic
+    structural property of the dim-4 Higgs-like map space.
+11. **Walk-symmetry test criterion**: ``XNOR(antiunitary, hamiltonian_sign
+    == +1)`` decides whether to compare to ``B(k_image)`` (no dagger) or
+    ``B(k_image)†`` (dagger).  **2026-05-20 correction**: was previously
+    "dagger for any antiunitary", which is the special case of the XNOR
+    criterion when all operators have ``hamiltonian_sign = +1`` (true
+    for the BCC massless walk, but not robust at this convention level).
 
 ## Continuous parameters
 

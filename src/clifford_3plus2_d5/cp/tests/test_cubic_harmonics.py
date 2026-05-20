@@ -8,7 +8,6 @@ from clifford_3plus2_d5.cp.cubic_harmonics import (
     IRREP_NAMES,
     coefficient_vector_to_polynomial,
     decompose_matrix_of_polynomials,
-    monomial_basis,
     polynomial_to_coefficient_vector,
     project_polynomial,
     projector,

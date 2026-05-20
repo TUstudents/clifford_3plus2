@@ -191,7 +191,6 @@ def pdg_mass_ratio_matches_special() -> bool:
         PDG_M_TAU,
     )
 
-    special_ratio = float(special_mass_ratio_at_cone())
     me = float(PDG_M_E)
     mmu = float(PDG_M_MU)
     mtau = float(PDG_M_TAU)

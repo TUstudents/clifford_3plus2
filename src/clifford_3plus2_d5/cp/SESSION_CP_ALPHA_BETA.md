@@ -4,11 +4,36 @@
 from the existing infrastructure without inventing new content.  This is
 the strongest CP result the program has produced.
 
+**2026-05-20 convention-correctness audit**: convention review of cp/
+produced two structural corrections that did **not** flip the
+underlying verdicts (which therefore remain robust) but should be
+recorded for traceability:
+
+1. **C-matrix corrected**: was ``γ²γ⁰`` (Bloch-level particle-hole
+   operator, same matrix as T); now ``i·γ²`` (standard chiral-basis
+   physical charge conjugation, with ``C γ^μ C⁻¹ = -(γ^μ)^T``).  The
+   previous matrix is retained as ``bloch_particle_hole_spinor`` for
+   backward compatibility.
+2. **Walk-symmetry criterion corrected**: ``walk_respects_symmetry``
+   was using "dagger for any antiunitary"; now uses
+   ``XNOR(antiunitary, hamiltonian_sign == +1)``, which is the proper
+   condition derived from the four cases of (unitary/antiunitary) ×
+   (``A H A⁻¹ = ±H(k_image)``).
+3. **β audit renamed**: ``cp_violating_fraction`` → ``j_anticommuting_fraction``
+   (function and payload fields).  The β-multi 50/50 result remains
+   valid as an algebraic property of the dim-4 Higgs-like map space,
+   but is NOT a physical-CP measurement and was overclaimed under the
+   prior name.
+
+Under both the original and the corrected conventions, the alpha-2
+verdict is the same (CPT+P exact, T+C+CP+PT broken).  The original
+verdict survives proper grounding.
+
 | Audit | Verdict | Key finding |
 |---|---|---|
 | alpha-2 (bare walk symmetries) | **ALPHA PASS** | CPT and P exact; CP, T, C, PT broken at lattice |
 | alpha-3 (Yukawa-perturbed walk) | confirms alpha-2 | trivial internal action preserves same pattern |
-| beta (J-misalignment) | **BETA PASS** | Higgs map M is 50/50 J-commuting vs J-anticommuting |
+| beta (J-misalignment) | **BETA PASS** | Higgs map M is 50/50 J-commuting vs J-anticommuting (algebraic structural property, NOT a physical-CP measurement) |
 
 29 passing tests.
 
@@ -23,8 +48,10 @@ Pinned conventions (logged in ``parameter_ledger.md``):
 - Spinor basis: chiral, from ``spacetime_qca.dirac``.
 - P spinor matrix: ``γ^0`` (unitary).
 - T spinor matrix: ``γ^2 γ^0`` (antiunitary).
-- C spinor matrix: ``γ^2 γ^0`` (antiunitary; same algebraic matrix as T
-  in this basis).
+- C spinor matrix: ``i·γ^2`` (standard chiral-basis physical C, after
+  2026-05-20 audit; the pre-audit version used ``γ^2 γ^0`` which was
+  algebraically identical to T and is now exposed under
+  ``bloch_particle_hole_spinor``).
 - Internal action: trivial (``S_internal = I``) for all 7 operators.
 - Yukawa term: ``β ⊗ M_higgs`` with ``β = γ^0`` and ``M_higgs`` the
   Session 23 Higgs-like charge-shift candidate.

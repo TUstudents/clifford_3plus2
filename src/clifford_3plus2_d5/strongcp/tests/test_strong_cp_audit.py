@@ -8,13 +8,13 @@ from __future__ import annotations
 
 import pytest
 
-pytestmark = pytest.mark.slow
-
 from clifford_3plus2_d5.strongcp.strong_cp_audit import strong_cp_audit_payload
 from clifford_3plus2_d5.strongcp.theta_bar_constraint import (
     is_safe_at_order,
     theta_bar_constraint_payload,
 )
+
+pytestmark = pytest.mark.slow
 
 
 def test_audit_sc1_consistent() -> None:

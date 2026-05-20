@@ -10,7 +10,6 @@ from clifford_3plus2_d5.sme.epsilon_constraint import (
     OBSERVABLE_THRESHOLD_METRES,
     PLANCK_LENGTH_METRES,
     dim5_fermion_bound_in_metres,
-    epsilon_bound_orders_of_magnitude_above_planck,
     epsilon_bound_per_component,
     epsilon_bound_tightest_face,
     epsilon_constraint_payload,

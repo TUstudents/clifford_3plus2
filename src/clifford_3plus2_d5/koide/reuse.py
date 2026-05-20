@@ -26,10 +26,10 @@ from clifford_3plus2_d5.cp.continuum_cp import (
 )
 from clifford_3plus2_d5.cp.cubic_harmonics import projector_T2g
 from clifford_3plus2_d5.cp.j_misalignment import (
-    cp_violating_fraction,
-    j_decomposition,
     color_singlet_charge_shift_basis,
     higgs_like_charge_shift_candidate,
+    j_anticommuting_fraction,
+    j_decomposition,
     viable_j_candidates,
 )
 from clifford_3plus2_d5.topology.bcc_z3_rotation import (
@@ -45,7 +45,7 @@ __all__ = [
     "body_diagonal_rotation_matrix",
     "color_singlet_charge_shift_basis",
     "cp_irrep_decomposition",
-    "cp_violating_fraction",
+    "j_anticommuting_fraction",
     "dirac_spinor_lift",
     "dirac_spinor_lift_4d",
     "effective_hamiltonian_first_correction",

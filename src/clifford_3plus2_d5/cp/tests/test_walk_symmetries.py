@@ -9,12 +9,12 @@ from __future__ import annotations
 
 import pytest
 
-pytestmark = pytest.mark.slow
-
 from clifford_3plus2_d5.cp.walk_symmetries import (
     massless_audit_payload,
     yukawa_audit_payload,
 )
+
+pytestmark = pytest.mark.slow
 
 
 def test_alpha2_cpt_exact() -> None:

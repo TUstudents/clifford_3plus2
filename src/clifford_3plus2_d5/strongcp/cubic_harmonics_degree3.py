@@ -214,7 +214,6 @@ def polynomial_to_coefficient_vector_deg3(
 
     kx, ky, kz = k_symbols
     expanded = sp.expand(polynomial)
-    basis = degree3_monomial_basis(k_symbols)
     vector = sp.zeros(10, 1)
 
     def _coeff(expr: sp.Expr, exps: tuple[int, int, int]) -> sp.Expr:

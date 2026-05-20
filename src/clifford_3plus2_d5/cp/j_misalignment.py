@@ -8,26 +8,36 @@ in ``patisalam_chiral16_block_matrix``.
 
 For the Higgs-like internal map ``M`` from
 ``spacetime_qca.yukawa.higgs_like_charge_shift_candidate``, the natural
-CP measure is whether ``M`` commutes with the lifted ``J``:
+question is whether ``M`` commutes with the lifted ``J``:
 
-- ``[M, J] = 0``: ``M`` is "real-linear" under the J complex structure;
-  the corresponding Yukawa is CP-preserving.
-- ``[M, J] != 0``: ``M`` has anti-J-linear content; the corresponding
-  Yukawa is CP-violating.
+- ``[M, J] = 0``: ``M`` is real-linear under the J complex structure
+  (J-commuting).
+- ``[M, J] != 0``: ``M`` has anti-J-linear content (J-anticommuting).
 
-The J-decomposition:
+The J-decomposition (using ``J² = -I``):
 
 ```text
 M = M_c + M_a
-M_c = (M - J M J) / 2     commutes with J  (CP-preserving)
-M_a = (M + J M J) / 2     anticommutes with J  (CP-violating)
+M_c = (M - J M J) / 2     commutes with J  (J-commuting / real-linear)
+M_a = (M + J M J) / 2     anticommutes with J  (J-anticommuting / anti-J-linear)
 ```
 
-The CP-violating fraction ``||M_a||^2 / ||M||^2`` (Frobenius) quantifies
-how much of the Higgs map is genuinely CP-violating.
+**Scope note** (was renamed away from "CP" in the Tier-A audit, 2026-05-20):
+This decomposition measures algebraic anti-J-linear content of the
+Higgs-like map under a chosen complex structure J.  It is NOT a
+physical CP measurement — CP would require an explicit transformation
+of the dynamical fields and the resulting symmetry condition on the
+action, not just an anti-linear projection on a static algebraic map.
+The original code identified anti-J-linear content with CP violation;
+that identification has been retired.  The J-decomposition remains
+useful as an algebraic structural property of the Higgs-like map
+space; it is not load-bearing for any physical CP claim.
+
+The J-anticommuting fraction ``||M_a||^2 / ||M||^2`` (Frobenius) quantifies
+how much of the Higgs map is anti-J-linear under the chosen J.
 
 Beta passes if there exists at least one viable J such that the
-CP-violating fraction is non-zero.
+J-anticommuting fraction is non-zero.
 """
 
 from __future__ import annotations
@@ -89,8 +99,13 @@ def j_decomposition(matrix: sp.Matrix, j_full: sp.Matrix) -> tuple[sp.Matrix, sp
     return m_c, m_a
 
 
-def cp_violating_fraction(matrix: sp.Matrix, j_full: sp.Matrix) -> sp.Expr:
-    """Return ``||M_a||^2 / ||M||^2`` (Frobenius)."""
+def j_anticommuting_fraction(matrix: sp.Matrix, j_full: sp.Matrix) -> sp.Expr:
+    """Return the J-anticommuting Frobenius fraction ``||M_a||^2 / ||M||^2``.
+
+    Measures the fraction of the Frobenius norm of ``M`` carried by its
+    J-anticommuting component (anti-J-linear content under the chosen
+    complex structure J).
+    """
 
     _, m_a = j_decomposition(matrix, j_full)
     total = _frobenius_squared(matrix)
@@ -112,8 +127,8 @@ class BetaAuditPayload:
     higgs_frobenius_norm_squared: sp.Expr
     chosen_j_commuting_norm_squared: sp.Expr
     chosen_j_anticommuting_norm_squared: sp.Expr
-    chosen_j_cp_violating_fraction: sp.Expr
-    chosen_j_cp_violating_fraction_float: float
+    chosen_j_anticommuting_fraction: sp.Expr
+    chosen_j_anticommuting_fraction_float: float
     higgs_commutes_with_chosen_j: bool
     passes: bool
     verdict: str
@@ -121,7 +136,13 @@ class BetaAuditPayload:
 
 
 def beta_audit_payload() -> BetaAuditPayload:
-    """Run the beta audit on the Higgs-like map under the chosen J."""
+    """Run the beta audit on the Higgs-like map under the chosen J.
+
+    Measures the J-anticommuting fraction of the Higgs-like internal map
+    under the chosen complex structure J.  This is an algebraic
+    structural property of the Higgs map space; it does NOT carry a
+    direct physical-CP interpretation.
+    """
 
     cl04_count = len(cl04_commutant_complex_structures())
     viable = viable_j_candidates()
@@ -142,22 +163,25 @@ def beta_audit_payload() -> BetaAuditPayload:
     if passes and sp.simplify(fraction - sp.Rational(1, 2)) == 0:
         interpretation = (
             "BETA PASS (maximal mixing): the Higgs-like internal map M "
-            "splits exactly 50/50 between J-commuting (CP-preserving) and "
-            "J-anticommuting (CP-violating) parts.  This is the strongest "
-            "possible CP-content signal from the algebraic structure: M "
-            "carries equal CP-even and CP-odd content under the chosen J."
+            "splits exactly 50/50 between J-commuting (real-linear) and "
+            "J-anticommuting (anti-J-linear) parts.  This is a clean "
+            "algebraic structural feature of the dim-4 Higgs-like map "
+            "space: M carries equal J-commuting and J-anticommuting "
+            "content under the chosen J.  Note: this is NOT a physical "
+            "CP measurement — it is an algebraic property of the static "
+            "Higgs map relative to the chosen complex structure."
         )
     elif passes:
         interpretation = (
             f"BETA PASS: the Higgs-like internal map M has nonzero "
-            f"CP-violating content under the chosen J, with fraction "
+            f"J-anticommuting content under the chosen J, with fraction "
             f"{fraction} ({fraction_float:.4f})."
         )
     else:
         interpretation = (
             "BETA FAIL: the Higgs-like internal map M commutes with the "
             "chosen J.  The map is purely real-linear under J; no "
-            "CP-violating slot from this audit."
+            "J-anticommuting content from this audit."
         )
 
     return BetaAuditPayload(
@@ -166,8 +190,8 @@ def beta_audit_payload() -> BetaAuditPayload:
         higgs_frobenius_norm_squared=fro_M,
         chosen_j_commuting_norm_squared=fro_c,
         chosen_j_anticommuting_norm_squared=fro_a,
-        chosen_j_cp_violating_fraction=fraction,
-        chosen_j_cp_violating_fraction_float=fraction_float,
+        chosen_j_anticommuting_fraction=fraction,
+        chosen_j_anticommuting_fraction_float=fraction_float,
         higgs_commutes_with_chosen_j=commutes,
         passes=passes,
         verdict=("BETA PASS" if passes else "BETA FAIL"),
@@ -207,9 +231,9 @@ def multi_element_beta_audit_payload() -> MultiElementBetaAuditPayload:
     per_basis: list[sp.Expr] = []
     per_transpose: list[sp.Expr] = []
     for matrix in basis:
-        per_basis.append(cp_violating_fraction(matrix, j_chosen))
+        per_basis.append(j_anticommuting_fraction(matrix, j_chosen))
         per_transpose.append(
-            cp_violating_fraction(conjugate_charge_shift_component(matrix), j_chosen),
+            j_anticommuting_fraction(conjugate_charge_shift_component(matrix), j_chosen),
         )
 
     all_fractions = tuple(per_basis) + tuple(per_transpose)
@@ -224,31 +248,32 @@ def multi_element_beta_audit_payload() -> MultiElementBetaAuditPayload:
         verdict = "BETA-MULTI ROBUST PASS"
         interpretation = (
             "All 4 basis elements and all 4 transpose components have "
-            "CP-violating fraction exactly 1/2 under the chosen J.  The "
-            "50/50 mixing is a universal feature of the dim-4 Higgs-like "
-            "space, not an artifact of basis[0]."
+            "J-anticommuting fraction exactly 1/2 under the chosen J.  "
+            "The 50/50 mixing is a universal algebraic feature of the "
+            "dim-4 Higgs-like map space, not an artifact of basis[0].  "
+            "This is a structural property of the algebra, not a "
+            "physical-CP measurement."
         )
     elif passes:
         verdict = "BETA-MULTI PASS"
         interpretation = (
-            "All 8 elements have non-zero CP-violating fraction, but "
-            "magnitudes differ.  Algebraic CP content is generic but the "
-            "exact 1/2 value was basis[0]-specific.  Downgrade the "
-            "structural strength claim but the beta audit still passes."
+            "All 8 elements have non-zero J-anticommuting fraction, but "
+            "magnitudes differ.  Anti-J-linear content is generic but the "
+            "exact 1/2 value was basis[0]-specific."
         )
     elif any_zero:
         zero_count = sum(1 for f in all_fractions if sp.simplify(f) == 0)
         verdict = "BETA-MULTI MIXED"
         interpretation = (
-            f"{zero_count} of {len(all_fractions)} elements have CP-violating "
-            f"fraction zero.  CP content is basis-dependent within the dim-4 "
-            f"space.  Report the distribution; the 50/50 result is not "
-            f"universal."
+            f"{zero_count} of {len(all_fractions)} elements have "
+            f"J-anticommuting fraction zero.  Anti-J-linear content is "
+            f"basis-dependent within the dim-4 space.  Report the "
+            f"distribution; the 50/50 result is not universal."
         )
     else:
         verdict = "BETA-MULTI FAIL"
         interpretation = (
-            "All elements have CP-violating fraction zero.  This would "
+            "All elements have J-anticommuting fraction zero.  This would "
             "contradict the basis[0] result and indicates a regression."
         )
 
