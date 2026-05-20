@@ -1,6 +1,6 @@
 # spacetime_qca — Status
 
-**Status**: in progress. Sessions 20-41 complete through finite real-space
+**Status**: in progress. Sessions 20-42 complete through finite real-space
 BCC stepping, representation-level Higgs/Yukawa audit, position-dependent
 background gauge covariance, BCC plaquette holonomy geometry, and a static
 Higgs/Yukawa map-layer audit, a JAX numerical backend, Wilson plaquette
@@ -16,7 +16,8 @@ BCC covariant differences, kinetic/potential diagnostics, and a sitewise
 Yukawa bridge, and the first small-lattice coupled fermion/gauge/Higgs
 prototype with Higgs conjugate momentum and a first-order site-local Yukawa
 kick, and an exact one-generation anomaly/physical-hypercharge audit for the
-active SM sector convention.
+active SM sector convention, plus finite-spacing BCC Dirac dispersion
+anisotropy diagnostics.
 
 This module builds the 3D spatial side of the QCA: a BCC Weyl walk
 (Bialynicki-Birula 1994) and its chiral assembly into a 4D Dirac carrier,
@@ -67,6 +68,8 @@ scalars.  A compressed explicit `C^16_internal` basis is not implemented yet.
 - `jax_coupled_higgs.py` — Higgs conjugate momentum, Higgs leapfrog force,
   electroweak sector adapters, first-order site-local Yukawa kick, and the
   coupled fermion/gauge/Higgs prototype wrapper.
+- `lorentz_recovery.py` — exact finite-spacing dispersion anisotropy
+  diagnostics for BCC Weyl/Dirac and the naive hypercube control.
 - `lattice.py`, `state.py`, `step.py` — finite periodic real-space BCC step.
 - `audit.py` — result payloads for the report.
 - `SESSION_20_BCC_DIRAC.md` — Session 20 result report.
@@ -93,10 +96,11 @@ scalars.  A compressed explicit `C^16_internal` basis is not implemented yet.
 - `SESSION_39_DYNAMICAL_HIGGS.md` — Session 39 result report.
 - `SESSION_40_COUPLED_HIGGS_STEP.md` — Session 40 result report.
 - `SESSION_41_ANOMALY_CURRENT.md` — Session 41 result report.
+- `SESSION_42_LORENTZ_RECOVERY.md` — Session 42 result report.
 - `ROADMAP.md` — roadmap from no-backreaction coupling toward constrained
   gauge/fermion/Higgs dynamics.
-- 251 collected tests in the scoped `spacetime_qca` suite; the fast suite has
-  126 passing tests, and slow exact/JAX bridge and coupled-dynamics tests are
+- 258 collected tests in the scoped `spacetime_qca` suite; the fast suite has
+  133 passing tests, and slow exact/JAX bridge and coupled-dynamics tests are
   marked with `slow`.
 
 ## Session 20 result
@@ -144,14 +148,14 @@ scalars.  A compressed explicit `C^16_internal` basis is not implemented yet.
 - Full Gauss-law projection / constraint solving beyond the Session 37
   residual and source-kick prototype.
 - Vectorized SU(2) staple force and Gauss-law constraints.
-- Lorentz boost recovery beyond the `alpha . k` continuum precursor.
+- Lorentz boost recovery beyond the free-dispersion anisotropy audit.
 - Numerical performance benchmarks and long-time stability tests.
 
 ## Sessions ahead
 
 - Session 20b: full symbolic BCC unitarity and no-doubling hardening.
-- Session 42: Lorentz recovery beyond the `alpha . k` continuum precursor.
 - Session 43: renormalization/scaling diagnostics.
+- Later: boost covariance and interacting-field Lorentz recovery.
 - Parallel: performance work and simulation scale-up.
 
 See [PLAN.md](PLAN.md) for the detailed launch plan and
@@ -174,8 +178,8 @@ BCC Dirac, BCC Wilson, and Wilson-force policy remains in `spacetime_qca`.
 uv run pytest src/clifford_3plus2_d5/spacetime_qca/tests -m "not slow" -q
 ```
 
-Expected fast-path result: `96 passed, 117 deselected` in about 45 seconds on
-the current CPU environment.
+Expected fast-path result after Session 42: `133 passed, 125 deselected` in
+about 75 seconds on the current CPU environment.
 
 Slow exact-symbolic and JAX dynamics/parity suites are marked with
 `pytest.mark.slow`.
@@ -185,9 +189,9 @@ Run the full module suite, including slow tests, with:
 uv run pytest src/clifford_3plus2_d5/spacetime_qca/tests -q
 ```
 
-Expected full result: `213 passed`.  The full run currently takes several
-minutes because it includes exact Higgs-map nullspace construction and JAX
-gradient/leapfrog checks.
+Expected full result after Session 42: `258 passed`.  The full run currently
+takes several minutes because it includes exact Higgs-map nullspace
+construction and JAX gradient/leapfrog checks.
 
 On memory-constrained machines, prefer running the JAX dynamics files in
 smaller groups.  JAX compilation caches can accumulate across the full
@@ -624,6 +628,24 @@ It is not a lattice-regulator anomaly theorem; it verifies that the
 one-generation representation used by the QCA dynamics has the expected SM
 anomaly cancellations and that future `u1_y` source terms use physical
 hypercharge by default.
+
+## Session 42 result
+
+- `lorentz_recovery.py` adds exact finite-spacing trace-cosine diagnostics for
+  the BCC Weyl and BCC Dirac Bloch symbols.
+- The continuum comparator is `cos(epsilon |k|)`.
+- Right and left Weyl blocks have opposite cubic anisotropy terms.
+- The chiral Dirac pair cancels the cubic term, so the first BCC Dirac
+  trace-cosine residual appears at `O(epsilon^4)`.
+- Directional BCC Dirac leading coefficients are `0` on axis momentum,
+  `q^4/24` on face diagonals, and `q^4/18` on body diagonals.
+- The naive hypercube control has lower-order `O(epsilon^2)` energy-square
+  anisotropy with coefficients `-q^4/3`, `-q^4/6`, and `-q^4/9`.
+
+Interpretation: this sharpens the original `alpha . k` result.  BCC Dirac is
+not perfectly rotational at finite spacing, but the first anisotropy is pushed
+to quartic order after pairing helicities.  This is a free-dispersion audit,
+not a full interacting Lorentz-invariance proof.
 
 ## Session 24 result
 

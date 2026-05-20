@@ -1,8 +1,8 @@
-# spacetime_qca — Roadmap After Session 41
+# spacetime_qca — Roadmap After Session 42
 
 ## Current Position
 
-Sessions 20-41 have built the static and simulation-control stack:
+Sessions 20-42 have built the static and simulation-control stack:
 
 - BCC Weyl/Dirac spacetime walk with the `alpha . k` continuum precursor.
 - Finite periodic real-space BCC stepping.
@@ -28,6 +28,9 @@ Sessions 20-41 have built the static and simulation-control stack:
 - Physical `U(1)_Y` as the default spacetime-QCA sector convention, with exact
   one-generation anomaly cancellation diagnostics and raw Pati-Salam
   hypercharge kept only under explicit regression aliases.
+- Exact finite-spacing free-dispersion diagnostics showing BCC Dirac anisotropy
+  begins at `O(epsilon^4)` after chiral Weyl cubic-term cancellation, while
+  the naive hypercube control has `O(epsilon^2)` anisotropy.
 
 The module now has enough infrastructure to move from background-gauge
 kinematics toward coupled field dynamics.  The remaining work is not one
@@ -189,10 +192,21 @@ theory remains future work.
 
 ### Session 42 — Lorentz Recovery Beyond `alpha . k`
 
-- Quantify BCC anisotropy at finite lattice spacing.
-- Show rotational/Lorentz symmetry recovery in the small-momentum limit.
-- Compare BCC dispersion against the naive hypercube control beyond corner
-  doubling.
+Status: complete. Result report:
+[SESSION_42_LORENTZ_RECOVERY.md](SESSION_42_LORENTZ_RECOVERY.md).
+
+Delivered:
+
+- Added exact trace-cosine dispersion diagnostics for BCC Weyl and BCC Dirac
+  symbols.
+- Verified that opposite Weyl helicities have opposite cubic anisotropy.
+- Verified that the Dirac pair cancels the cubic term and first deviates from
+  continuum dispersion at `O(epsilon^4)`.
+- Verified that the naive hypercube control has lower-order
+  `O(epsilon^2)` anisotropy.
+
+Non-goal: this is a free-dispersion audit, not a full interacting Lorentz
+recovery proof.
 
 ### Session 43 — Renormalization / Scaling Diagnostics
 
@@ -296,7 +310,7 @@ After Session 38:
 - If the real-form/J-adapted convention is messy, add a compressed explicit
   `C^16` internal basis before going dynamic.
 
-After Session 41:
+After Session 42:
 
-- Decide whether the next project goal is Lorentz/scaling validation or
-  numerical simulation scale-up.
+- Decide whether the next project goal is scaling/renormalization validation
+  or numerical simulation scale-up.
