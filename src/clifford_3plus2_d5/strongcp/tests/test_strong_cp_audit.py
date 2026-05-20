@@ -1,4 +1,4 @@
-"""Tests for ``strong_cp_audit.py`` (aggregates SC-1..SC-3 + SC-5)."""
+"""Tests for ``strong_cp_audit.py`` (aggregates SC-1..SC-5)."""
 
 from __future__ import annotations
 
@@ -41,9 +41,26 @@ def test_audit_final_verdict_trivial_at_o_eps_eps2() -> None:
     assert "SAFE" in payload.final_verdict
 
 
-def test_sc4_is_marked_deferred() -> None:
+def test_sc4_direct_computation_confirms() -> None:
     payload = strong_cp_audit_payload()
-    assert payload.sc4_topological_charge_deferred
+    assert payload.direct_computation_confirms
+    assert payload.sc4_lattice_topological_charge.plaquette_rep_is_parity_even
+    assert payload.sc4_lattice_topological_charge.a2u_projection_of_pair_tensor_is_zero
+    assert payload.sc4_lattice_topological_charge.spatial_only_q_dimensionally_trivial
+
+
+def test_sc4_gauge_independence_holds_for_pati_salam() -> None:
+    payload = strong_cp_audit_payload()
+    sc4 = payload.sc4_lattice_topological_charge
+    assert sc4.gauge_independence_su2_l
+    assert sc4.gauge_independence_su2_r
+    assert sc4.gauge_independence_su4_ps
+
+
+def test_audit_verdict_mentions_sc4_confirmation() -> None:
+    payload = strong_cp_audit_payload()
+    assert "SC-4" in payload.final_verdict
+    assert "CONFIRMS" in payload.final_verdict
 
 
 def test_theta_bound_safe_at_all_orders_in_eps() -> None:

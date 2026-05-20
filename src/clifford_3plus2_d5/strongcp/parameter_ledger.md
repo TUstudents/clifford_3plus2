@@ -43,8 +43,28 @@ Filled in as each phase pins choices.
 
 ## Phase SC-4 choices
 
-(deferred — direct lattice topological-charge density computation
-to follow up in a future session)
+1. Compact field-strength discretization:
+   F_p = (H_p − H_p†) / (2 i)  for plaquette holonomy H_p.
+   Reduces to ε² F̃_{ij} at small gauge coupling.
+2. Plaquette set: the 6 canonical BCC unoriented shapes from
+   ``spacetime_qca.plaquette.canonical_bcc_plaquette_shapes()`` —
+   all spatial body-diagonal loops (no temporal leg).
+3. Spatial-only Q convention: 3 spatial directions; ε^{μνρσ}
+   requires 4 distinct spacetime indices → Q ≡ 0 dimensionally
+   on the current BCC gauge sector.
+4. Plaquette inversion: spatial r → -r maps each canonical shape
+   to itself (the canonical form already includes reversal).
+   The inversion permutation on 6 shapes is the identity.
+5. Plaquette rep parity: g-irrep (parity-even) by inversion invariance.
+6. tr(F_a F_b) decomposition: Sym² of 6-dim g-rep ⊂ g-rep × g-rep
+   = g-irreps only.  A_{2u} (u-rep) cannot appear by Clebsch-Gordan.
+7. Gauge-group independence: tr over gauge representation contracts
+   gauge indices first; what remains depends only on spatial
+   plaquette geometry.  Verified for SU(2)_L, SU(2)_R, SU(4)_PS.
+
+Deferred from SC-4: temporal Wilson plaquettes (would require
+adding a discrete-time gauge link convention to spacetime_qca;
+~2-3 weeks independent follow-up).
 
 ## Phase SC-5 choices
 

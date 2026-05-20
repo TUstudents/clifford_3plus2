@@ -402,7 +402,7 @@ is currently unfalsifiable in the d^{(5)} channel.
 **Effort spent**: well within the ~2-week committed budget.  Scaffold
 + all five phases + tests in a single session.
 
-## strongcp — structural argument closed: STRONG-CP TRIVIAL
+## strongcp — closed: STRONG-CP TRIVIAL (structural + direct-computation)
 
 **Goal**: kill-disciplined audit of whether the BCC Bialynicki-Birula
 walk's effective action contributes to θ_QCD (bounded ≤ 10⁻¹⁰ by
@@ -418,7 +418,7 @@ strong-CP problem without invoking an axion or accidental cancellation**.
 | SC-1 (degree-3 cubic harmonics) | done | A_{2u} ⊕ T_{2u} ⊕ T_{1u} projectors built |
 | SC-2 (BCC centrosymmetry)        | done | lattice + BB walk + Bloch symbol all centrosymmetric |
 | SC-3 (higher-order H^(n) parity) | done | H^(2) is 100% T_{1u} with ZERO A_{2u} content |
-| SC-4 (lattice Q(x) density)      | deferred | direct-computation confirmation; structural argument independent |
+| SC-4 (lattice Q(x) density)      | done | spatial Q dimensionally trivial; BCC plaquette rep parity-even; A_{2u} = 0 for SU(2)_L + SU(2)_R + SU(4)_PS; gauge-content independent |
 | SC-5 (chiral anomaly + θ̄ shift)  | done | tr(γ^5 H^(1)) = tr(γ^5 H^(2)) = 0 |
 | SC-6 (combined audit)            | done | STRONG-CP TRIVIAL aggregated and reported |
 
@@ -443,29 +443,37 @@ measure.
 - ``chiral_anomaly_check.py``: tr(γ^5 H^(n)) tests for n = 1, 2;
   cross-term tr(γ^5 H^(1) H^(2)) recorded as O(ε³) observation.
 - ``theta_bar_constraint.py``: neutron-EDM bound comparison.
-- ``strong_cp_audit.py``: combined SC-1..SC-3 + SC-5 payload.
+- ``lattice_topological_charge.py``: SC-4 direct lattice-gauge
+  computation; F_{ij} = (H − H†)/(2i) extraction, plaquette
+  inversion permutation, A_{2u} projection verification, gauge-
+  group independence for SU(2)_L, SU(2)_R, SU(4)_PS.
+- ``strong_cp_audit.py``: combined SC-1..SC-5 payload (structural
+  + direct-computation).
 
-**Tests**: 44 passing.
+**Tests**: 69 passing.
 
-**Significance**: publishable structural positive.  Combined with cp/'s
-dual-positive (CP-violation at O(ε) in T_{2g}) and sme/'s
-UNFALSIFIABLE PASS (ε ≲ 2 × 10⁻³³ m), the program now has a coherent
-story: lattice CP-violation lives in a g-irrep that cannot leak into
-the A_{2u} θ_QCD channel, so the program is automatically
-strong-CP-safe regardless of ε.
+**Significance**: publishable structural + direct-computation positive.
+Combined with cp/'s dual-positive (CP-violation at O(ε) in T_{2g}) and
+sme/'s UNFALSIFIABLE PASS (ε ≲ 2 × 10⁻³³ m), the program now has a
+coherent story: lattice CP-violation lives in a g-irrep that cannot
+leak into the A_{2u} θ_QCD channel, so the program is automatically
+strong-CP-safe regardless of ε.  SC-4 confirms this at the gauge
+sector: the BCC 6-dim Wilson-plaquette permutation rep is parity-even
+(inversion permutation is identity), so tr(F·F) ⊂ Sym²(g-rep) ⊂
+g-irreps — A_{2u} absent.  Holds for all three Pati-Salam gauge
+factors (SU(2)_L, SU(2)_R, SU(4)_PS).
 
 **Follow-up flags**:
-1. Phase SC-4 (lattice topological-charge density Q(x) direct
-   computation) for direct-computation confirmation.
+1. Temporal Wilson plaquettes (would enable non-trivial 4D Q
+   computation) — ~2-3 weeks independent follow-up.
 2. Extend H^(n) audit beyond H^(2) (selection rule predicts the
    pattern; confirming H^(3), H^(4) would be a sanity check).
 3. Photon-sector dim-5 θ-term has different selection rules; separate
    audit.
 
-**Effort spent**: SC-1, SC-2, SC-3, SC-5, SC-6 completed in one
-session (~3 days against the ~3-4 week committed budget).  SC-4 was
-budgeted ~5-7 days; the structural argument made it non-essential
-for the verdict.
+**Effort spent**: SC-1, SC-2, SC-3, SC-5, SC-6 in one session
+(~3 days); SC-4 in a follow-up session (~half a day with the
+structural framing).  Total against the ~3-4 week committed budget.
 
 ## koide — closed: KOIDE CONSISTENT (PDG NOT IN LOCUS)
 
