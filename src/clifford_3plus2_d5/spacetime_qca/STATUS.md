@@ -1,6 +1,6 @@
 # spacetime_qca — Status
 
-**Status**: in progress. Sessions 20-49 complete through finite real-space
+**Status**: in progress. Sessions 20-50 complete through finite real-space
 BCC stepping, representation-level Higgs/Yukawa audit, position-dependent
 background gauge covariance, BCC plaquette holonomy geometry, and a static
 Higgs/Yukawa map-layer audit, a JAX numerical backend, Wilson plaquette
@@ -23,8 +23,8 @@ multi-step tiny-lattice trajectory/timing probes, and the first deterministic
 tiny-lattice simulation runner with `.npz`/JSON output.  The runner layer is
 now split into a prototype `lab` path, generic shared `sim` infrastructure,
 and a scan-backed main `simulator` path.  The split has import-boundary tests
-and package-local usage notes, plus a bounded profiling CLI and bottleneck
-report for the scan-backed simulator.
+and package-local usage notes, plus bounded simulator and warm kernel profiling
+CLIs with bottleneck reports for the scan-backed simulator.
 
 This module builds the 3D spatial side of the QCA: a BCC Weyl walk
 (Bialynicki-Birula 1994) and its chiral assembly into a 4D Dirac carrier,
@@ -121,6 +121,7 @@ scalars.  A compressed explicit `C^16_internal` basis is not implemented yet.
 - `SESSION_47_SIMULATOR_SPLIT.md` — Session 47 result report.
 - `SESSION_48_SPLIT_STABILIZATION.md` — Session 48 result report.
 - `SESSION_49_SIMULATOR_PROFILING.md` — Session 49 result report.
+- `SESSION_50_WARM_KERNEL_PROFILING.md` — Session 50 result report.
 - `ROADMAP.md` — roadmap from no-backreaction coupling toward constrained
   gauge/fermion/Higgs dynamics.
 - 299 collected tests in the scoped `spacetime_qca` suite; the fast suite has
@@ -793,6 +794,37 @@ reorganizing paths.
 Interpretation: the simulator now has an evidence-producing profiling path.
 The next implementation step should optimize the full-SM sector force/link
 path or add warm steady-state profiling before increasing lattice size.
+
+## Session 50 result
+
+- `sim.profiling` now supports repeated warm timing payloads with
+  `min/mean/max` timing summaries.
+- `spacetime_qca.simulator.kernel_profile` adds bounded kernel probes for
+  initial-state construction, observables, link construction, no-matter steps,
+  and opt-in finite-difference matter current.
+- `simulator/scripts/profile_kernels.py` emits warm kernel-profile JSON.
+- A local spot profile showed `link_field_sm` is small relative to
+  `step_no_matter_sm`, so the next target is the full-SM no-matter coupled step
+  rather than link construction alone.
+
+Interpretation: Session 50 narrows the Session 49 bottleneck.  The next
+optimization session should decompose or replace the SM coupled-step force path
+before increasing lattice size.
+
+## Session 51 result
+
+- `spacetime_qca.simulator.step_breakdown_profile` decomposes the expensive
+  full-SM no-matter coupled step into named sub-kernel probes.
+- `simulator/scripts/profile_step_breakdown.py` emits JSON summaries for
+  focused cases such as `higgs_leapfrog_sm`, `left_force_sm`, and
+  `fermion_gauge_no_matter_sm`.
+- The breakdown CLI defaults to the single cheap `higgs_leapfrog_sm` case with
+  one timed run and no warmup so expensive full-SM probes are not repeated
+  accidentally.
+
+Interpretation: the simulator can now distinguish the Wilson left-force,
+fermion/gauge transport, Higgs leapfrog, Yukawa kicks, and diagnostics before
+optimizing the Session 50 bottleneck.
 
 ## Session 24 result
 

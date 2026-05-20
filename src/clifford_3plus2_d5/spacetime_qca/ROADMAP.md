@@ -44,6 +44,8 @@ Sessions 20-48 have built the static and simulation-control stack:
   runner/io helpers, and a scan-backed main `spacetime_qca.simulator` API.
 - Import-boundary tests and package notes that pin the lab/main/sim split.
 - A bounded scan-backed simulator profiling CLI and first bottleneck report.
+- Warm kernel profiling that separates setup, link construction, observable
+  extraction, no-matter coupled steps, and optional matter current.
 
 The module now has enough infrastructure to move from background-gauge
 kinematics toward coupled field dynamics.  The remaining work is not one
@@ -114,6 +116,22 @@ Delivered:
 
 Next: add warm steady-state timing for physics kernels, then optimize the
 full-SM sector force/link path before increasing lattice size.
+
+### Session 50 — Warm Kernel Profiling
+
+Status: complete. Result report:
+[SESSION_50_WARM_KERNEL_PROFILING.md](SESSION_50_WARM_KERNEL_PROFILING.md).
+
+Delivered:
+
+- Repeated warm timing payloads in `sim.profiling`.
+- Bounded kernel probes in `spacetime_qca.simulator.kernel_profile`.
+- `profile_kernels` CLI for focused kernel timing.
+- Local spot profile showing SM link construction is not the dominant cost by
+  itself; the full SM no-matter coupled step is the next target.
+
+Next: decompose or optimize the full-SM no-matter coupled step path, especially
+Wilson force and diagnostics inside the SM sector.
 
 ## Immediate Priorities
 
@@ -447,3 +465,17 @@ After Session 49:
 - The first optimization target is full-SM sector gauge force/link algebra.
 - Future profiles need warmup/repeat timing so cold JAX setup does not distort
   physics-kernel comparisons.
+
+After Session 50:
+
+- The bottleneck is narrowed to the full-SM no-matter coupled step path.
+- Link construction alone is not the main cost in the local spot profile.
+
+After Session 51:
+
+- Use `profile_step_breakdown` to time one or two full-SM sub-kernels at a
+  time before optimizing.
+- If `left_force_sm` dominates, replace or vectorize the finite-difference
+  Wilson left-force path first.
+- If `fermion_gauge_no_matter_sm` dominates without `left_force_sm`, split the
+  gauge leapfrog and Dirac transport paths next.

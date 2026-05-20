@@ -107,6 +107,28 @@ def test_profile_callable_returns_json_safe_payload() -> None:
     json.dumps(payload)
 
 
+def test_profile_callable_repeated_returns_warm_timing_stats() -> None:
+    def add_one(value: jnp.ndarray) -> jnp.ndarray:
+        return value + 1
+
+    profile = sim.profile_callable_repeated(
+        "add_one_repeat",
+        add_one,
+        args=(jnp.ones((4,), dtype=jnp.float32),),
+        warmup_runs=1,
+        timed_runs=2,
+    )
+    payload = profile.as_payload()
+
+    assert payload["label"] == "add_one_repeat"
+    assert payload["warmup_runs"] == 1
+    assert payload["timed_runs"] == 2
+    assert len(payload["run_seconds"]) == 2
+    assert payload["min_seconds"] <= payload["mean_seconds"] <= payload["max_seconds"]
+    assert payload["all_finite"] is True
+    json.dumps(payload)
+
+
 def test_recorded_loop_records_initial_requested_and_final_steps() -> None:
     def step(value: jnp.ndarray) -> jnp.ndarray:
         return value + 1

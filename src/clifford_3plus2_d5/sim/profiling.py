@@ -33,6 +33,28 @@ class CallProfile:
         return asdict(self)
 
 
+@dataclass(frozen=True)
+class RepeatedCallProfile:
+    """JSON-safe warm/repeated timing metadata for one callable profile."""
+
+    label: str
+    device: str
+    warmup_runs: int
+    timed_runs: int
+    min_seconds: float
+    mean_seconds: float
+    max_seconds: float
+    run_seconds: tuple[float, ...]
+    output_summary: dict[str, Any]
+    all_finite: bool
+    metadata: dict[str, Any]
+
+    def as_payload(self) -> dict[str, Any]:
+        """Return a JSON-safe dictionary payload."""
+
+        return asdict(self)
+
+
 def _json_safe(value: Any) -> Any:
     if isinstance(value, np.generic):
         return value.item()
@@ -177,4 +199,59 @@ def profile_callable(
         metadata=_json_safe(dict(metadata or {})),
         jit_compile_seconds=jit_compile_seconds,
         jit_run_seconds=jit_run_seconds,
+    )
+
+
+def profile_callable_repeated(
+    label: str,
+    fn: Callable[..., Any],
+    *,
+    args: Sequence[Any] = (),
+    kwargs: Mapping[str, Any] | None = None,
+    metadata: Mapping[str, Any] | None = None,
+    warmup_runs: int = 1,
+    timed_runs: int = 3,
+    output_summary_fn: Callable[[Any], dict[str, Any]] | None = None,
+    finite_fn: Callable[[Any], bool] | None = None,
+) -> RepeatedCallProfile:
+    """Profile one callable after warmup with repeated wall-time samples.
+
+    The returned timings are informational and machine-dependent.  This helper
+    intentionally does not add performance assertions; callers should compare
+    relative timings in reports.
+    """
+
+    if warmup_runs < 0:
+        raise ValueError(f"warmup_runs must be nonnegative, got {warmup_runs}")
+    if timed_runs <= 0:
+        raise ValueError(f"timed_runs must be positive, got {timed_runs}")
+    if kwargs is None:
+        kwargs = {}
+
+    output: Any = None
+    for _ in range(warmup_runs):
+        output = fn(*args, **kwargs)
+        _block_until_ready(output)
+
+    durations: list[float] = []
+    for _ in range(timed_runs):
+        start = perf_counter()
+        output = fn(*args, **kwargs)
+        _block_until_ready(output)
+        durations.append(perf_counter() - start)
+
+    summarize = output_summary_fn or _default_output_summary
+    finite = finite_fn or _default_all_finite
+    return RepeatedCallProfile(
+        label=label,
+        device=jax_default_device(),
+        warmup_runs=warmup_runs,
+        timed_runs=timed_runs,
+        min_seconds=min(durations),
+        mean_seconds=sum(durations) / len(durations),
+        max_seconds=max(durations),
+        run_seconds=tuple(durations),
+        output_summary=_json_safe(summarize(output)),
+        all_finite=finite(output),
+        metadata=_json_safe(dict(metadata or {})),
     )

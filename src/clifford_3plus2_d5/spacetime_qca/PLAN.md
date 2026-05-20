@@ -411,9 +411,9 @@ Move from Bloch-symbol audits to an exact finite real-space QCA:
 
 Only after this should the package approach dynamical gauge fields.
 
-## Current Roadmap After Session 49
+## Current Roadmap After Session 51
 
-Sessions 20-49 have now completed the original Session 20-22 launch arc and
+Sessions 20-51 have now completed the original Session 20-22 launch arc and
 added the first compact gauge-dynamics and Higgs-field infrastructure stack.
 The package has:
 
@@ -449,9 +449,13 @@ The package has:
   split.
 - bounded scan-backed simulator profiling with a JSON CLI and bottleneck
   report.
+- warm kernel profiling with repeated timing payloads and focused kernel cases.
+- full-SM coupled-step breakdown profiling for Yukawa kicks, no-backreaction
+  fermion/gauge stepping, Higgs leapfrog, diagnostics, Gauss residual, gauge
+  Hamiltonian density, and Wilson left-force.
 
 The key priority is now numerical credibility.  Gauge constraints, matter
 current, Higgs dynamics, exact local Yukawa insertion, anomaly diagnostics,
 Lorentz free-dispersion diagnostics, and a scaling harness are all in place.
-The next priority is warm steady-state profiling followed by optimization of
-the full-SM sector gauge force/link path before increasing lattice size.
+The next priority is running focused Session 51 breakdown cases and optimizing
+the dominant full-SM subpath before increasing lattice size.

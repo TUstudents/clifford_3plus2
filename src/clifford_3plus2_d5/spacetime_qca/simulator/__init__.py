@@ -11,6 +11,13 @@ from clifford_3plus2_d5.spacetime_qca.simulator.fields import (
     fields_from_scaling_state,
     fields_to_scaling_state,
 )
+from clifford_3plus2_d5.spacetime_qca.simulator.kernel_profile import (
+    KernelProfileCase,
+    default_kernel_profile_cases,
+    recommend_kernel_bottleneck,
+    run_kernel_profile_case,
+    run_spacetime_kernel_profile,
+)
 from clifford_3plus2_d5.spacetime_qca.simulator.observables import spacetime_observables
 from clifford_3plus2_d5.spacetime_qca.simulator.presets import sm_smoke, su2_l_tiny, u1_y_tiny
 from clifford_3plus2_d5.spacetime_qca.simulator.profiling import (
@@ -25,18 +32,35 @@ from clifford_3plus2_d5.spacetime_qca.simulator.runner import (
     save_spacetime_simulation_result,
     spacetime_simulation_summary,
 )
+from clifford_3plus2_d5.spacetime_qca.simulator.step_breakdown_profile import (
+    StepBreakdownCase,
+    default_step_breakdown_cases,
+    recommend_step_breakdown_bottleneck,
+    run_spacetime_step_breakdown_profile,
+    run_step_breakdown_case,
+)
 
 __all__ = [
     "SpacetimeFields",
+    "KernelProfileCase",
+    "StepBreakdownCase",
     "SpacetimeProfileCase",
     "SpacetimeSimulationConfig",
     "SpacetimeSimulationResult",
+    "default_kernel_profile_cases",
+    "default_step_breakdown_cases",
     "default_spacetime_profile_cases",
     "fields_from_scaling_state",
     "fields_to_scaling_state",
+    "recommend_kernel_bottleneck",
+    "recommend_step_breakdown_bottleneck",
     "recommend_bottleneck",
+    "run_kernel_profile_case",
+    "run_spacetime_kernel_profile",
     "run_spacetime_simulation",
+    "run_spacetime_step_breakdown_profile",
     "run_spacetime_profile",
+    "run_step_breakdown_case",
     "save_spacetime_simulation_result",
     "scaling_config_from_spacetime_config",
     "sm_smoke",
