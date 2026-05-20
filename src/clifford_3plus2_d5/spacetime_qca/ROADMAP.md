@@ -1,8 +1,8 @@
-# spacetime_qca — Roadmap After Session 42
+# spacetime_qca — Roadmap After Session 43
 
 ## Current Position
 
-Sessions 20-42 have built the static and simulation-control stack:
+Sessions 20-43 have built the static and simulation-control stack:
 
 - BCC Weyl/Dirac spacetime walk with the `alpha . k` continuum precursor.
 - Finite periodic real-space BCC stepping.
@@ -31,6 +31,9 @@ Sessions 20-42 have built the static and simulation-control stack:
 - Exact finite-spacing free-dispersion diagnostics showing BCC Dirac anisotropy
   begins at `O(epsilon^4)` after chiral Weyl cubic-term cancellation, while
   the naive hypercube control has `O(epsilon^2)` anisotropy.
+- Tiny-lattice scaling/stability diagnostics for the coupled prototype:
+  neutral-vacuum density probes, scalarized snapshots, one-step drift trials,
+  and bounded step-size sweeps.
 
 The module now has enough infrastructure to move from background-gauge
 kinematics toward coupled field dynamics.  The remaining work is not one
@@ -208,12 +211,32 @@ Delivered:
 Non-goal: this is a free-dispersion audit, not a full interacting Lorentz
 recovery proof.
 
-### Session 43 — Renormalization / Scaling Diagnostics
+### Session 43 — Scaling Diagnostics
 
-- Define dimensionless lattice couplings and scaling observables.
-- Track how Wilson, Higgs, and Yukawa diagnostics behave under lattice
-  refinement on small numerical grids.
-- Do not claim a continuum quantum field theory until these diagnostics exist.
+Status: complete. Result report:
+[SESSION_43_SCALING_DIAGNOSTICS.md](SESSION_43_SCALING_DIAGNOSTICS.md).
+
+Delivered:
+
+- Deterministic tiny-lattice initial data for the coupled
+  fermion/gauge/Higgs prototype.
+- Scalarized `ScalingSnapshot` diagnostics for fermion norm, gauge energy,
+  Higgs energy, Gauss residual, Yukawa norm drift, and a total-energy proxy.
+- `ScalingTrial` before/after one-step drift diagnostics.
+- Neutral-vacuum density normalization probes across `(1, 1, 1)` and
+  `(2, 1, 1)`.
+- Step-size sweeps over bounded tiny-grid controls.
+
+Non-goal: this is a stability/normalization harness, not a continuum
+renormalization proof.
+
+### Session 44 — Performance And Longer Stability Runs
+
+- Vectorize the slowest Wilson/gauge-force paths where possible.
+- Add benchmark scripts for tiny and small lattice runs.
+- Use Session 43 snapshots to measure short-run drift over multiple steps.
+- Keep memory-safe defaults and mark long runs as `slow` or scripts, not fast
+  tests.
 
 ### Parallel Track — Performance
 
@@ -310,7 +333,7 @@ After Session 38:
 - If the real-form/J-adapted convention is messy, add a compressed explicit
   `C^16` internal basis before going dynamic.
 
-After Session 42:
+After Session 43:
 
-- Decide whether the next project goal is scaling/renormalization validation
-  or numerical simulation scale-up.
+- The next project goal should be numerical simulation scale-up and
+  performance hardening, because a reusable scaling harness now exists.

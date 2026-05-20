@@ -1,6 +1,6 @@
 # spacetime_qca — Status
 
-**Status**: in progress. Sessions 20-42 complete through finite real-space
+**Status**: in progress. Sessions 20-43 complete through finite real-space
 BCC stepping, representation-level Higgs/Yukawa audit, position-dependent
 background gauge covariance, BCC plaquette holonomy geometry, and a static
 Higgs/Yukawa map-layer audit, a JAX numerical backend, Wilson plaquette
@@ -17,7 +17,8 @@ Yukawa bridge, and the first small-lattice coupled fermion/gauge/Higgs
 prototype with Higgs conjugate momentum and a first-order site-local Yukawa
 kick, and an exact one-generation anomaly/physical-hypercharge audit for the
 active SM sector convention, plus finite-spacing BCC Dirac dispersion
-anisotropy diagnostics.
+anisotropy diagnostics, and tiny-lattice scaling/stability diagnostics for
+the coupled prototype.
 
 This module builds the 3D spatial side of the QCA: a BCC Weyl walk
 (Bialynicki-Birula 1994) and its chiral assembly into a 4D Dirac carrier,
@@ -68,6 +69,8 @@ scalars.  A compressed explicit `C^16_internal` basis is not implemented yet.
 - `jax_coupled_higgs.py` — Higgs conjugate momentum, Higgs leapfrog force,
   electroweak sector adapters, first-order site-local Yukawa kick, and the
   coupled fermion/gauge/Higgs prototype wrapper.
+- `jax_scaling.py` — tiny-lattice scaling snapshots, one-step drift trials,
+  neutral-vacuum density probes, and Session 43 audit payloads.
 - `lorentz_recovery.py` — exact finite-spacing dispersion anisotropy
   diagnostics for BCC Weyl/Dirac and the naive hypercube control.
 - `lattice.py`, `state.py`, `step.py` — finite periodic real-space BCC step.
@@ -97,10 +100,11 @@ scalars.  A compressed explicit `C^16_internal` basis is not implemented yet.
 - `SESSION_40_COUPLED_HIGGS_STEP.md` — Session 40 result report.
 - `SESSION_41_ANOMALY_CURRENT.md` — Session 41 result report.
 - `SESSION_42_LORENTZ_RECOVERY.md` — Session 42 result report.
+- `SESSION_43_SCALING_DIAGNOSTICS.md` — Session 43 result report.
 - `ROADMAP.md` — roadmap from no-backreaction coupling toward constrained
   gauge/fermion/Higgs dynamics.
-- 258 collected tests in the scoped `spacetime_qca` suite; the fast suite has
-  133 passing tests, and slow exact/JAX bridge and coupled-dynamics tests are
+- 266 collected tests in the scoped `spacetime_qca` suite; the fast suite has
+  138 passing tests, and slow exact/JAX bridge and coupled-dynamics tests are
   marked with `slow`.
 
 ## Session 20 result
@@ -178,8 +182,8 @@ BCC Dirac, BCC Wilson, and Wilson-force policy remains in `spacetime_qca`.
 uv run pytest src/clifford_3plus2_d5/spacetime_qca/tests -m "not slow" -q
 ```
 
-Expected fast-path result after Session 42: `133 passed, 125 deselected` in
-about 75 seconds on the current CPU environment.
+Expected fast-path result after Session 43: `138 passed, 128 deselected` in
+about 80 seconds on the current CPU environment.
 
 Slow exact-symbolic and JAX dynamics/parity suites are marked with
 `pytest.mark.slow`.
@@ -189,7 +193,7 @@ Run the full module suite, including slow tests, with:
 uv run pytest src/clifford_3plus2_d5/spacetime_qca/tests -q
 ```
 
-Expected full result after Session 42: `258 passed`.  The full run currently
+Expected full result after Session 43: `266 passed`.  The full run currently
 takes several minutes because it includes exact Higgs-map nullspace
 construction and JAX gradient/leapfrog checks.
 
@@ -646,6 +650,24 @@ Interpretation: this sharpens the original `alpha . k` result.  BCC Dirac is
 not perfectly rotational at finite spacing, but the first anisotropy is pushed
 to quartic order after pairing helicities.  This is a free-dispersion audit,
 not a full interacting Lorentz-invariance proof.
+
+## Session 43 result
+
+- `jax_scaling.py` adds deterministic tiny-lattice initial data for coupled
+  fermion/gauge/Higgs scaling probes.
+- `ScalingSnapshot` records scalarized fermion norm, gauge Hamiltonian
+  density, Higgs energy, Gauss residual, Yukawa norm drift, and a
+  `total_energy_proxy`.
+- `ScalingTrial` compares before/after one-step coupled diagnostics and
+  reports absolute drift magnitudes.
+- Neutral-vacuum density probes verify zero density on `(1, 1, 1)` and
+  `(2, 1, 1)` identity-link controls.
+- Step-size sweeps over `(0.0, 0.0025, 0.005)` provide the first reusable
+  measurement harness for coupled-prototype stability.
+
+Interpretation: this is a stability and normalization audit, not a continuum
+renormalization proof.  It gives future numerical work a stable place to
+measure scaling behavior.
 
 ## Session 24 result
 

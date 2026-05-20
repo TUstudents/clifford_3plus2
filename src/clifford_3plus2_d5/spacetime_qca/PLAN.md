@@ -411,9 +411,9 @@ Move from Bloch-symbol audits to an exact finite real-space QCA:
 
 Only after this should the package approach dynamical gauge fields.
 
-## Current Roadmap After Session 42
+## Current Roadmap After Session 43
 
-Sessions 20-42 have now completed the original Session 20-22 launch arc and
+Sessions 20-43 have now completed the original Session 20-22 launch arc and
 added the first compact gauge-dynamics and Higgs-field infrastructure stack.
 The package has:
 
@@ -434,13 +434,16 @@ The package has:
   regression.
 - finite-spacing BCC Dirac dispersion anisotropy diagnostics showing cubic
   Weyl anisotropy cancellation and quartic leading Dirac residual.
+- tiny-lattice scaling diagnostics for neutral-vacuum density normalization,
+  coupled one-step drift, and bounded step-size sweeps.
 
 The next roadmap is tracked in [ROADMAP.md](ROADMAP.md).  The short sequence is:
 
-1. Session 43 — renormalization/scaling checks and performance work.
+1. Session 44 — performance work and longer stability runs using the Session
+   43 scaling snapshots.
 
-The key priority is ordering.  Gauge constraints and matter current should be
-audited before adding a dynamical Higgs field, and the site-local Higgs field
-should be audited before inserting `Y(Phi[x])` into the coupled time step.
-Those prerequisites are now in place; the next priority is checking scaling
-behavior before extending the coupled dynamics further.
+The key priority is now numerical credibility.  Gauge constraints, matter
+current, Higgs dynamics, Yukawa insertion, anomaly diagnostics, Lorentz
+free-dispersion diagnostics, and a scaling harness are all in place.  The next
+priority is making small simulations faster and measuring short-run drift over
+more than one step.
