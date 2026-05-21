@@ -25,6 +25,18 @@ def _parser() -> argparse.ArgumentParser:
     parser.add_argument("--include-current", action="store_true", help="Include finite-difference matter-current probe.")
     parser.add_argument("--warmup-runs", type=int, default=1, help="Warmup calls before timed repeats.")
     parser.add_argument("--timed-runs", type=int, default=3, help="Timed repeated calls per case.")
+    parser.add_argument(
+        "--force-method",
+        choices=("autodiff", "finite_difference", "finite_difference_batched", "analytic_staple"),
+        default=None,
+        help="Override force method for step_no_matter cases only.",
+    )
+    parser.add_argument(
+        "--force-chunk-size",
+        type=int,
+        default=None,
+        help="Override finite-difference batched force chunk size for step_no_matter cases.",
+    )
     parser.add_argument("--output", type=Path, default=None, help="Optional JSON output path.")
     return parser
 
@@ -37,6 +49,8 @@ def main(argv: Sequence[str] | None = None) -> int:
         include_current=args.include_current or (selected_cases is not None and "matter_current_u1_y" in selected_cases),
         warmup_runs=args.warmup_runs,
         timed_runs=args.timed_runs,
+        force_method=args.force_method,
+        force_chunk_size=args.force_chunk_size,
     )
     text = json.dumps(payload, indent=2, sort_keys=True)
     if args.output is not None:

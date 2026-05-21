@@ -22,6 +22,18 @@ def _parser() -> argparse.ArgumentParser:
         help="Profile one named case. May be repeated. Defaults to all bounded cases.",
     )
     parser.add_argument("--include-jit", action="store_true", help="Also profile the simulator's internal JIT path.")
+    parser.add_argument(
+        "--force-method",
+        choices=("autodiff", "finite_difference", "finite_difference_batched", "analytic_staple"),
+        default=None,
+        help="Override force method in selected simulator profiling cases.",
+    )
+    parser.add_argument(
+        "--force-chunk-size",
+        type=int,
+        default=None,
+        help="Override finite-difference batched force chunk size in selected profiling cases.",
+    )
     parser.add_argument("--output", type=Path, default=None, help="Optional JSON output path.")
     return parser
 
@@ -31,6 +43,8 @@ def main(argv: Sequence[str] | None = None) -> int:
     payload = run_spacetime_profile(
         case_names=tuple(args.case) if args.case else None,
         include_jit=args.include_jit,
+        force_method=args.force_method,
+        force_chunk_size=args.force_chunk_size,
     )
     text = json.dumps(payload, indent=2, sort_keys=True)
     if args.output is not None:

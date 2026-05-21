@@ -411,9 +411,9 @@ Move from Bloch-symbol audits to an exact finite real-space QCA:
 
 Only after this should the package approach dynamical gauge fields.
 
-## Current Roadmap After Session 55
+## Current Roadmap After Session 56
 
-Sessions 20-55 have now completed the original Session 20-22 launch arc and
+Sessions 20-56 have now completed the original Session 20-22 launch arc and
 added the first compact gauge-dynamics and Higgs-field infrastructure stack.
 The package has:
 
@@ -464,11 +464,14 @@ The package has:
 - an opt-in analytic staple-like compact Wilson force path for the current BCC
   plaquette convention, with focused SM profiles reducing the first/second
   left-force probes to `0.680 s` and `0.099 s`.
+- whole-step analytic-force profiling showing that the current cold SM
+  simulator bottleneck is the exact-unitary Yukawa insertion path, not Wilson
+  force.
 
 The key priority is now numerical credibility.  Gauge constraints, matter
 current, Higgs dynamics, exact local Yukawa insertion, anomaly diagnostics,
 Lorentz free-dispersion diagnostics, and a scaling harness are all in place.
-The next priority is profiling the scan-backed no-matter and coupled simulator
-steps with `method="analytic_staple"` enabled, then optimizing the new measured
-bottleneck.  Scalar and batched finite differences stay as correctness oracles
-for force changes.
+The next priority is specializing the site-local exact-unitary Yukawa update:
+separate cold compile/setup from warm execution, cache static eigensystem
+pieces where possible, and keep the first-order Yukawa path as a cheap
+regression oracle.

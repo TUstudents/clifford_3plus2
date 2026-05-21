@@ -13,6 +13,7 @@ from clifford_3plus2_d5.spacetime_qca.jax_coupled_higgs import (
     HiggsCoupledSector,
     jax_patisalam_fermion_gauge_higgs_step,
 )
+from clifford_3plus2_d5.spacetime_qca.jax_gauge_force import CompactLieForceMethod
 from clifford_3plus2_d5.spacetime_qca.jax_gauss import jax_patisalam_fermion_link_current
 from clifford_3plus2_d5.spacetime_qca.jax_patisalam import jax_patisalam_link_field_from_algebra
 from clifford_3plus2_d5.spacetime_qca.jax_scaling import (
@@ -117,6 +118,28 @@ def _config_payload(config: SpacetimeSimulationConfig) -> dict[str, Any]:
     payload = asdict(config)
     payload["lattice_shape"] = tuple(config.lattice_shape)
     return payload
+
+
+def _validate_force_chunk_size(force_chunk_size: int | None) -> None:
+    if force_chunk_size is not None and force_chunk_size <= 0:
+        raise ValueError(f"force_chunk_size must be positive when set, got {force_chunk_size}")
+
+
+def _with_force_overrides(
+    case: KernelProfileCase,
+    *,
+    force_method: CompactLieForceMethod | None,
+    force_chunk_size: int | None,
+) -> KernelProfileCase:
+    if case.kind != "step_no_matter":
+        return case
+
+    config = case.config
+    if force_method is not None:
+        config = replace(config, force_method=force_method)
+    if force_chunk_size is not None:
+        config = replace(config, force_chunk_size=force_chunk_size)
+    return replace(case, config=config)
 
 
 def _array_output_summary(value: object) -> dict[str, Any]:
@@ -259,6 +282,8 @@ def recommend_kernel_bottleneck(case_payloads: tuple[dict[str, Any], ...]) -> st
 
     if current is not None and current > max(step_u1, 1e-12):
         return "First target: finite-difference matter current; it dominates the U(1)_Y no-matter step."
+    if "step_no_matter_sm" in means and "step_no_matter_u1_y" not in means:
+        return "First target: split the SM no-matter step; no U(1)_Y baseline was included in this profile."
     if link_sm > 0.5 * max(step_sm, 1e-12):
         return "First target: SM link exponentials from algebra coordinates; link construction is a large SM-step fraction."
     if step_sm > 2.0 * max(step_u1, 1e-12):
@@ -274,9 +299,12 @@ def run_spacetime_kernel_profile(
     include_current: bool = False,
     warmup_runs: int = 1,
     timed_runs: int = 3,
+    force_method: CompactLieForceMethod | None = None,
+    force_chunk_size: int | None = None,
 ) -> dict[str, Any]:
     """Run bounded warm kernel profiling cases for Session 50."""
 
+    _validate_force_chunk_size(force_chunk_size)
     cases = default_kernel_profile_cases(include_current=include_current)
     if case_names is not None:
         requested = set(case_names)
@@ -285,6 +313,10 @@ def run_spacetime_kernel_profile(
         if unknown:
             raise ValueError(f"unknown kernel profile case(s): {', '.join(unknown)}")
         cases = tuple(case for case in cases if case.name in requested)
+    cases = tuple(
+        _with_force_overrides(case, force_method=force_method, force_chunk_size=force_chunk_size)
+        for case in cases
+    )
 
     profiles = tuple(
         run_kernel_profile_case(case, warmup_runs=warmup_runs, timed_runs=timed_runs).as_payload()
@@ -298,6 +330,8 @@ def run_spacetime_kernel_profile(
             "warmup_runs": warmup_runs,
             "timed_runs": timed_runs,
             "case_count": len(cases),
+            "force_method_override": force_method,
+            "force_chunk_size_override": force_chunk_size,
         },
         "cases": profiles,
         "recommendation": recommend_kernel_bottleneck(profiles),

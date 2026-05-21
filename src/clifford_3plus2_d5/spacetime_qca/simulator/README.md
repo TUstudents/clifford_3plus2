@@ -24,6 +24,8 @@ uv run python -m clifford_3plus2_d5.spacetime_qca.simulator.scripts.profile_sim
 Use `--case runner_zero_step` or another named case for a fast focused probe;
 the full bounded profile intentionally includes physics kernels and can take
 minutes on the local JAX backend.
+Use `--force-method analytic_staple` to profile selected simulator cases with
+the analytic compact Wilson-force path.
 
 The bounded warm kernel profiling entrypoint is:
 
@@ -34,6 +36,7 @@ uv run python -m clifford_3plus2_d5.spacetime_qca.simulator.scripts.profile_kern
 Use `--case initial_state_u1_y` or another named kernel case for focused
 profiling.  The finite-difference matter-current probe is opt-in with
 `--include-current`.
+Use `--force-method analytic_staple` for `step_no_matter_*` kernel cases.
 
 The full-SM coupled-step breakdown entrypoint is:
 
@@ -54,6 +57,9 @@ Session 54 adds `--force-comparison` to compare scalar force against batched
 chunks `4, 8, 16, 32`.
 Session 55 adds analytic cases such as `first_left_force_analytic_sm`,
 `second_left_force_analytic_sm`, and `gauge_leapfrog_analytic_sm`.
+Session 56 adds force-method overrides to `profile_sim` and `profile_kernels`
+and identifies the current cold whole-step bottleneck as the exact-unitary
+Yukawa insertion, not Wilson force.
 
 The simulator uses `jax.lax.scan` by default.  JIT wrapping is opt-in with the
 `--jit` CLI flag or `SpacetimeSimulationConfig(use_jit=True)` until the physics

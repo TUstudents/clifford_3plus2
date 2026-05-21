@@ -6,6 +6,7 @@ from dataclasses import asdict, dataclass, replace
 from typing import Any
 
 from clifford_3plus2_d5.sim.profiling import CallProfile, profile_callable
+from clifford_3plus2_d5.spacetime_qca.jax_gauge_force import CompactLieForceMethod
 from clifford_3plus2_d5.spacetime_qca.simulator.config import SpacetimeSimulationConfig
 from clifford_3plus2_d5.spacetime_qca.simulator.runner import (
     run_spacetime_simulation,
@@ -125,6 +126,25 @@ def _config_payload(config: SpacetimeSimulationConfig) -> dict[str, Any]:
     return payload
 
 
+def _validate_force_chunk_size(force_chunk_size: int | None) -> None:
+    if force_chunk_size is not None and force_chunk_size <= 0:
+        raise ValueError(f"force_chunk_size must be positive when set, got {force_chunk_size}")
+
+
+def _with_force_overrides(
+    case: SpacetimeProfileCase,
+    *,
+    force_method: CompactLieForceMethod | None,
+    force_chunk_size: int | None,
+) -> SpacetimeProfileCase:
+    config = case.config
+    if force_method is not None:
+        config = replace(config, force_method=force_method)
+    if force_chunk_size is not None:
+        config = replace(config, force_chunk_size=force_chunk_size)
+    return replace(case, config=config)
+
+
 def _profile_output_summary(result: object) -> dict[str, Any]:
     summary = spacetime_simulation_summary(result)  # type: ignore[arg-type]
     final_fields = result.final_fields  # type: ignore[attr-defined]
@@ -206,6 +226,9 @@ def recommend_bottleneck(case_payloads: tuple[dict[str, Any], ...]) -> str:
             "Zero-step scan time grows strongly with step count because observables are computed every step."
         )
 
+    if "sector_sm" in timings and "sector_u1_y" not in timings:
+        return "First target: split the SM sector step; no U(1)_Y baseline was included in this profile."
+
     if sector_sm > 2.0 * max(sector_u1, 1e-12):
         return (
             "First target: full-SM sector gauge force/link algebra. "
@@ -222,9 +245,12 @@ def run_spacetime_profile(
     *,
     case_names: tuple[str, ...] | None = None,
     include_jit: bool = False,
+    force_method: CompactLieForceMethod | None = None,
+    force_chunk_size: int | None = None,
 ) -> dict[str, Any]:
     """Run the bounded Session 49 spacetime simulator profiling suite."""
 
+    _validate_force_chunk_size(force_chunk_size)
     cases = default_spacetime_profile_cases()
     if case_names is not None:
         requested = set(case_names)
@@ -233,6 +259,10 @@ def run_spacetime_profile(
         if unknown:
             raise ValueError(f"unknown profile case(s): {', '.join(unknown)}")
         cases = tuple(case for case in cases if case.name in requested)
+    cases = tuple(
+        _with_force_overrides(case, force_method=force_method, force_chunk_size=force_chunk_size)
+        for case in cases
+    )
 
     profiles = tuple(_run_case(case).as_payload() for case in cases)
     jit_profiles = {
@@ -246,6 +276,8 @@ def run_spacetime_profile(
             "lattice_shape": (1, 1, 1),
             "include_jit": include_jit,
             "case_count": len(cases),
+            "force_method_override": force_method,
+            "force_chunk_size_override": force_chunk_size,
         },
         "cases": profiles,
         "jit_cases": jit_profiles,

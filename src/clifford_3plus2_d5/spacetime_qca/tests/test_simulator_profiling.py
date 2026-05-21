@@ -35,17 +35,37 @@ def test_spacetime_profile_runner_zero_step_is_json_safe() -> None:
     json.dumps(payload)
 
 
+def test_spacetime_profile_force_override_is_recorded() -> None:
+    payload = run_spacetime_profile(
+        case_names=("runner_zero_step",),
+        include_jit=False,
+        force_method="analytic_staple",
+        force_chunk_size=32,
+    )
+
+    assert payload["metadata"]["force_method_override"] == "analytic_staple"
+    assert payload["metadata"]["force_chunk_size_override"] == 32
+    assert payload["cases"][0]["metadata"]["config"]["force_method"] == "analytic_staple"
+    assert payload["cases"][0]["metadata"]["config"]["force_chunk_size"] == 32
+
+
+def test_spacetime_profile_rejects_invalid_force_chunk_size() -> None:
+    with pytest.raises(ValueError, match="force_chunk_size must be positive"):
+        run_spacetime_profile(case_names=("runner_zero_step",), force_chunk_size=0)
+
+
 def test_spacetime_profile_rejects_unknown_case() -> None:
     with pytest.raises(ValueError, match="unknown profile case"):
         run_spacetime_profile(case_names=("missing",))
 
 
 def test_profile_cli_prints_json(capsys) -> None:
-    exit_code = profile_cli(("--case", "runner_zero_step"))
+    exit_code = profile_cli(("--case", "runner_zero_step", "--force-method", "analytic_staple"))
 
     assert exit_code == 0
     payload = json.loads(capsys.readouterr().out)
     assert payload["metadata"]["case_count"] == 1
+    assert payload["metadata"]["force_method_override"] == "analytic_staple"
     assert payload["cases"][0]["label"] == "runner_zero_step"
 
 
@@ -68,3 +88,9 @@ def test_bottleneck_recommendation_flags_matter_current() -> None:
     )
 
     assert "finite-difference matter current" in recommendation
+
+
+def test_bottleneck_recommendation_requires_baseline_for_sm_comparison() -> None:
+    recommendation = recommend_bottleneck(({"label": "sector_sm", "python_seconds": 3.0},))
+
+    assert "split the SM sector step" in recommendation

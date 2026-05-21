@@ -1,6 +1,6 @@
 # spacetime_qca — Status
 
-**Status**: in progress. Sessions 20-55 complete through finite real-space
+**Status**: in progress. Sessions 20-56 complete through finite real-space
 BCC stepping, representation-level Higgs/Yukawa audit, position-dependent
 background gauge covariance, BCC plaquette holonomy geometry, and a static
 Higgs/Yukawa map-layer audit, a JAX numerical backend, Wilson plaquette
@@ -28,7 +28,9 @@ CLIs with bottleneck reports for the scan-backed simulator, full-SM
 microbreakdown cases, and a batched finite-difference Wilson-force path exposed
 through the simulator configs, plus a scalar-vs-batched force chunk comparison
 workflow, and now an opt-in analytic staple-like compact Wilson left-force
-path for the BCC plaquette convention.
+path for the BCC plaquette convention, plus whole-step analytic-force simulator
+profiling that identifies the cold exact-unitary Yukawa insertion as the next
+dominant target.
 
 This module builds the 3D spatial side of the QCA: a BCC Weyl walk
 (Bialynicki-Birula 1994) and its chiral assembly into a 4D Dirac carrier,
@@ -131,10 +133,11 @@ scalars.  A compressed explicit `C^16_internal` basis is not implemented yet.
 - `SESSION_53_BATCHED_FORCE.md` — Session 53 result report.
 - `SESSION_54_FORCE_CHUNK_TUNING.md` — Session 54 result report.
 - `SESSION_55_ANALYTIC_FORCE.md` — Session 55 result report.
+- `SESSION_56_ANALYTIC_SIM_PROFILE.md` — Session 56 result report.
 - `ROADMAP.md` — roadmap from no-backreaction coupling toward constrained
   gauge/fermion/Higgs dynamics.
 - The scoped `spacetime_qca` suite has fast and slow lanes; slow exact/JAX
-  bridge and coupled-dynamics tests are marked with `slow`.  Session 55 used
+  bridge and coupled-dynamics tests are marked with `slow`.  Session 56 used
   focused validation for the force/profiling files instead of refreshing the
   full module count.
 
@@ -212,9 +215,8 @@ uv run pytest src/clifford_3plus2_d5/spacetime_qca/tests -m "not slow" -q
 ```
 
 Historical fast-path result after Session 47: `162 passed, 137 deselected` in
-about 75-90 seconds on the current CPU environment.  Session 55 did not rerun
-the full fast suite; its focused force/profiling/CLI checks reported
-`79 passed, 7 deselected`.
+about 75-90 seconds on the current CPU environment.  Session 56 did not rerun
+the full fast suite; its focused profiling checks reported `19 passed`.
 
 Slow exact-symbolic and JAX dynamics/parity suites are marked with
 `pytest.mark.slow`.
@@ -908,6 +910,29 @@ Interpretation: the force bottleneck has moved from "replace finite
 differences" to "integrate and profile analytic force in realistic simulator
 smoke runs."  The analytic path is still opt-in until broader sector/lattice
 coverage is gathered.
+
+## Session 56 result
+
+- `profile_kernels` now accepts force-method and force-chunk overrides for
+  `step_no_matter_*` cases.
+- `profile_sim` now accepts the same force overrides for selected simulator
+  profile cases.
+- Profiling metadata records both global force overrides and final per-case
+  configs.
+- Single-SM profile recommendations no longer compare against a missing U(1)
+  baseline; they now point to step-breakdown profiling.
+- Cold whole-step SM timing is nearly unchanged by analytic force:
+  `108.384 s` for batched finite difference versus `106.655 s` for analytic.
+- Cold scan-backed `sector_sm` with analytic force took `111.787 s` and
+  remained finite.
+- Step breakdown shows the first exact-unitary Yukawa half-kick dominates
+  cold timing: `104.159 s`, while analytic gauge leapfrog is `0.740 s` and
+  Dirac transport is `0.226 s`.
+
+Interpretation: Session 55 successfully removed the Wilson-force bottleneck in
+isolation, but Session 56 shows the realistic cold simulator bottleneck has
+shifted to exact-unitary Yukawa compilation/eigensystem setup.  The next
+optimization session should specialize or cache the site-local Yukawa update.
 
 ## Session 24 result
 

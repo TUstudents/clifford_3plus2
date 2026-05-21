@@ -1,8 +1,8 @@
-# spacetime_qca — Roadmap After Session 55
+# spacetime_qca — Roadmap After Session 56
 
 ## Current Position
 
-Sessions 20-55 have built the static, simulation-control, and performance
+Sessions 20-56 have built the static, simulation-control, and performance
 profiling stack:
 
 - BCC Weyl/Dirac spacetime walk with the `alpha . k` continuum precursor.
@@ -54,6 +54,10 @@ profiling stack:
   plaquette convention.  Local spot profiles reduce the first/second SM
   left-force probes to `0.680 s` and `0.099 s`, with
   `gauge_leapfrog_analytic_sm` at `0.860 s`.
+- Whole-step analytic-force profiling showing the SM no-matter simulator step
+  remains cold-dominated by exact-unitary Yukawa setup, not Wilson force:
+  `step_no_matter_sm` is `106.655 s` with analytic force, and
+  `yukawa_half_kick_sm` alone is `104.159 s`.
 
 The module now has enough infrastructure to move from background-gauge
 kinematics toward coupled field dynamics.  The remaining work is not one
@@ -520,7 +524,16 @@ After Session 55:
 - Keep scalar and batched finite differences as correctness oracles and
   fallback paths, especially when changing plaquette conventions or sector
   adapters.
-- The next optimization session should profile the scan-backed no-matter and
-  coupled simulator steps with analytic force enabled, then name the new
-  bottleneck.  Likely candidates are BCC Dirac/internal-link transport,
-  diagnostics, or compact matrix exponentials rather than Wilson left-force.
+- Implemented by Session 56.  Analytic force is not the whole-step bottleneck
+  in the current cold simulator profile.
+
+After Session 56:
+
+- Keep `analytic_staple` as the force method for performance profiles and
+  bounded simulator smoke runs.
+- Optimize the exact-unitary Yukawa insertion next.  The first half-kick is
+  the cold timing bottleneck; the second half-kick is tiny once the path is
+  warm.
+- Session 57 should separate cold compile/setup from warm execution, then
+  cache or specialize static pieces of the site-local Yukawa unitary.  Preserve
+  the first-order Yukawa path as a cheap oracle/fallback.

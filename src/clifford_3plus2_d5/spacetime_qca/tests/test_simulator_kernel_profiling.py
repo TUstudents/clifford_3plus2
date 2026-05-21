@@ -11,6 +11,7 @@ from clifford_3plus2_d5.spacetime_qca.simulator import (
     recommend_kernel_bottleneck,
     run_spacetime_kernel_profile,
 )
+from clifford_3plus2_d5.spacetime_qca.simulator.kernel_profile import _with_force_overrides
 from clifford_3plus2_d5.spacetime_qca.simulator.scripts.profile_kernels import main as kernel_profile_cli
 
 
@@ -43,6 +44,40 @@ def test_kernel_profile_initial_state_case_is_json_safe() -> None:
     json.dumps(payload)
 
 
+def test_kernel_profile_force_override_is_recorded_and_scoped() -> None:
+    payload = run_spacetime_kernel_profile(
+        case_names=("initial_state_u1_y",),
+        warmup_runs=0,
+        timed_runs=1,
+        force_method="analytic_staple",
+        force_chunk_size=32,
+    )
+
+    assert payload["metadata"]["force_method_override"] == "analytic_staple"
+    assert payload["metadata"]["force_chunk_size_override"] == 32
+    assert payload["cases"][0]["metadata"]["config"]["force_method"] == "finite_difference"
+    assert payload["cases"][0]["metadata"]["config"]["force_chunk_size"] is None
+
+
+def test_kernel_profile_force_override_applies_to_step_cases() -> None:
+    case = next(case for case in default_kernel_profile_cases() if case.name == "step_no_matter_u1_y")
+
+    updated = _with_force_overrides(case, force_method="analytic_staple", force_chunk_size=32)
+
+    assert updated.config.force_method == "analytic_staple"
+    assert updated.config.force_chunk_size == 32
+
+
+def test_kernel_profile_rejects_invalid_force_chunk_size() -> None:
+    with pytest.raises(ValueError, match="force_chunk_size must be positive"):
+        run_spacetime_kernel_profile(
+            case_names=("initial_state_u1_y",),
+            warmup_runs=0,
+            timed_runs=1,
+            force_chunk_size=0,
+        )
+
+
 def test_kernel_profile_rejects_unknown_case() -> None:
     with pytest.raises(ValueError, match="unknown kernel profile case"):
         run_spacetime_kernel_profile(case_names=("missing",), warmup_runs=0, timed_runs=1)
@@ -50,12 +85,22 @@ def test_kernel_profile_rejects_unknown_case() -> None:
 
 def test_kernel_profile_cli_prints_json(capsys) -> None:
     exit_code = kernel_profile_cli(
-        ("--case", "initial_state_u1_y", "--warmup-runs", "0", "--timed-runs", "1"),
+        (
+            "--case",
+            "initial_state_u1_y",
+            "--warmup-runs",
+            "0",
+            "--timed-runs",
+            "1",
+            "--force-method",
+            "analytic_staple",
+        ),
     )
 
     assert exit_code == 0
     payload = json.loads(capsys.readouterr().out)
     assert payload["metadata"]["case_count"] == 1
+    assert payload["metadata"]["force_method_override"] == "analytic_staple"
     assert payload["cases"][0]["label"] == "initial_state_u1_y"
 
 
@@ -90,3 +135,9 @@ def test_kernel_bottleneck_recommendation_flags_sm_step() -> None:
     )
 
     assert "full-SM no-matter step" in recommendation
+
+
+def test_kernel_bottleneck_recommendation_requires_baseline_for_sm_comparison() -> None:
+    recommendation = recommend_kernel_bottleneck(({"label": "step_no_matter_sm", "mean_seconds": 3.0},))
+
+    assert "split the SM no-matter step" in recommendation
