@@ -1,6 +1,6 @@
 # spacetime_qca — Status
 
-**Status**: in progress. Sessions 20-53 complete through finite real-space
+**Status**: in progress. Sessions 20-55 complete through finite real-space
 BCC stepping, representation-level Higgs/Yukawa audit, position-dependent
 background gauge covariance, BCC plaquette holonomy geometry, and a static
 Higgs/Yukawa map-layer audit, a JAX numerical backend, Wilson plaquette
@@ -26,7 +26,9 @@ and a scan-backed main `simulator` path.  The split has import-boundary tests
 and package-local usage notes, plus bounded simulator and warm kernel profiling
 CLIs with bottleneck reports for the scan-backed simulator, full-SM
 microbreakdown cases, and a batched finite-difference Wilson-force path exposed
-through the simulator configs.
+through the simulator configs, plus a scalar-vs-batched force chunk comparison
+workflow, and now an opt-in analytic staple-like compact Wilson left-force
+path for the BCC plaquette convention.
 
 This module builds the 3D spatial side of the QCA: a BCC Weyl walk
 (Bialynicki-Birula 1994) and its chiral assembly into a 4D Dirac carrier,
@@ -61,8 +63,8 @@ scalars.  A compressed explicit `C^16_internal` basis is not implemented yet.
   observables and action densities.
 - `jax_gauge_force.py` — SO(2), SU(2), SU(3), and generic basis-based
   compact-link JAX Wilson-action gradients/forces, scalar and batched
-  finite-difference left-trivialized force controls, and compact action
-  descent.
+  finite-difference left-trivialized force controls, opt-in analytic
+  staple-like compact left force, and compact action descent.
 - `jax_gauge_dynamics.py` — SU(2)/SU(3) and generic basis-coordinate momentum
   fields, Hamiltonian-density helpers, and compact leapfrog updates.
 - `jax_patisalam.py` — chiral16 Pati-Salam and SM sector JAX adapters over
@@ -127,11 +129,14 @@ scalars.  A compressed explicit `C^16_internal` basis is not implemented yet.
 - `SESSION_50_WARM_KERNEL_PROFILING.md` — Session 50 result report.
 - `SESSION_52_SM_GAUGE_MICROBREAKDOWN.md` — Session 52 result report.
 - `SESSION_53_BATCHED_FORCE.md` — Session 53 result report.
+- `SESSION_54_FORCE_CHUNK_TUNING.md` — Session 54 result report.
+- `SESSION_55_ANALYTIC_FORCE.md` — Session 55 result report.
 - `ROADMAP.md` — roadmap from no-backreaction coupling toward constrained
   gauge/fermion/Higgs dynamics.
-- 299 collected tests in the scoped `spacetime_qca` suite; the fast suite has
-  162 passing tests, and slow exact/JAX bridge and coupled-dynamics tests are
-  marked with `slow`.
+- The scoped `spacetime_qca` suite has fast and slow lanes; slow exact/JAX
+  bridge and coupled-dynamics tests are marked with `slow`.  Session 55 used
+  focused validation for the force/profiling files instead of refreshing the
+  full module count.
 
 ## Session 20 result
 
@@ -206,8 +211,10 @@ BCC Dirac, BCC Wilson, and Wilson-force policy remains in `spacetime_qca`.
 uv run pytest src/clifford_3plus2_d5/spacetime_qca/tests -m "not slow" -q
 ```
 
-Expected fast-path result after Session 47: `162 passed, 137 deselected` in
-about 75-90 seconds on the current CPU environment.
+Historical fast-path result after Session 47: `162 passed, 137 deselected` in
+about 75-90 seconds on the current CPU environment.  Session 55 did not rerun
+the full fast suite; its focused force/profiling/CLI checks reported
+`79 passed, 7 deselected`.
 
 Slow exact-symbolic and JAX dynamics/parity suites are marked with
 `pytest.mark.slow`.
@@ -217,15 +224,16 @@ Run the full module suite, including slow tests, with:
 uv run pytest src/clifford_3plus2_d5/spacetime_qca/tests -q
 ```
 
-Expected full result after Session 47: `299 passed`.  The full run currently
+Historical full result after Session 47: `299 passed`.  The full run currently
 takes several minutes because it includes exact Higgs-map nullspace
-construction and JAX gradient/leapfrog checks.
+construction and JAX gradient/leapfrog checks, so profiling sessions should use
+focused tests unless a full release gate is needed.
 
 On memory-constrained machines, prefer running the JAX dynamics files in
 smaller groups.  JAX compilation caches can accumulate across the full
-`spacetime_qca` suite.  The SU(3) force path currently differentiates through
-batched matrix exponentials; the chiral16 SU(4) path defaults to a slower but
-memory-safe finite-difference force.
+`spacetime_qca` suite.  The scalar and batched finite-difference compact force
+paths remain oracle paths; performance profiles should prefer
+`method="analytic_staple"` where the BCC plaquette convention is applicable.
 
 ## Session 21 result
 
@@ -861,6 +869,45 @@ Interpretation: the first concrete force optimization is in place without
 changing the default scalar force oracle.  The next profiling pass should
 compare scalar and batched force cases before deciding whether to tune chunking
 or implement an analytic staple-like Wilson force.
+
+## Session 54 result
+
+- `profile_step_breakdown` now accepts `--force-method` and
+  `--force-chunk-size` overrides for force-related cases only.
+- `--force-comparison` runs scalar baselines against batched chunks
+  `4, 8, 16, 32` for first and second SM left-force probes.
+- Local best chunk was `32`: first force improved `9.411 s -> 2.312 s`;
+  second force improved `8.536 s -> 0.497 s`.
+- The comparison payload reports speedups and a deterministic next-step
+  recommendation.
+
+Interpretation: batched force is a substantial improvement, but the first SM
+left-force probe remains above the local `2 s` threshold.  The next optimization
+session should implement an analytic staple-like compact Wilson force for the
+current BCC plaquette convention.
+
+## Session 55 result
+
+- `jax_compact_lie_left_force` now supports `method="analytic_staple"`.
+- The analytic force contracts each plaquette occurrence directly with the
+  finite-difference convention
+  `U[x,h] -> exp(t T_a) U[x,h]`.
+- Scalar and batched finite differences remain available as correctness and
+  performance oracles.
+- Pati-Salam/SM adapters and simulator CLIs accept the analytic method through
+  the existing force-method plumbing.
+- Step-breakdown profiling now has analytic left-force and analytic
+  gauge-leapfrog cases.
+- Focused validation passed: `79 passed, 7 deselected`.
+- Local spot profiles:
+  `first_left_force_analytic_sm = 0.680 s`,
+  `second_left_force_analytic_sm = 0.099 s`, and
+  `gauge_leapfrog_analytic_sm = 0.860 s`.
+
+Interpretation: the force bottleneck has moved from "replace finite
+differences" to "integrate and profile analytic force in realistic simulator
+smoke runs."  The analytic path is still opt-in until broader sector/lattice
+coverage is gathered.
 
 ## Session 24 result
 

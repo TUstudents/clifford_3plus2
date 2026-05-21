@@ -212,6 +212,26 @@ def test_patisalam_u1_batched_finite_difference_matches_scalar() -> None:
     np.testing.assert_allclose(np.asarray(batched), np.asarray(scalar), atol=1e-5)
 
 
+def test_patisalam_u1_analytic_staple_matches_scalar() -> None:
+    links = jax_patisalam_link_field_from_algebra(_theta("u1_y"), sector="u1_y")
+
+    scalar = jax_patisalam_left_force(
+        links,
+        sector="u1_y",
+        epsilon=2e-3,
+        shapes=_shapes(),
+        method="finite_difference",
+    )
+    analytic = jax_patisalam_left_force(
+        links,
+        sector="u1_y",
+        shapes=_shapes(),
+        method="analytic_staple",
+    )
+
+    np.testing.assert_allclose(np.asarray(analytic), np.asarray(scalar), atol=2e-5)
+
+
 @pytest.mark.parametrize("sector", ["su2_l", "su3_c", "u1_y", "sm"])
 def test_patisalam_sector_momentum_transform_preserves_kinetic_energy(
     sector: PatiSalamGaugeSector,

@@ -411,9 +411,9 @@ Move from Bloch-symbol audits to an exact finite real-space QCA:
 
 Only after this should the package approach dynamical gauge fields.
 
-## Current Roadmap After Session 53
+## Current Roadmap After Session 55
 
-Sessions 20-53 have now completed the original Session 20-22 launch arc and
+Sessions 20-55 have now completed the original Session 20-22 launch arc and
 added the first compact gauge-dynamics and Higgs-field infrastructure stack.
 The package has:
 
@@ -459,10 +459,16 @@ The package has:
 - a batched finite-difference compact Wilson force path, exposed through
   Pati-Salam adapters, simulator/scaling configs, and explicit step-breakdown
   comparison cases.
+- a force chunk comparison workflow showing `chunk_size=32` is currently best
+  locally among batched finite-difference probes.
+- an opt-in analytic staple-like compact Wilson force path for the current BCC
+  plaquette convention, with focused SM profiles reducing the first/second
+  left-force probes to `0.680 s` and `0.099 s`.
 
 The key priority is now numerical credibility.  Gauge constraints, matter
 current, Higgs dynamics, exact local Yukawa insertion, anomaly diagnostics,
 Lorentz free-dispersion diagnostics, and a scaling harness are all in place.
-The next priority is comparing scalar versus batched force profiles and then
-deciding between chunk-size tuning and a staple-like analytic Wilson-force
-replacement before increasing lattice size.
+The next priority is profiling the scan-backed no-matter and coupled simulator
+steps with `method="analytic_staple"` enabled, then optimizing the new measured
+bottleneck.  Scalar and batched finite differences stay as correctness oracles
+for force changes.

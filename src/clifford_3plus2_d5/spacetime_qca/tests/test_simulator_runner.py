@@ -110,6 +110,14 @@ def test_main_simulator_cli_accepts_batched_force_method(capsys) -> None:
     assert payload["force_chunk_size"] == 16
 
 
+def test_main_simulator_cli_accepts_analytic_force_method(capsys) -> None:
+    exit_code = main_sim_cli(("--steps", "0", "--step-size", "0.0", "--force-method", "analytic_staple"))
+
+    assert exit_code == 0
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["force_method"] == "analytic_staple"
+
+
 def test_main_simulator_cli_output_writes_metadata(tmp_path, capsys) -> None:
     output = tmp_path / "sim.npz"
     exit_code = main_sim_cli(("--steps", "0", "--step-size", "0.0", "--output", str(output)))

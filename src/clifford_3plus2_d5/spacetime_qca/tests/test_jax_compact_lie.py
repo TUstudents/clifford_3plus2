@@ -124,6 +124,54 @@ def test_compact_lie_batched_finite_difference_matches_scalar() -> None:
     np.testing.assert_allclose(np.asarray(batched), np.asarray(scalar), atol=1e-5)
 
 
+def test_compact_lie_analytic_staple_matches_scalar_finite_difference() -> None:
+    generators = jax_su2_generators()
+    links = jax_compact_lie_link_field_from_algebra(_theta(), generators)
+
+    scalar = jax_compact_lie_left_force(
+        links,
+        generators,
+        shapes=_shapes(),
+        method="finite_difference",
+        epsilon=2e-3,
+    )
+    analytic = jax_compact_lie_left_force(
+        links,
+        generators,
+        shapes=_shapes(),
+        method="analytic_staple",
+    )
+
+    np.testing.assert_allclose(np.asarray(analytic), np.asarray(scalar), atol=5e-5)
+
+
+def test_compact_lie_analytic_staple_pure_gauge_has_zero_force() -> None:
+    generators = jax_su2_generators()
+    links = jax_compact_lie_pure_gauge_links_from_site_algebra(_site_theta(), generators)
+
+    force = jax_compact_lie_left_force(links, generators, shapes=_shapes(), method="analytic_staple")
+
+    np.testing.assert_allclose(np.asarray(jnp.linalg.norm(force)), np.asarray(0, dtype=np.float32), atol=2e-6)
+
+
+def test_compact_lie_analytic_descent_lowers_nonflat_action() -> None:
+    generators = jax_su2_generators()
+    links = jax_compact_lie_link_field_from_algebra(_theta(), generators)
+    action_before = jax_average_wilson_action_density(links, _shapes())
+
+    updated, force = jax_compact_lie_action_descent_step(
+        links,
+        generators,
+        step_size=0.5,
+        shapes=_shapes(),
+        method="analytic_staple",
+    )
+    action_after = jax_average_wilson_action_density(updated, _shapes())
+
+    assert float(jnp.linalg.norm(force)) > 0
+    assert float(action_after) < float(action_before)
+
+
 def test_compact_lie_momentum_transform_preserves_gram_kinetic_energy() -> None:
     generators = jax_su2_generators()
     momenta = _momenta()

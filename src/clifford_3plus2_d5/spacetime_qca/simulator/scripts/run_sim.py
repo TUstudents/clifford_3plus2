@@ -24,7 +24,7 @@ def _parser() -> argparse.ArgumentParser:
     parser.add_argument("--yukawa-mode", choices=("first_order", "unitary"), default="unitary")
     parser.add_argument(
         "--force-method",
-        choices=("autodiff", "finite_difference", "finite_difference_batched"),
+        choices=("autodiff", "finite_difference", "finite_difference_batched", "analytic_staple"),
         default="finite_difference",
     )
     parser.add_argument("--force-chunk-size", type=int, default=None)

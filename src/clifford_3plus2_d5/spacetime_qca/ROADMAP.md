@@ -1,8 +1,9 @@
-# spacetime_qca — Roadmap After Session 53
+# spacetime_qca — Roadmap After Session 55
 
 ## Current Position
 
-Sessions 20-48 have built the static and simulation-control stack:
+Sessions 20-55 have built the static, simulation-control, and performance
+profiling stack:
 
 - BCC Weyl/Dirac spacetime walk with the `alpha . k` continuum precursor.
 - Finite periodic real-space BCC stepping.
@@ -46,8 +47,13 @@ Sessions 20-48 have built the static and simulation-control stack:
 - A bounded scan-backed simulator profiling CLI and first bottleneck report.
 - Warm kernel profiling that separates setup, link construction, observable
   extraction, no-matter coupled steps, and optional matter current.
-- Full-SM step microbreakdown profiling and a batched finite-difference Wilson
-  force path with explicit scalar-vs-batched comparison cases.
+- Full-SM step microbreakdown profiling, a batched finite-difference Wilson
+  force path with explicit scalar-vs-batched comparison cases, and force chunk
+  tuning showing `chunk_size=32` is locally best among `4, 8, 16, 32`.
+- An opt-in analytic staple-like compact Wilson left-force for the current BCC
+  plaquette convention.  Local spot profiles reduce the first/second SM
+  left-force probes to `0.680 s` and `0.099 s`, with
+  `gauge_leapfrog_analytic_sm` at `0.860 s`.
 
 The module now has enough infrastructure to move from background-gauge
 kinematics toward coupled field dynamics.  The remaining work is not one
@@ -496,7 +502,25 @@ After Session 53:
 - Compare `first_left_force_sm` against `first_left_force_batched_sm` and
   `second_left_force_sm` against `second_left_force_batched_sm` before any
   broader profiling pass.
-- If batched force remains dominant, Session 54 should implement an analytic
-  staple-like compact Wilson force for the current BCC plaquette convention.
+- Session 54 should tune batched chunk size and make the analytic-force
+  decision from measured scalar-vs-batched timings.
 - If batched force is acceptable but `gauge_leapfrog_batched_sm` dominates,
   tune force chunk size and compact matrix-exponential batching next.
+
+After Session 54:
+
+- Use `chunk_size=32` for batched SM smoke/prototype runs when memory allows.
+- Implemented by Session 55.  Keep this path as the finite-difference
+  performance oracle rather than the default performance path.
+
+After Session 55:
+
+- Prefer `method="analytic_staple"` for SM performance profiles and bounded
+  simulator smoke runs.
+- Keep scalar and batched finite differences as correctness oracles and
+  fallback paths, especially when changing plaquette conventions or sector
+  adapters.
+- The next optimization session should profile the scan-backed no-matter and
+  coupled simulator steps with analytic force enabled, then name the new
+  bottleneck.  Likely candidates are BCC Dirac/internal-link transport,
+  diagnostics, or compact matrix exponentials rather than Wilson left-force.

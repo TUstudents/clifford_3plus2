@@ -38,9 +38,9 @@ from clifford_3plus2_d5.sim.links import (
 )
 from clifford_3plus2_d5.spacetime_qca.jax_step import jax_bcc_displacements
 from clifford_3plus2_d5.spacetime_qca.jax_wilson import jax_average_wilson_action_density
-from clifford_3plus2_d5.spacetime_qca.plaquette import PlaquetteShape
+from clifford_3plus2_d5.spacetime_qca.plaquette import PlaquetteShape, canonical_bcc_plaquette_shapes
 
-CompactLieForceMethod = Literal["autodiff", "finite_difference", "finite_difference_batched"]
+CompactLieForceMethod = Literal["autodiff", "finite_difference", "finite_difference_batched", "analytic_staple"]
 
 
 def _validate_so2_angles(theta: jnp.ndarray) -> None:
@@ -276,6 +276,25 @@ def _force_coordinate_indices(links: jnp.ndarray, generator_count: int) -> np.nd
     return np.asarray(list(np.ndindex(*links.shape[:4], generator_count)), dtype=np.int32)
 
 
+def _wrap_site_index(site: tuple[int, int, int], lattice_shape: tuple[int, int, int]) -> tuple[int, int, int]:
+    return tuple(coord % size for coord, size in zip(site, lattice_shape, strict=True))  # type: ignore[return-value]
+
+
+def _translate_site_index(
+    site: tuple[int, int, int],
+    displacement: tuple[int, int, int],
+    lattice_shape: tuple[int, int, int],
+) -> tuple[int, int, int]:
+    return _wrap_site_index(
+        tuple(coord + step for coord, step in zip(site, displacement, strict=True)),  # type: ignore[arg-type]
+        lattice_shape,
+    )
+
+
+def _bcc_displacement_index(displacement: tuple[int, int, int]) -> int:
+    return jax_bcc_displacements().index(displacement)
+
+
 def _jax_compact_lie_left_force_finite_difference_batched(
     links: jnp.ndarray,
     generators: jnp.ndarray,
@@ -319,6 +338,58 @@ def _jax_compact_lie_left_force_finite_difference_batched(
     return force
 
 
+def _jax_compact_lie_left_force_analytic_staple(
+    links: jnp.ndarray,
+    generators: jnp.ndarray,
+    *,
+    shapes: tuple[PlaquetteShape, ...] | None,
+) -> jnp.ndarray:
+    generator_count, matrix_dim = _validate_compact_lie_links(links, generators)
+    selected_shapes = shapes or canonical_bcc_plaquette_shapes()
+    if not selected_shapes:
+        raise ValueError("at least one plaquette shape is required")
+
+    lattice_shape = tuple(int(size) for size in links.shape[:3])
+    real_dtype = jnp.real(jnp.asarray(0, dtype=links.dtype)).dtype
+    basis = generators.astype(links.dtype)
+    identity = jnp.eye(matrix_dim, dtype=links.dtype)
+    plaquette_count = jnp.asarray(
+        links.shape[0] * links.shape[1] * links.shape[2] * len(selected_shapes),
+        dtype=real_dtype,
+    )
+    normalizer = jnp.asarray(matrix_dim, dtype=real_dtype) * plaquette_count
+    force = jnp.zeros((*links.shape[:4], generator_count), dtype=real_dtype)
+
+    for base_site in np.ndindex(*links.shape[:3]):
+        wrapped_base = _wrap_site_index(base_site, lattice_shape)
+        for shape in selected_shapes:
+            sites = [wrapped_base]
+            current = wrapped_base
+            for displacement in shape:
+                current = _translate_site_index(current, displacement, lattice_shape)
+                sites.append(current)
+
+            path_links = tuple(
+                links[(*sites[index], _bcc_displacement_index(displacement), slice(None), slice(None))]
+                for index, displacement in enumerate(shape)
+            )
+            for occurrence, displacement in enumerate(shape):
+                prefix = identity
+                for link in path_links[:occurrence]:
+                    prefix = prefix @ link
+                suffix = identity
+                for link in path_links[occurrence + 1 :]:
+                    suffix = suffix @ link
+
+                link = path_links[occurrence]
+                products = jnp.einsum("ij,ajk,kl,lm->aim", prefix, basis, link, suffix)
+                derivatives = -jnp.real(jnp.trace(products, axis1=-2, axis2=-1)) / normalizer
+                link_site = sites[occurrence]
+                hop_index = _bcc_displacement_index(displacement)
+                force = force.at[(*link_site, hop_index, slice(None))].add(derivatives)
+    return force
+
+
 def jax_compact_lie_left_force(
     links: jnp.ndarray,
     generators: jnp.ndarray,
@@ -336,14 +407,19 @@ def jax_compact_lie_left_force(
     slower, but it avoids the large reverse-mode matrix-exponential graph that
     can exhaust memory for chiral16 SU(4) links.  ``method=
     "finite_difference_batched"`` evaluates the same centered differences in
-    small batches; ``chunk_size`` limits the batch width.
+    small batches; ``chunk_size`` limits the batch width.  ``method=
+    "analytic_staple"`` contracts the plaquette staples directly under the
+    same left-perturbation convention.
     """
 
     generator_count, _ = _validate_compact_lie_links(links, generators)
     if epsilon <= 0:
         raise ValueError("epsilon must be positive")
-    if method not in {"autodiff", "finite_difference", "finite_difference_batched"}:
-        raise ValueError("method must be 'autodiff', 'finite_difference', or 'finite_difference_batched'")
+    if method not in {"autodiff", "finite_difference", "finite_difference_batched", "analytic_staple"}:
+        raise ValueError(
+            "method must be 'autodiff', 'finite_difference', "
+            "'finite_difference_batched', or 'analytic_staple'",
+        )
 
     if method == "finite_difference":
         return _jax_compact_lie_left_force_finite_difference(
@@ -359,6 +435,12 @@ def jax_compact_lie_left_force(
             epsilon=epsilon,
             shapes=shapes,
             chunk_size=chunk_size,
+        )
+    if method == "analytic_staple":
+        return _jax_compact_lie_left_force_analytic_staple(
+            links,
+            generators,
+            shapes=shapes,
         )
 
     real_dtype = jnp.real(jnp.asarray(0, dtype=links.dtype)).dtype

@@ -50,12 +50,19 @@ Session 52 adds microbreakdown cases such as `dirac_transport_sm`,
 force-heavy cases one at a time.
 Session 53 adds batched comparison cases such as `first_left_force_batched_sm`,
 `second_left_force_batched_sm`, and `gauge_leapfrog_batched_sm`.
+Session 54 adds `--force-comparison` to compare scalar force against batched
+chunks `4, 8, 16, 32`.
+Session 55 adds analytic cases such as `first_left_force_analytic_sm`,
+`second_left_force_analytic_sm`, and `gauge_leapfrog_analytic_sm`.
 
 The simulator uses `jax.lax.scan` by default.  JIT wrapping is opt-in with the
 `--jit` CLI flag or `SpacetimeSimulationConfig(use_jit=True)` until the physics
 kernels are profiled for memory use.
-Use `--force-method finite_difference_batched --force-chunk-size 16` to select
-the batched compact Wilson-force path in scan-backed runs.
+Use `--force-method analytic_staple` to select the analytic compact
+Wilson-force path in scan-backed runs when the current BCC plaquette convention
+is applicable.  Use
+`--force-method finite_difference_batched --force-chunk-size 32` for the
+batched finite-difference oracle path.
 
 Physics-specific kernels and observables stay in `spacetime_qca`; reusable
 generic runner, observable, and persistence mechanics stay in `sim`.

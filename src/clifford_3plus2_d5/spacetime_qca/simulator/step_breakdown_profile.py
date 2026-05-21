@@ -19,6 +19,7 @@ from clifford_3plus2_d5.spacetime_qca.jax_fermion_gauge import (
     jax_patisalam_fermion_gauge_step,
 )
 from clifford_3plus2_d5.spacetime_qca.jax_gauss import jax_patisalam_gauss_residual
+from clifford_3plus2_d5.spacetime_qca.jax_gauge_force import CompactLieForceMethod
 from clifford_3plus2_d5.spacetime_qca.jax_patisalam import (
     jax_patisalam_apply_momentum_update,
     jax_patisalam_gauge_hamiltonian_density,
@@ -31,6 +32,15 @@ from clifford_3plus2_d5.spacetime_qca.simulator.config import (
     scaling_config_from_spacetime_config,
 )
 
+
+FORCE_RELATED_STEP_BREAKDOWN_KINDS = {
+    "fermion_gauge_no_matter",
+    "left_force",
+    "gauge_leapfrog",
+    "first_left_force",
+    "second_left_force",
+}
+DEFAULT_FORCE_COMPARISON_CHUNK_SIZES = (4, 8, 16, 32)
 
 StepBreakdownKind = Literal[
     "yukawa_half_kick",
@@ -128,8 +138,18 @@ def default_step_breakdown_cases() -> tuple[StepBreakdownCase, ...]:
             config=replace(
                 base,
                 force_method="finite_difference_batched",
-                force_chunk_size=16,
+                force_chunk_size=32,
                 label="breakdown_left_force_batched_sm",
+            ),
+        ),
+        StepBreakdownCase(
+            name="left_force_analytic_sm",
+            kind="left_force",
+            purpose="Compute the analytic-staple SM Wilson left-force only.",
+            config=replace(
+                base,
+                force_method="analytic_staple",
+                label="breakdown_left_force_analytic_sm",
             ),
         ),
         StepBreakdownCase(
@@ -145,8 +165,18 @@ def default_step_breakdown_cases() -> tuple[StepBreakdownCase, ...]:
             config=replace(
                 base,
                 force_method="finite_difference_batched",
-                force_chunk_size=16,
+                force_chunk_size=32,
                 label="breakdown_gauge_leapfrog_batched_sm",
+            ),
+        ),
+        StepBreakdownCase(
+            name="gauge_leapfrog_analytic_sm",
+            kind="gauge_leapfrog",
+            purpose="Run the pure SM gauge leapfrog with analytic-staple force.",
+            config=replace(
+                base,
+                force_method="analytic_staple",
+                label="breakdown_gauge_leapfrog_analytic_sm",
             ),
         ),
         StepBreakdownCase(
@@ -174,8 +204,18 @@ def default_step_breakdown_cases() -> tuple[StepBreakdownCase, ...]:
             config=replace(
                 base,
                 force_method="finite_difference_batched",
-                force_chunk_size=16,
+                force_chunk_size=32,
                 label="breakdown_first_left_force_batched_sm",
+            ),
+        ),
+        StepBreakdownCase(
+            name="first_left_force_analytic_sm",
+            kind="first_left_force",
+            purpose="Compute the first analytic-staple SM Wilson left-force on initial links.",
+            config=replace(
+                base,
+                force_method="analytic_staple",
+                label="breakdown_first_left_force_analytic_sm",
             ),
         ),
         StepBreakdownCase(
@@ -191,8 +231,18 @@ def default_step_breakdown_cases() -> tuple[StepBreakdownCase, ...]:
             config=replace(
                 base,
                 force_method="finite_difference_batched",
-                force_chunk_size=16,
+                force_chunk_size=32,
                 label="breakdown_second_left_force_batched_sm",
+            ),
+        ),
+        StepBreakdownCase(
+            name="second_left_force_analytic_sm",
+            kind="second_left_force",
+            purpose="Compute the second analytic-staple SM Wilson left-force after one momentum update.",
+            config=replace(
+                base,
+                force_method="analytic_staple",
+                label="breakdown_second_left_force_analytic_sm",
             ),
         ),
     )
@@ -202,6 +252,30 @@ def _config_payload(config: SpacetimeSimulationConfig) -> dict[str, Any]:
     payload = asdict(config)
     payload["lattice_shape"] = tuple(config.lattice_shape)
     return payload
+
+
+def _validate_force_chunk_size(force_chunk_size: int | None) -> None:
+    if force_chunk_size is not None and force_chunk_size <= 0:
+        raise ValueError(f"force_chunk_size must be positive when set, got {force_chunk_size}")
+
+
+def _case_with_force_override(
+    case: StepBreakdownCase,
+    *,
+    force_method: CompactLieForceMethod | None = None,
+    force_chunk_size: int | None = None,
+) -> StepBreakdownCase:
+    """Return a case with force controls overridden only when force-related."""
+
+    _validate_force_chunk_size(force_chunk_size)
+    if case.kind not in FORCE_RELATED_STEP_BREAKDOWN_KINDS:
+        return case
+    config = case.config
+    if force_method is not None:
+        config = replace(config, force_method=force_method)
+    if force_chunk_size is not None:
+        config = replace(config, force_chunk_size=force_chunk_size)
+    return replace(case, config=config)
 
 
 def _block_until_ready(value: Any) -> None:
@@ -496,11 +570,19 @@ def recommend_step_breakdown_bottleneck(case_payloads: tuple[dict[str, Any], ...
         "first_left_force_sm",
         "second_left_force_sm",
         "left_force_batched_sm",
+        "left_force_analytic_sm",
         "first_left_force_batched_sm",
+        "first_left_force_analytic_sm",
         "second_left_force_batched_sm",
+        "second_left_force_analytic_sm",
     }:
-        return "First target: SM finite-difference left-force; compare batched force with a staple-like Wilson force path."
-    if dominant in {"fermion_gauge_no_matter_sm", "gauge_leapfrog_sm", "gauge_leapfrog_batched_sm"}:
+        return "First target: SM Wilson left-force; compare analytic staple force with finite-difference oracles."
+    if dominant in {
+        "fermion_gauge_no_matter_sm",
+        "gauge_leapfrog_sm",
+        "gauge_leapfrog_batched_sm",
+        "gauge_leapfrog_analytic_sm",
+    }:
         return "First target: SM no-backreaction fermion/gauge step; decompose leapfrog force versus Dirac transport."
     if dominant == "dirac_transport_sm":
         return "First target: BCC Dirac transport through SM links; optimize internal-link transport."
@@ -515,14 +597,169 @@ def recommend_step_breakdown_bottleneck(case_payloads: tuple[dict[str, Any], ...
     return f"First target: {dominant}; no specialized recommendation is available."
 
 
+def _speedup_against_baseline(baseline_seconds: float, candidate_seconds: float) -> float | None:
+    if baseline_seconds <= 0 or candidate_seconds <= 0:
+        return None
+    return baseline_seconds / candidate_seconds
+
+
+def _profile_with_speedup(profile: RepeatedCallProfile, *, baseline_seconds: float | None) -> dict[str, Any]:
+    payload = profile.as_payload()
+    payload["speedup_vs_scalar"] = (
+        None
+        if baseline_seconds is None
+        else _speedup_against_baseline(baseline_seconds, float(payload["mean_seconds"]))
+    )
+    return payload
+
+
+def _force_comparison_case(kind: Literal["first_left_force", "second_left_force"]) -> StepBreakdownCase:
+    case_name = "first_left_force_sm" if kind == "first_left_force" else "second_left_force_sm"
+    cases = {case.name: case for case in default_step_breakdown_cases()}
+    return cases[case_name]
+
+
+def _batched_force_comparison_case(
+    kind: Literal["first_left_force", "second_left_force"],
+    *,
+    chunk_size: int,
+) -> StepBreakdownCase:
+    _validate_force_chunk_size(chunk_size)
+    base = _force_comparison_case(kind)
+    name = f"{base.name}_batched_chunk_{chunk_size}"
+    return StepBreakdownCase(
+        name=name,
+        kind=base.kind,
+        purpose=f"{base.purpose} Batched comparison chunk size {chunk_size}.",
+        config=replace(
+            base.config,
+            force_method="finite_difference_batched",
+            force_chunk_size=chunk_size,
+            label=f"breakdown_{name}",
+        ),
+    )
+
+
+def _best_batched_summary(
+    *,
+    kind: str,
+    baseline_payload: dict[str, Any],
+    candidate_payloads: tuple[dict[str, Any], ...],
+) -> dict[str, Any]:
+    if not candidate_payloads:
+        return {
+            "kind": kind,
+            "baseline_seconds": float(baseline_payload["mean_seconds"]),
+            "best_chunk_size": None,
+            "best_seconds": None,
+            "best_speedup": None,
+        }
+    best = min(candidate_payloads, key=lambda payload: float(payload["mean_seconds"]))
+    config = best["metadata"]["config"]
+    return {
+        "kind": kind,
+        "baseline_seconds": float(baseline_payload["mean_seconds"]),
+        "best_chunk_size": config["force_chunk_size"],
+        "best_seconds": float(best["mean_seconds"]),
+        "best_speedup": best["speedup_vs_scalar"],
+    }
+
+
+def recommend_force_chunk_tuning(summary_payloads: tuple[dict[str, Any], ...]) -> str:
+    """Return the next optimization decision from force-chunk comparison results."""
+
+    best_seconds = tuple(
+        float(payload["best_seconds"])
+        for payload in summary_payloads
+        if payload.get("best_seconds") is not None
+    )
+    if not best_seconds:
+        return "No batched force candidates were profiled; keep scalar force as the reference."
+    worst_best = max(best_seconds)
+    if worst_best > 2.0:
+        return "Next target: implement an analytic staple-like compact Wilson force; batched force remains dominant."
+    if worst_best < 1.0:
+        return "Next target: keep batched force and optimize the next non-force simulator bottleneck."
+    return "Next target: keep batched force for SM smoke/prototype runs and profile gauge_leapfrog_batched_sm."
+
+
+def run_force_chunk_comparison(
+    *,
+    chunk_sizes: tuple[int, ...] = DEFAULT_FORCE_COMPARISON_CHUNK_SIZES,
+    warmup_runs: int = 0,
+    timed_runs: int = 1,
+) -> dict[str, Any]:
+    """Compare scalar and batched SM left-force timings for selected chunks."""
+
+    if not chunk_sizes:
+        raise ValueError("chunk_sizes must contain at least one value")
+    for chunk_size in chunk_sizes:
+        _validate_force_chunk_size(chunk_size)
+
+    baseline_payloads = []
+    candidate_payloads = []
+    summary_payloads = []
+    for kind in ("first_left_force", "second_left_force"):
+        baseline_case = _force_comparison_case(kind)
+        baseline_profile = run_step_breakdown_case(
+            baseline_case,
+            warmup_runs=warmup_runs,
+            timed_runs=timed_runs,
+        )
+        baseline_payload = _profile_with_speedup(baseline_profile, baseline_seconds=None)
+        baseline_payloads.append(baseline_payload)
+        baseline_seconds = float(baseline_payload["mean_seconds"])
+
+        kind_candidates = []
+        for chunk_size in chunk_sizes:
+            candidate_case = _batched_force_comparison_case(kind, chunk_size=chunk_size)
+            candidate_profile = run_step_breakdown_case(
+                candidate_case,
+                warmup_runs=warmup_runs,
+                timed_runs=timed_runs,
+            )
+            candidate_payload = _profile_with_speedup(candidate_profile, baseline_seconds=baseline_seconds)
+            candidate_payloads.append(candidate_payload)
+            kind_candidates.append(candidate_payload)
+
+        summary_payloads.append(
+            _best_batched_summary(
+                kind=kind,
+                baseline_payload=baseline_payload,
+                candidate_payloads=tuple(kind_candidates),
+            ),
+        )
+
+    summaries = tuple(summary_payloads)
+    return {
+        "metadata": {
+            "runner": "spacetime_qca.simulator.force_chunk_comparison",
+            "lattice_shape": (1, 1, 1),
+            "sector": "sm",
+            "warmup_runs": warmup_runs,
+            "timed_runs": timed_runs,
+            "chunk_sizes": chunk_sizes,
+            "baseline_method": "finite_difference",
+            "candidate_method": "finite_difference_batched",
+        },
+        "baselines": tuple(baseline_payloads),
+        "candidates": tuple(candidate_payloads),
+        "summary": summaries,
+        "recommendation": recommend_force_chunk_tuning(summaries),
+    }
+
+
 def run_spacetime_step_breakdown_profile(
     *,
     case_names: tuple[str, ...] | None = None,
     warmup_runs: int = 0,
     timed_runs: int = 1,
+    force_method: CompactLieForceMethod | None = None,
+    force_chunk_size: int | None = None,
 ) -> dict[str, Any]:
     """Run bounded step-breakdown profiling cases for Session 51."""
 
+    _validate_force_chunk_size(force_chunk_size)
     cases = default_step_breakdown_cases()
     selected_names = case_names if case_names is not None else ("higgs_leapfrog_sm",)
     requested = set(selected_names)
@@ -530,7 +767,15 @@ def run_spacetime_step_breakdown_profile(
     unknown = sorted(requested - known)
     if unknown:
         raise ValueError(f"unknown step-breakdown profile case(s): {', '.join(unknown)}")
-    cases = tuple(case for case in cases if case.name in requested)
+    cases = tuple(
+        _case_with_force_override(
+            case,
+            force_method=force_method,
+            force_chunk_size=force_chunk_size,
+        )
+        for case in cases
+        if case.name in requested
+    )
 
     profiles = tuple(
         run_step_breakdown_case(case, warmup_runs=warmup_runs, timed_runs=timed_runs).as_payload()
@@ -545,6 +790,8 @@ def run_spacetime_step_breakdown_profile(
             "timed_runs": timed_runs,
             "case_count": len(cases),
             "default_case": case_names is None,
+            "force_method_override": force_method,
+            "force_chunk_size_override": force_chunk_size,
         },
         "cases": profiles,
         "recommendation": recommend_step_breakdown_bottleneck(profiles),

@@ -8,7 +8,9 @@ import pytest
 
 from clifford_3plus2_d5.spacetime_qca.simulator import (
     default_step_breakdown_cases,
+    recommend_force_chunk_tuning,
     recommend_step_breakdown_bottleneck,
+    run_force_chunk_comparison,
     run_spacetime_step_breakdown_profile,
 )
 from clifford_3plus2_d5.spacetime_qca.simulator.scripts.profile_step_breakdown import (
@@ -31,14 +33,18 @@ def test_step_breakdown_case_names_are_unique_and_sm_scoped() -> None:
         "gauge_hamiltonian_sm",
         "left_force_sm",
         "left_force_batched_sm",
+        "left_force_analytic_sm",
         "gauge_leapfrog_sm",
         "gauge_leapfrog_batched_sm",
+        "gauge_leapfrog_analytic_sm",
         "dirac_transport_sm",
         "momentum_update_sm",
         "first_left_force_sm",
         "first_left_force_batched_sm",
+        "first_left_force_analytic_sm",
         "second_left_force_sm",
         "second_left_force_batched_sm",
+        "second_left_force_analytic_sm",
     } <= set(names)
     assert {case.config.sector for case in cases} == {"sm"}
     assert {case.config.lattice_shape for case in cases} == {(1, 1, 1)}
@@ -86,6 +92,32 @@ def test_step_breakdown_safe_microcase_is_json_safe(case_name: str) -> None:
     json.dumps(payload)
 
 
+def test_step_breakdown_force_override_skips_non_force_case() -> None:
+    payload = run_spacetime_step_breakdown_profile(
+        case_names=("momentum_update_sm",),
+        warmup_runs=0,
+        timed_runs=1,
+        force_method="finite_difference_batched",
+        force_chunk_size=8,
+    )
+
+    assert payload["metadata"]["force_method_override"] == "finite_difference_batched"
+    assert payload["metadata"]["force_chunk_size_override"] == 8
+    assert payload["cases"][0]["metadata"]["config"]["force_method"] == "finite_difference"
+    assert payload["cases"][0]["metadata"]["config"]["force_chunk_size"] is None
+    json.dumps(payload)
+
+
+def test_step_breakdown_rejects_invalid_force_chunk_size() -> None:
+    with pytest.raises(ValueError, match="force_chunk_size must be positive"):
+        run_spacetime_step_breakdown_profile(
+            case_names=("higgs_leapfrog_sm",),
+            warmup_runs=0,
+            timed_runs=1,
+            force_chunk_size=0,
+        )
+
+
 def test_step_breakdown_rejects_unknown_case() -> None:
     with pytest.raises(ValueError, match="unknown step-breakdown profile case"):
         run_spacetime_step_breakdown_profile(case_names=("missing",), warmup_runs=0, timed_runs=1)
@@ -98,6 +130,11 @@ def test_step_breakdown_cli_prints_json(capsys) -> None:
     payload = json.loads(capsys.readouterr().out)
     assert payload["metadata"]["case_count"] == 1
     assert payload["cases"][0]["label"] == "higgs_leapfrog_sm"
+
+
+def test_step_breakdown_cli_rejects_force_comparison_with_cases() -> None:
+    with pytest.raises(SystemExit, match="--force-comparison cannot be combined"):
+        step_breakdown_cli(("--force-comparison", "--case", "higgs_leapfrog_sm"))
 
 
 def test_step_breakdown_cli_writes_output(tmp_path, capsys) -> None:
@@ -131,7 +168,24 @@ def test_step_breakdown_recommendation_flags_left_force() -> None:
         ),
     )
 
-    assert "finite-difference left-force" in recommendation
+    assert "SM Wilson left-force" in recommendation
+
+
+def test_force_chunk_tuning_recommendations() -> None:
+    assert "staple-like" in recommend_force_chunk_tuning(
+        ({"best_seconds": 2.5}, {"best_seconds": 1.9}),
+    )
+    assert "next non-force" in recommend_force_chunk_tuning(
+        ({"best_seconds": 0.8}, {"best_seconds": 0.9}),
+    )
+    assert "gauge_leapfrog_batched_sm" in recommend_force_chunk_tuning(
+        ({"best_seconds": 1.2}, {"best_seconds": 1.4}),
+    )
+
+
+def test_force_chunk_comparison_rejects_empty_chunks() -> None:
+    with pytest.raises(ValueError, match="chunk_sizes must contain"):
+        run_force_chunk_comparison(chunk_sizes=(), warmup_runs=0, timed_runs=1)
 
 
 def test_step_breakdown_batched_force_cases_pin_force_method() -> None:
@@ -140,7 +194,11 @@ def test_step_breakdown_batched_force_cases_pin_force_method() -> None:
     assert cases["left_force_batched_sm"].config.force_method == "finite_difference_batched"
     assert cases["first_left_force_batched_sm"].config.force_method == "finite_difference_batched"
     assert cases["second_left_force_batched_sm"].config.force_method == "finite_difference_batched"
-    assert cases["gauge_leapfrog_batched_sm"].config.force_chunk_size == 16
+    assert cases["gauge_leapfrog_batched_sm"].config.force_chunk_size == 32
+    assert cases["left_force_analytic_sm"].config.force_method == "analytic_staple"
+    assert cases["first_left_force_analytic_sm"].config.force_method == "analytic_staple"
+    assert cases["second_left_force_analytic_sm"].config.force_method == "analytic_staple"
+    assert cases["gauge_leapfrog_analytic_sm"].config.force_method == "analytic_staple"
 
 
 def test_step_breakdown_recommendation_flags_dirac_transport() -> None:
