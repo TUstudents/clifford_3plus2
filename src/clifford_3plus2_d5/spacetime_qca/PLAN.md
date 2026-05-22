@@ -411,9 +411,9 @@ Move from Bloch-symbol audits to an exact finite real-space QCA:
 
 Only after this should the package approach dynamical gauge fields.
 
-## Current Roadmap After Session 60
+## Current Roadmap After Session 62
 
-Sessions 20-60 have now completed the original Session 20-22 launch arc and
+Sessions 20-62 have now completed the original Session 20-22 launch arc and
 added the first compact gauge-dynamics and Higgs-field infrastructure stack.
 The package has:
 
@@ -479,9 +479,12 @@ The package has:
   default in the coupled step and simulator configs.
 - Higgs charge in the combined Gauss residual, plus a diagnostic
   Gauss-descent control for tiny lattices.
+- opt-in Gauss-descent projection controls around the coupled simulator step.
+- bounded tiny-lattice projection sweeps comparing projection-off and
+  projection-on trajectories.
 
 The key priority is now numerical credibility.  Gauge constraints, matter
 current, Higgs dynamics, exact local Yukawa insertion, anomaly diagnostics,
-Lorentz free-dispersion diagnostics, and a scaling harness are all in place.
-The next physics priority should be a bounded projection/control path around
-the coupled simulator step, not another profiling-only session.
+Lorentz free-dispersion diagnostics, projection controls, and a scaling harness
+are all in place.  Projection remains off by default; bounded sweeps should
+choose any projection settings before lab runs enable it.

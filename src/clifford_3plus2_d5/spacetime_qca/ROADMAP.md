@@ -570,6 +570,19 @@ After Session 59:
 
 After Session 60:
 
-- The next physics step should be a bounded automatic projection/control path
-  around the coupled simulator step, or a stability sweep with projection
-  enabled, not another profiling-only session.
+- Implemented by Session 61.  The coupled simulator now has off-by-default
+  bounded Gauss-descent projection controls.
+
+After Session 61:
+
+- Implemented by Session 62.  A bounded tiny-lattice projection sweep now
+  compares projection-off/on trajectories and records final/max Gauss residual
+  improvements.
+
+After Session 62:
+
+- Keep projection disabled by default.
+- Use `jax_gauss_projection_sweep` before enabling projection in lab runs.
+- Next hardening step should be either an analytic/vectorized Higgs current
+  and charge path or a longer bounded stability run with projection settings
+  chosen from the sweep.

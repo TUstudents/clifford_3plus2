@@ -48,6 +48,8 @@ class SimulationRunConfig:
     current_epsilon: float = 1e-3
     higgs_current_epsilon: float = 1e-3
     yukawa_mode: YukawaUpdateMode = "unitary"
+    gauss_projection_steps: int = 0
+    gauss_projection_step_size: float = 0.0
     dtype_label: str = "complex64"
     label: str = "tiny_spacetime_qca"
     description: str = "Session 46 deterministic tiny-lattice run"
@@ -86,6 +88,12 @@ def _validate_runner_config(config: SimulationRunConfig) -> None:
         raise ValueError(f"steps must be nonnegative, got {config.steps}")
     if config.record_every <= 0:
         raise ValueError(f"record_every must be positive, got {config.record_every}")
+    if config.gauss_projection_steps < 0:
+        raise ValueError(f"gauss_projection_steps must be nonnegative, got {config.gauss_projection_steps}")
+    if config.gauss_projection_step_size < 0:
+        raise ValueError(
+            f"gauss_projection_step_size must be nonnegative, got {config.gauss_projection_step_size}",
+        )
 
 
 def _scaling_config(config: SimulationRunConfig) -> ScalingRunConfig:
@@ -103,6 +111,8 @@ def _scaling_config(config: SimulationRunConfig) -> ScalingRunConfig:
         current_epsilon=config.current_epsilon,
         higgs_current_epsilon=config.higgs_current_epsilon,
         yukawa_mode=config.yukawa_mode,
+        gauss_projection_steps=config.gauss_projection_steps,
+        gauss_projection_step_size=config.gauss_projection_step_size,
     )
 
 

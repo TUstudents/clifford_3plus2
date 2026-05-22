@@ -33,6 +33,7 @@ from clifford_3plus2_d5.spacetime_qca.jax_coupled_higgs import (
     jax_higgs_momentum_energy_density,
     jax_higgs_site_gauge_from_patisalam_sector,
     jax_higgs_total_energy,
+    jax_patisalam_apply_gauss_descent_projection,
     jax_patisalam_apply_higgs_backreaction,
     jax_patisalam_fermion_higgs_gauss_descent_step,
     jax_patisalam_fermion_higgs_gauss_residual,
@@ -294,6 +295,48 @@ def test_higgs_backreaction_kick_is_linear_and_validates_shape() -> None:
         jax_patisalam_apply_higgs_backreaction(momenta, jnp.ones((1, 1, 1, 8, 1)), step_size=0.1)
 
 
+def test_gauss_projection_noop_and_validation() -> None:
+    lattice_shape = (1, 1, 1)
+    state = _state(lattice_shape)
+    links = _patisalam_links(lattice_shape)
+    momenta = _momenta("u1_y", lattice_shape)
+    phi = _phi(lattice_shape)
+    higgs_momentum = 0.25 * phi
+
+    unchanged = jax_patisalam_apply_gauss_descent_projection(
+        state,
+        links,
+        momenta,
+        phi,
+        higgs_momentum,
+        sector="u1_y",
+        projection_steps=0,
+        projection_step_size=0.1,
+    )
+
+    np.testing.assert_allclose(np.asarray(unchanged), np.asarray(momenta), atol=1e-7)
+    with pytest.raises(ValueError, match="projection_steps must be nonnegative"):
+        jax_patisalam_apply_gauss_descent_projection(
+            state,
+            links,
+            momenta,
+            phi,
+            higgs_momentum,
+            sector="u1_y",
+            projection_steps=-1,
+        )
+    with pytest.raises(ValueError, match="projection_step_size must be nonnegative"):
+        jax_patisalam_apply_gauss_descent_projection(
+            state,
+            links,
+            momenta,
+            phi,
+            higgs_momentum,
+            sector="u1_y",
+            projection_step_size=-0.1,
+        )
+
+
 def test_higgs_link_current_from_patisalam_sector_matches_embedding() -> None:
     phi = _phi()
     links = _higgs_links()
@@ -448,6 +491,79 @@ def test_gauss_descent_step_reduces_higgs_sourced_residual_norm() -> None:
     )
 
     assert float(jnp.real(jnp.vdot(after, after))) < float(jnp.real(jnp.vdot(before, before)))
+
+
+@pytest.mark.slow
+def test_coupled_step_gauss_projection_reduces_final_residual() -> None:
+    lattice_shape = (2, 1, 1)
+    state = _state(lattice_shape)
+    links = _patisalam_links(lattice_shape)
+    momenta = jnp.zeros((*lattice_shape, 8, 1), dtype=jnp.float32)
+    phi = _phi(lattice_shape)
+    higgs_momentum = 0.25 * phi
+    higgs_links = jax_higgs_link_field_from_algebra(jnp.zeros((*lattice_shape, 8, 4), dtype=jnp.float32))
+
+    baseline = jax_patisalam_fermion_gauge_higgs_step(
+        state,
+        links,
+        momenta,
+        phi,
+        higgs_momentum,
+        higgs_links,
+        sector="u1_y",
+        step_size=0.005,
+        matter_coupling=0.0,
+        higgs_coupling=1.0,
+        yukawa_coupling=0.0,
+        beta=0.0,
+        shapes=_shapes(),
+        force_epsilon=5e-3,
+    )
+    projected = jax_patisalam_fermion_gauge_higgs_step(
+        state,
+        links,
+        momenta,
+        phi,
+        higgs_momentum,
+        higgs_links,
+        sector="u1_y",
+        step_size=0.005,
+        matter_coupling=0.0,
+        higgs_coupling=1.0,
+        yukawa_coupling=0.0,
+        beta=0.0,
+        shapes=_shapes(),
+        force_epsilon=5e-3,
+        gauss_projection_steps=1,
+        gauss_projection_step_size=0.01,
+    )
+
+    baseline_residual = jax_patisalam_fermion_higgs_gauss_residual(
+        baseline[0],
+        baseline[1],
+        baseline[2],
+        baseline[3],
+        baseline[4],
+        sector="u1_y",
+        matter_coupling=0.0,
+        higgs_coupling=1.0,
+    )
+    projected_residual = jax_patisalam_fermion_higgs_gauss_residual(
+        projected[0],
+        projected[1],
+        projected[2],
+        projected[3],
+        projected[4],
+        sector="u1_y",
+        matter_coupling=0.0,
+        higgs_coupling=1.0,
+    )
+
+    assert float(jnp.real(jnp.vdot(projected_residual, projected_residual))) < float(
+        jnp.real(jnp.vdot(baseline_residual, baseline_residual)),
+    )
+    for item in projected:
+        assert bool(jnp.all(jnp.isfinite(item)))
 
 
 @pytest.mark.slow

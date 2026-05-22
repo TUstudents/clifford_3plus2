@@ -195,8 +195,8 @@ scalars.  A compressed explicit `C^16_internal` basis is not implemented yet.
 - Vectorized Wilson action evaluation for large lattices.
 - Dynamical gauge fields beyond the current SU(2)/SU(3)/SU(4)/Pati-Salam/SM
   leapfrog prototypes.
-- Full Gauss-law projection / constraint solving beyond the combined residual
-  and diagnostic descent controls.
+- Exact Gauss-law projection / constraint solving beyond the combined residual
+  and bounded diagnostic descent controls.
 - Vectorized SU(2) staple force and Gauss-law constraints.
 - Lorentz boost recovery beyond the free-dispersion anisotropy audit.
 - Production-scale performance benchmarks and long-time stability tests.
@@ -1030,6 +1030,34 @@ Interpretation: the coupled prototype now has both link-current backreaction
 and the matching Higgs charge contribution in its Gauss diagnostic.  Automatic
 constraint projection, analytic/vectorized charge/current formulas, and
 long-time constrained stability remain future work.
+
+## Session 61 result
+
+- `jax_patisalam_apply_gauss_descent_projection` adds bounded repeated
+  descent on the combined fermion/Higgs Gauss residual.
+- `jax_patisalam_fermion_gauge_higgs_step` now accepts
+  `gauss_projection_steps` and `gauss_projection_step_size`.
+- Scaling, lab-runner, and scan-backed simulator configs expose the same
+  controls, with CLI flags in both runner scripts.
+- Defaults preserve previous behavior exactly: projection is off unless both
+  projection controls are nonzero.
+
+Interpretation: the simulator now has an opt-in Gauss-control path around the
+coupled step.  This is still a bounded diagnostic descent, not an exact
+constraint solve.
+
+## Session 62 result
+
+- `jax_gauss_projection_sweep` compares projection-off and projection-on tiny
+  trajectories using existing scaling diagnostics.
+- `GaussProjectionSweepCase` and `GaussProjectionSweep` summarize each case,
+  best final residual, best max sampled residual, and finite-status checks.
+- A tiny `(2, 1, 1)` one-step fixture shows lower final combined Gauss residual
+  with one projection step.
+
+Interpretation: projection is now measurable instead of merely available.
+It remains off by default; bounded sweeps should determine when lab runs enable
+it.
 
 ## Session 24 result
 

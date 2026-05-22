@@ -85,13 +85,14 @@ assembly → tensor lift to `lepton`'s chiral-16 internal carrier → finite
 simulation controls for background-gauge and coupled gauge/Higgs/Yukawa
 experiments.
 
-**Sessions**: 20-59 complete through BCC Dirac kinematics, real-space stepping,
+**Sessions**: 20-62 complete through BCC Dirac kinematics, real-space stepping,
 position-dependent gauge covariance, BCC plaquettes, Wilson action/forces,
 compact SU(2)/SU(3)/SU(4)/Pati-Salam/SM gauge prototypes, Gauss/backreaction
 controls, dynamical Higgs/Yukawa infrastructure, anomaly and Lorentz audits,
 simulation runner split, profiling/force optimizations, exact-unitary Yukawa
 fast path, sparse recorded scans, and finite-difference Higgs-current
-backreaction plus Higgs charge in the combined Gauss residual.
+backreaction plus Higgs charge in the combined Gauss residual, opt-in Gauss
+projection controls, and bounded projection sweeps.
 
 **Implemented**:
 - BCC geometry (8 body diagonals).
@@ -124,6 +125,8 @@ backreaction plus Higgs charge in the combined Gauss residual.
   internal carrier.
 - Gauss residuals, fermion charge density, finite-difference link current, and
   explicit momentum-source backreaction controls.
+- Combined fermion/Higgs Gauss residuals, opt-in bounded Gauss-descent
+  projection controls, and tiny-lattice projection sweeps.
 - Site-local Higgs field with electroweak gauge covariance, BCC covariant
   differences, Mexican-hat potential diagnostics, conjugate momentum, and
   fixed-link leapfrog controls.
@@ -235,8 +238,8 @@ backreaction plus Higgs charge in the combined Gauss residual.
 - Full fundamental-BCC-Brillouin-zone no-doubling proof.
 - Full symbolic all-momentum BCC Bloch-symbol unitarity proof.
 - Optional conversion to a `J`-adapted explicit `C^16` internal basis.
-- Full Gauss-law projection / constraint solving beyond the combined residual
-  and diagnostic descent controls.
+- Exact Gauss-law projection / constraint solving beyond the combined residual
+  and bounded diagnostic descent controls.
 - Realistic Yukawa mass matrices and family structure.
 - Long-time stability tests and larger-lattice simulator campaigns.
 

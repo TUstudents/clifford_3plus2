@@ -77,6 +77,10 @@ Wilson-force path in scan-backed runs when the current BCC plaquette convention
 is applicable.  Use
 `--force-method finite_difference_batched --force-chunk-size 32` for the
 batched finite-difference oracle path.
+Session 61 adds off-by-default Gauss projection controls:
+`--gauss-projection-steps` and `--gauss-projection-step-size`.  Keep them at
+zero for baseline runs and use the Session 62 projection sweep before enabling
+them in longer lab runs.
 
 Physics-specific kernels and observables stay in `spacetime_qca`; reusable
 generic runner, observable, and persistence mechanics stay in `sim`.

@@ -56,6 +56,12 @@ def test_main_simulator_rejects_invalid_controls() -> None:
     with pytest.raises(ValueError, match="force_chunk_size must be positive"):
         run_spacetime_simulation(SpacetimeSimulationConfig(force_chunk_size=0))
 
+    with pytest.raises(ValueError, match="gauss_projection_steps must be nonnegative"):
+        run_spacetime_simulation(SpacetimeSimulationConfig(gauss_projection_steps=-1))
+
+    with pytest.raises(ValueError, match="gauss_projection_step_size must be nonnegative"):
+        run_spacetime_simulation(SpacetimeSimulationConfig(gauss_projection_step_size=-0.1))
+
 
 def test_main_simulator_presets_are_memory_safe() -> None:
     assert u1_y_tiny().sector == "u1_y"
@@ -124,6 +130,26 @@ def test_main_simulator_cli_accepts_eigh_yukawa_oracle_mode(capsys) -> None:
     assert exit_code == 0
     payload = json.loads(capsys.readouterr().out)
     assert payload["yukawa_mode"] == "unitary_eigh"
+
+
+def test_main_simulator_cli_accepts_gauss_projection_controls(capsys) -> None:
+    exit_code = main_sim_cli(
+        (
+            "--steps",
+            "0",
+            "--step-size",
+            "0.0",
+            "--gauss-projection-steps",
+            "2",
+            "--gauss-projection-step-size",
+            "0.01",
+        ),
+    )
+
+    assert exit_code == 0
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["gauss_projection_steps"] == 2
+    assert payload["gauss_projection_step_size"] == 0.01
 
 
 def test_main_simulator_cli_output_writes_metadata(tmp_path, capsys) -> None:

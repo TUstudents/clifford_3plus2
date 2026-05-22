@@ -59,6 +59,8 @@ class ScalingRunConfig:
     current_epsilon: float = 1e-3
     higgs_current_epsilon: float = 1e-3
     yukawa_mode: YukawaUpdateMode = "first_order"
+    gauss_projection_steps: int = 0
+    gauss_projection_step_size: float = 0.0
     shapes: tuple[PlaquetteShape, ...] | None = None
 
 
@@ -126,6 +128,26 @@ class ScalingTrajectory:
     max_higgs_energy_drift: jnp.ndarray
     max_gauss_residual_drift: jnp.ndarray
     max_total_energy_proxy_drift: jnp.ndarray
+    all_finite: jnp.ndarray
+
+
+@dataclass(frozen=True)
+class GaussProjectionSweepCase:
+    """One bounded Gauss-projection trajectory case."""
+
+    projection_steps: int
+    projection_step_size: float
+    trajectory: ScalingTrajectory
+
+
+@dataclass(frozen=True)
+class GaussProjectionSweep:
+    """Small projection-off/on comparison for Gauss-control diagnostics."""
+
+    baseline: GaussProjectionSweepCase
+    projected: tuple[GaussProjectionSweepCase, ...]
+    best_final_gauss_residual_norm: jnp.ndarray
+    best_max_gauss_residual_norm: jnp.ndarray
     all_finite: jnp.ndarray
 
 
@@ -331,6 +353,8 @@ def _advance_scaling_fields(fields: ScalingInitialState, config: ScalingRunConfi
         current_epsilon=config.current_epsilon,
         higgs_current_epsilon=config.higgs_current_epsilon,
         yukawa_mode=config.yukawa_mode,
+        gauss_projection_steps=config.gauss_projection_steps,
+        gauss_projection_step_size=config.gauss_projection_step_size,
     )
     return ScalingInitialState(
         state=stepped[0],
@@ -480,6 +504,59 @@ def jax_coupled_scaling_trajectory(
     )
 
 
+def _max_gauss_residual_norm(trajectory: ScalingTrajectory) -> jnp.ndarray:
+    return jnp.max(jnp.asarray([sample.snapshot.gauss_residual_norm for sample in trajectory.samples]))
+
+
+def jax_gauss_projection_sweep(
+    config: ScalingRunConfig,
+    *,
+    projection_step_size: float = 0.01,
+    projection_steps_options: tuple[int, ...] = (1, 2, 3),
+    steps: int = 2,
+    record_every: int = 1,
+) -> GaussProjectionSweep:
+    """Compare tiny trajectories with Gauss projection disabled and enabled."""
+
+    if projection_step_size < 0:
+        raise ValueError(f"projection_step_size must be nonnegative, got {projection_step_size}")
+    if any(option < 0 for option in projection_steps_options):
+        raise ValueError(f"projection_steps_options must be nonnegative, got {projection_steps_options}")
+
+    baseline_config = replace(config, gauss_projection_steps=0, gauss_projection_step_size=0.0)
+    baseline = GaussProjectionSweepCase(
+        projection_steps=0,
+        projection_step_size=0.0,
+        trajectory=jax_coupled_scaling_trajectory(baseline_config, steps=steps, record_every=record_every),
+    )
+    projected = tuple(
+        GaussProjectionSweepCase(
+            projection_steps=projection_steps,
+            projection_step_size=projection_step_size,
+            trajectory=jax_coupled_scaling_trajectory(
+                replace(
+                    config,
+                    gauss_projection_steps=projection_steps,
+                    gauss_projection_step_size=projection_step_size,
+                ),
+                steps=steps,
+                record_every=record_every,
+            ),
+        )
+        for projection_steps in projection_steps_options
+    )
+    cases = (baseline, *projected)
+    final_norms = jnp.asarray([case.trajectory.final.snapshot.gauss_residual_norm for case in cases])
+    max_norms = jnp.asarray([_max_gauss_residual_norm(case.trajectory) for case in cases])
+    return GaussProjectionSweep(
+        baseline=baseline,
+        projected=projected,
+        best_final_gauss_residual_norm=jnp.min(final_norms),
+        best_max_gauss_residual_norm=jnp.min(max_norms),
+        all_finite=jnp.all(jnp.asarray([case.trajectory.all_finite for case in cases])),
+    )
+
+
 def _safe_ratio(numerator: jnp.ndarray, denominator: jnp.ndarray) -> jnp.ndarray:
     return jnp.where(denominator == 0, jnp.where(numerator == 0, 0.0, jnp.inf), numerator / denominator)
 
@@ -563,6 +640,8 @@ def jax_scaling_timing_probe(config: ScalingRunConfig, *, steps: int = 2) -> Jax
                     current_epsilon=config.current_epsilon,
                     higgs_current_epsilon=config.higgs_current_epsilon,
                     yukawa_mode=config.yukawa_mode,
+                    gauss_projection_steps=config.gauss_projection_steps,
+                    gauss_projection_step_size=config.gauss_projection_step_size,
                 )
         return (
             jnp.real(jnp.sum(current[0]))

@@ -12,6 +12,7 @@ from clifford_3plus2_d5.spacetime_qca.jax_scaling import (
     jax_advance_scaling_fields,
     jax_compare_yukawa_modes,
     jax_coupled_scaling_trajectory,
+    jax_gauss_projection_sweep,
     jax_scaling_timing_probe,
 )
 
@@ -78,11 +79,28 @@ def test_timing_probe_rejects_invalid_steps() -> None:
 def test_session44_public_exports_are_available() -> None:
     assert spacetime_qca.ScalingTrajectory is not None
     assert spacetime_qca.ScalingTrajectorySample is not None
+    assert spacetime_qca.GaussProjectionSweep is not None
+    assert spacetime_qca.GaussProjectionSweepCase is not None
     assert spacetime_qca.YukawaModeComparison is not None
     assert spacetime_qca.jax_advance_scaling_fields is jax_advance_scaling_fields
     assert spacetime_qca.jax_coupled_scaling_trajectory is jax_coupled_scaling_trajectory
     assert spacetime_qca.jax_compare_yukawa_modes is jax_compare_yukawa_modes
+    assert spacetime_qca.jax_gauss_projection_sweep is jax_gauss_projection_sweep
     assert spacetime_qca.jax_scaling_timing_probe is jax_scaling_timing_probe
+
+
+def test_gauss_projection_sweep_zero_step_has_stable_shape() -> None:
+    sweep = jax_gauss_projection_sweep(
+        ScalingRunConfig(step_size=0.0),
+        projection_steps_options=(1,),
+        steps=1,
+    )
+
+    assert sweep.baseline.projection_steps == 0
+    assert tuple(case.projection_steps for case in sweep.projected) == (1,)
+    assert bool(sweep.all_finite)
+    _assert_finite_scalar(sweep.best_final_gauss_residual_norm)
+    _assert_finite_scalar(sweep.best_max_gauss_residual_norm)
 
 
 @pytest.mark.slow
@@ -115,3 +133,27 @@ def test_unitary_yukawa_mode_does_not_increase_fermion_norm_drift() -> None:
     assert bool(comparison.all_finite)
     assert float(comparison.fermion_norm_drift_ratio) <= 1.0 + 1e-4
     _assert_finite_scalar(comparison.total_energy_proxy_drift_ratio)
+
+
+@pytest.mark.slow
+def test_gauss_projection_sweep_reduces_final_residual_on_tiny_case() -> None:
+    sweep = jax_gauss_projection_sweep(
+        ScalingRunConfig(
+            lattice_shape=(2, 1, 1),
+            sector="u1_y",
+            step_size=0.005,
+            matter_coupling=0.0,
+            higgs_coupling=1.0,
+            yukawa_coupling=0.0,
+            beta=0.0,
+            force_epsilon=5e-3,
+        ),
+        projection_step_size=0.01,
+        projection_steps_options=(1,),
+        steps=1,
+    )
+
+    baseline_final = sweep.baseline.trajectory.final.snapshot.gauss_residual_norm
+    projected_final = sweep.projected[0].trajectory.final.snapshot.gauss_residual_norm
+    assert bool(sweep.all_finite)
+    assert float(projected_final) < float(baseline_final)

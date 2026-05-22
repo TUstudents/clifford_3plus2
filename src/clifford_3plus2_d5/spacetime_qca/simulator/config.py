@@ -34,6 +34,8 @@ class SpacetimeSimulationConfig:
     current_epsilon: float = 1e-3
     higgs_current_epsilon: float = 1e-3
     yukawa_mode: YukawaUpdateMode = "unitary"
+    gauss_projection_steps: int = 0
+    gauss_projection_step_size: float = 0.0
     use_jit: bool = False
     label: str = "spacetime_qca"
     description: str = "Scan-backed spacetime-QCA simulator run"
@@ -50,6 +52,12 @@ def validate_spacetime_simulation_config(config: SpacetimeSimulationConfig) -> N
         raise ValueError(f"record_every must be positive, got {config.record_every}")
     if config.force_chunk_size is not None and config.force_chunk_size <= 0:
         raise ValueError(f"force_chunk_size must be positive when set, got {config.force_chunk_size}")
+    if config.gauss_projection_steps < 0:
+        raise ValueError(f"gauss_projection_steps must be nonnegative, got {config.gauss_projection_steps}")
+    if config.gauss_projection_step_size < 0:
+        raise ValueError(
+            f"gauss_projection_step_size must be nonnegative, got {config.gauss_projection_step_size}",
+        )
 
 
 def scaling_config_from_spacetime_config(config: SpacetimeSimulationConfig) -> ScalingRunConfig:
@@ -71,6 +79,8 @@ def scaling_config_from_spacetime_config(config: SpacetimeSimulationConfig) -> S
         current_epsilon=config.current_epsilon,
         higgs_current_epsilon=config.higgs_current_epsilon,
         yukawa_mode=config.yukawa_mode,
+        gauss_projection_steps=config.gauss_projection_steps,
+        gauss_projection_step_size=config.gauss_projection_step_size,
     )
 
 

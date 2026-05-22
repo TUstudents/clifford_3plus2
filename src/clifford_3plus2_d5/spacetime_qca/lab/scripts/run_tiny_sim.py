@@ -22,6 +22,8 @@ def _parser() -> argparse.ArgumentParser:
     parser.add_argument("--step-size", type=float, default=0.0025)
     parser.add_argument("--sector", choices=("u1_y", "su2_l", "sm"), default="u1_y")
     parser.add_argument("--yukawa-mode", choices=("first_order", "unitary", "unitary_eigh"), default="unitary")
+    parser.add_argument("--gauss-projection-steps", type=int, default=0)
+    parser.add_argument("--gauss-projection-step-size", type=float, default=0.0)
     parser.add_argument("--output", type=Path, default=None, help="Optional .npz output path.")
     return parser
 
@@ -34,6 +36,8 @@ def main(argv: Sequence[str] | None = None) -> int:
         record_every=args.record_every,
         step_size=args.step_size,
         yukawa_mode=args.yukawa_mode,
+        gauss_projection_steps=args.gauss_projection_steps,
+        gauss_projection_step_size=args.gauss_projection_step_size,
     )
     result = run_simulation(config)
     summary = simulation_summary(result)

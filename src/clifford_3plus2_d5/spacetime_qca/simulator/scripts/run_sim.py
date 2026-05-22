@@ -32,6 +32,8 @@ def _parser() -> argparse.ArgumentParser:
     parser.add_argument("--force-chunk-size", type=int, default=None)
     parser.add_argument("--current-epsilon", type=float, default=1e-3)
     parser.add_argument("--higgs-current-epsilon", type=float, default=1e-3)
+    parser.add_argument("--gauss-projection-steps", type=int, default=0)
+    parser.add_argument("--gauss-projection-step-size", type=float, default=0.0)
     parser.add_argument("--jit", action="store_true", help="Enable JIT around the scan runner.")
     parser.add_argument("--output", type=Path, default=None, help="Optional .npz output path.")
     return parser
@@ -51,6 +53,8 @@ def main(argv: Sequence[str] | None = None) -> int:
         force_chunk_size=args.force_chunk_size,
         current_epsilon=args.current_epsilon,
         higgs_current_epsilon=args.higgs_current_epsilon,
+        gauss_projection_steps=args.gauss_projection_steps,
+        gauss_projection_step_size=args.gauss_projection_step_size,
         use_jit=args.jit,
     )
     result = run_spacetime_simulation(config)

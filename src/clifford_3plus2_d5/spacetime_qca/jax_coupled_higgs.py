@@ -14,7 +14,8 @@ kick for compatibility, while Session 45 adds an exact local unitary option.
 Session 57 keeps that exact unitary as the public ``unitary`` mode, but
 evaluates it with the selected Higgs-map cubic polynomial instead of a local
 eigensolve.  Session 59 adds an off-by-default finite-difference Higgs-current
-kick into gauge momenta.
+kick into gauge momenta.  Session 61 adds an off-by-default bounded
+Gauss-descent projection for gauge momenta.
 """
 
 from __future__ import annotations
@@ -464,6 +465,44 @@ def jax_patisalam_fermion_higgs_gauss_descent_step(
     return momenta - jnp.asarray(descent_step_size, dtype=momenta.dtype) * gradient
 
 
+def jax_patisalam_apply_gauss_descent_projection(
+    state: jnp.ndarray,
+    links: jnp.ndarray,
+    momenta: jnp.ndarray,
+    phi: jnp.ndarray,
+    higgs_momentum: jnp.ndarray,
+    *,
+    sector: HiggsCoupledSector = "u1_y",
+    matter_coupling: float = 1.0,
+    higgs_coupling: float = 1.0,
+    projection_steps: int = 0,
+    projection_step_size: float = 0.0,
+) -> jnp.ndarray:
+    """Return momenta after bounded diagnostic descent on the Gauss residual."""
+
+    if projection_steps < 0:
+        raise ValueError("projection_steps must be nonnegative")
+    if projection_step_size < 0:
+        raise ValueError("projection_step_size must be nonnegative")
+    if projection_steps == 0 or projection_step_size == 0:
+        return momenta
+
+    updated = momenta
+    for _ in range(projection_steps):
+        updated = jax_patisalam_fermion_higgs_gauss_descent_step(
+            state,
+            links,
+            updated,
+            phi,
+            higgs_momentum,
+            sector=sector,
+            matter_coupling=matter_coupling,
+            higgs_coupling=higgs_coupling,
+            descent_step_size=projection_step_size,
+        )
+    return updated
+
+
 def jax_higgs_link_field_from_patisalam_sector(
     theta: jnp.ndarray,
     *,
@@ -678,8 +717,15 @@ def jax_patisalam_fermion_gauge_higgs_step(
     current_epsilon: float = 1e-3,
     higgs_current_epsilon: float = 1e-3,
     yukawa_mode: YukawaUpdateMode = "first_order",
+    gauss_projection_steps: int = 0,
+    gauss_projection_step_size: float = 0.0,
 ) -> tuple[jnp.ndarray, jnp.ndarray, jnp.ndarray, jnp.ndarray, jnp.ndarray, jnp.ndarray]:
     """Return one small coupled ``(fermion, gauge, Higgs)`` prototype step."""
+
+    if gauss_projection_steps < 0:
+        raise ValueError("gauss_projection_steps must be nonnegative")
+    if gauss_projection_step_size < 0:
+        raise ValueError("gauss_projection_step_size must be nonnegative")
 
     _validate_higgs_coupled_sector(sector)
     lattice_shape = _validate_patisalam_state(state)
@@ -741,7 +787,21 @@ def jax_patisalam_fermion_gauge_higgs_step(
         yukawa_coupling=yukawa_coupling,
         mode=yukawa_mode,
     )
-    return final_state, updated_links, updated_momenta, updated_phi, updated_higgs_momentum, higgs_links
+    projected_momenta = updated_momenta
+    if step_size != 0:
+        projected_momenta = jax_patisalam_apply_gauss_descent_projection(
+            final_state,
+            updated_links,
+            updated_momenta,
+            updated_phi,
+            updated_higgs_momentum,
+            sector=sector,
+            matter_coupling=matter_coupling,
+            higgs_coupling=higgs_coupling,
+            projection_steps=gauss_projection_steps,
+            projection_step_size=gauss_projection_step_size,
+        )
+    return final_state, updated_links, projected_momenta, updated_phi, updated_higgs_momentum, higgs_links
 
 
 def jax_patisalam_fermion_gauge_higgs_diagnostics(
