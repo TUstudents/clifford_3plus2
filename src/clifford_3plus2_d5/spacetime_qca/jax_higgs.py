@@ -31,6 +31,7 @@ from clifford_3plus2_d5.sim.links import jax_identity_link_field
 from clifford_3plus2_d5.sim.state import sympy_matrix_to_numpy
 from clifford_3plus2_d5.spacetime_qca.jax_gauge_force import (
     jax_compact_lie_link_field_from_algebra,
+    jax_compact_lie_link_from_algebra,
     jax_compact_lie_site_field_from_algebra,
     jax_su2_generators,
     jax_transform_link_field,
@@ -46,6 +47,7 @@ __all__ = [
     "jax_higgs_generators",
     "jax_higgs_kinetic_energy_density",
     "jax_higgs_link_field_from_algebra",
+    "jax_higgs_link_current",
     "jax_higgs_potential_density",
     "jax_higgs_pure_gauge_links_from_site_algebra",
     "jax_higgs_site_gauge_from_algebra",
@@ -207,6 +209,63 @@ def jax_higgs_energy_density(
         vev_squared=vev_squared,
         quartic=quartic,
     )
+
+
+def jax_higgs_link_current(
+    phi: jnp.ndarray,
+    links: jnp.ndarray,
+    *,
+    epsilon: float = 1e-3,
+    vev_squared: Any = 1.0,
+    quartic: Any = 1.0,
+) -> jnp.ndarray:
+    """Return finite-difference Higgs link-current coordinates.
+
+    The output has shape ``(nx, ny, nz, 8, 4)`` in the Higgs generator order
+    ``(su2_x, su2_y, su2_z, u1_y)``.  Each component is the negative
+    left-trivialized derivative of total Higgs energy under
+    ``U[x,h] -> exp(theta_a T_a) U[x,h]``.  This mirrors the gauge-force sign:
+    adding ``dt * current`` to momenta gives a force-like source kick.
+
+    This is a small-lattice audit primitive; it loops over BCC links and
+    generators explicitly instead of providing a production analytic current.
+    """
+
+    lattice_shape = _validate_higgs_field(phi)
+    _validate_higgs_links(links, lattice_shape)
+    if epsilon <= 0:
+        raise ValueError("epsilon must be positive")
+
+    real_dtype = jnp.real(jnp.asarray(0, dtype=links.dtype)).dtype
+    eps = jnp.asarray(epsilon, dtype=real_dtype)
+    basis_coordinates = eps * jnp.eye(4, dtype=real_dtype)
+    generators = jax_higgs_generators(dtype=links.dtype)
+    plus_updates = jax_compact_lie_link_from_algebra(basis_coordinates, generators)
+    minus_updates = jax_compact_lie_link_from_algebra(-basis_coordinates, generators)
+
+    def total_energy(candidate_links: jnp.ndarray) -> jnp.ndarray:
+        return jnp.sum(
+            jax_higgs_energy_density(
+                phi,
+                candidate_links,
+                vev_squared=vev_squared,
+                quartic=quartic,
+            ),
+        )
+
+    current = jnp.zeros((*links.shape[:4], 4), dtype=real_dtype)
+    nx, ny, nz = (int(size) for size in links.shape[:3])
+    for x in range(nx):
+        for y in range(ny):
+            for z in range(nz):
+                for hop in range(8):
+                    base_link = links[x, y, z, hop]
+                    for generator_index in range(4):
+                        plus_links = links.at[x, y, z, hop].set(plus_updates[generator_index] @ base_link)
+                        minus_links = links.at[x, y, z, hop].set(minus_updates[generator_index] @ base_link)
+                        derivative = (total_energy(plus_links) - total_energy(minus_links)) / (2 * eps)
+                        current = current.at[x, y, z, hop, generator_index].set(-derivative)
+    return current
 
 
 def jax_higgs_yukawa_internal_control_field(phi: jnp.ndarray, *, dtype: Any | None = None) -> jnp.ndarray:

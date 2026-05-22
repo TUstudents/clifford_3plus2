@@ -13,6 +13,7 @@ from clifford_3plus2_d5.spacetime_qca.jax_higgs import (
     jax_higgs_generators,
     jax_higgs_kinetic_energy_density,
     jax_higgs_link_field_from_algebra,
+    jax_higgs_link_current,
     jax_higgs_potential_density,
     jax_higgs_pure_gauge_links_from_site_algebra,
     jax_higgs_site_gauge_from_algebra,
@@ -127,6 +128,43 @@ def test_pure_gauge_links_make_transformed_constant_higgs_covariantly_constant()
         np.zeros((2, 2, 2), dtype=np.float32),
         atol=2e-5,
     )
+
+
+def test_higgs_link_current_vanishes_for_neutral_vev_with_identity_links() -> None:
+    phi = jax_constant_higgs_field((1, 1, 1), phi_plus=0.0 + 0.0j, phi_zero=1.0 + 0.0j)
+    links = jax_higgs_link_field_from_algebra(jnp.zeros((1, 1, 1, 8, 4), dtype=jnp.float32))
+
+    current = jax_higgs_link_current(phi, links, epsilon=2e-3)
+
+    assert current.shape == (1, 1, 1, 8, 4)
+    np.testing.assert_allclose(np.asarray(current), np.zeros((1, 1, 1, 8, 4), dtype=np.float32), atol=2e-5)
+
+
+def test_higgs_link_current_vanishes_for_covariantly_constant_pure_gauge_field() -> None:
+    lattice_shape = (2, 1, 1)
+    values = jnp.arange(np.prod(lattice_shape) * 4, dtype=jnp.float32).reshape((*lattice_shape, 4))
+    site_theta = 0.02 * values
+    site_gauge = jax_higgs_site_gauge_from_algebra(site_theta)
+    phi0 = jax_constant_higgs_field(lattice_shape, phi_plus=0.0 + 0.0j, phi_zero=1.0 + 0.0j)
+    phi = jax_transform_higgs_field(phi0, site_gauge)
+    links = jax_higgs_pure_gauge_links_from_site_algebra(site_theta)
+
+    current = jax_higgs_link_current(phi, links, epsilon=2e-3)
+
+    np.testing.assert_allclose(np.asarray(current), np.zeros((*lattice_shape, 8, 4), dtype=np.float32), atol=2e-3)
+
+
+def test_higgs_link_current_is_finite_and_nonzero_for_misaligned_field() -> None:
+    lattice_shape = (2, 1, 1)
+    values = jnp.arange(np.prod(lattice_shape), dtype=jnp.float32).reshape(lattice_shape)
+    phi = jnp.stack((0.1 * values + 0.05j, 1.0 + 0.03 * values - 0.02j * values), axis=-1)
+    links = jax_higgs_link_field_from_algebra(jnp.zeros((*lattice_shape, 8, 4), dtype=jnp.float32))
+
+    current = jax_higgs_link_current(phi, links, epsilon=2e-3, vev_squared=0.7, quartic=1.1)
+
+    assert current.shape == (*lattice_shape, 8, 4)
+    assert bool(jnp.all(jnp.isfinite(current)))
+    assert float(jnp.max(jnp.abs(current))) > 1e-5
 
 
 def test_higgs_potential_depends_only_on_norm_and_vanishes_at_neutral_vev() -> None:

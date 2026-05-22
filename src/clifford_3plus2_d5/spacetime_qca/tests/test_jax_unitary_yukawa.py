@@ -9,12 +9,19 @@ import pytest
 from clifford_3plus2_d5.sim.links import jax_identity_link_field
 from clifford_3plus2_d5.sim.state import state_norm_squared
 from clifford_3plus2_d5.spacetime_qca.jax_coupled_higgs import (
+    _cos_sin_from_cubic_yukawa,
+    _cos_sin_from_eigh,
+    _selected_yukawa_lambda_squared,
     jax_apply_site_local_yukawa_kick,
     jax_apply_site_local_yukawa_unitary,
+    jax_apply_site_local_yukawa_unitary_eigh,
     jax_apply_site_local_yukawa_update,
     jax_patisalam_fermion_gauge_higgs_step,
 )
-from clifford_3plus2_d5.spacetime_qca.jax_higgs import jax_higgs_link_field_from_algebra
+from clifford_3plus2_d5.spacetime_qca.jax_higgs import (
+    jax_higgs_link_field_from_algebra,
+    jax_higgs_yukawa_internal_control_field,
+)
 from clifford_3plus2_d5.spacetime_qca.jax_scaling import ScalingRunConfig, jax_coupled_scaling_trial
 from clifford_3plus2_d5.spacetime_qca.plaquette import canonical_bcc_plaquette_shapes
 
@@ -31,8 +38,55 @@ def _neutral_phi(value: complex = 1.0 + 0.0j) -> jnp.ndarray:
     return jnp.zeros((1, 1, 1, 2), dtype=jnp.complex64).at[..., 1].set(value)
 
 
+def _mixed_phi() -> jnp.ndarray:
+    phi = jnp.zeros((1, 1, 1, 2), dtype=jnp.complex64)
+    phi = phi.at[..., 0].set(0.25 + 0.125j)
+    return phi.at[..., 1].set(0.75 - 0.2j)
+
+
 def _shape():
     return (tuple(canonical_bcc_plaquette_shapes())[0],)
+
+
+def test_selected_yukawa_map_satisfies_cubic_identity() -> None:
+    phi = jnp.concatenate(
+        (
+            jnp.zeros((1, 1, 1, 2), dtype=jnp.complex64),
+            _neutral_phi(0.5 + 0.25j),
+            _mixed_phi(),
+        ),
+        axis=0,
+    )
+    hermitian = jax_higgs_yukawa_internal_control_field(phi, dtype=jnp.complex64)
+    lambda_squared = _selected_yukawa_lambda_squared(phi)
+
+    cubic_residual = hermitian @ hermitian @ hermitian - lambda_squared[..., None, None] * hermitian
+
+    np.testing.assert_allclose(np.asarray(cubic_residual), np.zeros_like(np.asarray(cubic_residual)), atol=3e-3)
+
+
+@pytest.mark.slow
+def test_cubic_polynomial_cos_sin_matches_eigh_oracle() -> None:
+    phi = _mixed_phi()
+    hermitian = jax_higgs_yukawa_internal_control_field(phi, dtype=jnp.complex64)
+    scale = jnp.asarray(0.0025, dtype=jnp.float32)
+
+    polynomial = _cos_sin_from_cubic_yukawa(hermitian, phi, scale)
+    oracle = _cos_sin_from_eigh(hermitian, scale)
+
+    for actual, expected in zip(polynomial, oracle, strict=True):
+        np.testing.assert_allclose(np.asarray(actual), np.asarray(expected), atol=2e-5)
+
+
+@pytest.mark.slow
+def test_unitary_yukawa_polynomial_matches_eigh_oracle() -> None:
+    state = _state()
+    phi = _mixed_phi()
+
+    polynomial = jax_apply_site_local_yukawa_unitary(state, phi, step_size=0.0025)
+    oracle = jax_apply_site_local_yukawa_unitary_eigh(state, phi, step_size=0.0025)
+
+    np.testing.assert_allclose(np.asarray(polynomial), np.asarray(oracle), atol=3e-5)
 
 
 def test_yukawa_update_zero_step_and_zero_coupling_are_noops() -> None:
@@ -98,6 +152,22 @@ def test_yukawa_update_selector_rejects_unknown_mode() -> None:
             step_size=0.1,
             mode="bad_mode",  # type: ignore[arg-type]
         )
+
+
+@pytest.mark.slow
+def test_yukawa_update_selector_accepts_eigh_oracle_mode() -> None:
+    state = _state()
+    phi = _mixed_phi()
+
+    selected = jax_apply_site_local_yukawa_update(
+        state,
+        phi,
+        step_size=0.0025,
+        mode="unitary_eigh",
+    )
+    direct = jax_apply_site_local_yukawa_unitary_eigh(state, phi, step_size=0.0025)
+
+    np.testing.assert_allclose(np.asarray(selected), np.asarray(direct), atol=1e-7)
 
 
 @pytest.mark.slow

@@ -69,6 +69,11 @@ physics policy.
 - Generic identity/constant pull-link fields and finite site-local gauge
   transforms.
 - Basic finite-value/state-transition diagnostics and benchmark wrapper.
+- Physics-agnostic recorded loop/scan runners.  The scan runner now advances
+  between requested record points and computes observables only for recorded
+  steps.
+- Generic `.npz` plus JSON sidecar persistence and JSON-safe profiling
+  payloads.
 
 **Boundary**: BCC Weyl/Dirac kernels, BCC plaquettes, Wilson observables, and
 SO(2)/SU(2)/SU(3) force policy remain in `spacetime_qca`.
@@ -76,19 +81,17 @@ SO(2)/SU(2)/SU(3) force policy remain in `spacetime_qca`.
 ## spacetime_qca — in progress
 
 **Goal**: 3D BCC Weyl walk (Bialynicki-Birula 1994) → 4D Dirac chiral
-assembly → tensor lift to `lepton`'s chiral-16 internal carrier →
-background gauge covariance audit.
+assembly → tensor lift to `lepton`'s chiral-16 internal carrier → finite
+simulation controls for background-gauge and coupled gauge/Higgs/Yukawa
+experiments.
 
-**Sessions**: 20 BCC Dirac Bloch-symbol audit complete; 21 mass-layer audit
-complete; 22 finite real-space step complete; 23 Higgs/Yukawa representation
-audit complete; 24 position-dependent background gauge covariance complete;
-24b BCC plaquette holonomy complete; 25 static Higgs/Yukawa map-layer audit
-complete; 26 JAX numerical backend complete; 27 Wilson plaquette observables
-complete; 28 Wilson action normalization complete; 29 SO(2) Wilson-action
-gradients complete; 30 SU(2) nonabelian Wilson-force controls complete; 31
-left-trivialized SU(2) force and compact descent complete; 32 reversible SU(2)
-leapfrog gauge dynamics complete; 33 compact SU(3) force and reversible
-leapfrog dynamics complete.
+**Sessions**: 20-59 complete through BCC Dirac kinematics, real-space stepping,
+position-dependent gauge covariance, BCC plaquettes, Wilson action/forces,
+compact SU(2)/SU(3)/SU(4)/Pati-Salam/SM gauge prototypes, Gauss/backreaction
+controls, dynamical Higgs/Yukawa infrastructure, anomaly and Lorentz audits,
+simulation runner split, profiling/force optimizations, exact-unitary Yukawa
+fast path, sparse recorded scans, and finite-difference Higgs-current
+backreaction plus Higgs charge in the combined Gauss residual.
 
 **Implemented**:
 - BCC geometry (8 body diagonals).
@@ -117,6 +120,19 @@ leapfrog dynamics complete.
   action-descent controls.
 - SU(2)/SU(3) compact momentum fields, Hamiltonian-density helpers, and
   reversible leapfrog updates.
+- Basis-based Pati-Salam and SM compact gauge adapters over the chiral-16
+  internal carrier.
+- Gauss residuals, fermion charge density, finite-difference link current, and
+  explicit momentum-source backreaction controls.
+- Site-local Higgs field with electroweak gauge covariance, BCC covariant
+  differences, Mexican-hat potential diagnostics, conjugate momentum, and
+  fixed-link leapfrog controls.
+- Static Hermitian `Y(Phi)` and exact site-local unitary Yukawa insertion.
+  The production exact path now uses the selected cubic-polynomial identity;
+  the old eigensolve path is retained as an oracle.
+- Scan-backed main simulator with `.npz`/JSON output, small presets, lab/main
+  split, focused profiling CLIs, analytic compact Wilson force path, and sparse
+  observation recording via `record_every`.
 - Real-form internal convention: the internal chiral-16 is kept as `R^32`
   with compatible `J`, equivalent to `C^16` but not compressed to a
   `16 x 16` complex basis.  Tensor-lift matrices currently have size
@@ -141,7 +157,8 @@ leapfrog dynamics complete.
 - Session 31 report: `src/clifford_3plus2_d5/spacetime_qca/SESSION_31_SU2_LEFT_FORCE.md`.
 - Session 32 report: `src/clifford_3plus2_d5/spacetime_qca/SESSION_32_SU2_LEAPFROG.md`.
 - Session 33 report: `src/clifford_3plus2_d5/spacetime_qca/SESSION_33_SU3_DYNAMICS.md`.
-- 130 passing tests.
+- Latest detailed status and Session 34-58 reports live in
+  `src/clifford_3plus2_d5/spacetime_qca/STATUS.md`.
 
 **Result**:
 - `H_R(k) = sigma . k`.
@@ -209,17 +226,19 @@ leapfrog dynamics complete.
   finite gauge covariance holds.  The SU(3) force still differentiates through
   compact perturbation exponentials, so full SU(3) leapfrog JIT is deferred
   until a staple/vectorized force is implemented.
+- Full-SM analytic-force profiling shows Wilson force is no longer the
+  immediate simulator bottleneck in warm runs.
+- Sparse recorded scans make `record_every` reduce actual observable work,
+  not only saved output density.
 
 **Open**:
 - Full fundamental-BCC-Brillouin-zone no-doubling proof.
 - Full symbolic all-momentum BCC Bloch-symbol unitarity proof.
 - Optional conversion to a `J`-adapted explicit `C^16` internal basis.
-- Dynamical Higgs-Yukawa layer and realistic Yukawa mass matrices.
-- SU(4) or Pati-Salam Wilson-action gradients / force projection and dynamical
-  gauge fields.
-- Gauss-law constraints, fermion backreaction, and full physical gauge-field
-  evolution beyond the current SU(2) leapfrog prototype.
-- Numerical performance benchmarks and long-time stability tests.
+- Full Gauss-law projection / constraint solving beyond the combined residual
+  and diagnostic descent controls.
+- Realistic Yukawa mass matrices and family structure.
+- Long-time stability tests and larger-lattice simulator campaigns.
 
 ## triality — closed: negative result
 

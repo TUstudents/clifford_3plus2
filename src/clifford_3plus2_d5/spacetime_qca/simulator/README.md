@@ -60,10 +60,18 @@ Session 55 adds analytic cases such as `first_left_force_analytic_sm`,
 Session 56 adds force-method overrides to `profile_sim` and `profile_kernels`
 and identifies the current cold whole-step bottleneck as the exact-unitary
 Yukawa insertion, not Wilson force.
+Session 57 specializes the production exact-unitary Yukawa path with the
+selected Higgs-map cubic polynomial.  Use `--yukawa-mode unitary` for the
+polynomial exact path and `--yukawa-mode unitary_eigh` only as the explicit
+eigensolve oracle.  Cold first-call profiles still include JAX/XLA setup; use
+warmup runs when measuring steady-state simulator kernels.
 
 The simulator uses `jax.lax.scan` by default.  JIT wrapping is opt-in with the
 `--jit` CLI flag or `SpacetimeSimulationConfig(use_jit=True)` until the physics
 kernels are profiled for memory use.
+Session 58 changes the shared scan runner so `record_every` controls observable
+work, not only saved-output density.  Sparse recordings now skip diagnostics on
+discarded intermediate steps.
 Use `--force-method analytic_staple` to select the analytic compact
 Wilson-force path in scan-backed runs when the current BCC plaquette convention
 is applicable.  Use

@@ -19,7 +19,8 @@ Wilson plaquette normalization, or gauge-force physics policy.
 - `observables.py` — generic observable stacking, selection, and finite-value
   checks.
 - `runner.py` — physics-agnostic Python-loop and `jax.lax.scan` recorded
-  runners over arbitrary JAX pytrees.
+  runners over arbitrary JAX pytrees.  The scan runner advances between
+  requested record points and only computes observables for recorded steps.
 - `io.py` — generic `.npz` plus JSON sidecar persistence.
 - `benchmarks.py` — stable benchmark wrapper for JAX kernels.
 - `profiling.py` — JSON-safe callable and repeated warm profiling payloads for
@@ -41,4 +42,4 @@ confirmed.  In particular, these stay in `spacetime_qca`:
 uv run pytest src/clifford_3plus2_d5/sim/tests -q
 ```
 
-Expected current result: `13 passed`.
+Expected current result: `16 passed`.

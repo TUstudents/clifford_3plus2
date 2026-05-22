@@ -165,6 +165,78 @@ def test_recorded_scan_matches_loop_for_toy_state() -> None:
     np.testing.assert_array_equal(np.asarray(scan.final_state), np.asarray(loop.final_state))
 
 
+def test_recorded_scan_observes_only_recorded_steps() -> None:
+    observed_values: list[int] = []
+
+    def step(value: jnp.ndarray) -> jnp.ndarray:
+        return value + 1
+
+    def observe(value: jnp.ndarray) -> dict[str, jnp.ndarray]:
+        observed_values.append(int(value))
+        return {"value": value}
+
+    result = sim.run_recorded_scan(
+        jnp.asarray(0, dtype=jnp.int32),
+        step,
+        observe,
+        sim.GenericRunConfig(steps=5, record_every=2, use_jit=False),
+    )
+
+    assert observed_values == [0, 2, 4, 5]
+    np.testing.assert_array_equal(np.asarray(result.step_indices), np.asarray((0, 2, 4, 5)))
+    np.testing.assert_array_equal(np.asarray(result.observations["value"]), np.asarray((0, 2, 4, 5)))
+
+
+def test_recorded_scan_zero_steps_observes_initial_only_and_does_not_step() -> None:
+    observed_values: list[int] = []
+
+    def step(value: jnp.ndarray) -> jnp.ndarray:
+        raise AssertionError("zero-step scan should not call step_fn")
+
+    def observe(value: jnp.ndarray) -> dict[str, jnp.ndarray]:
+        observed_values.append(int(value))
+        return {"value": value}
+
+    result = sim.run_recorded_scan(
+        jnp.asarray(3, dtype=jnp.int32),
+        step,
+        observe,
+        sim.GenericRunConfig(steps=0, record_every=2, use_jit=False),
+    )
+
+    assert observed_values == [3]
+    np.testing.assert_array_equal(np.asarray(result.step_indices), np.asarray((0,)))
+    np.testing.assert_array_equal(np.asarray(result.observations["value"]), np.asarray((3,)))
+    np.testing.assert_array_equal(np.asarray(result.final_state), np.asarray(3))
+
+
+def test_recorded_scan_jit_matches_loop_for_toy_state() -> None:
+    def step(value: jnp.ndarray) -> jnp.ndarray:
+        return value + jnp.asarray((1, 2), dtype=value.dtype)
+
+    def observe(value: jnp.ndarray) -> dict[str, jnp.ndarray]:
+        return {"total": jnp.sum(value), "first": value[0]}
+
+    initial = jnp.asarray((0, 10), dtype=jnp.int32)
+    loop = sim.run_recorded_loop(
+        initial,
+        step,
+        observe,
+        sim.GenericRunConfig(steps=5, record_every=2),
+    )
+    scan = sim.run_recorded_scan(
+        initial,
+        step,
+        observe,
+        sim.GenericRunConfig(steps=5, record_every=2, use_jit=True),
+    )
+
+    np.testing.assert_array_equal(np.asarray(scan.step_indices), np.asarray(loop.step_indices))
+    np.testing.assert_array_equal(np.asarray(scan.observations["total"]), np.asarray(loop.observations["total"]))
+    np.testing.assert_array_equal(np.asarray(scan.observations["first"]), np.asarray(loop.observations["first"]))
+    np.testing.assert_array_equal(np.asarray(scan.final_state), np.asarray(loop.final_state))
+
+
 def test_generic_runner_rejects_invalid_controls() -> None:
     with pytest.raises(ValueError, match="steps must be nonnegative"):
         sim.recorded_step_indices(sim.GenericRunConfig(steps=-1))

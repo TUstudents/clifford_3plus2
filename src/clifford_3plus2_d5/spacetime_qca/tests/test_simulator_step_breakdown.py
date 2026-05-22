@@ -25,9 +25,11 @@ def test_step_breakdown_case_names_are_unique_and_sm_scoped() -> None:
     assert len(names) == len(set(names))
     assert {
         "yukawa_half_kick_sm",
+        "yukawa_half_kick_eigh_sm",
         "fermion_gauge_no_matter_sm",
         "higgs_leapfrog_sm",
         "yukawa_final_half_kick_sm",
+        "yukawa_final_half_kick_eigh_sm",
         "diagnostics_sm",
         "gauss_residual_sm",
         "gauge_hamiltonian_sm",
@@ -199,6 +201,15 @@ def test_step_breakdown_batched_force_cases_pin_force_method() -> None:
     assert cases["first_left_force_analytic_sm"].config.force_method == "analytic_staple"
     assert cases["second_left_force_analytic_sm"].config.force_method == "analytic_staple"
     assert cases["gauge_leapfrog_analytic_sm"].config.force_method == "analytic_staple"
+
+
+def test_step_breakdown_eigh_yukawa_cases_pin_oracle_mode() -> None:
+    cases = {case.name: case for case in default_step_breakdown_cases()}
+
+    assert cases["yukawa_half_kick_sm"].config.yukawa_mode == "unitary"
+    assert cases["yukawa_final_half_kick_sm"].config.yukawa_mode == "unitary"
+    assert cases["yukawa_half_kick_eigh_sm"].config.yukawa_mode == "unitary_eigh"
+    assert cases["yukawa_final_half_kick_eigh_sm"].config.yukawa_mode == "unitary_eigh"
 
 
 def test_step_breakdown_recommendation_flags_dirac_transport() -> None:

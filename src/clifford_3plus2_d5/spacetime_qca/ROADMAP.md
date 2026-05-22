@@ -1,8 +1,8 @@
-# spacetime_qca — Roadmap After Session 56
+# spacetime_qca — Roadmap After Session 58
 
 ## Current Position
 
-Sessions 20-56 have built the static, simulation-control, and performance
+Sessions 20-58 have built the static, simulation-control, and performance
 profiling stack:
 
 - BCC Weyl/Dirac spacetime walk with the `alpha . k` continuum precursor.
@@ -58,10 +58,21 @@ profiling stack:
   remains cold-dominated by exact-unitary Yukawa setup, not Wilson force:
   `step_no_matter_sm` is `106.655 s` with analytic force, and
   `yukawa_half_kick_sm` alone is `104.159 s`.
+- A polynomial exact-unitary Yukawa fast path for the selected Higgs map,
+  using `Y(Phi)^3 = 256 ||Phi||^2 Y(Phi)` and retaining the old eigensolve
+  implementation as `yukawa_mode="unitary_eigh"` for oracle checks.
+- Warm exact-unitary Yukawa and no-matter SM step profiles showing the local
+  Yukawa algebra is now millisecond-scale after setup:
+  `yukawa_half_kick_sm = 0.0127 s` and warm analytic-force
+  `step_no_matter_sm = 0.3347 s`.
+- Sparse scan-backed observation recording: `record_every` now reduces actual
+  observable extraction work instead of only thinning saved output.
 
 The module now has enough infrastructure to move from background-gauge
 kinematics toward coupled field dynamics.  The remaining work is not one
-feature; it is a sequence of increasingly physical constraints.
+feature; it is a sequence of increasingly physical constraints.  On the
+simulator side, the next performance target is cold-start amortization rather
+than another local algebra replacement.
 
 ### Session 46 — Minimal Simulation Runner
 
@@ -368,8 +379,8 @@ Delivered:
   deterministic scaling setup.
 
 Non-goal: this fixes the local Yukawa substep only.  Higgs current
-backreaction, Gauss projection, and long-time interacting stability remain
-future work.
+backreaction is handled later by Session 59; Gauss projection and long-time
+interacting stability remain future work.
 
 ### Parallel Track — Performance
 
@@ -421,14 +432,20 @@ Done:
 - Higgs conjugate momentum and fixed-link leapfrog.
 - First coupled fermion/gauge/Higgs smoke path.
 - Exact local unitary Yukawa insertion for fixed `Phi`.
+- Finite-difference Higgs link current and off-by-default momentum
+  backreaction.
+- Higgs charge contribution in the combined Gauss residual.
 
 Still open:
 
-- Higgs current backreaction into gauge momenta.
+- Analytic/vectorized Higgs current.
+- Automatic Gauss projection / constraint solve.
 - Long-time stability and scaling diagnostics.
 
-Roadmap owner: Sessions 39-40 implemented the v1 field/update path; future
-hardening continues after Session 41.
+Roadmap owner: Sessions 39-40 implemented the v1 field/update path, Session
+59 added the first Higgs-current source kick, Session 60 added Higgs charge
+to the Gauss residual, and future hardening should target projection and
+long-time stability.
 
 ### Hermitian Yukawa From The Dim-4 Space
 
@@ -531,9 +548,28 @@ After Session 56:
 
 - Keep `analytic_staple` as the force method for performance profiles and
   bounded simulator smoke runs.
-- Optimize the exact-unitary Yukawa insertion next.  The first half-kick is
-  the cold timing bottleneck; the second half-kick is tiny once the path is
-  warm.
-- Session 57 should separate cold compile/setup from warm execution, then
-  cache or specialize static pieces of the site-local Yukawa unitary.  Preserve
-  the first-order Yukawa path as a cheap oracle/fallback.
+- Implemented by Session 57.  The production exact-unitary Yukawa path now uses
+  the selected Higgs-map cubic polynomial, with the old eigensolve retained as
+  `unitary_eigh` for validation.
+
+After Session 57:
+
+- Implemented by Session 58.  The shared scan runner now computes observables
+  only at recorded steps.
+
+After Session 58:
+
+- Implemented by Session 59.  The coupled step now has finite-difference Higgs
+  current backreaction into gauge momenta, off by default.
+
+After Session 59:
+
+- Implemented by Session 60.  The coupled diagnostics now include Higgs charge
+  in the Gauss residual when `higgs_coupling` is enabled, with a diagnostic
+  descent control.
+
+After Session 60:
+
+- The next physics step should be a bounded automatic projection/control path
+  around the coupled simulator step, or a stability sweep with projection
+  enabled, not another profiling-only session.

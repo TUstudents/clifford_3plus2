@@ -39,12 +39,14 @@ class SimulationRunConfig:
     record_every: int = 1
     step_size: float = 0.0025
     matter_coupling: float = 1.0
+    higgs_coupling: float = 0.0
     yukawa_coupling: float = 1.0
     beta: float = 1.0
     vev_squared: float = 1.0
     quartic: float = 1.0
     force_epsilon: float = 1e-3
     current_epsilon: float = 1e-3
+    higgs_current_epsilon: float = 1e-3
     yukawa_mode: YukawaUpdateMode = "unitary"
     dtype_label: str = "complex64"
     label: str = "tiny_spacetime_qca"
@@ -92,12 +94,14 @@ def _scaling_config(config: SimulationRunConfig) -> ScalingRunConfig:
         sector=config.sector,
         step_size=config.step_size,
         matter_coupling=config.matter_coupling,
+        higgs_coupling=config.higgs_coupling,
         yukawa_coupling=config.yukawa_coupling,
         beta=config.beta,
         vev_squared=config.vev_squared,
         quartic=config.quartic,
         force_epsilon=config.force_epsilon,
         current_epsilon=config.current_epsilon,
+        higgs_current_epsilon=config.higgs_current_epsilon,
         yukawa_mode=config.yukawa_mode,
     )
 

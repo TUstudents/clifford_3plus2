@@ -23,6 +23,7 @@ class SpacetimeSimulationConfig:
     record_every: int = 1
     step_size: float = 0.0025
     matter_coupling: float = 1.0
+    higgs_coupling: float = 0.0
     yukawa_coupling: float = 1.0
     beta: float = 1.0
     vev_squared: float = 1.0
@@ -31,6 +32,7 @@ class SpacetimeSimulationConfig:
     force_epsilon: float = 1e-3
     force_chunk_size: int | None = None
     current_epsilon: float = 1e-3
+    higgs_current_epsilon: float = 1e-3
     yukawa_mode: YukawaUpdateMode = "unitary"
     use_jit: bool = False
     label: str = "spacetime_qca"
@@ -58,6 +60,7 @@ def scaling_config_from_spacetime_config(config: SpacetimeSimulationConfig) -> S
         sector=config.sector,
         step_size=config.step_size,
         matter_coupling=config.matter_coupling,
+        higgs_coupling=config.higgs_coupling,
         yukawa_coupling=config.yukawa_coupling,
         beta=config.beta,
         vev_squared=config.vev_squared,
@@ -66,6 +69,7 @@ def scaling_config_from_spacetime_config(config: SpacetimeSimulationConfig) -> S
         force_epsilon=config.force_epsilon,
         force_chunk_size=config.force_chunk_size,
         current_epsilon=config.current_epsilon,
+        higgs_current_epsilon=config.higgs_current_epsilon,
         yukawa_mode=config.yukawa_mode,
     )
 

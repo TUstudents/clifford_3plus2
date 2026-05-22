@@ -411,9 +411,9 @@ Move from Bloch-symbol audits to an exact finite real-space QCA:
 
 Only after this should the package approach dynamical gauge fields.
 
-## Current Roadmap After Session 56
+## Current Roadmap After Session 60
 
-Sessions 20-56 have now completed the original Session 20-22 launch arc and
+Sessions 20-60 have now completed the original Session 20-22 launch arc and
 added the first compact gauge-dynamics and Higgs-field infrastructure stack.
 The package has:
 
@@ -467,11 +467,21 @@ The package has:
 - whole-step analytic-force profiling showing that the current cold SM
   simulator bottleneck is the exact-unitary Yukawa insertion path, not Wilson
   force.
+- a polynomial exact-unitary Yukawa fast path for the selected Higgs map,
+  retaining the old eigensolve implementation as an explicit `unitary_eigh`
+  oracle.
+- warm simulator profiles showing the production exact-unitary Yukawa local
+  kick is millisecond-scale after setup, with warm analytic-force
+  `step_no_matter_sm` around `0.335 s`.
+- sparse scan-backed observation recording, so `record_every` now reduces
+  actual observable extraction work instead of only thinning saved output.
+- finite-difference Higgs-current backreaction into gauge momenta, off by
+  default in the coupled step and simulator configs.
+- Higgs charge in the combined Gauss residual, plus a diagnostic
+  Gauss-descent control for tiny lattices.
 
 The key priority is now numerical credibility.  Gauge constraints, matter
 current, Higgs dynamics, exact local Yukawa insertion, anomaly diagnostics,
 Lorentz free-dispersion diagnostics, and a scaling harness are all in place.
-The next priority is specializing the site-local exact-unitary Yukawa update:
-separate cold compile/setup from warm execution, cache static eigensystem
-pieces where possible, and keep the first-order Yukawa path as a cheap
-regression oracle.
+The next physics priority should be a bounded projection/control path around
+the coupled simulator step, not another profiling-only session.

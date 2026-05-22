@@ -21,7 +21,7 @@ def _parser() -> argparse.ArgumentParser:
     parser.add_argument("--record-every", type=int, default=1)
     parser.add_argument("--step-size", type=float, default=0.0025)
     parser.add_argument("--sector", choices=("u1_y", "su2_l", "sm"), default="u1_y")
-    parser.add_argument("--yukawa-mode", choices=("first_order", "unitary"), default="unitary")
+    parser.add_argument("--yukawa-mode", choices=("first_order", "unitary", "unitary_eigh"), default="unitary")
     parser.add_argument("--output", type=Path, default=None, help="Optional .npz output path.")
     return parser
 

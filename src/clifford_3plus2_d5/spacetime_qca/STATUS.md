@@ -1,6 +1,6 @@
 # spacetime_qca — Status
 
-**Status**: in progress. Sessions 20-56 complete through finite real-space
+**Status**: in progress. Sessions 20-60 complete through finite real-space
 BCC stepping, representation-level Higgs/Yukawa audit, position-dependent
 background gauge covariance, BCC plaquette holonomy geometry, and a static
 Higgs/Yukawa map-layer audit, a JAX numerical backend, Wilson plaquette
@@ -30,7 +30,12 @@ through the simulator configs, plus a scalar-vs-batched force chunk comparison
 workflow, and now an opt-in analytic staple-like compact Wilson left-force
 path for the BCC plaquette convention, plus whole-step analytic-force simulator
 profiling that identifies the cold exact-unitary Yukawa insertion as the next
-dominant target.
+dominant target, and a polynomial exact-unitary Yukawa fast path that keeps the
+eigensolve implementation as an explicit oracle, plus sparse scan-backed
+observation recording so `record_every` reduces actual observable work, and a
+first finite-difference Higgs-current backreaction path into gauge momenta,
+plus Higgs charge in the combined Gauss residual and a diagnostic Gauss-descent
+control.
 
 This module builds the 3D spatial side of the QCA: a BCC Weyl walk
 (Bialynicki-Birula 1994) and its chiral assembly into a 4D Dirac carrier,
@@ -78,10 +83,14 @@ scalars.  A compressed explicit `C^16_internal` basis is not implemented yet.
 - `jax_yukawa.py` — numerical mirrors of the static Hermitian `Y(Phi)` layer.
 - `jax_higgs.py` — site-local Higgs field, electroweak gauge transforms,
   BCC covariant differences, Higgs energy diagnostics, and sitewise Yukawa
-  bridge helpers.
+  bridge helpers, plus finite-difference Higgs link-current controls.
 - `jax_coupled_higgs.py` — Higgs conjugate momentum, Higgs leapfrog force,
   electroweak sector adapters, first-order and exact-unitary site-local
-  Yukawa updates, and the coupled fermion/gauge/Higgs prototype wrapper.
+  Yukawa updates, the polynomial exact-unitary Yukawa fast path, the
+  eigensolve oracle mode, and the coupled fermion/gauge/Higgs prototype
+  wrapper with off-by-default Higgs-current backreaction, Higgs charge density,
+  combined fermion/Higgs Gauss residuals, and a diagnostic Gauss-descent
+  control.
 - `jax_scaling.py` — tiny-lattice scaling snapshots, one-step and multi-step
   drift trials, neutral-vacuum density probes, timing probes, and Session 43
   audit payloads.
@@ -134,12 +143,17 @@ scalars.  A compressed explicit `C^16_internal` basis is not implemented yet.
 - `SESSION_54_FORCE_CHUNK_TUNING.md` — Session 54 result report.
 - `SESSION_55_ANALYTIC_FORCE.md` — Session 55 result report.
 - `SESSION_56_ANALYTIC_SIM_PROFILE.md` — Session 56 result report.
+- `SESSION_57_YUKAWA_FAST_PATH.md` — Session 57 result report.
+- `SESSION_58_SPARSE_OBSERVATIONS.md` — Session 58 result report.
+- `SESSION_59_HIGGS_BACKREACTION.md` — Session 59 result report.
+- `SESSION_60_HIGGS_GAUSS_CONSTRAINT.md` — Session 60 result report.
 - `ROADMAP.md` — roadmap from no-backreaction coupling toward constrained
   gauge/fermion/Higgs dynamics.
 - The scoped `spacetime_qca` suite has fast and slow lanes; slow exact/JAX
   bridge and coupled-dynamics tests are marked with `slow`.  Session 56 used
   focused validation for the force/profiling files instead of refreshing the
-  full module count.
+  full module count.  Session 57 again used focused validation because the
+  simulator/profile tests still take minutes once JAX kernels are involved.
 
 ## Session 20 result
 
@@ -179,11 +193,10 @@ scalars.  A compressed explicit `C^16_internal` basis is not implemented yet.
   match the compressed complex carrier rather than the current `R^32` real
   form.
 - Vectorized Wilson action evaluation for large lattices.
-- Higgs current backreaction into gauge momenta.
 - Dynamical gauge fields beyond the current SU(2)/SU(3)/SU(4)/Pati-Salam/SM
   leapfrog prototypes.
-- Full Gauss-law projection / constraint solving beyond the Session 37
-  residual and source-kick prototype.
+- Full Gauss-law projection / constraint solving beyond the combined residual
+  and diagnostic descent controls.
 - Vectorized SU(2) staple force and Gauss-law constraints.
 - Lorentz boost recovery beyond the free-dispersion anisotropy audit.
 - Production-scale performance benchmarks and long-time stability tests.
@@ -644,9 +657,9 @@ the coupled fermion/gauge update.
 
 Interpretation: this is the first executable prototype with fermions, gauge
 fields, and a Higgs field in one update path.  It is still a research control:
-Higgs links are fixed inputs and Higgs current does not backreact on gauge
-momenta.  Session 45 adds an exact local unitary Yukawa option, but the full
-coupled update is still a research control.
+Higgs links are fixed inputs.  Session 45 adds an exact local unitary Yukawa
+option, and Session 59 adds off-by-default finite-difference Higgs-current
+backreaction, but the full coupled update is still a research control.
 
 ## Session 41 result
 
@@ -744,8 +757,8 @@ not a production simulation or continuum renormalization result.
   in the deterministic scaling setup.
 
 Interpretation: this closes the local Yukawa-unitarity gap for fixed Higgs
-backgrounds.  It does not solve Higgs current backreaction, Gauss projection,
-or long-time interacting stability.
+backgrounds.  Session 59 later adds Higgs current backreaction; Gauss
+projection and long-time interacting stability remain open.
 
 ## Session 46 result
 
@@ -933,6 +946,90 @@ Interpretation: Session 55 successfully removed the Wilson-force bottleneck in
 isolation, but Session 56 shows the realistic cold simulator bottleneck has
 shifted to exact-unitary Yukawa compilation/eigensystem setup.  The next
 optimization session should specialize or cache the site-local Yukawa update.
+
+## Session 57 result
+
+- `jax_apply_site_local_yukawa_unitary` now evaluates the exact local unitary
+  through the selected Higgs-map cubic identity
+  `Y(Phi)^3 = 256 ||Phi||^2 Y(Phi)` instead of diagonalizing the local
+  internal matrix.
+- The old eigensolve implementation is retained as
+  `jax_apply_site_local_yukawa_unitary_eigh` and exposed through
+  `yukawa_mode="unitary_eigh"` for oracle checks and profiling.
+- The simulator CLI and tiny-runner CLI accept `unitary_eigh`, while the normal
+  `unitary` mode remains the production exact path.
+- Step-breakdown profiling has paired production/oracle Yukawa half-kick cases.
+- Focused validation:
+  `31 passed, 9 deselected` for the non-slow touched test files; before
+  marking oracle checks slow, the same file set ran the new eigensolve
+  comparisons with `34 passed, 6 deselected`.
+- Cold first-call timings remain dominated by JAX/XLA setup:
+  polynomial `yukawa_half_kick_sm = 103.953 s`;
+  eigensolve-oracle `yukawa_half_kick_eigh_sm = 102.836 s` when it is first in
+  a fresh process.
+- Warm exact-unitary local kick timing is small:
+  polynomial `yukawa_half_kick_sm = 0.0127 s` after one warmup.
+- Warm whole-step analytic-force profile:
+  `step_no_matter_sm = 0.3347 s` after one warmup.
+
+Interpretation: the eigensolve path is no longer part of the production
+exact-unitary Yukawa update.  The remaining large timing in fresh-process
+profiles is cold JAX setup, not local Yukawa algebra.  Next performance work
+should prewarm/cache scan-backed simulator setup and profile amortized
+multi-step trajectories.
+
+## Session 58 result
+
+- Shared `sim.runner.run_recorded_scan` now advances between requested record
+  points and calls the observable function only for recorded steps.
+- Public recorded-run behavior is unchanged: step `0`, requested
+  `record_every` steps, and the final step are still recorded.
+- `run_recorded_loop` is unchanged.
+- `use_jit=True` remains supported for scan chunks.
+- Focused validation passed:
+  `uv run pytest src/clifford_3plus2_d5/sim/tests/test_sim_infrastructure.py -q`
+  reported `16 passed`; the shared-runner plus simulator-runner focused set
+  reported `26 passed, 1 deselected`.
+
+Interpretation: long scan-backed simulator runs with `record_every > 1` no
+longer pay diagnostics/observable cost for discarded intermediate steps.  This
+does not change physics kernels, force methods, Yukawa modes, or output schema.
+
+## Session 59 result
+
+- `jax_higgs_link_current` computes a finite-difference Higgs link current in
+  `(su2_x, su2_y, su2_z, u1_y)` coordinates.
+- `jax_higgs_current_to_patisalam_sector` embeds that current into `u1_y`,
+  `su2_l`, and `sm` coupled sectors.
+- `jax_patisalam_fermion_gauge_higgs_step` now accepts
+  `higgs_coupling` and `higgs_current_epsilon`.
+- The default `higgs_coupling=0.0` preserves previous coupled-step and
+  simulator behavior.
+- Scaling and simulator configs expose the same controls.
+
+Interpretation: the coupled prototype now has explicit Higgs-current
+backreaction into gauge momenta.  The current is finite-difference and
+audit-oriented; analytic/vectorized Higgs currents, Higgs charge in the Gauss
+residual, and full constraint projection remain future work.
+
+## Session 60 result
+
+- `jax_higgs_charge_density` computes site-local Higgs charge coordinates from
+  `(Phi, Pi)` using the anti-Hermitian electroweak Higgs generators.
+- `jax_higgs_charge_to_patisalam_sector` embeds Higgs charge into `u1_y`,
+  `su2_l`, and `sm` sector coordinates.
+- `jax_patisalam_fermion_higgs_gauss_residual` computes
+  `divE - g_f rho_f - g_H rho_H` without changing the existing fermion-only
+  residual API.
+- `jax_patisalam_fermion_higgs_gauss_descent_step` adds a tiny-lattice
+  diagnostic descent step for `0.5 ||Gauss||^2`.
+- Coupled diagnostics use the combined residual when `higgs_coupling` is
+  nonzero.
+
+Interpretation: the coupled prototype now has both link-current backreaction
+and the matching Higgs charge contribution in its Gauss diagnostic.  Automatic
+constraint projection, analytic/vectorized charge/current formulas, and
+long-time constrained stability remain future work.
 
 ## Session 24 result
 

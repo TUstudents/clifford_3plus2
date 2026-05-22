@@ -13,7 +13,6 @@ from clifford_3plus2_d5.sim.observables import (
     ObservableMap,
     observations_all_finite,
     pytree_all_finite,
-    select_observation_steps,
     stack_observations,
 )
 
@@ -98,48 +97,59 @@ def run_recorded_loop(
     )
 
 
+def _advance_state_with_scan(
+    state: StateT,
+    step_fn: StepFn[StateT],
+    step_count: int,
+    *,
+    use_jit: bool,
+) -> StateT:
+    """Advance ``state`` by ``step_count`` steps without observing."""
+
+    if step_count == 0:
+        return state
+
+    def body(carry: StateT, _: object) -> tuple[StateT, None]:
+        return step_fn(carry), None
+
+    def execute(current: StateT) -> StateT:
+        final_state, _ = jax.lax.scan(body, current, xs=None, length=step_count)
+        return final_state
+
+    executor = jax.jit(execute) if use_jit else execute
+    return executor(state)
+
+
 def run_recorded_scan(
     initial_state: StateT,
     step_fn: StepFn[StateT],
     observe_fn: ObserveFn[StateT],
     config: GenericRunConfig,
 ) -> GenericRunResult:
-    """Run a ``jax.lax.scan`` simulation and record selected observables."""
+    """Run a ``jax.lax.scan`` simulation and observe only recorded steps."""
 
     validate_run_config(config)
-    initial_observation = observe_fn(initial_state)
     record_indices = recorded_step_indices(config)
+    state = initial_state
+    observations: list[ObservableMap] = [observe_fn(state)]
+    current_step = 0
 
-    if config.steps == 0:
-        observations = stack_observations((initial_observation,))
-        return GenericRunResult(
-            config=config,
-            initial_state=initial_state,
-            final_state=initial_state,
-            step_indices=jnp.asarray(record_indices, dtype=jnp.int32),
-            observations=observations,
-            all_finite=_run_all_finite(initial_state, observations),
+    for record_step in record_indices[1:]:
+        state = _advance_state_with_scan(
+            state,
+            step_fn,
+            record_step - current_step,
+            use_jit=config.use_jit,
         )
+        current_step = record_step
+        observations.append(observe_fn(state))
 
-    def body(carry: StateT, _: object) -> tuple[StateT, ObservableMap]:
-        next_state = step_fn(carry)
-        return next_state, observe_fn(next_state)
-
-    def execute(state: StateT) -> tuple[StateT, ObservableMap]:
-        return jax.lax.scan(body, state, xs=None, length=config.steps)
-
-    executor = jax.jit(execute) if config.use_jit else execute
-    final_state, step_observations = executor(initial_state)
-    all_observations = {
-        key: jnp.concatenate((jnp.expand_dims(jnp.asarray(initial_observation[key]), axis=0), value), axis=0)
-        for key, value in step_observations.items()
-    }
-    selected = select_observation_steps(all_observations, record_indices)
+    selected = stack_observations(tuple(observations))
     return GenericRunResult(
         config=config,
         initial_state=initial_state,
-        final_state=final_state,
+        final_state=state,
         step_indices=jnp.asarray(record_indices, dtype=jnp.int32),
         observations=selected,
-        all_finite=_run_all_finite(final_state, selected),
+        all_finite=_run_all_finite(state, selected),
     )

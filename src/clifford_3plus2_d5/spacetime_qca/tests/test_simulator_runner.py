@@ -118,6 +118,14 @@ def test_main_simulator_cli_accepts_analytic_force_method(capsys) -> None:
     assert payload["force_method"] == "analytic_staple"
 
 
+def test_main_simulator_cli_accepts_eigh_yukawa_oracle_mode(capsys) -> None:
+    exit_code = main_sim_cli(("--steps", "0", "--step-size", "0.0", "--yukawa-mode", "unitary_eigh"))
+
+    assert exit_code == 0
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["yukawa_mode"] == "unitary_eigh"
+
+
 def test_main_simulator_cli_output_writes_metadata(tmp_path, capsys) -> None:
     output = tmp_path / "sim.npz"
     exit_code = main_sim_cli(("--steps", "0", "--step-size", "0.0", "--output", str(output)))

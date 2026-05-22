@@ -48,6 +48,7 @@ class ScalingRunConfig:
     sector: HiggsCoupledSector = "u1_y"
     step_size: float = 0.005
     matter_coupling: float = 1.0
+    higgs_coupling: float = 0.0
     yukawa_coupling: float = 1.0
     beta: float = 1.0
     vev_squared: float = 1.0
@@ -56,6 +57,7 @@ class ScalingRunConfig:
     force_epsilon: float = 1e-3
     force_chunk_size: int | None = None
     current_epsilon: float = 1e-3
+    higgs_current_epsilon: float = 1e-3
     yukawa_mode: YukawaUpdateMode = "first_order"
     shapes: tuple[PlaquetteShape, ...] | None = None
 
@@ -267,6 +269,7 @@ def jax_scaling_snapshot(
         sector=config.sector,
         beta=config.beta,
         matter_coupling=config.matter_coupling,
+        higgs_coupling=config.higgs_coupling,
         vev_squared=config.vev_squared,
         quartic=config.quartic,
         shapes=_selected_shapes(config),
@@ -316,6 +319,7 @@ def _advance_scaling_fields(fields: ScalingInitialState, config: ScalingRunConfi
         sector=config.sector,
         step_size=config.step_size,
         matter_coupling=config.matter_coupling,
+        higgs_coupling=config.higgs_coupling,
         yukawa_coupling=config.yukawa_coupling,
         beta=config.beta,
         vev_squared=config.vev_squared,
@@ -325,6 +329,7 @@ def _advance_scaling_fields(fields: ScalingInitialState, config: ScalingRunConfi
         force_epsilon=config.force_epsilon,
         force_chunk_size=config.force_chunk_size,
         current_epsilon=config.current_epsilon,
+        higgs_current_epsilon=config.higgs_current_epsilon,
         yukawa_mode=config.yukawa_mode,
     )
     return ScalingInitialState(
@@ -546,6 +551,7 @@ def jax_scaling_timing_probe(config: ScalingRunConfig, *, steps: int = 2) -> Jax
                     sector=config.sector,
                     step_size=config.step_size,
                     matter_coupling=config.matter_coupling,
+                    higgs_coupling=config.higgs_coupling,
                     yukawa_coupling=config.yukawa_coupling,
                     beta=config.beta,
                     vev_squared=config.vev_squared,
@@ -555,6 +561,7 @@ def jax_scaling_timing_probe(config: ScalingRunConfig, *, steps: int = 2) -> Jax
                     force_epsilon=config.force_epsilon,
                     force_chunk_size=config.force_chunk_size,
                     current_epsilon=config.current_epsilon,
+                    higgs_current_epsilon=config.higgs_current_epsilon,
                     yukawa_mode=config.yukawa_mode,
                 )
         return (

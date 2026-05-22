@@ -90,6 +90,12 @@ def default_step_breakdown_cases() -> tuple[StepBreakdownCase, ...]:
             config=replace(base, label="breakdown_yukawa_half_kick_sm"),
         ),
         StepBreakdownCase(
+            name="yukawa_half_kick_eigh_sm",
+            kind="yukawa_half_kick",
+            purpose="Apply the first half site-local eigensolve-oracle Yukawa kick.",
+            config=replace(base, yukawa_mode="unitary_eigh", label="breakdown_yukawa_half_kick_eigh_sm"),
+        ),
+        StepBreakdownCase(
             name="fermion_gauge_no_matter_sm",
             kind="fermion_gauge_no_matter",
             purpose="Run the no-backreaction SM gauge leapfrog plus Dirac transport.",
@@ -106,6 +112,12 @@ def default_step_breakdown_cases() -> tuple[StepBreakdownCase, ...]:
             kind="yukawa_final_half_kick",
             purpose="Apply the final half site-local unitary Yukawa kick.",
             config=replace(base, label="breakdown_yukawa_final_half_kick_sm"),
+        ),
+        StepBreakdownCase(
+            name="yukawa_final_half_kick_eigh_sm",
+            kind="yukawa_final_half_kick",
+            purpose="Apply the final half site-local eigensolve-oracle Yukawa kick.",
+            config=replace(base, yukawa_mode="unitary_eigh", label="breakdown_yukawa_final_half_kick_eigh_sm"),
         ),
         StepBreakdownCase(
             name="diagnostics_sm",
@@ -591,7 +603,9 @@ def recommend_step_breakdown_bottleneck(case_payloads: tuple[dict[str, Any], ...
     if dominant in {"gauge_hamiltonian_sm", "diagnostics_sm", "gauss_residual_sm"}:
         return f"First target: {dominant}; diagnostics or constraint probes dominate this breakdown."
     if dominant in {"yukawa_half_kick_sm", "yukawa_final_half_kick_sm"}:
-        return "First target: unitary Yukawa local eigensolve; cache or specialize the site-local update."
+        return "First target: exact unitary Yukawa setup; separate cold JAX setup from warm local-kick cost."
+    if dominant in {"yukawa_half_kick_eigh_sm", "yukawa_final_half_kick_eigh_sm"}:
+        return "First target: eigensolve-oracle Yukawa path; keep it for validation, not production profiles."
     if dominant == "higgs_leapfrog_sm":
         return "First target: Higgs leapfrog force; inspect the Higgs gradient path."
     return f"First target: {dominant}; no specialized recommendation is available."
