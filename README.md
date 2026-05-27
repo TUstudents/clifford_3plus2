@@ -13,6 +13,7 @@ matrix algebra, exterior algebra, Spin(10) branching).
 | [`lepton`](src/clifford_3plus2_d5/lepton/) | **Positive result, active** | Cl(0,10) Pati-Salam factorization producing the full SM gauge content (`SU(3) × SU(2)_L × U(1)_Y`), a compatible complex structure, and the correct one-generation hypercharge spectrum, with 1+1D massless-Dirac/Weyl continuum dynamics under background gauge links. |
 | [`sim`](src/clifford_3plus2_d5/sim/) | **Shared infrastructure** | Generic JAX simulation helpers for array conversion, periodic rolls, state/link layout, diagnostics, benchmarking, sparse recorded scans, and `.npz`/JSON persistence. |
 | [`spacetime_qca`](src/clifford_3plus2_d5/spacetime_qca/) | **In progress** | 3D BCC Weyl/Dirac walk, tensor lift to the lepton internal carrier, position-dependent gauge covariance, Wilson plaquette dynamics, Pati-Salam/SM compact gauge prototypes, dynamical Higgs/Yukawa controls, Gauss projection diagnostics, scan-backed simulator runner, and sparse observation recording. |
+| [`boundary_response`](src/clifford_3plus2_d5/boundary_response/) | **Framed sterile response audit** | Prove-or-kill sidecar for `H_Q,V -> Sigma(z) -> K_nu = epsilon^2 P_u + P_b`. V6 gives the exact semi-infinite Weyl-function neutrino core; V7 derives the charged-lepton leakage scalar; V8 verifies the conditional leptonic phase word. PMNS assembly and CKM remain gated. |
 | [`triality`](src/clifford_3plus2_d5/triality/) | **Closed: negative result** | Spin(8) triality kill test. K1 failed: the natural Pati-Salam-aligned SM Cartan is not preserved as a subspace by the order-3 outer automorphism. Three triality copies cannot represent three equivalent SM generations under this embedding. |
 | [`broken_triality`](src/clifford_3plus2_d5/broken_triality/) | **Closed: negative result** | Broken-Z/3 follow-on to the triality kill test.  BT-1 passed (3 distinct Yukawa eigenvalues with non-zero mixing) but BT-2 failed: non-zero eigenvalue ratio `360/217 ≈ 1.66`, essentially flat.  Pure triality projection of a hypercharge-aligned vector does not produce SM mass hierarchy. |
 
@@ -49,6 +50,7 @@ uv run pytest src/clifford_3plus2_d5/obstruction_r10/tests/ -q
 uv run pytest src/clifford_3plus2_d5/lepton/tests/ -q
 uv run pytest src/clifford_3plus2_d5/sim/tests/ -q
 uv run pytest src/clifford_3plus2_d5/spacetime_qca/tests/ -q
+uv run pytest src/clifford_3plus2_d5/boundary_response/tests/ -q
 uv run pytest src/clifford_3plus2_d5/triality/tests/ -q
 uv run pytest src/clifford_3plus2_d5/broken_triality/tests/ -q
 
