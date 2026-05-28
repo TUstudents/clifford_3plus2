@@ -17,6 +17,12 @@ from clifford_3plus2_d5.boundary_response.charged_lepton_leakage import (
     ChargedLeptonLeakageAuditPayload,
     charged_lepton_leakage_audit_payload,
 )
+from clifford_3plus2_d5.boundary_response.chiral_boundary_normalization import (
+    ChiralBoundaryNormalizationAuditPayload,
+    chiral_boundary_normalization_audit_payload,
+    normalized_odd_collective_vector,
+    orthogonal_chiral_swap,
+)
 from clifford_3plus2_d5.boundary_response.ckm_conditional import (
     CKMConditionalAuditPayload,
     CKMSines,
@@ -33,6 +39,12 @@ from clifford_3plus2_d5.boundary_response.framed_sterile import (
 from clifford_3plus2_d5.boundary_response.impedance import (
     ImpedanceAuditPayload,
     impedance_audit_payload,
+)
+from clifford_3plus2_d5.boundary_response.intertwiner_normalization import (
+    AlgebraicIntertwinerAuditPayload,
+    algebraic_intertwiner_audit_payload,
+    even_odd_intertwiner,
+    spectral_lift_operator,
 )
 from clifford_3plus2_d5.boundary_response.leptonic_boundary_holonomy import (
     LeptonicBoundaryHolonomyAuditPayload,
@@ -52,6 +64,13 @@ from clifford_3plus2_d5.boundary_response.pmns_conditional import (
 from clifford_3plus2_d5.boundary_response.primitive_ergodicity import (
     PrimitiveErgodicityAuditPayload,
     primitive_ergodicity_audit_payload,
+)
+from clifford_3plus2_d5.boundary_response.primitive_entropy_ergodicity import (
+    PrimitiveEntropyErgodicityAuditPayload,
+    compressed_macro_entropy,
+    primitive_entropy_ergodicity_audit_payload,
+    primitive_entropy_probabilities,
+    primitive_shannon_entropy,
 )
 from clifford_3plus2_d5.boundary_response.product_sterile import (
     ProductSterileAuditPayload,
@@ -94,10 +113,12 @@ from clifford_3plus2_d5.boundary_response.transfer import (
 )
 
 __all__ = [
+    "AlgebraicIntertwinerAuditPayload",
     "BoundaryCoreAuditPayload",
     "CKMConditionalAuditPayload",
     "CKMSines",
     "ChargedLeptonLeakageAuditPayload",
+    "ChiralBoundaryNormalizationAuditPayload",
     "ExplicitHqAuditPayload",
     "FramedSterileAuditPayload",
     "ImpedanceAuditPayload",
@@ -105,6 +126,7 @@ __all__ = [
     "LeptonicPhaseWordAuditPayload",
     "PMNSConditionalAuditPayload",
     "PMNSMixingObservables",
+    "PrimitiveEntropyErgodicityAuditPayload",
     "PrimitiveErgodicityAuditPayload",
     "ProductSterileAuditPayload",
     "QuarkBoundaryShellAuditPayload",
@@ -113,16 +135,20 @@ __all__ = [
     "QuarkCoinRigidityAuditPayload",
     "QuarkTransferHierarchyAuditPayload",
     "WeylSterileAuditPayload",
+    "algebraic_intertwiner_audit_payload",
     "boundary_core_audit_payload",
     "charged_lepton_leakage_audit_payload",
+    "chiral_boundary_normalization_audit_payload",
     "ckm_conditional_audit_payload",
     "ckm_jarlskog",
     "ckm_magnitude_matrix",
     "ckm_sines",
+    "compressed_macro_entropy",
     "conditional_ckm_matrix",
     "conditional_pmns_matrix",
     "epsilon",
     "epsilon_fourth",
+    "even_odd_intertwiner",
     "explicit_hq_audit_payload",
     "framed_sterile_audit_payload",
     "impedance_audit_payload",
@@ -131,14 +157,20 @@ __all__ = [
     "k_nu_operator",
     "leptonic_boundary_holonomy_audit_payload",
     "leptonic_phase_word_audit_payload",
+    "normalized_odd_collective_vector",
+    "orthogonal_chiral_swap",
     "pmns_conditional_audit_payload",
     "pmns_mixing_observables",
+    "primitive_entropy_ergodicity_audit_payload",
+    "primitive_entropy_probabilities",
     "primitive_ergodicity_audit_payload",
+    "primitive_shannon_entropy",
     "product_sterile_audit_payload",
     "quark_boundary_shell_audit_payload",
     "quark_clebsch_audit_payload",
     "quark_coin_rigidity_audit_payload",
     "quark_transfer_hierarchy_audit_payload",
     "residual_projectors",
+    "spectral_lift_operator",
     "weyl_sterile_audit_payload",
 ]

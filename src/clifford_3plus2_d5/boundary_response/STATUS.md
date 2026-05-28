@@ -1,6 +1,6 @@
 # boundary_response — Status
 
-**Status**: V1 through V16 implemented.
+**Status**: V1 through V19 implemented.
 
 - V1 verdict: **BOUNDARY_CORE_KILL_UNBROKEN_K3**.
 - V2 verdict: **FRAMED_STERILE_EFFECTIVE_PASS**.
@@ -18,6 +18,9 @@
 - V14 verdict: **CKM_CONDITIONAL_ASSEMBLY_PASS**.
 - V15 verdict: **QUARK_COIN_RIGIDITY_THEOREM_PASS**.
 - V16 verdict: **PRIMITIVE_ERGODICITY_NO_GO_PASS**.
+- V17 verdict: **CHIRAL_BOUNDARY_NORMALIZATION_NO_GO_PASS**.
+- V18 verdict: **ALGEBRAIC_INTERTWINER_FREE_NORM_KILL**.
+- V19 verdict: **MAX_ENTROPY_PRIMITIVE_ERGODICITY_CONDITIONAL_PASS**.
 
 The residual transfer recurrence gives the desired exact invariant:
 
@@ -544,6 +547,106 @@ Full six-channel transitivity has only the flat invariant direction and does
 force `r = 1`.  The verdict is `PRIMITIVE_ERGODICITY_NO_GO_PASS`: flat
 primitive ergodicity is an extra physical principle, not a consequence of
 parity-preserving shell symmetry.
+
+## V17 chiral boundary normalization no-go
+
+V17 tests the tempting chiral-boundary route.  Let:
+
+```text
+|O> = (|o_1> + ... + |o_5>) / sqrt(5)
+```
+
+and define an orthogonal involution exchanging the even channel and normalized
+odd collective mode:
+
+```text
+Sigma |e> = |O>
+Sigma |O> = |e>
+```
+
+This `Sigma` is an exact orthogonal involution and commutes with odd-shell
+`S_5`.  However, its collective eigenvectors:
+
+```text
+|e> ± |O>
+```
+
+correspond to primitive-channel ratio:
+
+```text
+r = ±1/sqrt(5)
+```
+
+The positive branch gives phase `pi/4`, not `atan(sqrt(5))`.  The verdict is
+`CHIRAL_BOUNDARY_NORMALIZATION_NO_GO_PASS`: a unitary chiral swap derives
+compressed `(e,O)` flatness, not CKM primitive-channel flatness.
+
+## V18 algebraic intertwiner normalization gate
+
+V18 tests whether an algebraic even-to-odd intertwiner can force the CKM
+primitive flat ratio.  The exact `S_5`-compatible map is:
+
+```text
+T_c |e> = c (|o_1> + ... + |o_5>)
+```
+
+and `S_5` fixes only the direction, not the scale:
+
+```text
+T_c.T T_c = 5 c^2 P_even
+```
+
+The spectral lift:
+
+```text
+Gamma_c = T_c + T_c.T
+```
+
+satisfies:
+
+```text
+Gamma_c^2 = 5 c^2 (P_even + P_odd_collective)
+```
+
+on the two-dimensional collective plane, but not `5I` on the full
+six-channel shell.  Setting `c = 1` recovers the CKM phase, but that is unit
+component normalization, not a consequence of `S_5` or the collective
+spectral lift.  The verdict is `ALGEBRAIC_INTERTWINER_FREE_NORM_KILL`.
+
+## V19 primitive max-entropy ergodicity gate
+
+V19 tests whether the flat primitive ratio can be derived from a maximum
+entropy principle over the six primitive quark boundary channels.  For:
+
+```text
+psi(r) = (|e> + r sum_A |o_A>) / sqrt(1 + 5 r^2)
+```
+
+the primitive probabilities are:
+
+```text
+p_even = 1 / (1 + 5 r^2)
+p_odd_A = r^2 / (1 + 5 r^2)
+```
+
+and the six-channel entropy is:
+
+```text
+H_6(r) = log(1 + 5 r^2) - (5 r^2 / (1 + 5 r^2)) log(r^2)
+```
+
+with derivative:
+
+```text
+dH_6/dr = -10 r log(r^2) / (1 + 5 r^2)^2
+```
+
+The positive-ratio maximum is `r = 1`, giving the uniform six-channel
+distribution and phase `atan(sqrt(5))`.  The compressed `{even, odd_total}`
+entropy control instead maximizes at `r = 1/sqrt(5)` and gives phase `pi/4`.
+The verdict is `MAX_ENTROPY_PRIMITIVE_ERGODICITY_CONDITIONAL_PASS`: primitive
+max entropy derives CKM flatness only if the six primitive channels are the
+entropy atoms.
 
 ## Test command
 

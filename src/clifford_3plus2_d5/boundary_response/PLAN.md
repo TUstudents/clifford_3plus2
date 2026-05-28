@@ -666,3 +666,122 @@ leaves non-flat ratios invariant while full transitive symmetry rejects them.
 
 This proves the next no-go: the CKM phase requires an extra flat primitive
 ergodicity principle or microscopic dynamics that mixes all six channels.
+
+## V17 Question
+
+Does an orthogonal chiral boundary involution exchanging the even channel with
+the normalized odd collective mode derive CKM flatness?
+
+## V17 Implementation
+
+- `chiral_boundary_normalization.py` defines:
+
+```text
+|O> = (|o_1> + ... + |o_5>) / sqrt(5)
+Sigma |e> = |O>
+Sigma |O> = |e>
+```
+
+- The audit verifies `Sigma^2 = I`, `Sigma.T Sigma = I`, and compatibility
+  with odd-shell `S_5`.
+- The collective-plane eigenvectors are:
+
+```text
+|e> ± |O>
+```
+
+which correspond to V15 primitive-channel ratios:
+
+```text
+r = ±1/sqrt(5)
+```
+
+## V17 Verdict Standard
+
+V17 reports `CHIRAL_BOUNDARY_NORMALIZATION_NO_GO_PASS` if the orthogonal chiral
+swap is valid but produces phase `pi/4`, not `atan(sqrt(5))`.
+
+This blocks a false derivation: a unitary chiral swap gives flatness in the
+compressed `(e,O)` plane, not flat primitive amplitudes over all six channels.
+
+## V18 Question
+
+Can an algebraic even-to-odd shell intertwiner force the CKM primitive ratio
+`r = 1`?
+
+## V18 Implementation
+
+- `intertwiner_normalization.py` computes the exact odd-shell `S_5`
+  intertwiner space from the even line into the odd target.
+- The invariant map is unique only up to scale:
+
+```text
+T_c |e> = c (|o_1> + ... + |o_5>)
+```
+
+- Its norm-square is:
+
+```text
+T_c.T T_c = 5 c^2 P_even
+```
+
+- The collective spectral lift:
+
+```text
+Gamma_c = T_c + T_c.T
+```
+
+has:
+
+```text
+Gamma_c^2 = 5 c^2 (P_even + P_odd_collective)
+```
+
+not `5I` on the full primitive shell.
+
+## V18 Verdict Standard
+
+V18 reports `ALGEBRAIC_INTERTWINER_FREE_NORM_KILL` if the intertwiner exists,
+is `S_5`-compatible, and has free scale `c`.  The CKM phase is recovered at
+`c = 1`, but that is an additional unit component normalization, not an
+algebraic theorem from the primitive shell.
+
+## V19 Question
+
+Does maximum entropy over primitive quark boundary channels force the CKM flat
+ratio `r = 1`?
+
+## V19 Implementation
+
+- `primitive_entropy_ergodicity.py` defines the six primitive-channel
+  probabilities:
+
+```text
+p_even = 1 / (1 + 5 r^2)
+p_odd_A = r^2 / (1 + 5 r^2)
+```
+
+- The primitive Shannon entropy is:
+
+```text
+H_6(r) = log(1 + 5 r^2) - (5 r^2 / (1 + 5 r^2)) log(r^2)
+```
+
+- Its derivative is:
+
+```text
+dH_6/dr = -10 r log(r^2) / (1 + 5 r^2)^2
+```
+
+so the positive-ratio maximum is `r = 1`, yielding uniform probability
+`1/6` on all six primitive channels and phase `atan(sqrt(5))`.
+
+- The compressed two-channel entropy control over `{even, odd_total}` is also
+  audited.  It maximizes at `r = 1/sqrt(5)`, giving phase `pi/4`.
+
+## V19 Verdict Standard
+
+V19 reports `MAX_ENTROPY_PRIMITIVE_ERGODICITY_CONDITIONAL_PASS` if primitive
+six-channel max entropy gives `r = 1` while the compressed-channel control
+does not.  This is a conditional derivation of CKM flatness from the
+primitive-channel entropy principle, not from BCC geometry alone.
