@@ -47,7 +47,9 @@ def test_v4_impedance_catalog_is_free_parameter_gate() -> None:
     assert payload.pmns_ckm_parked
 
 
-def test_package_exports_no_pmns_or_ckm_texture_api() -> None:
+def test_package_exports_conditional_pmns_and_ckm_apis() -> None:
     exported = set(boundary_response.__all__)
-    assert all("pmns" not in name.lower() for name in exported)
-    assert all("ckm" not in name.lower() for name in exported)
+    assert "conditional_pmns_matrix" in exported
+    assert "pmns_conditional_audit_payload" in exported
+    assert "conditional_ckm_matrix" in exported
+    assert "ckm_conditional_audit_payload" in exported

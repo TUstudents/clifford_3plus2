@@ -1,10 +1,12 @@
 """Boundary-response sidecar for the residual BCC flavor core audit.
 
-This package is intentionally narrow.  It audits only the operator path
+This package is intentionally narrow.  It audits the operator path
 
     H_Q, V_a -> Sigma(z) -> K_nu = epsilon^2 P_u + P_b
 
-and exports no PMNS or CKM texture machinery.
+and the explicitly gated conditional PMNS and CKM assemblies.  Those texture
+assemblies remain below theorem status unless their boundary-shell assumptions
+are derived.
 """
 
 from clifford_3plus2_d5.boundary_response.audit import (
@@ -15,6 +17,15 @@ from clifford_3plus2_d5.boundary_response.charged_lepton_leakage import (
     ChargedLeptonLeakageAuditPayload,
     charged_lepton_leakage_audit_payload,
 )
+from clifford_3plus2_d5.boundary_response.ckm_conditional import (
+    CKMConditionalAuditPayload,
+    CKMSines,
+    ckm_conditional_audit_payload,
+    ckm_jarlskog,
+    ckm_magnitude_matrix,
+    ckm_sines,
+    conditional_ckm_matrix,
+)
 from clifford_3plus2_d5.boundary_response.framed_sterile import (
     FramedSterileAuditPayload,
     framed_sterile_audit_payload,
@@ -23,13 +34,47 @@ from clifford_3plus2_d5.boundary_response.impedance import (
     ImpedanceAuditPayload,
     impedance_audit_payload,
 )
+from clifford_3plus2_d5.boundary_response.leptonic_boundary_holonomy import (
+    LeptonicBoundaryHolonomyAuditPayload,
+    leptonic_boundary_holonomy_audit_payload,
+)
 from clifford_3plus2_d5.boundary_response.leptonic_phase_word import (
     LeptonicPhaseWordAuditPayload,
     leptonic_phase_word_audit_payload,
 )
+from clifford_3plus2_d5.boundary_response.pmns_conditional import (
+    PMNSConditionalAuditPayload,
+    PMNSMixingObservables,
+    conditional_pmns_matrix,
+    pmns_conditional_audit_payload,
+    pmns_mixing_observables,
+)
+from clifford_3plus2_d5.boundary_response.primitive_ergodicity import (
+    PrimitiveErgodicityAuditPayload,
+    primitive_ergodicity_audit_payload,
+)
 from clifford_3plus2_d5.boundary_response.product_sterile import (
     ProductSterileAuditPayload,
     product_sterile_audit_payload,
+)
+from clifford_3plus2_d5.boundary_response.quark_boundary_shell import (
+    QuarkBoundaryShellAuditPayload,
+    quark_boundary_shell_audit_payload,
+)
+from clifford_3plus2_d5.boundary_response.quark_clebsch_factors import (
+    QuarkClebschAuditPayload,
+    QuarkClebschSummary,
+    quark_clebsch_audit_payload,
+)
+from clifford_3plus2_d5.boundary_response.quark_coin_rigidity import (
+    QuarkCoinRigidityAuditPayload,
+    isotropic_quark_coin,
+    isotropic_quark_phase_angle,
+    quark_coin_rigidity_audit_payload,
+)
+from clifford_3plus2_d5.boundary_response.quark_transfer_hierarchy import (
+    QuarkTransferHierarchyAuditPayload,
+    quark_transfer_hierarchy_audit_payload,
 )
 from clifford_3plus2_d5.boundary_response.weyl_sterile import (
     WeylSterileAuditPayload,
@@ -50,23 +95,50 @@ from clifford_3plus2_d5.boundary_response.transfer import (
 
 __all__ = [
     "BoundaryCoreAuditPayload",
+    "CKMConditionalAuditPayload",
+    "CKMSines",
     "ChargedLeptonLeakageAuditPayload",
     "ExplicitHqAuditPayload",
     "FramedSterileAuditPayload",
     "ImpedanceAuditPayload",
+    "LeptonicBoundaryHolonomyAuditPayload",
     "LeptonicPhaseWordAuditPayload",
+    "PMNSConditionalAuditPayload",
+    "PMNSMixingObservables",
+    "PrimitiveErgodicityAuditPayload",
     "ProductSterileAuditPayload",
+    "QuarkBoundaryShellAuditPayload",
+    "QuarkClebschAuditPayload",
+    "QuarkClebschSummary",
+    "QuarkCoinRigidityAuditPayload",
+    "QuarkTransferHierarchyAuditPayload",
     "WeylSterileAuditPayload",
     "boundary_core_audit_payload",
     "charged_lepton_leakage_audit_payload",
+    "ckm_conditional_audit_payload",
+    "ckm_jarlskog",
+    "ckm_magnitude_matrix",
+    "ckm_sines",
+    "conditional_ckm_matrix",
+    "conditional_pmns_matrix",
     "epsilon",
     "epsilon_fourth",
     "explicit_hq_audit_payload",
     "framed_sterile_audit_payload",
     "impedance_audit_payload",
+    "isotropic_quark_coin",
+    "isotropic_quark_phase_angle",
     "k_nu_operator",
+    "leptonic_boundary_holonomy_audit_payload",
     "leptonic_phase_word_audit_payload",
+    "pmns_conditional_audit_payload",
+    "pmns_mixing_observables",
+    "primitive_ergodicity_audit_payload",
     "product_sterile_audit_payload",
+    "quark_boundary_shell_audit_payload",
+    "quark_clebsch_audit_payload",
+    "quark_coin_rigidity_audit_payload",
+    "quark_transfer_hierarchy_audit_payload",
     "residual_projectors",
     "weyl_sterile_audit_payload",
 ]

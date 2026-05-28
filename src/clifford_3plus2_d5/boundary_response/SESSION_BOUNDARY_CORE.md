@@ -2,13 +2,15 @@
 
 ## Objective
 
-Implement a new sidecar that tests only:
+Implement a sidecar that first tests:
 
 ```text
 H_Q, V_a -> Sigma(z) -> K_nu = epsilon^2 P_u + P_b
 ```
 
-The sidecar must not implement PMNS or CKM texture machinery.
+Later gates may assemble explicitly conditional leptonic textures once the
+neutrino core and charged-lepton ingredients have passed.  CKM texture
+machinery remains parked until a quark boundary shell is derived.
 
 ## V1 Result
 
@@ -404,4 +406,253 @@ CP-conjugate branch has angle `+5/12`.
 
 This is not yet a boundary-loop theorem.  V8 verifies the conditional phase
 word only; the selection of the full word over subwords is still an explicit
-assumption.  PMNS remains parked.
+assumption.
+
+## V9 Conditional PMNS Assembly
+
+V9 reopens only the leptonic texture assembly, and only conditionally.  It
+combines:
+
+```text
+V6: K_nu = epsilon^2 P_u + P_b
+V7: sin(theta_e) = sqrt(3/2) epsilon^2
+V8: phi_e = -5 pi / 12
+```
+
+The residual `(a,u,b)` basis gives the TBM neutrino matrix.  The charged-lepton
+rotation is assembled with the V8 phase branch, and:
+
+```text
+U_PMNS = R_e^\dagger U_TBM
+```
+
+The audit gives:
+
+```text
+sin^2(theta13) = (3/4) epsilon^4
+sin^2(theta12) ~= 0.304610
+sin^2(theta23) ~= 0.488712
+delta_CP ~= 261.6 degrees
+```
+
+The conjugate phase branch gives `delta_CP ~= 98.4 degrees` and flips the
+Jarlskog sign.  The V9 verdict is:
+
+```text
+PMNS_CONDITIONAL_ASSEMBLY_PASS
+```
+
+This is explicitly below theorem status.  It depends on the still-unproven V8
+boundary-loop word selection.  CKM remains parked.
+
+## V10 Leptonic Boundary-Loop Holonomy Gate
+
+V10 implements the missing selection theorem for the V8 phase word inside a
+minimal boundary-loop holonomy model.  The factor registry is:
+
+```text
+SCHUR_RETURN angle = 1
+PARENT_A3 angle    = 1/4
+RESIDUAL_A2 angle  = 1/3
+```
+
+The charged-lepton loop selection rule is oriented and primitive:
+
+```text
+SCHUR_RETURN -> PARENT_A3 -> RESIDUAL_A2
+```
+
+The selected word gives:
+
+```text
+raw angle = 19/12
+principal angle = -5/12
+phase = exp(-i 5 pi / 12)
+```
+
+No-Schur, single-factor, two-factor, reversed-order, and duplicated-cover
+controls are inadmissible.  The V10 verdict is:
+
+```text
+LEPTONIC_PHASE_WORD_DERIVED_PASS
+```
+
+This removes the V8 word-selection caveat within the holonomy model.  It does
+not construct a charged-lepton Hamiltonian or quark shell.  CKM remains parked.
+
+## V11 Quark Primitive Boundary-Shell Gate
+
+V11 opens the quark sector only at the Q1 shell/coin level.  The primitive
+quark shell is:
+
+```text
+S_q = 1_even + 5_odd = 1_direct + (2_BCC + 3_color)
+```
+
+A fixed exact `Cl_5` representation audits the five odd channels.  With:
+
+```text
+Gamma_q = sum_A gamma_A
+```
+
+the Clifford relations imply:
+
+```text
+Gamma_q^2 = 5 I
+```
+
+The flat primitive coin is:
+
+```text
+B_q = (I + i Gamma_q) / sqrt(6)
+```
+
+and the audit verifies:
+
+```text
+B_q^\dagger B_q = I
+delta_q = atan(sqrt(5))
+```
+
+Missing-color, non-flat-amplitude, and commuting-generator controls are
+rejected.  The V11 verdict is:
+
+```text
+QUARK_BOUNDARY_SHELL_Q1_PASS
+```
+
+This derives only the primitive quark shell and phase source.  CKM magnitudes
+remain parked until later Q2/Q3 gates derive the transfer-depth hierarchy,
+color-return contraction, and BCC Clebsch factors.
+
+## V12 Quark Transfer-Depth Hierarchy Gate
+
+V12 implements Q2.  The quark family depths are:
+
+```text
+depth(1) = 0
+depth(2) = 2
+depth(3) = 6
+```
+
+Pairwise transfer depths are absolute differences:
+
+```text
+depth(1,2) = 2
+depth(2,3) = 4
+depth(1,3) = 6
+```
+
+Therefore the raw transfer amplitudes are:
+
+```text
+A_12 = epsilon^2
+A_23 = epsilon^4
+A_13 = epsilon^6
+```
+
+Odd-depth, non-additive, and permuted-label controls are rejected.  The V12
+verdict is:
+
+```text
+QUARK_TRANSFER_HIERARCHY_Q2_PASS
+```
+
+This derives only the raw transfer-depth hierarchy.  CKM magnitudes remain
+parked until Q3 derives the color-return contraction and BCC Clebsch factors.
+
+## V13 Quark Color/BCC Clebsch Gate
+
+V13 implements Q3.  Using exact SU(3) fundamental generators:
+
+```text
+T^A = lambda^A / 2
+```
+
+the audit verifies:
+
+```text
+sum_A T^A T^A = (4/3) I_3
+```
+
+The Cabibbo leakage normalization is:
+
+```text
+L_12 = epsilon^2 / sqrt(1 + epsilon^4)
+```
+
+For the two BCC paths:
+
+```text
+|S> = (p1 + p2) / sqrt(2)
+|A> = (p1 - p2) / sqrt(2)
+```
+
+the Clebsches are:
+
+```text
+<S | p1 + p2> = sqrt(2)
+<p1 | A> = 1 / sqrt(2)
+```
+
+Raw-generator, missing-generator, incoherent-path, and unnormalized-path
+controls are rejected.  The V13 verdict is:
+
+```text
+QUARK_CLEBSCH_Q3_PASS
+```
+
+This derives the remaining prefactors needed for CKM magnitudes.  CKM assembly
+itself remains parked for V14.
+
+## V14 Conditional CKM Assembly
+
+V14 assembles the passed quark gates Q1-Q3 into the standard CKM rotation
+product:
+
+```text
+V_CKM = R_23(theta_23) R_13(theta_13, delta_q) R_12(theta_12)
+```
+
+The exact sine inputs are:
+
+```text
+s_12 = (4/3) epsilon^2 / sqrt(1 + epsilon^4)
+s_23 = sqrt(2) epsilon^4
+s_13 = epsilon^6 / sqrt(2)
+```
+
+and the phase is the V11 flat quark-coin phase:
+
+```text
+delta_q = atan(sqrt(5))
+exp(i delta_q) = (1 + i sqrt(5)) / sqrt(6)
+```
+
+The audit verifies unitarity of the assembled matrix and reports:
+
+```text
+s_12 ~= 0.225469
+s_23 ~= 0.041631
+s_13 ~= 0.003571
+delta_q ~= 65.905 degrees
+J_q ~= 2.98e-5
+```
+
+with:
+
+```text
+|V_CKM| ~= [[0.97425, 0.22547, 0.00357],
+           [0.22533, 0.97340, 0.04163],
+           [0.00858, 0.04090, 0.99913]]
+```
+
+The V14 verdict is:
+
+```text
+CKM_CONDITIONAL_ASSEMBLY_PASS
+```
+
+This is a conditional texture assembly inside the Q1-Q3 quark boundary-shell
+model.  It does not yet prove that a microscopic BCC-QCA boundary update
+forces that shell.

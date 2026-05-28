@@ -1,6 +1,6 @@
 # boundary_response — Status
 
-**Status**: V1, V2, V3, V4, V5, V6, V7, and V8 implemented.
+**Status**: V1 through V16 implemented.
 
 - V1 verdict: **BOUNDARY_CORE_KILL_UNBROKEN_K3**.
 - V2 verdict: **FRAMED_STERILE_EFFECTIVE_PASS**.
@@ -10,6 +10,14 @@
 - V6 verdict: **PRODUCT_STERILE_LIMIT_PASS**.
 - V7 verdict: **CHARGED_LEPTON_LEAKAGE_PASS**.
 - V8 verdict: **LEPTONIC_PHASE_WORD_CONDITIONAL_PASS**.
+- V9 verdict: **PMNS_CONDITIONAL_ASSEMBLY_PASS**.
+- V10 verdict: **LEPTONIC_PHASE_WORD_DERIVED_PASS**.
+- V11 verdict: **QUARK_BOUNDARY_SHELL_Q1_PASS**.
+- V12 verdict: **QUARK_TRANSFER_HIERARCHY_Q2_PASS**.
+- V13 verdict: **QUARK_CLEBSCH_Q3_PASS**.
+- V14 verdict: **CKM_CONDITIONAL_ASSEMBLY_PASS**.
+- V15 verdict: **QUARK_COIN_RIGIDITY_THEOREM_PASS**.
+- V16 verdict: **PRIMITIVE_ERGODICITY_NO_GO_PASS**.
 
 The residual transfer recurrence gives the desired exact invariant:
 
@@ -31,9 +39,9 @@ selected-port `S_2`. The explicit finite `S_3`-equivariant `K_3` tail has an
 ## Meaning
 
 This does not kill the broader boundary-response program. It kills the
-strongest unframed `K_3`-tail version of the neutrino core. PMNS and CKM
-textures remain parked until an explicit framed `H_Q,V` model derives the
-required `S_3 -> S_2` doublet splitting.
+strongest unframed `K_3`-tail version of the neutrino core. Later gates derive
+the framed neutrino core and assemble conditional PMNS and CKM textures. The
+CKM result is conditional on the Q1-Q3 quark boundary-shell model.
 
 ## V2 framed sterile result
 
@@ -60,8 +68,7 @@ Sigma_eff ∝ epsilon^2 P_u + P_b
 ```
 
 This is an effective framed-boundary pass, not a full microscopic proof. The
-equal-return and zero-cross-return assumptions remain explicit. PMNS/CKM stay
-parked.
+equal-return and zero-cross-return assumptions remain explicit at V2.
 
 ## Next gate
 
@@ -271,7 +278,272 @@ CP-conjugate branch gives `+5/12`.
 
 The verdict is `LEPTONIC_PHASE_WORD_CONDITIONAL_PASS`.  This verifies the
 conditional phase arithmetic only.  It does not derive the boundary loop that
-selects the full word, and it does not assemble PMNS.
+selects the full word.
+
+## V9 conditional PMNS assembly
+
+V9 assembles the already-gated leptonic ingredients:
+
+```text
+U_PMNS = R_e^\dagger U_TBM
+```
+
+where `U_TBM` is the residual `(a,u,b)` basis, V7 supplies
+
+```text
+sin(theta_e) = sqrt(3/2) epsilon^2
+```
+
+and V8 supplies the conditional phase branch
+
+```text
+phi_e = -5 pi / 12
+```
+
+with the CP-conjugate branch `+5 pi / 12`.  The exact and numerical output is:
+
+```text
+sin^2(theta13) = (3/4) epsilon^4
+sin^2(theta12) ~= 0.304610
+sin^2(theta23) ~= 0.488712
+delta_CP ~= 261.6 degrees
+delta_CP_conjugate ~= 98.4 degrees
+```
+
+The verdict is `PMNS_CONDITIONAL_ASSEMBLY_PASS`.  This is not a theorem-level
+PMNS derivation because the V8 boundary-loop word selection remains
+conditional.  CKM remains parked.
+
+## V10 leptonic boundary-loop holonomy gate
+
+V10 implements the missing V8 selection layer as a minimal boundary-loop
+holonomy model.  The admissible charged-lepton loop must contain exactly one
+Schur return, one parent `A3` spin lift, and one residual `A2` spin lift in the
+oriented primitive order:
+
+```text
+SCHUR_RETURN -> PARENT_A3 -> RESIDUAL_A2
+```
+
+The selected word has:
+
+```text
+raw angle = 1 + 1/4 + 1/3 = 19/12
+principal angle = -5/12
+phase = exp(-i 5 pi / 12)
+```
+
+The candidate catalog has exactly one admissible primitive word.  The no-Schur,
+single-factor, two-factor, reversed-order, and duplicated-cover controls are
+rejected.  The verdict is:
+
+```text
+LEPTONIC_PHASE_WORD_DERIVED_PASS
+```
+
+This upgrades the V8 word selection inside the boundary-loop holonomy model.
+It does not construct a quark boundary shell.  CKM remains parked.
+
+## V11 quark primitive boundary-shell gate
+
+V11 implements the first quark-sector gate, Q1.  The primitive shell is:
+
+```text
+S_q = 1_even + 5_odd = 1_direct + (2_BCC + 3_color)
+```
+
+The five odd channels are represented by exact `Cl_5` generators:
+
+```text
+gamma_A^2 = I
+{gamma_A, gamma_B} = 0 for A != B
+Gamma_q = sum_A gamma_A
+Gamma_q^2 = 5 I
+```
+
+The flat primitive coin is:
+
+```text
+B_q = (I + i Gamma_q) / sqrt(6)
+```
+
+and is exactly unitary.  The positive-branch scalar phase is:
+
+```text
+phase factor = (1 + i sqrt(5)) / sqrt(6)
+delta_q = atan(sqrt(5))
+```
+
+Missing-color, non-flat, and commuting-generator controls are rejected.  The
+verdict is:
+
+```text
+QUARK_BOUNDARY_SHELL_Q1_PASS
+```
+
+This derives only the primitive shell count, Clifford closure, flat coin, and
+phase source.  CKM magnitudes remain parked until Q2/Q3 gates derive the
+transfer-depth hierarchy and color/BCC Clebsches.
+
+## V12 quark transfer-depth hierarchy gate
+
+V12 implements the second quark-sector gate, Q2.  The ordered family-depth
+embedding is:
+
+```text
+family 1 depth = 0
+family 2 depth = 2
+family 3 depth = 6
+```
+
+Transition depth is the absolute depth difference, so:
+
+```text
+1<->2 depth = 2
+2<->3 depth = 4
+1<->3 depth = 6
+```
+
+and the raw transfer amplitudes are:
+
+```text
+A_12 = epsilon^2
+A_23 = epsilon^4
+A_13 = epsilon^6
+```
+
+Odd-depth, non-additive direct-depth, and permuted-label controls are rejected.
+The verdict is:
+
+```text
+QUARK_TRANSFER_HIERARCHY_Q2_PASS
+```
+
+This derives only the raw transfer powers.  CKM magnitudes remain parked until
+Q3 derives the color-singlet return factor and BCC symmetric/antisymmetric
+Clebsches.
+
+## V13 quark color/BCC Clebsch gate
+
+V13 implements the final quark prerequisite gate, Q3.  With exact SU(3)
+fundamental generators:
+
+```text
+T^A = lambda^A / 2
+```
+
+the color-singlet return contraction is:
+
+```text
+sum_A T^A T^A = (4/3) I_3
+```
+
+The normalized Cabibbo leakage and two BCC path factors are:
+
+```text
+L_12 = epsilon^2 / sqrt(1 + epsilon^4)
+C_23 = sqrt(2)
+C_13 = 1 / sqrt(2)
+```
+
+Raw-generator, missing-color-generator, incoherent-path, and
+unnormalized-antisymmetric controls are rejected.  The verdict is:
+
+```text
+QUARK_CLEBSCH_Q3_PASS
+```
+
+This derives the color and BCC prefactors needed for CKM magnitudes.  CKM
+matrix assembly remains parked for V14.
+
+## V14 conditional CKM assembly
+
+V14 assembles the passed Q1-Q3 quark gates:
+
+```text
+s_12 = (4/3) epsilon^2 / sqrt(1 + epsilon^4)
+s_23 = sqrt(2) epsilon^4
+s_13 = epsilon^6 / sqrt(2)
+delta_q = atan(sqrt(5))
+```
+
+using:
+
+```text
+V_CKM = R_23(theta_23) R_13(theta_13, delta_q) R_12(theta_12)
+```
+
+The audit gives:
+
+```text
+s_12 ~= 0.225469
+s_23 ~= 0.041631
+s_13 ~= 0.003571
+delta_q ~= 65.905 degrees
+J_q ~= 2.98e-5
+```
+
+and the approximate magnitude matrix:
+
+```text
+|V_CKM| ~= [[0.97425, 0.22547, 0.00357],
+           [0.22533, 0.97340, 0.04163],
+           [0.00858, 0.04090, 0.99913]]
+```
+
+The verdict is `CKM_CONDITIONAL_ASSEMBLY_PASS`.  This is conditional on the
+Q1-Q3 primitive quark boundary-shell model, not a microscopic derivation of
+that shell from the QCA update.
+
+## V15 primitive quark coin rigidity theorem
+
+V15 proves the exact isotropic one-parameter family behind the V11 quark coin:
+
+```text
+B(r) = (I + i r Gamma_q) / sqrt(1 + 5 r^2)
+Gamma_q^2 = 5I
+```
+
+For every real ratio `r`, this coin is unitary and its positive-branch phase is:
+
+```text
+delta(r) = atan(r sqrt(5))
+```
+
+Therefore:
+
+```text
+delta_q = atan(sqrt(5))  iff  r = 1
+```
+
+The verdict is `QUARK_COIN_RIGIDITY_THEOREM_PASS`.  This is useful negative
+information: unitarity and Clifford closure do not force the CKM phase by
+themselves.  They force a one-parameter family, and the observed V11 phase is
+equivalent to adding flat primitive boundary ergodicity.
+
+## V16 primitive ergodicity no-go
+
+V16 computes invariant subspaces for the primitive shell.  If symmetry
+preserves the split:
+
+```text
+1_even ⊕ 5_odd
+```
+
+and acts transitively on the odd shell, the invariant amplitude space is:
+
+```text
+span{|even>, |odd_1> + ... + |odd_5>}
+```
+
+Thus odd amplitudes are forced equal, but the even/odd ratio remains free.  The
+non-flat ratios `r = 1/2` and `r = 2` satisfy the same parity-preserving
+symmetry while producing different phases.
+
+Full six-channel transitivity has only the flat invariant direction and does
+force `r = 1`.  The verdict is `PRIMITIVE_ERGODICITY_NO_GO_PASS`: flat
+primitive ergodicity is an extra physical principle, not a consequence of
+parity-preserving shell symmetry.
 
 ## Test command
 
