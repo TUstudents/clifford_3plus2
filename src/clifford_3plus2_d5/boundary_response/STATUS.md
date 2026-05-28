@@ -1,6 +1,6 @@
 # boundary_response — Status
 
-**Status**: V1 through V19 implemented.
+**Status**: V1 through V23 implemented.
 
 - V1 verdict: **BOUNDARY_CORE_KILL_UNBROKEN_K3**.
 - V2 verdict: **FRAMED_STERILE_EFFECTIVE_PASS**.
@@ -21,6 +21,10 @@
 - V17 verdict: **CHIRAL_BOUNDARY_NORMALIZATION_NO_GO_PASS**.
 - V18 verdict: **ALGEBRAIC_INTERTWINER_FREE_NORM_KILL**.
 - V19 verdict: **MAX_ENTROPY_PRIMITIVE_ERGODICITY_CONDITIONAL_PASS**.
+- V20 verdict: **JAYNES_PRIMITIVE_ERGODICITY_THEOREM_PASS**.
+- V21 verdict: **CONSERVED_LABEL_PARTITION_THEOREM_PASS**.
+- V22 verdict: **LABEL_CONSERVING_DYNAMICS_MAX_ENTROPY_NO_GO_PASS**.
+- V23 verdict: **EQUAL_DEGENERACY_MICROCANONICAL_REDUCTION_PASS**.
 
 The residual transfer recurrence gives the desired exact invariant:
 
@@ -647,6 +651,165 @@ entropy control instead maximizes at `r = 1/sqrt(5)` and gives phase `pi/4`.
 The verdict is `MAX_ENTROPY_PRIMITIVE_ERGODICITY_CONDITIONAL_PASS`: primitive
 max entropy derives CKM flatness only if the six primitive channels are the
 entropy atoms.
+
+## V20 Jaynes primitive-ergodicity theorem
+
+V20 rewrites V19 as a density-matrix Jaynes theorem.  Odd-shell `S_5`
+invariance restricts the primitive density to:
+
+```text
+rho(alpha) = alpha P_even + ((1 - alpha) / 5) P_odd
+```
+
+If no parity-bias observable is retained, the six-atom entropy is:
+
+```text
+S(alpha) = -alpha log(alpha) - (1 - alpha) log((1 - alpha) / 5)
+```
+
+with:
+
+```text
+dS/dalpha = log((1 - alpha) / (5 alpha))
+d^2S/dalpha^2 = -1 / (alpha (1 - alpha))
+```
+
+The unique maximum is:
+
+```text
+alpha = 1/6
+rho = I_6 / 6
+r = 1
+delta = atan(sqrt(5))
+```
+
+Parity-bias controls remain `S_5` invariant but leave the ratio free.  The
+compressed `{even, odd_total}` entropy control maximizes at `alpha = 1/2`,
+giving `r = 1/sqrt(5)` and phase `pi/4`.  The verdict is
+`JAYNES_PRIMITIVE_ERGODICITY_THEOREM_PASS`: the primitive-shell Jaynes input
+derives CKM flatness, while the absence of a retained parity-bias observable
+remains the physical assumption.
+
+## V21 conserved-label distinguishability theorem
+
+V21 audits why V20's entropy atoms are the six primitive channels rather than
+the compressed `{even, odd_total}` partition.  Boundary scattering preserves
+the conserved-label tuple:
+
+```text
+(parity, bcc_index, color_index)
+```
+
+for:
+
+```text
+direct_even_return
+bcc_odd_quadrature_1
+bcc_odd_quadrature_2
+color_odd_red
+color_odd_green
+color_odd_blue
+```
+
+The six label projectors obey:
+
+```text
+P_i P_j = delta_ij P_i
+sum_i P_i = I_6
+```
+
+A generic conserved-label scattering operator commutes with every `P_i`, while
+an operator mixing distinct labels fails the conservation test.  The compressed
+odd macrochannel merges five distinct conserved labels and is rejected as a
+microstate entropy partition.
+
+The verdict is `CONSERVED_LABEL_PARTITION_THEOREM_PASS`: the six-channel
+entropy partition follows from conserved-label distinguishability.  The
+remaining declared inputs are:
+
+```text
+vacuum_framing
+transfer_probe
+max_entropy_prior
+```
+
+## V22 label-conserving dynamics no-go
+
+V22 asks whether the V20 uniform Jaynes density can be forced dynamically by
+boundary scattering that preserves the V21 conserved labels.  A generic
+label-preserving scattering operator is:
+
+```text
+U(phi) = sum_i exp(i phi_i) P_i
+```
+
+and a generic diagonal population state is:
+
+```text
+rho(p) = sum_i p_i P_i
+```
+
+The audit proves:
+
+```text
+[U(phi), rho(p)] = 0
+```
+
+for all primitive populations.  Label dephasing:
+
+```text
+D(rho) = sum_i P_i rho P_i
+```
+
+removes coherences but preserves every `Tr(P_i rho)`.  Therefore `I_6 / 6` is
+stationary but not unique; the stationary trace-one simplex has dimension
+five.  A control that mixes conserved labels is rejected by the V21
+conservation test.
+
+The verdict is `LABEL_CONSERVING_DYNAMICS_MAX_ENTROPY_NO_GO_PASS`: dynamic
+convergence to the uniform state requires label mixing, which violates the
+conserved-label partition.  The max-entropy prior remains an inference
+principle, not a consequence of label-conserving dynamics alone.
+
+## V23 equal-degeneracy microcanonical reduction theorem
+
+V23 resolves the V22 no-go by changing the claim.  It does not try to make
+label-conserving dynamics thermalize primitive populations.  Instead, it treats
+the unresolved primitive shell as a microcanonical bath:
+
+```text
+H_Q = direct_sum_i ( |i>_label tensor B_i )
+```
+
+with bath degeneracies `d_i = dim(B_i)`.  Tracing out the bath gives:
+
+```text
+rho_label = sum_i (d_i / sum_j d_j) P_i
+```
+
+Therefore equal primitive-label degeneracy gives:
+
+```text
+rho_label = I_6 / 6
+r = 1
+delta = atan(sqrt(5))
+```
+
+Unequal degeneracy gives a nonuniform Jaynes density, and the compressed
+`{even, odd_total}` macrochannel control gives the old wrong branch:
+
+```text
+r = 1 / sqrt(5)
+delta = pi / 4
+```
+
+The verdict is `EQUAL_DEGENERACY_MICROCANONICAL_REDUCTION_PASS`.  This is
+compatible with V22 because it is a reduced-state inference theorem, not a
+thermalization theorem.  The remaining declared input is now sharpened to:
+
+```text
+equal_boundary_degeneracy_or_max_entropy_prior
+```
 
 ## Test command
 

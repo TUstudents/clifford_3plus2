@@ -785,3 +785,189 @@ V19 reports `MAX_ENTROPY_PRIMITIVE_ERGODICITY_CONDITIONAL_PASS` if primitive
 six-channel max entropy gives `r = 1` while the compressed-channel control
 does not.  This is a conditional derivation of CKM flatness from the
 primitive-channel entropy principle, not from BCC geometry alone.
+
+## V20 Question
+
+Can V19's primitive max-entropy rule be stated as a Jaynes density theorem?
+
+## V20 Implementation
+
+- `jaynes_primitive_ergodicity.py` defines the odd-shell `S_5` invariant
+  density family:
+
+```text
+rho(alpha) = alpha P_even + ((1 - alpha) / 5) P_odd
+```
+
+- With no retained parity-bias observable, the six-atom entropy is:
+
+```text
+S(alpha) = -alpha log(alpha) - (1 - alpha) log((1 - alpha) / 5)
+```
+
+- The exact derivatives are:
+
+```text
+dS/dalpha = log((1 - alpha) / (5 alpha))
+d^2S/dalpha^2 = -1 / (alpha (1 - alpha))
+```
+
+so the unique maximum is `alpha = 1/6`, giving:
+
+```text
+rho = I_6 / 6
+r = sqrt((1 - alpha) / (5 alpha)) = 1
+delta = atan(sqrt(5))
+```
+
+- The parity-bias controls `alpha = 1/2` and `alpha = 1/3` remain `S_5`
+  invariant but do not recover CKM.  The compressed macrochannel entropy
+  control maximizes at `alpha = 1/2`, giving `r = 1/sqrt(5)` and phase
+  `pi/4`.
+
+## V20 Verdict Standard
+
+V20 reports `JAYNES_PRIMITIVE_ERGODICITY_THEOREM_PASS` if the Jaynes density
+is trace-one, `S_5` invariant, has the exact entropy maximum at `I_6/6`,
+recovers the CKM phase, and rejects parity-bias and compressed-channel
+controls.  This upgrades V19 to a Jaynes theorem conditional on the physical
+input that the unresolved primitive shell retains no parity-bias observable.
+
+## V21 Question
+
+Does the six-channel entropy partition follow from conserved-label
+distinguishability under boundary scattering?
+
+## V21 Implementation
+
+- `conserved_label_partition.py` assigns each primitive quark boundary channel
+  a conserved-label tuple:
+
+```text
+(parity, bcc_index, color_index)
+```
+
+- The six primitive projectors are exact rank-one label sectors:
+
+```text
+P_i P_j = delta_ij P_i
+sum_i P_i = I_6
+```
+
+- A generic label-preserving boundary scattering operator is diagonal in the
+  six conserved-label sectors and commutes with every `P_i`.  A control
+  operator mixing two distinct primitive labels fails this conservation test.
+- The compressed `{even, odd_total}` partition is rejected because the
+  odd_total macrochannel merges five distinct conserved labels.
+- The uniform V20 Jaynes density is verified to be the average of the six
+  conserved-label projectors.
+
+## V21 Verdict Standard
+
+V21 reports `CONSERVED_LABEL_PARTITION_THEOREM_PASS` if conserved-label tuples
+are pairwise distinct, the projectors resolve the identity, label-preserving
+scattering commutes with the projectors, label-mixing controls are rejected,
+and the compressed partition is coarser than the conserved-label microstate
+partition.  This upgrades the V20 entropy partition from declared to derived
+from conserved-label distinguishability.
+
+## V22 Question
+
+Can label-conserving boundary dynamics dynamically force the V20 uniform
+Jaynes state?
+
+## V22 Implementation
+
+- `label_conserving_dynamics.py` defines generic label-preserving scattering:
+
+```text
+U(phi) = sum_i exp(i phi_i) P_i
+```
+
+- A generic diagonal primitive population state is:
+
+```text
+rho(p) = sum_i p_i P_i
+```
+
+- The audit verifies:
+
+```text
+[U(phi), rho(p)] = 0
+```
+
+for arbitrary populations and phases, so every diagonal population vector is
+stationary.
+- The label-dephasing channel:
+
+```text
+D(rho) = sum_i P_i rho P_i
+```
+
+removes off-diagonal coherences but preserves all primitive populations.
+- The uniform density `I_6 / 6` is stationary but not unique.  The stationary
+trace-one simplex has dimension five.
+- A label-mixing control can change populations but fails the V21
+conserved-label test.
+
+## V22 Verdict Standard
+
+V22 reports `LABEL_CONSERVING_DYNAMICS_MAX_ENTROPY_NO_GO_PASS` if
+label-conserving dynamics preserves all primitive populations, dephasing does
+not alter populations, the uniform state is not unique, and any dynamic route
+to uniform requires label mixing.  This keeps the max-entropy prior as an
+inference principle rather than a consequence of conserved-label dynamics.
+
+## V23 Question
+
+Can the V20 uniform primitive density be derived as a microcanonical reduced
+state rather than as dynamical thermalization?
+
+## V23 Implementation
+
+- `microcanonical_reduction.py` models the unresolved primitive shell as:
+
+```text
+H_Q = direct_sum_i ( |i>_label tensor B_i )
+```
+
+- A full microcanonical state on `H_Q` reduces to primitive-label weights:
+
+```text
+p_i = dim(B_i) / sum_j dim(B_j)
+rho_label = sum_i p_i P_i
+```
+
+- Equal primitive-label bath degeneracy gives:
+
+```text
+rho_label = I_6 / 6
+r = 1
+delta = atan(sqrt(5))
+```
+
+- Unequal degeneracy is a negative control: it gives nonuniform primitive
+  weights and does not recover the CKM phase.
+- The compressed `{even, odd_total}` degeneracy control is also rejected:
+
+```text
+r = 1 / sqrt(5)
+delta = pi / 4
+```
+
+- The audit cross-checks V22's no-go verdict to keep the distinction explicit:
+  V22 rejects dynamical selection under label-conserving scattering; V23 proves
+  a reduced-state inference theorem.
+
+## V23 Verdict Standard
+
+V23 reports `EQUAL_DEGENERACY_MICROCANONICAL_REDUCTION_PASS` if equal
+primitive-label degeneracy reduces to `I_6 / 6`, recovers `r = 1` and
+`atan(sqrt(5))`, rejects unequal-degeneracy and compressed-macrochannel
+controls, and remains consistent with the V22 label-conserving dynamics no-go.
+
+This closes a sharper version of the primitive ergodicity route: the uniform
+primitive density is either a Jaynes prior over conserved-label microstates or
+the reduced state of an equal-degeneracy unresolved boundary bath.  The
+remaining physical input is not thermalization; it is equal boundary
+degeneracy, or equivalently the absence of retained bath-degeneracy bias.
