@@ -1,6 +1,6 @@
 # boundary_response — Status
 
-**Status**: V1 through V29 implemented.
+**Status**: V1 through V31 implemented.
 
 - V1 verdict: **BOUNDARY_CORE_KILL_UNBROKEN_K3**.
 - V2 verdict: **FRAMED_STERILE_EFFECTIVE_PASS**.
@@ -31,6 +31,8 @@
 - V27 verdict: **BCC_VACUUM_FRAMING_ORBIT_PASS**.
 - V28 verdict: **VACUUM_SELECTOR_ORDER_PARAMETER_PASS**.
 - V29 verdict: **UNIT_OUTWARD_CONTINUATION_NORMALIZATION_PASS**.
+- V30 verdict: **LOCAL_BOUNDARY_FIBER_ISOMORPHISM_PASS**.
+- V31 verdict: **TETRAHEDRAL_SELECTOR_POTENTIAL_PASS**.
 
 The residual transfer recurrence gives the desired exact invariant:
 
@@ -1071,6 +1073,102 @@ structural inputs are now:
 ```text
 physical_vacuum_order_parameter_exists
 regular_boundary_fiber_or_max_entropy_prior
+```
+
+## V30 local boundary-fiber isomorphism gate
+
+V30 sharpens the V24 regular-fiber principle into an explicit local
+factorization:
+
+```text
+H_Q = C^6_label tensor B_local
+```
+
+The six conserved primitive labels from V21 are retained as distinct
+superselection tags, while every label carries an isomorphic copy of the same
+unresolved local boundary patch.  Therefore:
+
+```text
+d_i = dim(B_local) = D
+dim(H_Q) = 6D
+```
+
+For concrete `D = 2`, the six label projectors have equal rank two, and every
+pair of label fibers is related by an explicit unitary permutation witness.
+At the reduced six-label level:
+
+```text
+rho_label = I_6 / 6
+r = 1
+delta = atan(sqrt(5))
+```
+
+The controls are rejected:
+
+```text
+sector-dependent fibers -> nonuniform weights
+arbitrary label fibers  -> free degeneracy ratios
+compressed macro-fiber  -> wrong pi/4 branch
+```
+
+The verdict is `LOCAL_BOUNDARY_FIBER_ISOMORPHISM_PASS`.  It respects the V22
+no-go because it is a structural equal-rank theorem, not a claim that
+label-conserving dynamics thermalizes populations.
+
+The remaining structural input is now:
+
+```text
+physical_vacuum_order_parameter_exists
+```
+
+## V31 tetrahedral selector-potential gate
+
+V31 replaces arbitrary exit selection with a finite-candidate tetrahedral
+symmetry-breaking gate.  Define the tetrahedral cubic invariant:
+
+```text
+C(h) = sum_i (h . v_i)^3
+```
+
+and selector potential:
+
+```text
+E(h) = - C(h)
+```
+
+For the four BCC tetrahedral selector directions:
+
+```text
+C(v_i) = 8/9
+E(v_i) = -8/9
+```
+
+Zero and midpoint controls have energy zero, and antipodal controls have
+energy `+8/9`, so the finite-candidate selector gap is:
+
+```text
+8/9
+```
+
+Each selector minimum reproduces the V28 selector spectrum:
+
+```text
+(-1, 1/3, 1/3, 1/3)
+```
+
+and each has a selected-exit stabilizer inducing residual `S_3`.  Reversing
+the anisotropy sign selects the antipodal branch, which is rejected for the
+V27/V28 selector convention.
+
+The verdict is `TETRAHEDRAL_SELECTOR_POTENTIAL_PASS`.
+
+This proves that a minimal tetrahedral selector anisotropy has exactly the
+right four symmetry-related broken-phase selector candidates.  It does not
+derive microscopic condensation of that order parameter.  The remaining
+physical input is:
+
+```text
+tetrahedral_selector_order_parameter_condenses
 ```
 
 ## Test command

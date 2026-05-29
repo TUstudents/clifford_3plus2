@@ -67,6 +67,12 @@ from clifford_3plus2_d5.boundary_response.label_conserving_dynamics import (
     label_dephasing_channel,
     label_population_density,
 )
+from clifford_3plus2_d5.boundary_response.local_boundary_fiber import (
+    LocalBoundaryFiberAuditPayload,
+    local_boundary_fiber_audit_payload,
+    local_fiber_degeneracies,
+    local_fiber_reduced_density,
+)
 from clifford_3plus2_d5.boundary_response.microcanonical_reduction import (
     MicrocanonicalReductionAuditPayload,
     equal_degeneracy_reduced_density,
@@ -177,6 +183,12 @@ from clifford_3plus2_d5.boundary_response.vacuum_selector import (
     selector_order_parameter,
     vacuum_selector_audit_payload,
 )
+from clifford_3plus2_d5.boundary_response.vacuum_selector_potential import (
+    VacuumSelectorPotentialAuditPayload,
+    selector_potential_energy,
+    tetrahedral_selector_candidates,
+    vacuum_selector_potential_audit_payload,
+)
 
 __all__ = [
     "AlgebraicIntertwinerAuditPayload",
@@ -193,6 +205,7 @@ __all__ = [
     "LabelConservingDynamicsAuditPayload",
     "LeptonicBoundaryHolonomyAuditPayload",
     "LeptonicPhaseWordAuditPayload",
+    "LocalBoundaryFiberAuditPayload",
     "MicrocanonicalReductionAuditPayload",
     "PMNSConditionalAuditPayload",
     "PMNSMixingObservables",
@@ -210,6 +223,7 @@ __all__ = [
     "UnitContinuationAuditPayload",
     "VacuumFramingAuditPayload",
     "VacuumSelectorAuditPayload",
+    "VacuumSelectorPotentialAuditPayload",
     "WeylSterileAuditPayload",
     "algebraic_intertwiner_audit_payload",
     "arbitrary_label_preserving_degeneracies",
@@ -249,6 +263,9 @@ __all__ = [
     "label_population_density",
     "leptonic_boundary_holonomy_audit_payload",
     "leptonic_phase_word_audit_payload",
+    "local_boundary_fiber_audit_payload",
+    "local_fiber_degeneracies",
+    "local_fiber_reduced_density",
     "microcanonical_label_weights",
     "microcanonical_reduced_density",
     "microcanonical_reduction_audit_payload",
@@ -278,11 +295,14 @@ __all__ = [
     "selector_energies",
     "selector_gap",
     "selector_order_parameter",
+    "selector_potential_energy",
     "spectral_lift_operator",
+    "tetrahedral_selector_candidates",
     "transfer_probe_theorem_audit_payload",
     "unit_continuation_audit_payload",
     "unit_outward_matching",
     "vacuum_framing_audit_payload",
     "vacuum_selector_audit_payload",
+    "vacuum_selector_potential_audit_payload",
     "weyl_sterile_audit_payload",
 ]

@@ -1283,3 +1283,126 @@ The remaining named inputs are:
 physical_vacuum_order_parameter_exists
 regular_boundary_fiber_or_max_entropy_prior
 ```
+
+## V30 Question
+
+Can the regular boundary-fiber input be replaced by an explicit local
+boundary-fiber isomorphism theorem?
+
+## V30 Implementation
+
+- `local_boundary_fiber.py` models the unresolved primitive shell as:
+
+```text
+H_Q = C^6_label tensor B_local
+```
+
+- The six labels are the V21 conserved primitive labels.  The local unresolved
+  boundary patch `B_local` is the same for every label.
+- Therefore each label fiber has the same rank:
+
+```text
+d_i = D
+```
+
+and:
+
+```text
+dim(H_Q) = 6D
+```
+
+- For concrete local fiber dimension, the module constructs exact block
+  projectors and permutation witnesses showing every pair of label fibers is
+  isomorphic.
+- Tracing out `B_local` gives:
+
+```text
+rho_label = I_6 / 6
+```
+
+and recovers:
+
+```text
+r = 1
+delta = atan(sqrt(5))
+```
+
+- Controls:
+  - sector-dependent fibers fail full local-fiber isomorphism;
+  - arbitrary label-preserving degeneracies remain free without local
+    isomorphism;
+  - compressed macro-fiber counting merges conserved labels and gives the
+    wrong branch.
+
+## V30 Verdict Standard
+
+V30 reports `LOCAL_BOUNDARY_FIBER_ISOMORPHISM_PASS` if all six label fibers
+have equal rank, explicit pairwise isomorphism witnesses exist, the reduced
+density is `I_6/6`, the CKM primitive ratio and phase match the V20/V24 values,
+the controls fail, V21 conserved labels remain complete, V22's no-go is
+respected, and V24 is recovered.
+
+This removes `regular_boundary_fiber_or_max_entropy_prior` from the
+declared-input list.  The remaining named input is:
+
+```text
+physical_vacuum_order_parameter_exists
+```
+
+## V31 Question
+
+Can arbitrary selected-exit choice be replaced by a tetrahedral
+symmetry-breaking selector potential?
+
+## V31 Implementation
+
+- `vacuum_selector_potential.py` defines the tetrahedral cubic invariant:
+
+```text
+C(h) = sum_i (h . v_i)^3
+```
+
+where `v_i` are the four V27 BCC tetrahedral exits.
+
+- The finite-candidate selector energy is:
+
+```text
+E(h) = -a C(h)
+```
+
+with positive default anisotropy `a = 1`.
+
+- For each accepted selector candidate:
+
+```text
+E(v_i) = -8/9
+```
+
+- Zero and midpoint controls have energy zero.  Antipodal controls have energy
+  `+8/9`.  The finite-candidate gap is therefore:
+
+```text
+8/9
+```
+
+- Each selector candidate must reproduce the V28 selector spectrum up to
+  permutation and must have selected-exit stabilizer `S_3`.
+- Controls:
+  - zero anisotropy has no selector gap;
+  - wrong-sign anisotropy selects antipodal controls;
+  - midpoint controls sit above selector minima;
+  - generic V28 field has trivial stabilizer.
+
+## V31 Verdict Standard
+
+V31 reports `TETRAHEDRAL_SELECTOR_POTENTIAL_PASS` if the four accepted
+selector candidates are exactly degenerate finite-candidate minima, the gap
+against zero/midpoint/antipodal controls is `8/9`, every selector candidate
+recovers V28 and residual `S_3`, and all controls fail.
+
+This removes arbitrary selected-exit choice.  The remaining physical input is
+only condensation of the tetrahedral selector order parameter:
+
+```text
+tetrahedral_selector_order_parameter_condenses
+```
