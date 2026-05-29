@@ -1,6 +1,6 @@
 # boundary_response — Status
 
-**Status**: V1 through V23 implemented.
+**Status**: V1 through V27 implemented.
 
 - V1 verdict: **BOUNDARY_CORE_KILL_UNBROKEN_K3**.
 - V2 verdict: **FRAMED_STERILE_EFFECTIVE_PASS**.
@@ -25,6 +25,10 @@
 - V21 verdict: **CONSERVED_LABEL_PARTITION_THEOREM_PASS**.
 - V22 verdict: **LABEL_CONSERVING_DYNAMICS_MAX_ENTROPY_NO_GO_PASS**.
 - V23 verdict: **EQUAL_DEGENERACY_MICROCANONICAL_REDUCTION_PASS**.
+- V24 verdict: **REGULAR_BOUNDARY_FIBER_EQUAL_DEGENERACY_PASS**.
+- V25 verdict: **TRANSFER_PROBE_COMPATIBILITY_PASS**.
+- V26 verdict: **RESIDUAL_GRAPH_TRANSFER_RECURRENCE_PASS**.
+- V27 verdict: **BCC_VACUUM_FRAMING_ORBIT_PASS**.
 
 The residual transfer recurrence gives the desired exact invariant:
 
@@ -809,6 +813,164 @@ thermalization theorem.  The remaining declared input is now sharpened to:
 
 ```text
 equal_boundary_degeneracy_or_max_entropy_prior
+```
+
+## V24 regular boundary-fiber theorem
+
+V24 asks whether the V23 equal-degeneracy input can be sharpened into a
+concrete boundary-shell principle.  Conserved-label dynamics alone leaves
+arbitrary primitive bath dimensions:
+
+```text
+(d_0, d_1, d_2, d_3, d_4, d_5)
+```
+
+so equality is not forced by conservation.  A regular unresolved boundary
+fiber instead uses the same bath template for every conserved primitive label:
+
+```text
+H_Q = direct_sum_i ( |i>_label tensor B )
+```
+
+This gives:
+
+```text
+d_i = dim(B) for all i
+rho_label = I_6 / 6
+r = 1
+delta = atan(sqrt(5))
+```
+
+Unequal degeneracy and compressed `{even, odd_total}` controls still fail.
+The verdict is `REGULAR_BOUNDARY_FIBER_EQUAL_DEGENERACY_PASS`.
+
+This is not a claim that BCC geometry alone forces equal degeneracy.  It names
+the remaining structural input precisely:
+
+```text
+regular_boundary_fiber_or_max_entropy_prior
+```
+
+## V25 transfer-probe compatibility theorem
+
+V25 sharpens the transfer probe used by V3/V6.  For the unit semi-infinite
+sterile chain, the decaying Weyl transfer factor `m` and exterior probe `z`
+obey:
+
+```text
+z = m + 1/m
+```
+
+With the residual transfer invariant:
+
+```text
+epsilon = sqrt(2) - 1
+```
+
+the compatible probe is unique:
+
+```text
+z_transfer = epsilon + epsilon^-1 = 2 sqrt(2)
+```
+
+At that probe:
+
+```text
+m(z_transfer) = epsilon
+```
+
+The reciprocal branch `epsilon^-1 = 1 + sqrt(2)` is rejected as non-decaying.
+A scaled hopping `t` moves the compatible probe to:
+
+```text
+z_t = t (epsilon + epsilon^-1)
+```
+
+so unit sterile-chain normalization remains a named input.  The verdict is
+`TRANSFER_PROBE_COMPATIBILITY_PASS`.
+
+The remaining structural inputs are now:
+
+```text
+vacuum_framing
+unit_sterile_chain_normalization
+regular_boundary_fiber_or_max_entropy_prior
+```
+
+## V26 residual graph transfer-recurrence theorem
+
+V26 derives the transfer recurrence coefficient from the residual graph
+quotient.  After vacuum framing, the three residual family ports form `K_3`.
+Its regular degree is:
+
+```text
+deg(K_3) = 2
+```
+
+With unit outward causal continuation, the radial quotient transfer matrix is:
+
+```text
+[[2, 1],
+ [1, 0]]
+```
+
+and the decaying transfer polynomial is:
+
+```text
+epsilon^2 + 2 epsilon - 1 = 0
+```
+
+so:
+
+```text
+epsilon = sqrt(2) - 1
+```
+
+`K_2`, `K_4`, and scaled-continuation controls all change the decaying root.
+The verdict is `RESIDUAL_GRAPH_TRANSFER_RECURRENCE_PASS`.
+
+This upgrades the coefficient `2` from asserted recurrence data to the
+degree of the residual `K_3` quotient.  It does not derive vacuum framing or
+unit continuation normalization.  The remaining structural inputs are:
+
+```text
+vacuum_framing
+unit_outward_causal_continuation_or_chain_normalization
+regular_boundary_fiber_or_max_entropy_prior
+```
+
+## V27 BCC vacuum-framing orbit theorem
+
+V27 derives the finite orbit statement behind vacuum framing.  The eight
+oriented BCC body diagonals quotient by antipodal pairing to four primitive
+unoriented exits:
+
+```text
+(+++), (+--), (-+-), (--+) / sqrt(3)
+```
+
+These four exits form a regular tetrahedron:
+
+```text
+v_i . v_i = 1
+v_i . v_j = -1/3, i != j
+```
+
+Selecting one framed exit leaves three residual exits.  Their residual
+adjacency is exactly `K_3`, and the selected-exit stabilizer in `S_4` has
+six elements inducing the full residual `S_3`.
+
+No-selection (`K_4`) and two-residual (`K_2`) controls fail to reproduce the
+V26 transfer root.  The verdict is `BCC_VACUUM_FRAMING_ORBIT_PASS`.
+
+This upgrades `vacuum_framing` from a bare `S_4 -> S_3` declaration to an
+exact BCC orbit quotient.  It does not derive the physical vacuum order
+parameter that selects one exit.  The remaining structural inputs are:
+
+```text
+physical_vacuum_order_parameter_selects_one_exit
+unit_outward_causal_continuation_or_chain_normalization
+regular_boundary_fiber_or_max_entropy_prior
 ```
 
 ## Test command

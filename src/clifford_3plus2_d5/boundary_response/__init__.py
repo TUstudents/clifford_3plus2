@@ -123,6 +123,13 @@ from clifford_3plus2_d5.boundary_response.quark_transfer_hierarchy import (
     QuarkTransferHierarchyAuditPayload,
     quark_transfer_hierarchy_audit_payload,
 )
+from clifford_3plus2_d5.boundary_response.regular_boundary_fiber import (
+    RegularBoundaryFiberAuditPayload,
+    arbitrary_label_preserving_degeneracies,
+    regular_boundary_fiber_audit_payload,
+    regular_fiber_degeneracies,
+    regular_fiber_reduced_density,
+)
 from clifford_3plus2_d5.boundary_response.weyl_sterile import (
     WeylSterileAuditPayload,
     weyl_sterile_audit_payload,
@@ -135,9 +142,26 @@ from clifford_3plus2_d5.boundary_response.residual_basis import (
     k_nu_operator,
     residual_projectors,
 )
+from clifford_3plus2_d5.boundary_response.residual_graph_transfer import (
+    ResidualGraphTransferAuditPayload,
+    residual_complete_graph_adjacency,
+    residual_graph_decaying_factor,
+    residual_graph_transfer_audit_payload,
+)
 from clifford_3plus2_d5.boundary_response.transfer import (
     epsilon,
     epsilon_fourth,
+)
+from clifford_3plus2_d5.boundary_response.transfer_probe_theorem import (
+    TransferProbeTheoremAuditPayload,
+    probe_from_transfer_factor,
+    transfer_probe_theorem_audit_payload,
+)
+from clifford_3plus2_d5.boundary_response.vacuum_framing import (
+    VacuumFramingAuditPayload,
+    bcc_unoriented_exit_representatives,
+    framed_residual_exits,
+    vacuum_framing_audit_payload,
 )
 
 __all__ = [
@@ -166,9 +190,15 @@ __all__ = [
     "QuarkClebschSummary",
     "QuarkCoinRigidityAuditPayload",
     "QuarkTransferHierarchyAuditPayload",
+    "RegularBoundaryFiberAuditPayload",
+    "ResidualGraphTransferAuditPayload",
+    "TransferProbeTheoremAuditPayload",
+    "VacuumFramingAuditPayload",
     "WeylSterileAuditPayload",
     "algebraic_intertwiner_audit_payload",
+    "arbitrary_label_preserving_degeneracies",
     "boundary_core_audit_payload",
+    "bcc_unoriented_exit_representatives",
     "charged_lepton_leakage_audit_payload",
     "chiral_boundary_normalization_audit_payload",
     "ckm_conditional_audit_payload",
@@ -188,6 +218,7 @@ __all__ = [
     "even_odd_intertwiner",
     "explicit_hq_audit_payload",
     "framed_sterile_audit_payload",
+    "framed_residual_exits",
     "impedance_audit_payload",
     "isotropic_quark_coin",
     "isotropic_quark_phase_angle",
@@ -208,6 +239,7 @@ __all__ = [
     "orthogonal_chiral_swap",
     "pmns_conditional_audit_payload",
     "pmns_mixing_observables",
+    "probe_from_transfer_factor",
     "primitive_entropy_ergodicity_audit_payload",
     "primitive_entropy_probabilities",
     "primitive_ergodicity_audit_payload",
@@ -218,7 +250,15 @@ __all__ = [
     "quark_clebsch_audit_payload",
     "quark_coin_rigidity_audit_payload",
     "quark_transfer_hierarchy_audit_payload",
+    "regular_boundary_fiber_audit_payload",
+    "regular_fiber_degeneracies",
+    "regular_fiber_reduced_density",
+    "residual_complete_graph_adjacency",
+    "residual_graph_decaying_factor",
+    "residual_graph_transfer_audit_payload",
     "residual_projectors",
     "spectral_lift_operator",
+    "transfer_probe_theorem_audit_payload",
+    "vacuum_framing_audit_payload",
     "weyl_sterile_audit_payload",
 ]

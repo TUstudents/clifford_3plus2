@@ -971,3 +971,203 @@ primitive density is either a Jaynes prior over conserved-label microstates or
 the reduced state of an equal-degeneracy unresolved boundary bath.  The
 remaining physical input is not thermalization; it is equal boundary
 degeneracy, or equivalently the absence of retained bath-degeneracy bias.
+
+## V24 Question
+
+Can the V23 equal-degeneracy input be sharpened into a regular boundary-fiber
+principle?
+
+## V24 Implementation
+
+- `regular_boundary_fiber.py` distinguishes two statements:
+
+```text
+conserved-label dynamics alone -> arbitrary d_i remain free
+regular boundary fiber        -> d_i = D for all primitive labels
+```
+
+- The regular unresolved boundary shell is modeled as:
+
+```text
+H_Q = direct_sum_i ( |i>_label tensor B )
+```
+
+so every conserved primitive label carries the same unresolved bath template
+and the same degeneracy.
+
+- Delegating to the V23 microcanonical reduction gives:
+
+```text
+rho_label = I_6 / 6
+r = 1
+delta = atan(sqrt(5))
+```
+
+- Unequal-degeneracy and compressed `{even, odd_total}` controls are rejected.
+- The audit cross-checks V22 to keep the claim honest: V24 is a structural
+  degeneracy theorem, not a label-conserving thermalization theorem.
+
+## V24 Verdict Standard
+
+V24 reports `REGULAR_BOUNDARY_FIBER_EQUAL_DEGENERACY_PASS` if arbitrary
+label-preserving degeneracies remain free, a regular primitive boundary fiber
+forces equal degeneracy, the reduced density is `I_6 / 6`, the CKM ratio and
+phase are recovered, the negative controls fail, and the result remains
+compatible with V22.
+
+This replaces the vague V23 input with:
+
+```text
+regular_boundary_fiber_or_max_entropy_prior
+```
+
+It does not claim that BCC geometry alone forces regularity.
+
+## V25 Question
+
+Can the transfer probe `z = 2 sqrt(2)` be derived from compatibility between
+the residual transfer factor and the unit semi-infinite Weyl chain?
+
+## V25 Implementation
+
+- `transfer_probe_theorem.py` encodes the unit-chain compatibility relation:
+
+```text
+z = m + 1/m
+```
+
+where `m` is the decaying Weyl transfer factor.
+
+- Substituting the residual transfer invariant gives:
+
+```text
+z_transfer = epsilon + epsilon^-1 = 2 sqrt(2)
+```
+
+- The audit verifies:
+
+```text
+semi_infinite_weyl_function(z_transfer) = epsilon
+```
+
+- The reciprocal branch `epsilon^-1 = 1 + sqrt(2)` is rejected because it is
+  non-decaying.
+- A scaled-chain control keeps the normalization input explicit:
+
+```text
+z_t = t (epsilon + epsilon^-1)
+```
+
+so `z = 2 sqrt(2)` depends on unit sterile-chain hopping.
+
+## V25 Verdict Standard
+
+V25 reports `TRANSFER_PROBE_COMPATIBILITY_PASS` if `epsilon` satisfies the
+residual transfer recurrence, `epsilon + epsilon^-1` equals the existing
+transfer probe, the Weyl function returns `epsilon` at that probe, the
+reciprocal branch is rejected, the symbolic uniqueness residual vanishes only
+at the derived probe, and the scaled-chain control shows that unit hopping is
+load-bearing.
+
+This upgrades the probe from an inserted value to the unique compatibility
+point for the unit half-line Weyl chain.  It does not derive the unit-chain
+normalization itself.
+
+## V26 Question
+
+Can the residual transfer recurrence coefficient be derived from the explicit
+residual graph quotient?
+
+## V26 Implementation
+
+- `residual_graph_transfer.py` constructs exact complete-graph adjacency
+  matrices and derives the residual degree:
+
+```text
+deg(K_3) = 2
+```
+
+- With unit outward causal continuation, the radial quotient transfer matrix is:
+
+```text
+[[degree, 1],
+ [1,      0]]
+```
+
+For `K_3`, this equals:
+
+```text
+[[2, 1],
+ [1, 0]]
+```
+
+- The derived decaying polynomial is:
+
+```text
+epsilon^2 + 2 epsilon - 1 = 0
+```
+
+and the decaying root is:
+
+```text
+epsilon = sqrt(2) - 1
+```
+
+- Negative controls show that `K_2`, `K_4`, and non-unit continuation change
+  the transfer root.
+
+## V26 Verdict Standard
+
+V26 reports `RESIDUAL_GRAPH_TRANSFER_RECURRENCE_PASS` if `K_3` adjacency
+matches the existing residual tail adjacency, all row sums equal degree two,
+the derived transfer matrix matches `transfer_matrix()`, the derived
+polynomial matches `transfer_polynomial()`, the derived decaying root matches
+`epsilon()`, and the negative controls produce different roots.
+
+This derives the recurrence coefficient from the residual `K_3` graph.  It
+does not derive vacuum framing or unit outward continuation normalization.
+
+## V27 Question
+
+Can the `S_4 -> S_3` vacuum-framing orbit be derived from BCC body-diagonal
+geometry once one primitive exit is selected?
+
+## V27 Implementation
+
+- `vacuum_framing.py` imports the eight BCC body-diagonal directions and
+  quotients by antipodal pairing to four unoriented representatives:
+
+```text
+(+++), (+--), (-+-), (--+) / sqrt(3)
+```
+
+- The four representatives form a regular tetrahedron:
+
+```text
+v_i . v_i = 1
+v_i . v_j = -1/3, i != j
+```
+
+- Selecting one framed exit leaves three residual exits and the residual
+  adjacency:
+
+```text
+K_3
+```
+
+- The stabilizer of the selected exit inside `S_4` has six elements and
+  induces all residual `S_3` permutations.
+- No-selection (`K_4`) and two-residual (`K_2`) controls do not reproduce
+  `epsilon`.
+
+## V27 Verdict Standard
+
+V27 reports `BCC_VACUUM_FRAMING_ORBIT_PASS` if the eight BCC directions split
+into four antipodal pairs, the representatives form a regular tetrahedron,
+one selected exit leaves residual `K_3`, the selected-exit stabilizer induces
+full residual `S_3`, the wrong-framing controls fail, and V26 applies to the
+resulting residual graph.
+
+This upgrades vacuum framing from a bare `S_4 -> S_3` declaration to an exact
+BCC orbit quotient.  It does not derive the physical vacuum order parameter
+that chooses the selected exit.
