@@ -1,6 +1,6 @@
 # boundary_response — Status
 
-**Status**: V1 through V27 implemented.
+**Status**: V1 through V29 implemented.
 
 - V1 verdict: **BOUNDARY_CORE_KILL_UNBROKEN_K3**.
 - V2 verdict: **FRAMED_STERILE_EFFECTIVE_PASS**.
@@ -29,6 +29,8 @@
 - V25 verdict: **TRANSFER_PROBE_COMPATIBILITY_PASS**.
 - V26 verdict: **RESIDUAL_GRAPH_TRANSFER_RECURRENCE_PASS**.
 - V27 verdict: **BCC_VACUUM_FRAMING_ORBIT_PASS**.
+- V28 verdict: **VACUUM_SELECTOR_ORDER_PARAMETER_PASS**.
+- V29 verdict: **UNIT_OUTWARD_CONTINUATION_NORMALIZATION_PASS**.
 
 The residual transfer recurrence gives the desired exact invariant:
 
@@ -970,6 +972,104 @@ parameter that selects one exit.  The remaining structural inputs are:
 ```text
 physical_vacuum_order_parameter_selects_one_exit
 unit_outward_causal_continuation_or_chain_normalization
+regular_boundary_fiber_or_max_entropy_prior
+```
+
+## V28 vacuum-selector order-parameter gate
+
+V28 replaces the bare "select one exit" statement with a concrete rank-one
+boundary Hamiltonian on the four tetrahedral exits.  For selector field
+`h = v_0`, define:
+
+```text
+E_i = - h . v_i
+```
+
+Using the V27 tetrahedral Gram matrix, this gives:
+
+```text
+(-1, 1/3, 1/3, 1/3)
+```
+
+So exit `0` is the unique ground state, the selector gap is `4/3`, and the
+energy stabilizer has six elements.  That stabilizer is exactly the selected
+exit stabilizer from V27 and induces the full residual `S_3`.
+
+All four possible selector fields are `S_4`-conjugate and have the same energy
+multiset.  The controls are rejected:
+
+```text
+h = 0              -> four ground exits, full S4, no selection
+h = v_0 + v_1      -> two ground exits, no unique framing
+h = (2, 3, 5)      -> unique ground but trivial stabilizer, no residual S3
+```
+
+The verdict is `VACUUM_SELECTOR_ORDER_PARAMETER_PASS`.
+
+This does not derive why the physical vacuum develops the selector field.  It
+does show that once a rank-one order parameter exists, the selected-exit
+framing and residual `S_3` structure follow as a concrete energy-minimization
+gate.  The remaining structural inputs are now:
+
+```text
+physical_vacuum_order_parameter_exists
+unit_outward_causal_continuation_or_chain_normalization
+regular_boundary_fiber_or_max_entropy_prior
+```
+
+## V29 unit outward-continuation normalization gate
+
+V29 sharpens the unit continuation used by V26.  Let `M` be the outward
+incidence operator from one residual shell to the next.  The scalar entering
+the radial quotient is the common coefficient in:
+
+```text
+M.T M = c I
+```
+
+For the primitive one-to-one outward continuation:
+
+```text
+M = I_3
+M.T M = I_3
+c = 1
+```
+
+In the residual `(u,a,b)` basis, all continuation couplings are exactly:
+
+```text
+(1, 1, 1)
+```
+
+Feeding this coefficient into the V26 residual graph transfer recovers:
+
+```text
+[[2, 1],
+ [1, 0]]
+```
+
+and therefore:
+
+```text
+epsilon = sqrt(2) - 1
+```
+
+The controls are rejected:
+
+```text
+2 I_3              -> c = 4, different transfer root
+two outward copies -> c = 2, different transfer root
+diag(1,2,1)        -> no scalar quotient
+```
+
+Residual-label permutations are accepted as gauge-equivalent unit matchings
+because they preserve `M.T M = I_3`.
+
+The verdict is `UNIT_OUTWARD_CONTINUATION_NORMALIZATION_PASS`.  The remaining
+structural inputs are now:
+
+```text
+physical_vacuum_order_parameter_exists
 regular_boundary_fiber_or_max_entropy_prior
 ```
 

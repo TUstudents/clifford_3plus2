@@ -157,11 +157,25 @@ from clifford_3plus2_d5.boundary_response.transfer_probe_theorem import (
     probe_from_transfer_factor,
     transfer_probe_theorem_audit_payload,
 )
+from clifford_3plus2_d5.boundary_response.unit_continuation import (
+    UnitContinuationAuditPayload,
+    residual_basis_continuation_couplings,
+    unit_continuation_audit_payload,
+    unit_outward_matching,
+)
 from clifford_3plus2_d5.boundary_response.vacuum_framing import (
     VacuumFramingAuditPayload,
     bcc_unoriented_exit_representatives,
     framed_residual_exits,
     vacuum_framing_audit_payload,
+)
+from clifford_3plus2_d5.boundary_response.vacuum_selector import (
+    VacuumSelectorAuditPayload,
+    ground_exit_indices,
+    selector_energies,
+    selector_gap,
+    selector_order_parameter,
+    vacuum_selector_audit_payload,
 )
 
 __all__ = [
@@ -193,7 +207,9 @@ __all__ = [
     "RegularBoundaryFiberAuditPayload",
     "ResidualGraphTransferAuditPayload",
     "TransferProbeTheoremAuditPayload",
+    "UnitContinuationAuditPayload",
     "VacuumFramingAuditPayload",
+    "VacuumSelectorAuditPayload",
     "WeylSterileAuditPayload",
     "algebraic_intertwiner_audit_payload",
     "arbitrary_label_preserving_degeneracies",
@@ -219,6 +235,7 @@ __all__ = [
     "explicit_hq_audit_payload",
     "framed_sterile_audit_payload",
     "framed_residual_exits",
+    "ground_exit_indices",
     "impedance_audit_payload",
     "isotropic_quark_coin",
     "isotropic_quark_phase_angle",
@@ -254,11 +271,18 @@ __all__ = [
     "regular_fiber_degeneracies",
     "regular_fiber_reduced_density",
     "residual_complete_graph_adjacency",
+    "residual_basis_continuation_couplings",
     "residual_graph_decaying_factor",
     "residual_graph_transfer_audit_payload",
     "residual_projectors",
+    "selector_energies",
+    "selector_gap",
+    "selector_order_parameter",
     "spectral_lift_operator",
     "transfer_probe_theorem_audit_payload",
+    "unit_continuation_audit_payload",
+    "unit_outward_matching",
     "vacuum_framing_audit_payload",
+    "vacuum_selector_audit_payload",
     "weyl_sterile_audit_payload",
 ]

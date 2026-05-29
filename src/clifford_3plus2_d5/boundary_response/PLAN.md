@@ -1171,3 +1171,115 @@ resulting residual graph.
 This upgrades vacuum framing from a bare `S_4 -> S_3` declaration to an exact
 BCC orbit quotient.  It does not derive the physical vacuum order parameter
 that chooses the selected exit.
+
+## V28 Question
+
+Can the selected-exit input be realized as a concrete vacuum order-parameter
+gate rather than a bare label choice?
+
+## V28 Implementation
+
+- `vacuum_selector.py` defines a rank-one selector field over the four V27
+  tetrahedral exits:
+
+```text
+E_i = - h . v_i
+```
+
+- For `h = v_selected`, the regular-tetrahedron Gram matrix gives:
+
+```text
+E_selected = -1
+E_other = 1/3
+gap = 4/3
+```
+
+- The selector Hamiltonian is diagonal on exit labels.
+- The energy stabilizer of `h = v_selected` has six elements and matches the
+  selected-exit stabilizer from V27.
+- The induced action on the three residual exits is the full residual `S_3`.
+- All four selector choices are `S_4`-conjugate and have the same energy
+  multiset.
+- Three controls are rejected:
+  - zero order parameter: no selected exit;
+  - two-exit midpoint field: degenerate ground pair;
+  - generic field: unique ground but trivial stabilizer, so no residual `S_3`.
+
+## V28 Verdict Standard
+
+V28 reports `VACUUM_SELECTOR_ORDER_PARAMETER_PASS` if the selector spectrum is
+`(-1, 1/3, 1/3, 1/3)`, the selected exit is the unique ground state with gap
+`4/3`, the energy stabilizer induces residual `S_3`, all four selectors are
+conjugate, the controls fail, and V27 applies after selection.
+
+This upgrades the selected-exit input into an explicit energy-minimization
+gate.  It still leaves the existence of the physical vacuum order parameter
+as a named input:
+
+```text
+physical_vacuum_order_parameter_exists
+```
+
+## V29 Question
+
+Can the unit outward-continuation coefficient in V26 be derived from a
+primitive shell-matching normalization?
+
+## V29 Implementation
+
+- `unit_continuation.py` treats the outward continuation as an incidence
+  operator `M` from one residual shell to the next.
+- The scalar radial quotient exists when:
+
+```text
+M.T M = c I
+```
+
+- The primitive one-to-one outward continuation is:
+
+```text
+M = I_3
+```
+
+so:
+
+```text
+c = 1
+```
+
+- In the residual `(u,a,b)` basis, the continuation couplings are all exactly
+  one.
+- Feeding `c = 1` into V26 recovers the transfer matrix:
+
+```text
+[[2, 1],
+ [1, 0]]
+```
+
+and the decaying root:
+
+```text
+epsilon = sqrt(2) - 1
+```
+
+- Controls:
+  - scaled matching changes `c` and the transfer root;
+  - doubled outward matching changes `c` and the transfer root;
+  - anisotropic matching has no scalar radial quotient;
+  - residual-label permutations are accepted as gauge-equivalent unit
+    matchings.
+
+## V29 Verdict Standard
+
+V29 reports `UNIT_OUTWARD_CONTINUATION_NORMALIZATION_PASS` if the primitive
+matching has `M.T M = I_3`, all residual-basis continuation couplings are one,
+the V26 transfer matrix and `epsilon` are recovered, scaled/doubled/anisotropic
+controls fail, and residual-label permutations remain unit gauge-equivalent.
+
+This removes the unit-continuation normalization from the declared-input list.
+The remaining named inputs are:
+
+```text
+physical_vacuum_order_parameter_exists
+regular_boundary_fiber_or_max_entropy_prior
+```
