@@ -44,3 +44,22 @@ def test_audit_verdict_string_contains_scale_class() -> None:
 def test_audit_interpretation_mentions_dim5_target() -> None:
     payload = sme_audit_payload()
     assert "d^{(5)}" in payload.interpretation
+
+
+def test_audit_reports_provisional_with_unverified_caveats() -> None:
+    # While F-sme-5 is unchecked, KM normalization is not derived, and KR
+    # entry-ids are unverified, the audit must report itself as provisional
+    # and surface the caveats in the verdict string and caveat tuple.
+    payload = sme_audit_payload()
+    assert payload.is_provisional is True
+    assert len(payload.provisional_caveats) >= 1
+    assert "PROVISIONAL" in payload.verdict
+    assert "Provisional caveats" in payload.interpretation
+
+
+def test_audit_provisional_caveats_cover_all_three_followups() -> None:
+    payload = sme_audit_payload()
+    joined = " | ".join(payload.provisional_caveats)
+    assert "F-sme-5" in joined
+    assert "Kostelecky-Mewes" in joined
+    assert "Kostelecky-Russell" in joined

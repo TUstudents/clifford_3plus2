@@ -81,3 +81,15 @@ def test_mapping_audit_payload_consistent() -> None:
     assert payload.nonzero_component_count == 3
     assert "MAPPING IDENTIFIED" in payload.verdict
     assert payload.cpt_class == "CPT-even"
+
+
+def test_mapping_is_provisional_until_caveats_resolved() -> None:
+    # Currently the module-level flags
+    # FIELD_REDEFINITION_CHECKED and KM_HAMILTONIAN_NORMALIZATION_DERIVED
+    # are both False, so the mapping should report itself as provisional.
+    payload = mapping_audit_payload()
+    assert payload.field_redefinition_checked is False
+    assert payload.km_hamiltonian_normalization_derived is False
+    assert payload.mapping_is_provisional is True
+    assert "PROVISIONAL" in payload.verdict
+    assert "Provisional" in payload.interpretation

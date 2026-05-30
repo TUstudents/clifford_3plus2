@@ -129,15 +129,16 @@ three non-zero components, so
 ε  ≲  2 × 10⁻³³ m
 ```
 
-This is **~ 100× the Planck length** (``ℓ_P ≈ 1.6 × 10⁻³⁵ m``) —
-firmly in the **PLANCK-CONSISTENT** verdict class per the PLAN's
-classification (within 10² of ℓ_P).  See ``epsilon_constraint.py``
-for the symbolic constraint and final classification.
+This is **~ 100× the Planck length** (``ℓ_P ≈ 1.6 × 10⁻³⁵ m``), well
+above the 10·ℓ_P boundary of PLANCK-CONSISTENT and below the 10⁻²⁵ m
+observable threshold — i.e. in the **UNFALSIFIABLE PASS** verdict class
+per the PLAN's classification.  See ``epsilon_constraint.py`` for the
+symbolic constraint and final classification.
 
 **Important**: the precise placement (PLANCK-CONSISTENT vs. UNFALSIFIABLE
 PASS vs. tighter bound) depends on the Kostelecky-Russell entry id
 verification.  This note assumes the conservative ~10⁻¹⁷ GeV⁻¹
-fermion-sector bound; a verified bound an order of magnitude tighter
+fermion-sector bound; a verified bound 1-2 orders of magnitude tighter
 would push ε into PLANCK-CONSISTENT or below.
 
 ## What this note does not address

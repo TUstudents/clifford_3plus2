@@ -46,6 +46,13 @@ OBSERVABLE_THRESHOLD_METRES: sp.Expr = sp.Float("1e-25")
 # pending Kostelecky-Russell entry-id verification).
 DIM5_FERMION_BOUND_GEV_INVERSE: sp.Expr = sp.Float("1e-17")
 
+# Provenance flag: have the Kostelecky-Russell Data Tables (arXiv:
+# 0801.0287) entry IDs backing the bound above been verified against
+# the current revision?  Currently ``False`` — the value is a
+# representative order-of-magnitude estimate.  See SESSION_SME.md
+# "Tracked Tier C follow-ups" for the verification task.
+KR_ENTRY_IDS_VERIFIED: bool = False
+
 
 def dim5_fermion_bound_in_metres() -> sp.Expr:
     """Return the d^{(5)} bound converted to metres.
@@ -120,6 +127,8 @@ class EpsilonConstraintPayload:
     observable_threshold_metres: sp.Expr
     dim5_fermion_bound_gev_inverse: sp.Expr
     dim5_fermion_bound_metres: sp.Expr
+    kr_entry_ids_verified: bool
+    bound_is_representative: bool
     scale_verdict: str
     verdict_class_explanation: str
 
@@ -131,6 +140,7 @@ def epsilon_constraint_payload() -> EpsilonConstraintPayload:
     verdict = scale_verdict(bound)
     log_ratio = epsilon_bound_orders_of_magnitude_above_planck(bound)
     bound_m = dim5_fermion_bound_in_metres()
+    representative = not KR_ENTRY_IDS_VERIFIED
 
     if verdict == "SUB-PLANCK KILL":
         explanation = (
@@ -172,6 +182,8 @@ def epsilon_constraint_payload() -> EpsilonConstraintPayload:
         observable_threshold_metres=OBSERVABLE_THRESHOLD_METRES,
         dim5_fermion_bound_gev_inverse=DIM5_FERMION_BOUND_GEV_INVERSE,
         dim5_fermion_bound_metres=bound_m,
+        kr_entry_ids_verified=KR_ENTRY_IDS_VERIFIED,
+        bound_is_representative=representative,
         scale_verdict=verdict,
         verdict_class_explanation=explanation,
     )

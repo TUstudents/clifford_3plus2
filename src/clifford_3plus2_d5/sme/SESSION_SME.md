@@ -1,8 +1,17 @@
 # Bold A — SME experimental-bound verdict on ε
 
-**Date**: 2026-05-19
-**Status**: CLOSED — UNFALSIFIABLE PASS at ε ≲ 2 × 10⁻³³ m
+**Date**: 2026-05-19 (revised 2026-05-20 after convention audit)
+**Status**: PROVISIONAL CLOSED — UNFALSIFIABLE PASS at ε ≲ 2 × 10⁻³³ m
 (~10² ℓ_P, ~2 orders of magnitude above the Planck length).
+
+**Provisional** because (i) the d^{(5)} numerical bound is the
+order-of-magnitude representative value 10⁻¹⁷ GeV⁻¹, with
+Kostelecky-Russell entry-ids pending verification; (ii) the
+H^(1) → d^{(5)} mapping is by structural identification (Pauli ×
+T_{2g} ↔ axial-vector γᵃγ⁵ × 2 derivatives, CP-odd CPT-even), not
+derived from the Kostelecky-Mewes Hamiltonian-form normalization;
+and (iii) the field-redefinition triviality failure mode F-sme-5 is
+flagged but unchecked.  See "Tracked Tier C follow-ups" below.
 
 ## Load-bearing question
 
@@ -83,8 +92,11 @@ simply
 
 ```text
 ε  ≲  2 × 10⁻³³ m  =  ~ 10² × Planck length
-                  =  ~ 10⁸ × 10⁻²⁵ m  (current observable threshold).
+                  =  ~ 2 × 10⁻⁸ × 10⁻²⁵ m  (current observable threshold).
 ```
+
+i.e. the bound on ε is ~10⁸ times **smaller** than current
+observational reach in this channel.
 
 This lies in the **UNFALSIFIABLE PASS** verdict class per the PLAN:
 
@@ -108,6 +120,26 @@ small ε-suppressed cubic-anisotropic CP-violating correction that is
 ~10⁸ times smaller than current observational reach in this channel —
 the program is unfalsifiable in the d^{(5)} channel at present
 sensitivity.
+
+## Tracked Tier C follow-ups (post-2026-05-20 audit)
+
+The three items below are the load-bearing reasons the verdict is
+**PROVISIONAL**.  Resolving each promotes the corresponding flag in
+``sme_tensor_mapping`` / ``epsilon_constraint`` to ``True`` and, once
+all three are ``True``, drops the ``PROVISIONAL`` qualifier from the
+audit verdict.
+
+| # | Follow-up | Flag | Estimated effort |
+| --- | --- | --- | --- |
+| TC-1 | Verify Kostelecky-Russell Data-Tables (arXiv:0801.0287 v19, Feb 2026) entry IDs for the three d^{(5)} fermion-sector components used; replace the representative 10⁻¹⁷ GeV⁻¹ with the verified entry value(s); cross-check 2024-2025 atom-interferometry tightenings. | ``epsilon_constraint.KR_ENTRY_IDS_VERIFIED`` | ~1-2 days |
+| TC-2 | Derive the Kostelecky-Mewes Hamiltonian-form normalization of ``d^{(5)}_{αβγ}`` from arXiv:1308.4973: relate Lagrangian-form ``T^{aij}`` coefficients to Hamiltonian-form coefficients, including factors of mass, spinor normalization, and any field-redefinition-induced shifts.  Rescale the ε bound accordingly. | ``sme_tensor_mapping.KM_HAMILTONIAN_NORMALIZATION_DERIVED`` | ~2-3 days |
+| TC-3 | Check F-sme-5 (field-redefinition triviality).  Determine whether the (CP-odd, T_{2g}) ``d^{(5)}`` direction populated by H^(1) is equivalent under SME field redefinitions to dim-3 ``b^μ``, dim-4 minimal-SME coefficients, or other directions with established stronger bounds.  If trivial, the bound on ε from d^{(5)} is vacuous and a different SME channel must be used. | ``sme_tensor_mapping.FIELD_REDEFINITION_CHECKED`` | ~2-3 days |
+
+Each is a small dedicated sidecar (not a docs edit).  All three are
+independent and can be done in any order.  The audit payload exposes
+``payload.is_provisional`` and ``payload.provisional_caveats``; the
+verdict string carries the ``PROVISIONAL`` prefix until all three
+flags flip to ``True``.
 
 ## What this audit does NOT close
 
@@ -168,7 +200,7 @@ result.
 
 ```bash
 uv run pytest src/clifford_3plus2_d5/sme/tests -q
-# 37 passed
+# Post-2026-05-20 audit: 41 passed (37 original + 4 Tier B gating tests).
 ```
 
 ## Verdict callable
@@ -178,19 +210,20 @@ uv run --no-sync python -c "
 from clifford_3plus2_d5.sme.sme_audit import sme_audit_payload
 p = sme_audit_payload()
 print(p.verdict)
+print('provisional:', p.is_provisional)
+for c in p.provisional_caveats: print(' -', c)
 print(p.interpretation)
 "
 ```
 
-Output:
+Expected output (while all three Tier C follow-ups remain open):
 
 ```text
-SME AUDIT — UNFALSIFIABLE PASS
-
-Phase A-1 identified the SME sector as dim-5 non-minimal SME, fermion
-sector, CP-odd spin-tensor.  Phase A-2 mapped H^(1) to 3 non-zero
-components of d^{(5)}_{αβγ}.  Phase A-3 (literature note) supplied
-the tightest representative bound on d^(5).  Phase A-4 produced an ε
-bound of 1.973e-33 m, which is 2.09 orders of magnitude above the
-Planck length.  Final scale verdict: UNFALSIFIABLE PASS.
+PROVISIONAL SME AUDIT — UNFALSIFIABLE PASS
+provisional: True
+ - F-sme-5 field-redefinition triviality unchecked …
+ - Kostelecky-Mewes Hamiltonian-form normalization of d^{(5)}_{αβγ} not derived …
+ - Kostelecky-Russell entry IDs (arXiv:0801.0287 v19) not verified …
+Phase A-1 identified …  Final scale verdict: UNFALSIFIABLE PASS.  …
+Provisional caveats: …
 ```

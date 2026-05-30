@@ -95,3 +95,10 @@ def test_payload_carries_explanation_string() -> None:
     payload = epsilon_constraint_payload()
     assert isinstance(payload.verdict_class_explanation, str)
     assert len(payload.verdict_class_explanation) > 50
+
+
+def test_payload_flags_representative_bound_until_kr_verified() -> None:
+    payload = epsilon_constraint_payload()
+    # The bound is the representative 1e-17 GeV⁻¹; KR entry-ids unverified.
+    assert payload.kr_entry_ids_verified is False
+    assert payload.bound_is_representative is True

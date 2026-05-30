@@ -42,13 +42,35 @@ Filled in as each phase pins choices.
 ## Phase A-3 choices
 
 1. Primary literature source: Kostelecky-Russell "Data Tables for
-   Lorentz and CPT Violation", arXiv:0801.0287 (current revision).
+   Lorentz and CPT Violation", arXiv:0801.0287 (current revision is
+   v19, Feb 2026).
 2. Cross-check sources: Mattingly Living Reviews 8 (2005) 5;
    Liberati Class. Quantum Grav. 30 (2013) 133001.
 3. Representative bound: ``|d^{(5)}| ≲ 10⁻¹⁷ GeV⁻¹`` from electron-
    sector sidereal-modulation atomic-clock + co-magnetometer analyses.
-   Specific Kostelecky-Russell entry ids pending verification.
+   Specific Kostelecky-Russell entry ids pending verification —
+   tracked by ``epsilon_constraint.KR_ENTRY_IDS_VERIFIED = False``.
 4. Convention: dim-5 fermion SME coefficients have units of GeV⁻¹.
+
+## Provisional-status flags (post-2026-05-20 convention audit)
+
+The Bold A verdict is **provisional UNFALSIFIABLE PASS** while any
+of the following module-level flags is ``False``:
+
+- ``sme_tensor_mapping.FIELD_REDEFINITION_CHECKED`` (F-sme-5; checks
+  whether the identified d^{(5)} direction is field-redefinition
+  trivial — if so, the bound on ε is vacuous).
+- ``sme_tensor_mapping.KM_HAMILTONIAN_NORMALIZATION_DERIVED`` (whether
+  the Kostelecky-Mewes Hamiltonian-form normalization of
+  d^{(5)}_{αβγ} has been derived, vs. structural label-only match).
+- ``epsilon_constraint.KR_ENTRY_IDS_VERIFIED`` (whether the d^{(5)}
+  numerical bound is sourced from verified KR Data-Tables entries
+  vs. a representative order-of-magnitude estimate).
+
+The audit payload exposes these via ``mapping.mapping_is_provisional``,
+``epsilon_constraint.bound_is_representative``, and
+``sme_audit.is_provisional``; the verdict string prefixes
+``PROVISIONAL`` while any are unresolved.
 
 ## Phase A-4 choices
 
