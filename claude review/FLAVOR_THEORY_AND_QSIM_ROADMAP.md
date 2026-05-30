@@ -34,8 +34,11 @@ boundary, not fundamental constants.
   strong-CP. (Computed this session; Dirac-sector correctness check passes.)
 
 **What is not:**
-- **[OPEN/postdiction]** CKM/PMNS textures (depths 0,2,6; Clebsches 4/3,√2,1/√2;
-  the spin-Coxeter phase word) — assigned, not derived.
+- **[PARTIAL — built A3a/A3b]** CKM/PMNS textures: the *structure* factors are now
+  derived (Clebsches 4/3,√2,1/√2; coin `√5`→`atan(√5)`; the phase word `5π/12` from
+  V10 holonomy), but the depth *hierarchy* (0,2,6) remains a **free input** (fit to
+  the CKM hierarchy). Predictive for structure (4 inputs < 8 observables), not for
+  the magnitude hierarchy.
 - **[BLOCKED]** Absolute scales (`v`, `M_boundary`) — irreducible dimensionful
   inputs, in this framework and in the SM alike.
 - **[BLOCKED]** Charged-lepton hierarchy — *not* clean `ε`-powers
@@ -70,10 +73,10 @@ polynomial probe cannot see a parity-odd, angular term).
 | ν mass ratio, ordering, `m₁` | — | **[SECURE]** `ε⁴`, NO, `m₁=0` | done |
 | ν absolute scale `Σm_ν` | — | **[BLOCKED]** needs `M_boundary` | A6 seesaw |
 | ν nature (Dirac/Majorana) | — | **[OPEN]** sterile-edge ⇒ Majorana | A6 / C |
-| PMNS angles + δ | 4 | **[OPEN/postdiction]** | A3 |
+| PMNS angles + δ | 4 | **[PARTIAL]** structure + δ=5π/12 derived (A3b); angles ride on free depths | A3 done |
 | charged-lepton masses | 3 | **[BLOCKED]** scale + hierarchy + degeneracy | A4 (Koide only) |
 | up/down quark masses | 6 | **[BLOCKED]** scale; **[OPEN]** ratios | A3 |
-| CKM angles + δ | 4 | **[OPEN/postdiction]** | A3 |
+| CKM angles + δ | 4 | **[PARTIAL]** structure + δ_q=atan(√5) derived (A3b); angles ride on free depths | A3 done |
 | Koide `K=2/3` | (relation) | **[OPEN]** consistent, not derived | A4 |
 | flavor↔Lorentz↔CP link | — (BSM) | **[OPEN]** shared BCC origin; CP↔Lorentz share one *lattice* ε (distinct from flavor's silver ε — see `docs/epsilon_provenance.md`) | C / Track C |
 
@@ -93,24 +96,41 @@ This is the one novel, falsifiable, near-secure result. **Acceptance:** a
 standalone derivation with the conditional ("chiral boundary") stated, and the
 near-term falsifiers (ordering, `Σm_ν`) listed. *Ship before anything else.*
 
-### A2 — Cross-sector universality gate  **[OPEN, cheap, decisive]**
+### A2 — Cross-sector universality gate  **[BUILT — `flavor_a_track/` (A2 phase)]**
 Verify the *same* `H_Q` (labels, the flavor invariant `ε_silver`, chirality)
 governs ν, e, u, d. The same `ε_silver = √2−1` already appears in `koide`'s
 charged-lepton ratio `(1+√2)² = 1/ε_silver²` and in the ν sector, across modules
 that don't import each other (this is the dimensionless flavor invariant, *not*
-the lattice ε — see `docs/epsilon_provenance.md`). **Acceptance:**
-`UNIVERSAL_BOUNDARY_PASS` if one operator reproduces all sectors;
-`SECTOR_DEPENDENT_BOUNDARY_KILL` otherwise. *If this kills, the whole bet is in
-trouble — run it early and cheaply.*
+the lattice ε — see `docs/epsilon_provenance.md`). The "one operator reproduces
+all sectors" claim is not directly testable (the sector shells differ), so the
+gate was built to check the *necessary conditions*: shared `ε` (graph-tracked),
+the sector difference being exactly the color label, and quantum-number-determined
+couplings `V_f`. **Verdict (built):** `UNIVERSAL_BOUNDARY_NECESSARY_CONDITIONS_PASS`
+(U1 shared transfer, U2 color-label partition, U3 coupling catalog), else
+`SECTOR_DEPENDENT_BOUNDARY_KILL`. The U2 color-split check is *complementary* to
+A3a's A3-3 — U2 works at the shell level (how many ports), A3-3 at the coupling
+level (what SU(3) rep), not a duplicate.
 
-### A3 — Textures: derive or count  **[OPEN, the real frontier]**
-For CKM/PMNS, replace assignment with derivation or an honest ledger:
-- depth hierarchy (0,2,6) ← boundary-shell geometry (same `K₃` coordination?);
-- Clebsches (4/3, √2, 1/√2) ← actual color/BCC contractions;
-- phase word ← **boundary holonomy / Berry phase** (not a hand-built word).
-**Acceptance:** each factor tagged `derived` or `declared`, with a final count
-`N_declared` vs `N_observables`. *This is the line between "ν theorem + numerology"
-and "flavor theory."*
+### A3 — Textures: derive or count  **[BUILT — `flavor_a_track/` (A3a + A3b phases)]**
+For CKM/PMNS, assignment was replaced with derivation *where possible* and an
+honest ledger elsewhere. The built result splits the original coupled deferral:
+- **A3a** unified the transfer boundary `H_Q`: the quark transfer amplitudes
+  `ε², ε⁴, ε⁶` are powers of the *same* sterile-chain Weyl factor that drives the
+  neutrino core, and the sector-specific structure lives in `V_f`. Verdict
+  `UNIFIED_TRANSFER_BOUNDARY_PASS`.
+- **A3b** is the derive-or-count ledger. **Derived** (machine-checked against
+  source): Clebsches (`C_F = 4/3`, BCC `√2`, `1/√2`), the coin base `√5 =
+  (2_BCC+3_color)` → phase `atan(√5)`, the charged-lepton `√(3/2)`, and the
+  leptonic **phase word** from V10 boundary-loop holonomy → `5π/12` (Berry-phase
+  route, *not* hand-built). **Free input** (honest count): the depth hierarchy
+  `(0,2,6)` is **not** derived — it is fit to the CKM hierarchy (even+additive
+  checked), plus the charged-lepton depth, the `r=1` ergodicity prior, and the CP
+  branch (4 free inputs). Verdict `TEXTURE_STRUCTURE_DERIVED_HIERARCHY_INPUT`.
+**Count:** `N_free = 4 < N_observables = 8` (surplus 4) → predictive for
+*structure*, not numerology. Deriving `(0,2,6)` itself is a generation mechanism
+(`N=3` empirical, per the closed kills), recorded as the one remaining input and
+not attempted. *Net: the textures predict structure + both CP phases; the
+magnitude hierarchy still rides on the free depth embedding.*
 
 ### A4 — Koide as the charged-lepton constraint  **[OPEN, hard]**
 The one clean charged-lepton relation: `K=2/3` (6×10⁻⁶). `koide` showed the cone

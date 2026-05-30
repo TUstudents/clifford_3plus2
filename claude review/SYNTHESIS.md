@@ -176,10 +176,13 @@ prose admits it, the headline doesn't.
    open classes: defects, parameterized families, higher-dim carriers, Prop 4b.
    This is the hinge: it determines whether Pillar B is "conditional on a choice"
    or "conditional on something derivable."
-3. **The texture sector** — derive (not assign) the CKM/PMNS depth hierarchy and
-   Clebsch/phase factors, *or* publish an explicit free-parameter count against
-   observables. This is where `boundary_response` should apply the V26-style
-   foundational discipline next.
+3. **The texture sector** — **[BUILT, A3a/A3b]** the Clebsch/phase factors are now
+   *derived* (`C_F=4/3`, BCC `√2`/`1/√2`, coin `√5`→`atan(√5)`, V10 phase word
+   `5π/12`) with an explicit free-parameter count (`flavor_a_track/` A3b: 4 free
+   inputs < 8 observables → predictive for *structure*). The CKM/PMNS depth
+   hierarchy `(0,2,6)` was **not** derivable — it is an honest free input fit to
+   the CKM hierarchy; deriving it is a generation mechanism (`N=3` empirical). What
+   remains open is only that one generation-mechanism input.
 4. **Mass** — the whole workspace stops at gauge content + ratios; absolute
    masses, the Higgs sector, and Yukawa dynamics are untouched (and are where
    `lepton`/`spacetime_qca` would have to *predict* rather than *exhibit*).
