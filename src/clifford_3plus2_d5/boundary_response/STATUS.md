@@ -1,6 +1,6 @@
 # boundary_response — Status
 
-**Status**: V1 through V31 implemented.
+**Status**: V1 through V35 implemented.
 
 - V1 verdict: **BOUNDARY_CORE_KILL_UNBROKEN_K3**.
 - V2 verdict: **FRAMED_STERILE_EFFECTIVE_PASS**.
@@ -33,6 +33,10 @@
 - V29 verdict: **UNIT_OUTWARD_CONTINUATION_NORMALIZATION_PASS**.
 - V30 verdict: **LOCAL_BOUNDARY_FIBER_ISOMORPHISM_PASS**.
 - V31 verdict: **TETRAHEDRAL_SELECTOR_POTENTIAL_PASS**.
+- V32 verdict: **CONTINUOUS_TETRAHEDRAL_SELECTOR_CONDENSATION_PASS**.
+- V33 verdict: **TETRAHEDRAL_INVARIANT_LANDAU_MINIMALITY_PASS**.
+- V34 verdict: **SCHUR_SHELL_TETRAHEDRAL_CUBIC_ORIGIN_PASS_SIGN_FREE**.
+- V35 verdict: **CHIRAL_BB_FILLED_BAND_SELECTOR_SIGN_PASS**.
 
 The residual transfer recurrence gives the desired exact invariant:
 
@@ -1169,6 +1173,182 @@ physical input is:
 
 ```text
 tetrahedral_selector_order_parameter_condenses
+```
+
+## V32 continuous tetrahedral selector-condensation gate
+
+V32 promotes the V31 finite-candidate selector audit to a continuous
+order-parameter theorem.  For `h = (x,y,z)`, the tetrahedral cubic invariant is
+exactly:
+
+```text
+C(h) = sum_i (h . v_i)^3 = 8 x y z / sqrt(3)
+```
+
+The Lagrange stationary candidates on the unit sphere are the four selector
+maxima, four antipodal minima, and six coordinate axes:
+
+```text
+C(selectors) =  8/9
+C(antipodes) = -8/9
+C(axes)      =  0
+```
+
+The accepted continuous locking potential is:
+
+```text
+V_lock(h) = (|h|^2 - 1)^2 + (C(h) - 8/9)^2
+```
+
+It has zeroes only at the four accepted BCC selector directions among the
+audited stationary candidates and controls.  Antipodes, axes, midpoints, zero,
+and generic fields are rejected.  Radial-only, cubic-only, and wrong-sign
+locking controls also fail.
+
+The verdict is `CONTINUOUS_TETRAHEDRAL_SELECTOR_CONDENSATION_PASS`.
+
+This does not derive microscopic QCA condensation.  It narrows the remaining
+physical input to:
+
+```text
+local_vacuum_realizes_tetrahedral_selector_locking_potential
+```
+
+## V33 tetrahedral invariant Landau-minimality gate
+
+V33 shows that the V32 lock is the canonical lowest-order tetrahedral Landau
+lock.  The proper tetrahedral rotation group is realized as 12 exact signed
+permutation rotations preserving the four BCC selector directions.
+
+The homogeneous invariant audit gives:
+
+```text
+degree 1: dim 0
+degree 2: dim 1, span{|h|^2}
+degree 3: dim 1, span{x y z}
+```
+
+Thus the first selector-capable anisotropy is the cubic invariant:
+
+```text
+C(h) = 8 x y z / sqrt(3)
+```
+
+The canonical lowest-order positive Landau lock is:
+
+```text
+V_Landau(h) = (|h|^2 - 1)^2 + (C(h) - 8/9)^2
+```
+
+and it exactly recovers the V32 selector-locking potential.  Radial-only,
+cubic-only, wrong-sign, and non-tetrahedral low-order controls fail.
+
+The verdict is `TETRAHEDRAL_INVARIANT_LANDAU_MINIMALITY_PASS`.
+
+This does not derive microscopic dynamics.  It narrows the remaining physical
+input to:
+
+```text
+local_vacuum_enters_lowest_order_positive_tetrahedral_landau_phase
+```
+
+## V34 Schur-shell tetrahedral cubic origin gate
+
+V34 derives the V33 cubic invariant as the first odd nonzero moment of an
+explicit four-channel tetrahedral boundary shell.  With:
+
+```text
+d_i(h) = h . v_i
+D(h) = diag(d_i(h))
+p_n(h) = Tr(D(h)^n)
+```
+
+the exact shell identities are:
+
+```text
+p_1 = 0
+p_2 = 4 |h|^2 / 3
+p_3 = C(h) = 8 x y z / sqrt(3)
+```
+
+The finite Schur/log-det expansion through cubic order,
+
+```text
+F_shell(h; eta, s) = s sum_{n=1..3} eta^n p_n(h) / n
+```
+
+therefore contains only a radial quadratic term and the V32/V33 tetrahedral
+cubic.  The cubic is the first selector-capable anisotropy from V33.
+
+The sign remains free: `eta -> -eta` flips the cubic branch while preserving
+the quadratic term, a paired unoriented shell cancels the cubic, and proper
+tetrahedral rotations preserve the shell series without choosing the positive
+selector branch.
+
+The verdict is `SCHUR_SHELL_TETRAHEDRAL_CUBIC_ORIGIN_PASS_SIGN_FREE`.
+
+This narrows the remaining physical input to:
+
+```text
+oriented_boundary_shell_selects_positive_cubic_branch
+```
+
+## V35 chiral BB filled-band selector-sign gate
+
+V35 uses the actual Bialynicki-Birula Weyl symbols from `spacetime_qca` and
+separates three diagnostics.  The Floquet trace at order `epsilon^3` contains
+the expected helicity-odd `A2u` cubic:
+
+```text
+right Weyl: Tr B_3 |_{kx ky kz} = -2
+left Weyl:  Tr B_3 |_{kx ky kz} = +2
+Dirac pair: Tr B_3 |_{kx ky kz} = 0
+```
+
+The leading matrix-log Hamiltonians recover the BB convention:
+
+```text
+H0_R = + sigma.k
+H0_L = - sigma.k
+```
+
+However, under the conservative scalar trace-energy extraction,
+
+```text
+scalar_H2 = Tr(H2) / dim
+```
+
+the real `kx ky kz` coefficient vanishes for right, left, and Dirac sectors.
+This is now treated as a blind negative control: the trace probe is
+parity-even and polynomial, so it cannot see the parity-odd angular selector.
+
+The decisive V35 probe is the occupied filled-band quasienergy from Bloch
+eigenphases:
+
+```text
+E = -arg(lambda) / epsilon
+E_odd(k) = [E_occ(k) - E_occ(-k)] / 2
+```
+
+This real filled-band energy has a nonzero helicity-locked `A2u` selector:
+
+```text
+E_odd^R = - E_odd^L
+E_odd^Dirac = 0
+E_odd = 0 on xyz = 0
+E_odd / (epsilon kx ky kz) is constant on signed permutations
+```
+
+The ratio changes across inequivalent radii, so the term is angular rather
+than a pure polynomial `xyz` monomial.  This is why the old polynomial trace
+extraction missed it.
+
+The verdict is `CHIRAL_BB_FILLED_BAND_SELECTOR_SIGN_PASS`.
+
+The remaining inputs are:
+
+```text
+()
 ```
 
 ## Test command

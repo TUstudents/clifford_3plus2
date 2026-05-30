@@ -1406,3 +1406,250 @@ only condensation of the tetrahedral selector order parameter:
 ```text
 tetrahedral_selector_order_parameter_condenses
 ```
+
+## V32 Question
+
+Can V31's finite-candidate selector potential be promoted to a continuous
+order-parameter theorem on `R^3`?
+
+## V32 Implementation
+
+- `vacuum_selector_condensation.py` proves the closed-form tetrahedral cubic:
+
+```text
+C(h) = sum_i (h . v_i)^3 = 8 x y z / sqrt(3)
+```
+
+- On the unit sphere, the audited Lagrange stationary candidates are:
+  - four selector maxima with `C = 8/9`;
+  - four antipodal minima with `C = -8/9`;
+  - six coordinate-axis controls with `C = 0`.
+
+- The nonnegative selector-locking potential is:
+
+```text
+V_lock(h) = (|h|^2 - 1)^2 + (C(h) - 8/9)^2
+```
+
+- Its zero set is audited against selectors, antipodes, axes, midpoints, zero,
+  and generic controls.  Only the four selector directions have zero potential.
+- Controls:
+  - radial-only locking leaves all unit-sphere directions degenerate;
+  - cubic-only energy is unbounded along selector rays;
+  - wrong-sign locking selects the antipodal branch.
+
+## V32 Verdict Standard
+
+V32 reports `CONTINUOUS_TETRAHEDRAL_SELECTOR_CONDENSATION_PASS` if the cubic
+polynomial identity holds, the unit-sphere stationary audit gives max value
+`8/9`, the zero set of `V_lock` is exactly the four accepted selector directions
+among audited candidates and controls, radial-only/cubic-only/wrong-sign
+controls fail, and V31 is recovered.
+
+This replaces the declared condensation of an abstract selector order parameter
+with one narrower physical input:
+
+```text
+local_vacuum_realizes_tetrahedral_selector_locking_potential
+```
+
+## V33 Question
+
+Can the V32 selector-locking potential be derived as the canonical
+lowest-order tetrahedral Landau lock?
+
+## V33 Implementation
+
+- `vacuum_selector_landau.py` constructs the exact proper tetrahedral rotation
+  group as 12 signed-permutation matrices preserving the four BCC selectors.
+- Homogeneous invariant spaces are computed directly from group invariance:
+
+```text
+degree 1: dim 0
+degree 2: dim 1, radial |h|^2
+degree 3: dim 1, tetrahedral cubic x y z
+```
+
+- The first selector-capable anisotropy is therefore degree three:
+
+```text
+C(h) = 8 x y z / sqrt(3)
+```
+
+- The canonical lowest-order positive Landau lock is:
+
+```text
+V_Landau(h) = (|h|^2 - 1)^2 + (C(h) - 8/9)^2
+```
+
+- This must exactly recover V32's `selector_locking_potential`.
+- Controls:
+  - radial-only theory leaves the unit sphere degenerate;
+  - cubic-only theory is unbounded without radial stabilization;
+  - wrong-sign cubic selects antipodes;
+  - ad hoc linear/quadratic anisotropies are not tetrahedral invariants.
+
+## V33 Verdict Standard
+
+V33 reports `TETRAHEDRAL_INVARIANT_LANDAU_MINIMALITY_PASS` if the group has
+12 proper selector-preserving rotations, invariant dimensions are `(0,1,1)` in
+degrees `(1,2,3)`, degree two is radial, degree three is the tetrahedral cubic,
+the lowest selector anisotropy degree is `3`, the Landau lock exactly recovers
+V32, controls fail, and V32 is recovered.
+
+This narrows the remaining physical input to:
+
+```text
+local_vacuum_enters_lowest_order_positive_tetrahedral_landau_phase
+```
+
+## V34 Question
+
+Can the V33 tetrahedral cubic be produced by an explicit local boundary-shell
+Schur expansion?
+
+## V34 Implementation
+
+- `vacuum_selector_schur_landau.py` defines the four shell couplings:
+
+```text
+d_i(h) = h . v_i
+D(h) = diag(d_i(h))
+```
+
+- It computes the exact shell power sums:
+
+```text
+p_n(h) = Tr(D(h)^n) = sum_i (h . v_i)^n
+```
+
+with:
+
+```text
+p_1 = 0
+p_2 = 4 |h|^2 / 3
+p_3 = C(h) = 8 x y z / sqrt(3)
+```
+
+- It defines the cubic-order Schur/log-det shell expansion:
+
+```text
+F_shell(h; eta, s) = s sum_{n=1..3} eta^n p_n(h) / n
+```
+
+so the induced terms are:
+
+```text
+quadratic coefficient: 2 s eta^2 / 3
+cubic coefficient:    s eta^3 / 3
+```
+
+- Controls:
+  - `eta -> -eta` flips only the cubic branch;
+  - `s -> -s` flips the whole shell contribution;
+  - paired `eta` and `-eta` shells cancel the cubic;
+  - proper tetrahedral rotations preserve the shell series;
+  - inversion flips the cubic but is not a proper tetrahedral symmetry.
+
+## V34 Verdict Standard
+
+V34 reports `SCHUR_SHELL_TETRAHEDRAL_CUBIC_ORIGIN_PASS_SIGN_FREE` if the shell
+power sums are exact, the cubic-order series is radial plus tetrahedral cubic,
+the cubic is the V33 first selector-capable anisotropy, all sign/orientation
+controls pass, and V33 is recovered.
+
+The sign-free verdict is intentional: this gate derives the cubic origin but
+does not derive the positive branch.  The remaining input is:
+
+```text
+oriented_boundary_shell_selects_positive_cubic_branch
+```
+
+## V35 Question
+
+Does the Bialynicki-Birula single-Weyl walk promote the helicity-odd
+tetrahedral selector into the real filled-band energy?
+
+## V35 Implementation
+
+- `vacuum_selector_chiral_bb.py` reuses the actual `spacetime_qca.bcc_weyl`
+  symbols.  It does not rebuild BB phases.
+- It computes the `epsilon^3 kx ky kz` Floquet-trace diagnostic:
+
+```text
+right Weyl: -2
+left Weyl:  +2
+Dirac pair: 0
+```
+
+- It expands the matrix logarithm:
+
+```text
+U = I + epsilon U1 + epsilon^2 U2 + epsilon^3 U3 + ...
+log U = epsilon L1 + epsilon^2 L2 + epsilon^3 L3 + ...
+H_eff = i log(U) / epsilon
+```
+
+with:
+
+```text
+L1 = U1
+L2 = U2 - U1^2/2
+L3 = U3 - (U1 U2 + U2 U1)/2 + U1^3/3
+```
+
+- It verifies:
+
+```text
+H0_R = + sigma.k
+H0_L = - sigma.k
+```
+
+- It applies the conservative scalar trace-energy extraction:
+
+```text
+scalar_H2 = Tr(H2) / dim
+```
+
+and reads the `kx ky kz` coefficient.  This remains in the audit as a blind
+negative control: the scalar trace probe is parity-even and polynomial, so it
+cannot detect the parity-odd angular selector.
+
+- It computes the occupied filled-band quasienergy from Bloch eigenphases:
+
+```text
+E = -arg(lambda) / epsilon
+E_odd(k) = [E_occ(k) - E_occ(-k)] / 2
+```
+
+- It verifies the real filled-band selector pattern:
+
+```text
+E_odd^R != 0
+E_odd^L = -E_odd^R
+E_odd^Dirac = 0
+E_odd = 0 on xyz = 0
+E_odd / (epsilon kx ky kz) is constant on signed permutations
+```
+
+- It also verifies that the normalized ratio changes across inequivalent
+  radii.  The selector is therefore angular/non-polynomial, not a pure `xyz`
+  monomial.
+
+## V35 Verdict Standard
+
+V35 reports `CHIRAL_BB_FILLED_BAND_SELECTOR_SIGN_PASS` only if the filled-band
+quasienergy contains a real helicity-locked `A2u` selector and the Dirac/vector
+pair cancels it.
+
+With the eigenphase-filled-band rule, the verdict is:
+
+```text
+CHIRAL_BB_FILLED_BAND_SELECTOR_SIGN_PASS
+```
+
+The remaining inputs are:
+
+```text
+()
+```
