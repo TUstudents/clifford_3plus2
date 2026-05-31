@@ -1,6 +1,6 @@
 # boundary_response — Status
 
-**Status**: V1 through V35 implemented.
+**Status**: V1 through V38 implemented.
 
 - V1 verdict: **BOUNDARY_CORE_KILL_UNBROKEN_K3**.
 - V2 verdict: **FRAMED_STERILE_EFFECTIVE_PASS**.
@@ -37,6 +37,9 @@
 - V33 verdict: **TETRAHEDRAL_INVARIANT_LANDAU_MINIMALITY_PASS**.
 - V34 verdict: **SCHUR_SHELL_TETRAHEDRAL_CUBIC_ORIGIN_PASS_SIGN_FREE**.
 - V35 verdict: **CHIRAL_BB_FILLED_BAND_SELECTOR_SIGN_PASS**.
+- V36 verdict: **CHIRAL_BB_BRANCH_SELECTION_PASS**.
+- V37 verdict: **MICROSCOPIC_FILLED_BAND_SELECTOR_POTENTIAL_PASS**.
+- V38 verdict: **FREE_BB_RADIAL_STABILIZATION_NO_GO_PASS**.
 
 The residual transfer recurrence gives the desired exact invariant:
 
@@ -1349,6 +1352,112 @@ The remaining inputs are:
 
 ```text
 ()
+```
+
+## V36 chiral BB branch-selection potential gate
+
+V36 evaluates the V35 filled-band selector on the actual V27/V32 tetrahedral
+vacuum candidates.  The accepted BCC selector representatives all have
+positive `xyz` product:
+
+```text
+(+,+,+), (+,-,-), (-,+,-), (-,-,+)
+```
+
+Their antipodes have negative `xyz` product.  Since V35's right-Weyl
+filled-band selector has negative normalized `A2u` ratio on positive-product
+directions, the right-Weyl sector lowers the accepted selector branch and
+raises the antipodal branch:
+
+```text
+E_selector^R < E_antipode^R
+```
+
+The left-Weyl sector reverses the branch ordering:
+
+```text
+E_selector^L > E_antipode^L
+```
+
+and the Dirac/vector pair cancels the branch gap:
+
+```text
+E_selector^Dirac = E_antipode^Dirac = 0
+```
+
+Coordinate-axis and origin controls have zero selector energy.  The normalized
+candidate ratios match the V35 `A2u` ratio, so this is the same filled-band
+angular selector evaluated on the vacuum orbit, not a separate fitted
+potential.
+
+The verdict is `CHIRAL_BB_BRANCH_SELECTION_PASS`.
+
+The remaining inputs are:
+
+```text
+()
+```
+
+## V37 microscopic filled-band selector-potential gate
+
+V37 keeps the actual BB eigenphase functional and splits the occupied
+filled-band energy into parity-even and parity-odd parts:
+
+```text
+E_even(h) = [E_occ(h) + E_occ(-h)] / 2
+E_odd(h)  = [E_occ(h) - E_occ(-h)] / 2
+```
+
+The odd part recovers the V35/V36 helicity-locked selector.  The even part is
+tetrahedrally degenerate on the selector and antipode candidates, symmetric
+under sampled coordinate permutations, and monotone with radius on the audited
+selector ray.
+
+The right-Weyl selector branch gap remains positive over the audited radii:
+
+```text
+r = 0.25, 0.5, 1.0
+```
+
+The Dirac/vector pair cancels the odd selector on all audited samples.  The old
+scalar trace-polynomial probe still returns zero and is retained as a blind
+negative control.
+
+The verdict is `MICROSCOPIC_FILLED_BAND_SELECTOR_POTENTIAL_PASS`.
+
+This is not a quartic radial-stabilization theorem or an interacting vacuum
+simulation.  It proves that the actual BB filled-band eigenphase functional
+contains the even/odd microscopic structure behind the V32-V36 selector chain.
+
+The remaining inputs are:
+
+```text
+()
+```
+
+## V38 free BB radial-stabilization no-go gate
+
+V38 asks whether the same free BB filled-band functional that supplies the
+chiral selector branch also stabilizes a finite selector amplitude.  Along the
+audited selector ray, the parity-even filled-band energy is monotone decreasing
+over:
+
+```text
+r = 0, 0.125, 0.25, 0.5, 1.0
+```
+
+No interior finite-radius local minimum is found on this grid.  The right-Weyl
+branch gap is zero at the origin and positive at every nonzero audited radius,
+so the branch direction remains stable while radial stabilization is absent.
+
+The Dirac/vector odd selector still cancels, and V37 is recovered.
+
+The verdict is `FREE_BB_RADIAL_STABILIZATION_NO_GO_PASS`.
+
+The remaining input is:
+
+```text
+radial_stabilization_requires_interaction_or_backreaction
 ```
 
 ## Test command

@@ -199,6 +199,13 @@ from clifford_3plus2_d5.boundary_response.vacuum_selector_condensation import (
     tetrahedral_cubic_polynomial,
     vacuum_selector_condensation_audit_payload,
 )
+from clifford_3plus2_d5.boundary_response.vacuum_selector_filled_band_potential import (
+    FilledBandSelectorPotentialAuditPayload,
+    filled_band_selector_branch_energies,
+    filled_band_selector_branch_gap,
+    filled_band_selector_candidate_energy,
+    filled_band_selector_potential_audit_payload,
+)
 from clifford_3plus2_d5.boundary_response.vacuum_selector_landau import (
     TetrahedralLandauAuditPayload,
     invariant_space_dimension,
@@ -206,6 +213,19 @@ from clifford_3plus2_d5.boundary_response.vacuum_selector_landau import (
     tetrahedral_landau_audit_payload,
     tetrahedral_landau_locking_potential,
     tetrahedral_rotation_group,
+)
+from clifford_3plus2_d5.boundary_response.vacuum_selector_microscopic_potential import (
+    MicroscopicFilledBandPotentialAuditPayload,
+    filled_band_effective_energy,
+    filled_band_even_radial_energy,
+    filled_band_odd_selector_energy,
+    microscopic_selector_potential_audit_payload,
+)
+from clifford_3plus2_d5.boundary_response.vacuum_selector_radial_no_go import (
+    FreeBBRadialNoGoAuditPayload,
+    free_bb_radial_stabilization_audit_payload,
+    radial_energy_finite_differences,
+    radial_selector_energy_samples,
 )
 from clifford_3plus2_d5.boundary_response.vacuum_selector_schur_landau import (
     SchurShellLandauAuditPayload,
@@ -231,6 +251,8 @@ __all__ = [
     "ChiralBoundaryNormalizationAuditPayload",
     "ConservedLabelPartitionAuditPayload",
     "ExplicitHqAuditPayload",
+    "FilledBandSelectorPotentialAuditPayload",
+    "FreeBBRadialNoGoAuditPayload",
     "FramedSterileAuditPayload",
     "ImpedanceAuditPayload",
     "JaynesPrimitiveErgodicityAuditPayload",
@@ -239,6 +261,7 @@ __all__ = [
     "LeptonicPhaseWordAuditPayload",
     "LocalBoundaryFiberAuditPayload",
     "MicrocanonicalReductionAuditPayload",
+    "MicroscopicFilledBandPotentialAuditPayload",
     "PMNSConditionalAuditPayload",
     "PMNSMixingObservables",
     "PrimitiveEntropyErgodicityAuditPayload",
@@ -287,10 +310,18 @@ __all__ = [
     "even_odd_intertwiner",
     "explicit_hq_audit_payload",
     "filled_band_parity_odd_energy",
+    "filled_band_selector_branch_energies",
+    "filled_band_selector_branch_gap",
+    "filled_band_selector_candidate_energy",
+    "filled_band_effective_energy",
+    "filled_band_even_radial_energy",
+    "filled_band_odd_selector_energy",
+    "filled_band_selector_potential_audit_payload",
     "filled_band_selector_ratio",
     "filled_band_selector_sign_passes",
     "framed_sterile_audit_payload",
     "framed_residual_exits",
+    "free_bb_radial_stabilization_audit_payload",
     "ground_exit_indices",
     "impedance_audit_payload",
     "invariant_space_dimension",
@@ -313,6 +344,7 @@ __all__ = [
     "microcanonical_label_weights",
     "microcanonical_reduced_density",
     "microcanonical_reduction_audit_payload",
+    "microscopic_selector_potential_audit_payload",
     "normalized_odd_collective_vector",
     "orthogonal_chiral_swap",
     "pmns_conditional_audit_payload",
@@ -328,6 +360,8 @@ __all__ = [
     "quark_clebsch_audit_payload",
     "quark_coin_rigidity_audit_payload",
     "quark_transfer_hierarchy_audit_payload",
+    "radial_energy_finite_differences",
+    "radial_selector_energy_samples",
     "regular_boundary_fiber_audit_payload",
     "regular_fiber_degeneracies",
     "regular_fiber_reduced_density",

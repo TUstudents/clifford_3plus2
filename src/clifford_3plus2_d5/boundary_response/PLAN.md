@@ -1653,3 +1653,142 @@ The remaining inputs are:
 ```text
 ()
 ```
+
+## V38 Question
+
+Does the free BB filled-band functional itself stabilize a finite selector
+amplitude, or does it only provide the branch direction?
+
+## V38 Implementation
+
+- `vacuum_selector_radial_no_go.py` samples the parity-even filled-band energy
+  along one selector ray at:
+
+```text
+r = 0, 0.125, 0.25, 0.5, 1.0
+```
+
+- It computes forward finite differences and checks for interior local minima.
+- It reuses V36's right-Weyl branch-gap helper over the same radii.
+- It verifies:
+
+```text
+free radial even energy decreases monotonically
+no interior finite-radius minimum appears
+right-Weyl branch gap is positive for r > 0
+Dirac/vector odd selector cancels
+V37 is recovered
+```
+
+## V38 Verdict Standard
+
+V38 reports `FREE_BB_RADIAL_STABILIZATION_NO_GO_PASS` if the free filled-band
+energy is monotone on the audited selector ray, no interior finite minimum is
+found, the branch gap remains stable away from the origin, and V37 is
+recovered.
+
+If an interior finite-radius minimum is found, the alternative verdict is:
+
+```text
+FREE_BB_RADIAL_STABILIZATION_FOUND
+```
+
+The expected verdict is:
+
+```text
+FREE_BB_RADIAL_STABILIZATION_NO_GO_PASS
+```
+
+The remaining input is:
+
+```text
+radial_stabilization_requires_interaction_or_backreaction
+```
+
+## V37 Question
+
+Does the actual BB occupied-band eigenphase functional split into the parity
+even/odd microscopic structure behind the V32-V36 selector chain?
+
+## V37 Implementation
+
+- `vacuum_selector_microscopic_potential.py` defines:
+
+```text
+E_occ(h)  = occupied filled-band quasienergy
+E_even(h) = [E_occ(h) + E_occ(-h)] / 2
+E_odd(h)  = [E_occ(h) - E_occ(-h)] / 2
+```
+
+- It verifies that `E_occ = E_even + E_odd` and `E_occ(-h) = E_even - E_odd`.
+- It checks the even part on audited samples:
+  - selector and antipode candidates are degenerate;
+  - coordinate permutations at fixed norm agree;
+  - energy decreases monotonically with radius on the selector ray.
+- It checks the odd part:
+  - V36's right-Weyl branch gap remains positive at radii `0.25, 0.5, 1.0`;
+  - Dirac/vector odd selector cancels on sampled points.
+- It retains the old scalar trace-polynomial probe as a blind negative control.
+
+## V37 Verdict Standard
+
+V37 reports `MICROSCOPIC_FILLED_BAND_SELECTOR_POTENTIAL_PASS` only if the
+occupied BB eigenphase energy passes the even/odd split, even-sector symmetry,
+radial monotonicity, V36 branch stability, Dirac cancellation, and blind-probe
+controls.
+
+The expected verdict is:
+
+```text
+MICROSCOPIC_FILLED_BAND_SELECTOR_POTENTIAL_PASS
+```
+
+The remaining inputs are:
+
+```text
+()
+```
+
+## V36 Question
+
+Does the V35 single-Weyl filled-band selector choose the actual V27/V32
+tetrahedral vacuum branch over its antipode?
+
+## V36 Implementation
+
+- `vacuum_selector_filled_band_potential.py` evaluates V35's occupied-band
+  parity-odd energy on:
+  - the four accepted tetrahedral selector candidates;
+  - the four antipodal controls;
+  - origin and coordinate-axis controls.
+- It verifies:
+
+```text
+right Weyl: E_selector < E_antipode
+left Weyl:  E_selector > E_antipode
+Dirac pair: E_selector = E_antipode = 0
+```
+
+- It checks that all four selector candidates are degenerate, all four
+  antipodes are degenerate, and selector/antipode energies are opposite.
+- It verifies the normalized candidate ratios match V35's signed-orbit `A2u`
+  ratio, proving the branch potential is the same filled-band selector term.
+
+## V36 Verdict Standard
+
+V36 reports `CHIRAL_BB_BRANCH_SELECTION_PASS` only if the filled-band selector
+lowers the accepted tetrahedral branch for one helicity, reverses under the
+opposite helicity, cancels in the Dirac/vector pair, and vanishes on axis
+controls.
+
+The expected verdict is:
+
+```text
+CHIRAL_BB_BRANCH_SELECTION_PASS
+```
+
+The remaining inputs are:
+
+```text
+()
+```
