@@ -13,6 +13,21 @@ prerequisite gates.  The texture assemblies are kept below theorem status
 unless the corresponding boundary-shell assumptions are derived from a
 microscopic QCA update.
 
+## Current Closure Target
+
+The vacuum-selector thread is closed through V43 for polishing, with exactly
+one named intermediate axiom:
+
+```text
+positive_quartic_backreaction_bounds_selector_radius
+```
+
+Everything else in the selector chain is now gated by passed audits: the
+single-Weyl BB filled-band selector, the tetrahedral branch choice, the radial
+origin instability, and the analytic finite-radius closure.  Future work should
+either derive the positive quartic coefficient from a microscopic
+gauge/Higgs/backreaction update or keep it declared.
+
 ## V1 Question
 
 Can the residual `K_3` boundary-tail construction alone produce

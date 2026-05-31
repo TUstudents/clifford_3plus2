@@ -2,6 +2,32 @@
 
 **Status**: V1 through V43 implemented.
 
+## Current theorem-level status
+
+The selector sector is closed for polishing modulo one explicit intermediate
+axiom:
+
+```text
+positive_quartic_backreaction_bounds_selector_radius
+```
+
+The closed selector chain is:
+
+```text
+single-Weyl BB walk
+  -> real helicity-locked A2u selector term
+  -> accepted tetrahedral branch selected
+  -> free BB even energy destabilizes r = 0
+  -> positive quartic backreaction bounds the radius
+  -> finite nonzero selector vacuum
+```
+
+The sidecar does **not** claim a microscopic derivation of the positive quartic
+coefficient.  V43 records that input openly so the selector result can be
+reviewed without mistaking an intermediate axiom for a theorem.
+
+## Verdict summary
+
 - V1 verdict: **BOUNDARY_CORE_KILL_UNBROKEN_K3**.
 - V2 verdict: **FRAMED_STERILE_EFFECTIVE_PASS**.
 - V3 verdict: **EXPLICIT_HQ_CONVERGENCE_ONLY**.

@@ -11,6 +11,20 @@ This note is a **conditional mathematical-physics program**, not an established 
 3. sector-specific boundary ansätze;
 4. open gaps required for a complete theory.
 
+**Repository implementation status.** The `boundary_response` sidecar now
+implements gates V1-V43.  The framed neutrino core is derived by the product
+sterile / Weyl-function mechanism, and the vacuum-selector sector is closed for
+polishing modulo one explicit intermediate axiom:
+
+$$
+\texttt{positive\_quartic\_backreaction\_bounds\_selector\_radius}.
+$$
+
+PMNS and CKM textures remain below closed-theorem status: they are assembled
+behind explicit boundary-shell assumptions.  The current implementation summary
+lives in `src/clifford_3plus2_d5/boundary_response/README.md`,
+`STATUS.md`, and `parameter_ledger.md`.
+
 The mature claim is not that BCC geometry alone predicts all Standard Model flavor data. The stronger and more honest claim is:
 
 $$
@@ -1252,4 +1266,3 @@ $$
 It determines an arena and a transfer invariant. Realistic flavor requires explicit boundary response operators. The research program is to construct those operators, compute their spectral tensors, and then let the poles and eigenvectors produce masses, mixings, and CP phases.
 
 That is the disciplined route from beautiful numerology toward a testable physical theory.
-

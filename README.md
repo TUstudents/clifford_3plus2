@@ -14,7 +14,7 @@ matrix algebra, exterior algebra, Spin(10) branching).
 | [`obstruction_r10`](src/clifford_3plus2_d5/obstruction_r10/) | **Frozen for publication** | Carrier-first QCA derivation of the chiral-16 of Spin(10) on `R^10`, with five structural obstruction propositions. The five propositions plus two corollaries close specified primitive classes; conjectural Proposition 4b has a finite census witness. |
 | [`lepton`](src/clifford_3plus2_d5/lepton/) | **Positive result, active** | Cl(0,10) Pati-Salam factorization producing the full SM gauge content (`SU(3) × SU(2)_L × U(1)_Y`), a compatible complex structure, and the correct one-generation hypercharge spectrum, with 1+1D massless-Dirac/Weyl continuum dynamics under background gauge links. |
 | [`spacetime_qca`](src/clifford_3plus2_d5/spacetime_qca/) | **In progress** | 3D BCC Weyl/Dirac walk, tensor lift to the lepton internal carrier, position-dependent gauge covariance, Wilson plaquette dynamics, Pati-Salam/SM compact gauge prototypes, dynamical Higgs/Yukawa controls, Gauss projection diagnostics, scan-backed simulator with sparse observation recording. Sessions 20–58. |
-| [`boundary_response`](src/clifford_3plus2_d5/boundary_response/) | **V1–V16 implemented** | Prove-or-kill sidecar for the BCC-QCA boundary-response flavor program. V6 derives the neutrino core `K_ν = ε²P_u + P_b` as an exact semi-infinite Weyl-function theorem; V9 and V14 assemble conditional PMNS and CKM textures; V15 and V16 are rigidity gates that explicitly name the residual free parameter (flat primitive ergodicity is not forced by unitarity + Clifford closure alone). |
+| [`boundary_response`](src/clifford_3plus2_d5/boundary_response/) | **V1–V43 implemented** | Theorem-gated sidecar for BCC-QCA boundary-response flavor. It derives the framed neutrino core `K_ν = ε²P_u + P_b`, keeps PMNS/CKM behind explicit boundary-shell gates, and closes the vacuum-selector thread through V43 modulo one named intermediate axiom: positive quartic backreaction bounds the selector radius. |
 
 ### Shared infrastructure
 
@@ -61,7 +61,7 @@ Each sidecar imports from upstream modules through a thin `reuse.py` shim
 - `sme` → `cp` (H⁽¹⁾, T_{2g} projector) + `spacetime_qca.dirac`.
 - `strongcp` → `cp` (continuum CP, cubic harmonics, discrete symmetries) + `spacetime_qca` (BCC walk, continuum BCH).
 - `koide` → `cp` (Higgs map basis, BCC R rotation) + `topology` + `broken_triality` (3×3 Yukawa-from-orbit template).
-- `boundary_response` is self-contained (no cross-module dependencies).
+- `boundary_response` -> `spacetime_qca` (BB Weyl/Dirac walk imports for the selector gates); otherwise mostly local exact/symbolic machinery.
 
 ## Working in a module
 
@@ -104,6 +104,8 @@ These describe the workspace itself, not module results:
 - [`docs/REORG_PLAN.md`](docs/REORG_PLAN.md) — record of the workspace reorganization.
 - [`docs/project_conventions.md`](docs/project_conventions.md) — shared coding conventions.
 - [`docs/bcc_qca_boundary_response_research_note_v_2.md`](docs/bcc_qca_boundary_response_research_note_v_2.md) — research note motivating the `boundary_response` sidecar.
+- [`docs/epsilon_provenance.md`](docs/epsilon_provenance.md) — disambiguates the dimensionless silver-ratio flavor invariant from lattice/BCH expansion epsilons.
+- [`docs/depth_hierarchy_mechanism_review.md`](docs/depth_hierarchy_mechanism_review.md) — kill-gated review of the quark family depth hierarchy mechanism.
 
 ## Honest framing
 
@@ -113,7 +115,7 @@ module. Each module asks a different question and answers honestly:
 - `obstruction_r10` classifies *what cannot be derived* in specified primitive classes.
 - `lepton` *constructs* the SM gauge content from a declared Clifford framework, accepting specific algebraic choices as input.
 - `spacetime_qca` builds the 3+1D BCC-lattice simulation arena around that internal carrier.
-- `boundary_response` derives a neutrino-core theorem and *names* the residual free parameter behind the conditional PMNS/CKM textures.
+- `boundary_response` derives the framed neutrino core and closes the vacuum-selector sector through V43 modulo the positive-quartic backreaction axiom; PMNS/CKM remain gated by explicit boundary-shell assumptions.
 - The closed sidecars (`triality`, `broken_triality`, `exceptional`, `topology`) cumulatively rule out the algebraic routes to three generations.
 - The closed-PASS sidecars (`sme`, `strongcp`, `koide`) check consistency with current experimental bounds and identify the residual physical inputs.
 

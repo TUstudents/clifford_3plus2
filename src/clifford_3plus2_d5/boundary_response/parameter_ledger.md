@@ -68,6 +68,13 @@
 | `s_13^q` | `epsilon^6 / sqrt(2)` | V14 conditional CKM input |
 | `V_CKM` | `R_23 R_13(delta_q) R_12` | V14 conditional CKM assembly |
 | `J_q` | `~2.98e-5` | V14 conditional CKM output |
+| `C(h)` | `8 x y z / sqrt(3)` | V32-V34 tetrahedral selector cubic |
+| `E_odd(h)` | `[E_occ(h) - E_occ(-h)] / 2` | V35 real chiral BB selector energy |
+| `E_even(h)` | `[E_occ(h) + E_occ(-h)] / 2` | V37 radial filled-band contribution |
+| `V_H(r)` | `lambda (r^2 - v^2)^2` | V39 Higgs/backreaction radial stabilizer |
+| `rho` | `|Phi|^2` | V40 gauge-invariant Higgs radial variable |
+| `E_radial(r)` | `-c r + m^2 r^2 + lambda r^4` | V42 continuum-leading analytic radial model |
+| `r_*` | `(c / (4 lambda))^(1/3)` for `m^2 = 0` | V42 analytic finite selector radius |
 
 ## Verdict Flags
 
@@ -106,13 +113,28 @@
 | `QUARK_CLEBSCH_Q3_KILL` | color return, leakage, BCC Clebsches, prerequisite, or controls fail |
 | `CKM_CONDITIONAL_ASSEMBLY_PASS` | Q1, Q2, and Q3 assemble into the advertised conditional CKM texture |
 | `CKM_CONDITIONAL_ASSEMBLY_KILL` | CKM prerequisite gates or assembled unitarity check fail |
+| `CHIRAL_BB_FILLED_BAND_SELECTOR_SIGN_PASS` | V35 real filled-band eigenphase contains the helicity-locked `A2u` selector |
+| `CHIRAL_BB_BRANCH_SELECTION_PASS` | V36 filled-band selector lowers the accepted tetrahedral branch |
+| `MICROSCOPIC_FILLED_BAND_SELECTOR_POTENTIAL_PASS` | V37 eigenphase energy splits into radial even plus chiral odd selector pieces |
+| `FREE_BB_RADIAL_STABILIZATION_NO_GO_PASS` | V38 free BB walk selects branch but does not stabilize finite radius alone |
+| `HIGGS_BACKREACTION_RADIAL_STABILIZER_PASS` | V39 Mexican-hat/backreaction radial term closes the V38 no-go |
+| `HIGGS_RADIAL_LANDAU_UNIQUENESS_PASS` | V40 bounded broken gauge-invariant quartic completes to the V39 radial form |
+| `BB_INDUCED_RADIAL_BREAKING_PASS` | V41 free BB radial instability plus positive quartic backreaction gives finite radius |
+| `ANALYTIC_RADIAL_BREAKING_THEOREM_PASS` | V42 continuum-leading radial model proves finite-radius closure |
+| `VACUUM_SELECTOR_CLOSED_WITH_QUARTIC_AXIOM_PASS` | V43 closes selector sidecar modulo the positive quartic axiom |
+
+## Remaining Intermediate Axioms
+
+| Axiom | Status |
+|---|---|
+| `positive_quartic_backreaction_bounds_selector_radius` | open microscopic input after V43 |
 
 ## Parked Items
 
 PMNS is implemented first as a V9 conditional assembly from V6, V7, and V8.
 V10 derives the V8 phase-word selection within a minimal boundary-loop holonomy
-model.  V11 derives the quark primitive shell and flat-coin phase source.  V12
-derives the raw quark transfer-depth hierarchy.  V13 derives the color/BCC
-Clebsches.  V14 assembles those Q1-Q3 ingredients into a conditional CKM
-texture.  The microscopic derivation of the primitive quark boundary shell
-remains open.
+model.  V11-V15 reduce the quark shell and coin phase to rigidity and
+ergodicity gates; V20-V24 reduce the partition/ergodicity assumptions to
+conservation and microcanonical statements.  The selector sector is closed at
+V43 modulo the positive quartic axiom above.  The microscopic derivation of the
+positive quartic coefficient remains open.

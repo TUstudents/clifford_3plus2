@@ -1,5 +1,10 @@
 # Session Boundary Core
 
+This is the original boundary-core session record.  It is intentionally
+chronological: early statements such as "CKM remains parked" describe the state
+at that gate, not the current V43 sidecar status.  For the current summary, see
+`README.md`, `STATUS.md`, and `parameter_ledger.md`.
+
 ## Objective
 
 Implement a sidecar that first tests:

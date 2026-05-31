@@ -127,7 +127,7 @@ fully capture the result.
 |---|---|---|
 | `claude review/FLAVOR_THEORY_AND_QSIM_ROADMAP.md` §0, §6 #2 | **conflates** ε_silver and ε_lattice ("single-ε correlation") | **corrected** — now points here and states the honest version |
 | `docs/bcc_qca_boundary_response_research_note_v_2.md` | uses `ε = √2−1` (silver) throughout; §16 lists SME T₂g separately without claiming a shared ε | OK — no change needed; consistent with this note |
-| `boundary_response/{STATUS.md,parameter_ledger.md}` | `ε` = silver ratio only | OK — optionally add a one-line pointer to this note |
+| `boundary_response/{README.md,STATUS.md,parameter_ledger.md}` | `ε` = silver ratio only; selector gates use BB filled-band energy, not a second epsilon | OK — current sidecar docs keep the meanings separate |
 | `cp/parameter_ledger.md` | `ε` = "symbolic positive" (lattice/BCH expansion) | optionally relabel as `ε_lattice` / "lattice expansion parameter" |
 | `sme/{STATUS.md,parameter_ledger.md}` | `ε` = lattice scale in metres | OK — optionally add a one-line pointer to this note |
 

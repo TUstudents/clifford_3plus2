@@ -243,68 +243,57 @@ projection controls, and bounded projection sweeps.
 - Realistic Yukawa mass matrices and family structure.
 - Long-time stability tests and larger-lattice simulator campaigns.
 
-## boundary_response — framed sterile response audit
+## boundary_response — theorem-gated boundary-response sidecar
 
-**Goal**: test only the boundary-response neutrino core
-`H_Q,V -> Sigma(z) -> K_nu = epsilon^2 P_u + P_b`, then gate the leptonic
-PMNS prerequisites one assumption at a time. CKM texture claims remain parked.
+**Goal**: test whether BCC boundary response can derive flavor-sector
+structure from explicit `H_Q, V -> Sigma(z)` mechanisms, while keeping every
+extra assumption named and falsifiable.
 
-**Implemented**:
-- Exact residual transfer recurrence `x_n = 2 x_{n+1} + x_{n+2}`.
-- Exact `epsilon = sqrt(2)-1` and `epsilon^4 = 17 - 12 sqrt(2)`.
-- Residual basis `(u,a,b)` and projectors `P_u`, `P_a`, `P_b`.
-- Proposed target `K_nu = epsilon^2 P_u + P_b`.
-- Exact Schur-complement helper `Sigma(z) = V.T (z I - H_Q)^-1 V`.
-- Explicit finite `S_3`-equivariant residual `K_3` tail candidate.
-- V2 framed sterile effective audit deriving `(1,1,1) -> u`,
-  `(0,1,-1) -> b`, and `g_u/g_b = epsilon` from one transfer-depth step.
-- V3 explicit finite transfer-chain `H_Q` whose Green-function ratio
-  `G(1,0)/G(0,0)` converges to `epsilon`.
-- V4 minimal endpoint impedance catalog.
-- V5 product sterile-tail model `H_Q = H_chain ⊗ I_family`.
-- V6 exact semi-infinite Weyl-function theorem
-  `m(z) = (z - sqrt(z^2 - 4))/2`.
-- V7 charged-lepton leakage gate deriving
-  `sin(theta_e) = sqrt(3/2) epsilon^2`.
-- V8 conditional leptonic phase-word audit
-  `W_e = -q_A3 q_A2 = exp(-i 5 pi / 12)`.
+**Current result**: V1 through V43 are implemented. The selector sector is
+closed for polishing modulo one explicit intermediate axiom:
+`positive_quartic_backreaction_bounds_selector_radius`.
 
-**Result**:
-- Transfer passes.
-- `K_nu` preserves the selected-port `S_2` but not full residual `S_3`.
-- The unbroken `K_3` tail self-energy remains `S_3` invariant and cannot
-  equal `K_nu`.
-- The effective framed sterile ansatz yields `K_nu` when equal diagonal
-  sterile returns and zero cross-return are assumed; breaking those assumptions
-  breaks the target.
-- The explicit finite transfer-chain supports the transfer amplitude by
-  convergence, but the raw shell-coupled Schur response still fails return
-  normalization diagnostics.
-- The endpoint catalog finds no untuned local impedance match; a matched one-site
-  load works only after solving a sector-specific endpoint scalar.
-- The product sterile-tail mechanism makes equal returns and zero cross-return
-  structural by putting the residual family label inside `Q`.
-- The semi-infinite Weyl function upgrades the finite V5 convergence result to
-  an exact neutrino-core theorem:
-  `Sigma/m = epsilon^2 P_u + P_b` at `z = 2 sqrt(2)`.
-- The charged-lepton selected port gives
-  `e1 = sqrt(2/3) a + 1/sqrt(3) u`, and two exact Weyl-transfer steps give
-  `sin(theta_e) = sqrt(3/2) epsilon^2`.
-- The phase-word arithmetic checks exactly, but word selection is not derived.
+The closed selector chain is:
 
-**Verdicts**:
-- `BOUNDARY_CORE_KILL_UNBROKEN_K3` for the unbroken V1 `K_3` tail.
-- `FRAMED_STERILE_EFFECTIVE_PASS` for the V2 effective framed sterile ansatz.
-- `EXPLICIT_HQ_CONVERGENCE_ONLY` for the V3 finite transfer-chain `H_Q`.
-- `IMPEDANCE_FREE_PARAMETER` for the V4 endpoint catalog.
-- `PRODUCT_STERILE_CONVERGENCE_PASS` for the V5 finite product sterile tail.
-- `PRODUCT_STERILE_LIMIT_PASS` for the V6 exact Weyl-function theorem.
-- `CHARGED_LEPTON_LEAKAGE_PASS` for the V7 leakage scalar.
-- `LEPTONIC_PHASE_WORD_CONDITIONAL_PASS` for the V8 phase arithmetic.
+```text
+single-Weyl BB walk
+  -> real helicity-locked A2u selector term
+  -> accepted tetrahedral branch selected
+  -> free BB even energy destabilizes r=0
+  -> positive quartic backreaction bounds radius
+  -> finite nonzero selector vacuum
+```
 
-**Next action**: either assemble a clearly conditional PMNS table from V6+V7+V8,
-or attempt the stricter boundary-loop holonomy theorem that derives the full
-phase word selection. CKM remains parked.
+**Implemented theorem gates**:
+- Exact residual transfer invariant `epsilon = sqrt(2)-1`.
+- Product sterile-tail and semi-infinite Weyl-function theorem deriving the
+  framed neutrino core `K_nu = epsilon^2 P_u + P_b`.
+- Charged-lepton leakage and conditional leptonic phase-word gates.
+- Quark boundary-shell gates: transfer hierarchy, color return, conditional
+  CKM assembly, entropy/conservation reduction, and explicit records of the
+  remaining boundary-shell assumptions.
+- Chiral BB selector gates V35-V38: filled-band selector sign, branch
+  selection, microscopic filled-band potential, and free-BB radial no-go.
+- Higgs/backreaction closure gates V39-V43: radial stabilizer sufficiency,
+  gauge-invariant Landau uniqueness, BB-induced breaking, analytic radial
+  theorem, and closure ledger.
+
+**Honest limits**:
+- The positive quartic coefficient is not yet derived from a microscopic
+  gauge/Higgs/backreaction update; it is the one named intermediate axiom left
+  by V43.
+- PMNS and CKM textures remain gated by their respective boundary-shell
+  assumptions. They are not presented as closed derivations.
+- The sidecar is a boundary-response theory audit, not a full dynamical SM
+  simulation.
+
+**Primary docs**:
+- `docs/bcc_qca_boundary_response_research_note_v_2.md`
+- `docs/epsilon_provenance.md`
+- `src/clifford_3plus2_d5/boundary_response/README.md`
+- `src/clifford_3plus2_d5/boundary_response/STATUS.md`
+- `src/clifford_3plus2_d5/boundary_response/PLAN.md`
+- `src/clifford_3plus2_d5/boundary_response/parameter_ledger.md`
 
 ## triality — closed: negative result
 
