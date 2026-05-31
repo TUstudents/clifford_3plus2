@@ -183,6 +183,13 @@ from clifford_3plus2_d5.boundary_response.vacuum_selector import (
     selector_order_parameter,
     vacuum_selector_audit_payload,
 )
+from clifford_3plus2_d5.boundary_response.vacuum_selector_bb_induced_breaking import (
+    BBInducedRadialBreakingAuditPayload,
+    bb_induced_radial_breaking_audit_payload,
+    bb_induced_radial_energy_samples,
+    bb_induced_radial_minimum_candidates,
+    quartic_backreaction_potential,
+)
 from clifford_3plus2_d5.boundary_response.vacuum_selector_chiral_bb import (
     ChiralBBSelectorSignAuditPayload,
     bb_scalar_h2_quadratic_coefficients,
@@ -205,6 +212,29 @@ from clifford_3plus2_d5.boundary_response.vacuum_selector_filled_band_potential 
     filled_band_selector_branch_gap,
     filled_band_selector_candidate_energy,
     filled_band_selector_potential_audit_payload,
+)
+from clifford_3plus2_d5.boundary_response.vacuum_selector_higgs_stabilizer import (
+    HiggsBackreactionRadialStabilizerAuditPayload,
+    higgs_backreaction_radial_stabilizer_audit_payload,
+    mexican_hat_radial_potential,
+    stabilized_radial_energy_samples,
+    stabilized_radial_minimum_candidates,
+)
+from clifford_3plus2_d5.boundary_response.vacuum_selector_higgs_origin import (
+    HiggsRadialLandauOriginAuditPayload,
+    completed_square_vev_squared,
+    higgs_radial_landau_origin_audit_payload,
+    spacetime_higgs_potential_pullback,
+)
+from clifford_3plus2_d5.boundary_response.vacuum_selector_radial_theorem import (
+    AnalyticRadialBreakingTheoremAuditPayload,
+    analytic_radial_breaking_theorem_audit_payload,
+    analytic_radial_energy,
+    massless_quartic_stationary_radius,
+)
+from clifford_3plus2_d5.boundary_response.vacuum_selector_closure import (
+    VacuumSelectorClosureAuditPayload,
+    vacuum_selector_closure_audit_payload,
 )
 from clifford_3plus2_d5.boundary_response.vacuum_selector_landau import (
     TetrahedralLandauAuditPayload,
@@ -243,6 +273,8 @@ from clifford_3plus2_d5.boundary_response.vacuum_selector_potential import (
 
 __all__ = [
     "AlgebraicIntertwinerAuditPayload",
+    "AnalyticRadialBreakingTheoremAuditPayload",
+    "BBInducedRadialBreakingAuditPayload",
     "BoundaryCoreAuditPayload",
     "CKMConditionalAuditPayload",
     "CKMSines",
@@ -254,6 +286,8 @@ __all__ = [
     "FilledBandSelectorPotentialAuditPayload",
     "FreeBBRadialNoGoAuditPayload",
     "FramedSterileAuditPayload",
+    "HiggsBackreactionRadialStabilizerAuditPayload",
+    "HiggsRadialLandauOriginAuditPayload",
     "ImpedanceAuditPayload",
     "JaynesPrimitiveErgodicityAuditPayload",
     "LabelConservingDynamicsAuditPayload",
@@ -280,12 +314,18 @@ __all__ = [
     "UnitContinuationAuditPayload",
     "VacuumFramingAuditPayload",
     "VacuumSelectorAuditPayload",
+    "VacuumSelectorClosureAuditPayload",
     "VacuumSelectorCondensationAuditPayload",
     "VacuumSelectorPotentialAuditPayload",
     "WeylSterileAuditPayload",
     "algebraic_intertwiner_audit_payload",
+    "analytic_radial_breaking_theorem_audit_payload",
+    "analytic_radial_energy",
     "arbitrary_label_preserving_degeneracies",
     "boundary_core_audit_payload",
+    "bb_induced_radial_breaking_audit_payload",
+    "bb_induced_radial_energy_samples",
+    "bb_induced_radial_minimum_candidates",
     "bb_scalar_h2_quadratic_coefficients",
     "bb_scalar_h2_xyz_coefficient",
     "bb_trace_b3_xyz_coefficient",
@@ -297,6 +337,7 @@ __all__ = [
     "ckm_jarlskog",
     "ckm_magnitude_matrix",
     "ckm_sines",
+    "completed_square_vev_squared",
     "compressed_macro_entropy",
     "compressed_partition_merges_conserved_labels",
     "conserved_label_partition_audit_payload",
@@ -323,6 +364,8 @@ __all__ = [
     "framed_residual_exits",
     "free_bb_radial_stabilization_audit_payload",
     "ground_exit_indices",
+    "higgs_backreaction_radial_stabilizer_audit_payload",
+    "higgs_radial_landau_origin_audit_payload",
     "impedance_audit_payload",
     "invariant_space_dimension",
     "isotropic_quark_coin",
@@ -345,6 +388,8 @@ __all__ = [
     "microcanonical_reduced_density",
     "microcanonical_reduction_audit_payload",
     "microscopic_selector_potential_audit_payload",
+    "massless_quartic_stationary_radius",
+    "mexican_hat_radial_potential",
     "normalized_odd_collective_vector",
     "orthogonal_chiral_swap",
     "pmns_conditional_audit_payload",
@@ -356,6 +401,7 @@ __all__ = [
     "primitive_ratio_from_alpha",
     "primitive_shannon_entropy",
     "product_sterile_audit_payload",
+    "quartic_backreaction_potential",
     "quark_boundary_shell_audit_payload",
     "quark_clebsch_audit_payload",
     "quark_coin_rigidity_audit_payload",
@@ -378,7 +424,10 @@ __all__ = [
     "selector_locking_potential",
     "selector_order_parameter",
     "selector_potential_energy",
+    "spacetime_higgs_potential_pullback",
     "spectral_lift_operator",
+    "stabilized_radial_energy_samples",
+    "stabilized_radial_minimum_candidates",
     "tetrahedral_cubic_polynomial",
     "tetrahedral_landau_audit_payload",
     "tetrahedral_landau_locking_potential",
@@ -390,6 +439,7 @@ __all__ = [
     "unit_outward_matching",
     "vacuum_framing_audit_payload",
     "vacuum_selector_audit_payload",
+    "vacuum_selector_closure_audit_payload",
     "vacuum_selector_condensation_audit_payload",
     "vacuum_selector_potential_audit_payload",
     "weyl_sterile_audit_payload",

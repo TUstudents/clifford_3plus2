@@ -1654,6 +1654,241 @@ The remaining inputs are:
 ()
 ```
 
+## V43 Question
+
+Can the vacuum-selector sidecar be closed for polishing with exactly one named
+intermediate axiom instead of an open-ended residual input list?
+
+## V43 Implementation
+
+- `vacuum_selector_closure.py` assembles the selector-sector verdict chain:
+
+```text
+V35  CHIRAL_BB_FILLED_BAND_SELECTOR_SIGN_PASS
+V36  CHIRAL_BB_BRANCH_SELECTION_PASS
+V37  MICROSCOPIC_FILLED_BAND_SELECTOR_POTENTIAL_PASS
+V38  FREE_BB_RADIAL_STABILIZATION_NO_GO_PASS
+V41  BB_INDUCED_RADIAL_BREAKING_PASS
+V42  ANALYTIC_RADIAL_BREAKING_THEOREM_PASS
+```
+
+- It declares exactly one intermediate selector axiom:
+
+```text
+positive_quartic_backreaction_bounds_selector_radius
+```
+
+- It explicitly records that this positive quartic coefficient is not
+  microscopically derived.
+
+## V43 Verdict Standard
+
+V43 reports `VACUUM_SELECTOR_CLOSED_WITH_QUARTIC_AXIOM_PASS` only if all
+selector-chain prerequisites pass and the remaining axiom set is exactly the
+single positive-quartic backreaction axiom.
+
+## V42 Question
+
+Can V41's sampled radial breaking be upgraded to an analytic theorem?
+
+## V42 Implementation
+
+- `vacuum_selector_radial_theorem.py` uses the continuum-leading occupied Weyl
+  energy:
+
+```text
+E_occ^0(k) = -|k|
+```
+
+- Along a unit selector ray it audits:
+
+```text
+E(r) = -c r + m^2 r^2 + lambda r^4
+c > 0
+```
+
+- It proves:
+  - `E'(0+) = -c < 0`;
+  - `lambda > 0` gives large-radius boundedness;
+  - a finite nonzero minimum exists by continuity;
+  - for `m^2 = 0`, `lambda = 1`, `c = 1`, the positive stationary point is
+    `r = (1/4)^(1/3)`;
+  - the V36 branch signs survive at that analytic radius.
+
+## V42 Verdict Standard
+
+V42 reports `ANALYTIC_RADIAL_BREAKING_THEOREM_PASS` only if the analytic
+origin-instability, quartic-boundedness, stationary-point, branch-survival, and
+V41 regression diagnostics pass.
+
+## V41 Question
+
+Does the Higgs/backreaction sector need to enter an already-broken phase, or
+does the free BB filled-band radial energy destabilize the selector origin so
+that a merely positive quartic backreaction is enough?
+
+## V41 Implementation
+
+- `vacuum_selector_bb_induced_breaking.py` audits:
+
+```text
+V_back(r) = m^2 r^2 + lambda r^4
+E_total(r) = E_free_even(r) + V_back(r)
+```
+
+- Defaults:
+
+```text
+m^2 = 0
+lambda = 1
+```
+
+- It verifies:
+  - `E_free_even(0) = 0` and immediately decreases for `r > 0`;
+  - `V_back` alone is unbroken at the origin for `m^2 >= 0`, `lambda > 0`;
+  - `E_total` has a finite nonzero minimum on the audited grid;
+  - a positive-mass control still has a finite nonzero minimum;
+  - `lambda = 0` recovers V38's no-go;
+  - `lambda < 0` is rejected as unbounded;
+  - V36 branch diagnostics survive at the BB-induced minimum.
+
+## V41 Verdict Standard
+
+V41 reports `BB_INDUCED_RADIAL_BREAKING_PASS` only if the free BB filled-band
+even energy destabilizes the origin and a positive quartic backreaction bounds
+the radial profile at a finite nonzero selector radius.
+
+This does not derive the positive quartic coefficient.  It removes the need to
+insert a negative Higgs mass / broken phase by hand.
+
+The expected verdict is:
+
+```text
+BB_INDUCED_RADIAL_BREAKING_PASS
+```
+
+The remaining input is:
+
+```text
+positive_quartic_backreaction_bounds_selector_radius
+```
+
+## V40 Question
+
+Is the V39 Mexican-hat radial stabilizer arbitrary, or is it the unique minimal
+bounded broken quartic allowed by local Higgs gauge invariance?
+
+## V40 Implementation
+
+- `vacuum_selector_higgs_origin.py` audits a local Higgs doublet with
+
+```text
+rho = |Phi|^2
+V(rho) = c + a rho + b rho^2
+```
+
+- It verifies the Landau sign criteria:
+
+```text
+b > 0       bounded below
+a < 0       broken phase
+v^2 = -a / (2b)
+V(rho) = b (rho - v^2)^2 + constant
+```
+
+- It pulls the existing `spacetime_qca` Higgs potential back along the
+  gauge-fixed selector representative:
+
+```text
+Phi(r) = (0, r)
+```
+
+and verifies that this equals the V39 radial term on the audited grid.
+
+- Controls reject:
+  - positive quadratic / unbroken phase;
+  - negative quartic / unbounded phase;
+  - component-anisotropic doublet quadratics that are not functions of
+    `|Phi|^2`.
+
+## V40 Verdict Standard
+
+V40 reports `HIGGS_RADIAL_LANDAU_UNIQUENESS_PASS` only if gauge invariance,
+boundedness, and the broken-phase sign complete the square to the V39 radial
+term, and the existing spacetime-QCA Higgs potential has the same gauge-fixed
+pullback.
+
+This is not a microscopic derivation of why the Higgs sector enters the broken
+phase.  It narrows the remaining input to that sign/phase choice.
+
+The expected verdict is:
+
+```text
+HIGGS_RADIAL_LANDAU_UNIQUENESS_PASS
+```
+
+The remaining input is:
+
+```text
+higgs_backreaction_sector_enters_broken_quartic_phase
+```
+
+## V39 Question
+
+Can the V38 free-BB radial no-go be closed by coupling the selector amplitude
+to the existing Higgs/backreaction radial sector without spoiling the chiral
+branch-selection diagnostics?
+
+## V39 Implementation
+
+- `vacuum_selector_higgs_stabilizer.py` adds the radial stabilizer
+
+```text
+V_H(r) = lambda (r^2 - v^2)^2
+```
+
+with defaults `lambda = 1`, `v^2 = 1`.
+
+- It audits the combined radial profile
+
+```text
+E_stabilized(r) = E_free_even(r) + V_H(r)
+```
+
+on:
+
+```text
+r = 0, 0.25, 0.5, 0.75, 1.0, 1.25, 1.5
+```
+
+- It verifies:
+  - the Mexican-hat term alone minimizes at `r = 1`;
+  - the combined profile has a finite interior minimum;
+  - right/left/Dirac branch diagnostics from V36 survive at that minimum;
+  - `lambda = 0` recovers the V38 no-go;
+  - the pure `v^2 = 0` radial sector is unbroken at the origin.
+
+## V39 Verdict Standard
+
+V39 reports `HIGGS_BACKREACTION_RADIAL_STABILIZER_PASS` only if the radial
+stabilizer creates a finite interior selector amplitude and the helicity-locked
+branch sign survives there.
+
+This is a sufficiency theorem for coupling to a Higgs/backreaction radial
+sector, not a derivation of that sector from the free BB walk.
+
+The expected verdict is:
+
+```text
+HIGGS_BACKREACTION_RADIAL_STABILIZER_PASS
+```
+
+The remaining input is:
+
+```text
+higgs_or_backreaction_sector_supplies_mexican_hat_radial_term
+```
+
 ## V38 Question
 
 Does the free BB filled-band functional itself stabilize a finite selector

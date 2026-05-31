@@ -1,6 +1,6 @@
 # boundary_response — Status
 
-**Status**: V1 through V38 implemented.
+**Status**: V1 through V43 implemented.
 
 - V1 verdict: **BOUNDARY_CORE_KILL_UNBROKEN_K3**.
 - V2 verdict: **FRAMED_STERILE_EFFECTIVE_PASS**.
@@ -40,6 +40,11 @@
 - V36 verdict: **CHIRAL_BB_BRANCH_SELECTION_PASS**.
 - V37 verdict: **MICROSCOPIC_FILLED_BAND_SELECTOR_POTENTIAL_PASS**.
 - V38 verdict: **FREE_BB_RADIAL_STABILIZATION_NO_GO_PASS**.
+- V39 verdict: **HIGGS_BACKREACTION_RADIAL_STABILIZER_PASS**.
+- V40 verdict: **HIGGS_RADIAL_LANDAU_UNIQUENESS_PASS**.
+- V41 verdict: **BB_INDUCED_RADIAL_BREAKING_PASS**.
+- V42 verdict: **ANALYTIC_RADIAL_BREAKING_THEOREM_PASS**.
+- V43 verdict: **VACUUM_SELECTOR_CLOSED_WITH_QUARTIC_AXIOM_PASS**.
 
 The residual transfer recurrence gives the desired exact invariant:
 
@@ -1459,6 +1464,215 @@ The remaining input is:
 ```text
 radial_stabilization_requires_interaction_or_backreaction
 ```
+
+## V39 Higgs/backreaction radial-stabilizer gate
+
+V39 keeps the V38 no-go intact and tests the minimal radial closure supplied by
+the existing Higgs/backreaction sector.  The added radial term is the same
+Mexican-hat form used elsewhere in the project:
+
+```text
+V_H(r) = lambda (r^2 - v^2)^2
+```
+
+with audit defaults:
+
+```text
+lambda = 1
+v^2 = 1
+```
+
+On the audited grid
+
+```text
+r = 0, 0.25, 0.5, 0.75, 1.0, 1.25, 1.5
+```
+
+the combined radial energy
+
+```text
+E_stabilized(r) = E_free_even(r) + V_H(r)
+```
+
+has an interior finite-radius minimum at `r = 1.0`.  The V36 branch gap remains
+positive for the right-Weyl selector, reverses for the left-Weyl selector, and
+cancels for the Dirac/vector pair at the stabilized radius.
+
+Two controls keep the claim scoped:
+
+```text
+lambda = 0
+```
+
+recovers the V38 free-BB no-go, while the pure `v^2 = 0` radial sector is
+unbroken at the origin.  Thus V39 is a sufficiency result for radial closure by
+the Higgs/backreaction sector, not a derivation of the Higgs potential from the
+free BB walk.
+
+The verdict is `HIGGS_BACKREACTION_RADIAL_STABILIZER_PASS`.
+
+The remaining input is narrowed to:
+
+```text
+higgs_or_backreaction_sector_supplies_mexican_hat_radial_term
+```
+
+## V40 gauge-invariant Higgs radial-origin gate
+
+V40 asks whether the radial term imported in V39 is arbitrary.  It is not,
+once the selector amplitude is identified with the norm of a local electroweak
+Higgs doublet and the Higgs sector is assumed to be in a bounded broken quartic
+Landau phase.
+
+Writing
+
+```text
+rho = |Phi|^2
+```
+
+local `SU(2)_L x U(1)_Y` gauge invariance permits the minimal quartic
+
+```text
+V(rho) = c + a rho + b rho^2
+```
+
+at lowest order.  The audit checks:
+
+```text
+b > 0       bounded below
+a < 0       broken phase
+v^2 = -a / (2b)
+V(rho) = b (rho - v^2)^2 + constant
+```
+
+For the default broken quartic `a = -2`, `b = 1`, the completed square has
+`v^2 = 1` and pulls back to the V39 stabilizer.  The gauge-fixed selector map
+
+```text
+Phi(r) = (0, r)
+```
+
+is checked directly against `spacetime_qca.jax_higgs_potential_density`, and
+charged/neutral Higgs representatives with the same norm are degenerate.
+
+Controls reject an unbroken positive-quadratic phase, an unbounded negative
+quartic, and a component-anisotropic doublet quadratic.
+
+The verdict is `HIGGS_RADIAL_LANDAU_UNIQUENESS_PASS`.
+
+The remaining input is narrowed to:
+
+```text
+higgs_backreaction_sector_enters_broken_quartic_phase
+```
+
+## V41 BB-induced radial-breaking gate
+
+V41 asks whether the V40 broken-phase sign must be inserted.  Along the
+selector ray, V38's free BB filled-band even energy already destabilizes the
+origin:
+
+```text
+E_free_even(0) = 0
+E_free_even(r > 0) < 0
+```
+
+The audited radial backreaction is deliberately unbroken by itself:
+
+```text
+V_back(r) = m^2 r^2 + lambda r^4
+m^2 >= 0
+lambda > 0
+```
+
+For the default `m^2 = 0`, `lambda = 1`, the combined profile
+
+```text
+E_total(r) = E_free_even(r) + V_back(r)
+```
+
+has a finite nonzero minimum at `r = 0.625` on the audited grid.  A positive
+mass control with `m^2 = 1`, `lambda = 1` still has a finite nonzero minimum at
+`r = 0.375`.  Removing the quartic recovers the V38 no-go, and a negative
+quartic is rejected as unbounded.
+
+The right-Weyl branch gap remains positive at the BB-induced minimum, the
+left-Weyl branch reverses it, and the Dirac/vector pair cancels it.
+
+The verdict is `BB_INDUCED_RADIAL_BREAKING_PASS`.
+
+The remaining input is narrowed to:
+
+```text
+positive_quartic_backreaction_bounds_selector_radius
+```
+
+## V42 analytic radial-breaking theorem
+
+V42 upgrades V41's grid audit to the continuum-leading radial theorem.  The
+already-audited BB Weyl Hamiltonian gives the occupied leading energy
+
+```text
+E_occ^0(k) = -|k|
+```
+
+so along a unit selector ray the analytic radial model is
+
+```text
+E(r) = -c r + m^2 r^2 + lambda r^4
+c > 0
+```
+
+The right derivative at the origin is negative:
+
+```text
+E'(0+) = -c < 0
+```
+
+while `lambda > 0` makes `E(r) -> +infinity` at large radius.  Hence a finite
+nonzero minimum exists by continuity.  For the default `m^2 = 0`,
+`lambda = 1`, `c = 1`, the positive stationary radius is exact:
+
+```text
+r_* = (1 / 4)^(1/3)
+```
+
+and it is a local minimum below the origin.  The V36 branch gap survives at
+this analytic radius: right-Weyl selects the accepted branch, left-Weyl
+reverses it, and the Dirac/vector pair cancels.
+
+The verdict is `ANALYTIC_RADIAL_BREAKING_THEOREM_PASS`.
+
+The remaining input is still:
+
+```text
+positive_quartic_backreaction_bounds_selector_radius
+```
+
+## V43 selector closure ledger
+
+V43 records the vacuum-selector thread as closed for polishing modulo one named
+intermediate axiom.  The prerequisite verdict chain is:
+
+```text
+V35  CHIRAL_BB_FILLED_BAND_SELECTOR_SIGN_PASS
+V36  CHIRAL_BB_BRANCH_SELECTION_PASS
+V37  MICROSCOPIC_FILLED_BAND_SELECTOR_POTENTIAL_PASS
+V38  FREE_BB_RADIAL_STABILIZATION_NO_GO_PASS
+V41  BB_INDUCED_RADIAL_BREAKING_PASS
+V42  ANALYTIC_RADIAL_BREAKING_THEOREM_PASS
+```
+
+The only remaining selector-sector axiom is:
+
+```text
+positive_quartic_backreaction_bounds_selector_radius
+```
+
+This is intentionally an intermediate axiom, not a hidden derivation.  The
+positive quartic coefficient is not yet derived microscopically.
+
+The verdict is `VACUUM_SELECTOR_CLOSED_WITH_QUARTIC_AXIOM_PASS`.
 
 ## Test command
 
