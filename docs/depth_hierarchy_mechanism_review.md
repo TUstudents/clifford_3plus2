@@ -1,15 +1,28 @@
 # Quark family depth hierarchy {0, 2, 6}: candidate mechanism and BCC topology
 
-**Status:** research note for external review — *not* a result claim.
+**Status:** research note for external review. **CLOSED.** The Claim-A kill-gate
+was built and run (§7) including the matrix-valued covariant escape hatch — KILLED
+under both lenses — and the post-cube mechanism family was settled by a Schur's-lemma
+closure theorem (§7b): `{0,2,6}` is necessarily an `S₃`-breaking spurion, so deriving
+it ≡ deriving the closed-negative generation symmetry breaking.
 **Question:** is the quark family transfer-depth embedding `{gen1:0, gen2:2, gen3:6}`
 a derivable consequence of BCC boundary topology, or an irreducible free input?
-**Bottom line:** there is an elegant candidate mechanism (an angular-momentum /
-cubic-harmonic ladder with a parity selection rule), the machinery to test it
-already exists in the repository, but the mechanism is **not currently realized in
-the flavor sector**, and bridging it carries a real consistency hurdle. We
-recommend one cheap, decisive kill-test before any larger commitment. This note
-lays out the argument, the codebase reality, an honest certainty ledger, and the
-decision so a reviewer can confirm or redirect the next step.
+**Bottom line:** the candidate mechanism (an angular-momentum / cubic-harmonic
+ladder with a parity selection rule) was sharp and testable, and the decisive cheap
+test has now been run. The genuine BCC Weyl hop source carries the `A₁g`, `T₁u`,
+**and `A₂u`** primitive `[111]` modes — but it **also** carries the degree-2 even
+`T₂g[111]` quadrupole the parity rule must remove, and it is not C₃-covariant at the
+lattice level. So **Claim A is falsified** (`depth_hop_walsh`,
+`DEPTH_HOP_WALSH_SUPPORT_KILL_T2G_PRESENT`). The one serious escape hatch — that the
+matrix-valued `T₂g` block reassembles under spinor conjugation — was checked
+explicitly (W4, full covariant `O`-decomposition) and **closed**: covariant `T₂`
+does reassemble to 0, but the source is `A₁ ⊕ A₂ ⊕ E` with a forbidden `E`
+quadrupole present and the `T₁` vector absent — killed covariantly too. So `{0,2,6}`
+is **not** a (parity- or covariantly-) selected cube hop source, and the depth
+embedding reverts to an honest free fit. This is the intended outcome of a
+kill-disciplined probe. This note lays out the argument, the
+codebase reality, an explicit claim hierarchy with an honest certainty ledger, and
+the computed result.
 
 ---
 
@@ -83,22 +96,29 @@ integers, hence *automatically* even. And `n(n+1)` is the eigenvalue of the
 
 > **family depth = boundary angular Casimir eigenvalue.**
 
-### 2.2 Mechanism: angular heat-kernel (not WKB)
+### 2.2 Mechanism: a heat semigroup on the cube degree operator (not WKB)
 
 A first instinct — "a centrifugal `ℓ(ℓ+1)/r²` barrier gives a tunnelling exponent
 `∝ ℓ(ℓ+1)`" — is **wrong**. WKB through a `1/r²` barrier gives
 `S ∝ √(ℓ(ℓ+1)) ∝ (ℓ+½)`, i.e. linear in `ℓ`, not quadratic. The correct sharp
-mechanism is that the radial transfer operator *is* the angular **heat semigroup**:
+mechanism is that the radial transfer operator *is* a **heat semigroup**, written
+**microscopically on the discrete cube/cubic-harmonic degree operator** — the
+continuum `S²` Laplacian is only its emergent mnemonic (see §2.4):
 
 ```
-T_∂ = ε^{D_∂} = e^{−t D_∂},   t = −ln ε = ln(1+√2) = arcsinh(1) ≈ 0.881374,
-D_∂ Y_ℓ = ℓ(ℓ+1) Y_ℓ   ⟹   family-ℓ coupling = e^{−t ℓ(ℓ+1)} = ε^{ℓ(ℓ+1)}.
+microscopic:  D_cube = L_{Q₃},   D_cube f_m = 2m·f_m   (Walsh / cubic-harmonic degree m)
+              T_∂ = ε^{D_cube} = e^{−t D_cube},  t = −ln ε = ln(1+√2) = arcsinh(1) ≈ 0.881374
+              ⟹  family-degree-m coupling = ε^{2m}
+
+emergent:     2m ↔ ℓ(ℓ+1)  under  m = T_ℓ = ℓ(ℓ+1)/2,
+              so ε^{2m} reads as the S² heat kernel e^{−t ℓ(ℓ+1)} — a continuum analogy only.
 ```
 
-i.e. **one ε-step of radial transfer = one unit of angular diffusion time.** The
-silver ratio sets the diffusion time; angular momentum sets the suppression. This
-is the proposition the construction must deliver: *the radial transfer operator
-equals the exponential of the boundary angular Laplacian.*
+i.e. **one ε-step of radial transfer = one unit of cube-degree diffusion time.**
+The silver ratio sets the diffusion time; the cube degree sets the suppression. The
+proposition the construction must deliver is `T_∂ = ε^{L_{Q₃}}` — *the radial
+transfer operator equals the exponential of the boundary cube-degree operator*. The
+spherical-Laplacian form is the continuum mnemonic, not the fundamental object.
 
 ### 2.3 BCC realization and the parity selection rule
 
@@ -141,10 +161,12 @@ The orthogonality is then automatic: with the uniform cube inner product and
 ⟨J_χ, e₂⟩ = ⟨P J_χ, P e₂⟩ = ⟨−J_χ, +e₂⟩ = −⟨J_χ, e₂⟩ = 0.
 ```
 
-So `T₂g` is removed because it is the *nontrivial parity-even* mode, and the only
-parity-even family source is the trivial scalar baseline. This also yields the
-count: the cube `[111]`-singlet sector is 4-dim, its parity-odd part is 2-dim,
-plus the one even baseline = **3 families**.
+So the rule is **not** "parity-odd only" — that would also kill the `A₁g` baseline
+we need. It is precisely **a trivial even scalar baseline (`A₁g`) plus the
+nontrivial parity-odd chiral tower (`e₁, e₃`)**; the one thing removed is the
+*nontrivial parity-even* mode `T₂g` (`e₂`). This also yields the count: the cube
+`[111]`-singlet sector is 4-dim, its parity-odd part is 2-dim, plus the one even
+baseline = **3 families**.
 
 A useful **negative result**: the obvious source ansatz "a function of the
 body-diagonal scalar `s = x+y+z`" does **not** work — `s² = 3 + 2(xy+yz+zx)`
@@ -219,9 +241,11 @@ T₁u   degree 1   k_x+k_y+k_z  ([111])  parity −   → depth 2
 A₂u   degree 3   k_x k_y k_z           parity −   → depth 6
 ```
 
-The model's own parity rule removes the entire degree-2 even sector (radial `A₁g`,
-`Eg`, `T₂g`), leaving exactly the scalar baseline plus two parity-odd singlets.
-Depth `= 2 × degree`, degrees `{0,1,3}` → `{0,2,6}`.
+The model's own parity rule removes the *nontrivial* even sector (the degree-2
+radial `A₁g`, `Eg`, `T₂g`), while the *trivial* degree-0 `A₁g` scalar is retained
+as the boundary baseline — i.e. **scalar even baseline + nontrivial odd chiral
+tower** (`T₁u`, `A₂u`), not "odd only". Depth `= 2 × degree`, degrees `{0,1,3}` →
+`{0,2,6}`.
 
 ---
 
@@ -248,22 +272,45 @@ Two obstacles stand between this and a derivation:
 
 ---
 
-## 5. Certainty ledger (honest)
+## 5. Claim hierarchy and certainty ledger
 
-| Claim | Grade | Basis |
+Three claims must stay separate; a §7 pass proves **only Claim A**.
+
+- **Claim A — angular selection (NOW TESTED → FALSIFIED, both lenses).** Whether the
+  genuine BCC Weyl source supports `A₁g(0) ⊕ T₁u^[111](1) ⊕ A₂u(3)` with **no**
+  degree-2 even support. Coefficient-Walsh (W2): `KILL_T2G_PRESENT` (`T₂g[111]`
+  present, source not C₃-covariant). The matrix-valued escape hatch was then closed
+  (W4, covariant `O`-decomposition): the source is `A₁ ⊕ A₂ ⊕ E` (`A₁=1, A₂=1/3,
+  E=2/3, T₁=T₂=0`) — covariant `T₂` reassembles to 0, but a forbidden `E`
+  quadrupole is present and the `T₁` vector is absent. Grade: **FALSIFIED for the
+  BB source under both lenses.**
+- **Claim B — radial-depth bridge.** `d_radial = 2 × deg_angular`. This is the real
+  missing physical law; the cubic-harmonic decomposition does **not** test it.
+  Grade: **C3.**
+- **Claim C — flavor-sector embedding.** Quark generations actually occupy those
+  three angular modes, compatibly with the `Cl₅` coin and `√5 = √(2_BCC+3_color)`.
+  Grade: **C2–C3.**
+
+A is necessary but not sufficient for B; A∧B necessary but not sufficient for C.
+**The depths are *derived* only if all three hold.** A §7 pass alone moves Claim A,
+nothing more.
+
+| Claim / component | Grade | Basis |
 |---|---|---|
-| `{0,2,6} = n(n+1)`, `n=0,1,2`; even is a corollary | C9 | arithmetic identity |
-| CKM order-of-magnitude from `ε^{2,4,6}`; `J ~ ε¹²` | C8 | numerical, O(1) coefficients |
+| `{0,2,6} = n(n+1) = 2T_n`; even is a corollary | C9 | arithmetic identity |
 | Cube `Q₃`/`O_h` spectrum `{0,2,4,6}`, parity grading | C9 | standard; implemented in `strongcp` |
-| Heat-kernel form `T_∂ = ε^{D_∂}` is the right mechanism (vs WKB) | C7 | correct in principle; `D_∂` must be exhibited |
-| Parity selection removes the even quadrupole `T₂g` | C8 | proof in §2.3; rule coded in `strongcp` |
-| Cube depth ladder is realized in the **flavor** sector | C2 | **false as stated** — flavor coin is `Cl₅`, depths postulated |
-| Bridge `radial_depth = 2 × angular_degree` | C3 | unasserted; right machinery, wrong sector |
-| `√5 = √(2_BCC+3_color)` consistent with a cube geometry | C3 | open obstruction |
-| `N=3` from "scalar + two parity-odd `[111]`-singlets" | C4 | new route; prior `N=3` kills (triality/exceptional/cobordism) don't cover it, but unproven |
+| CKM order-of-magnitude from `ε^{2,4,6}`; `J ~ ε¹²` | C8 | numerical, O(1) coefficients |
+| Heat semigroup `T_∂ = ε^{L_{Q₃}}` is the right form (vs WKB) | C7 | correct in principle; the operator must be exhibited |
+| **Claim A** — angular `0,1,3` parity tower in the real Weyl source | **FALSIFIED (both lenses)** | W2 → `KILL_T2G_PRESENT`; W4 covariant → `A₁⊕A₂⊕E`, forbidden `E` present, `T₁` absent (escape hatch closed) |
+| **Claim B** — bridge `d_radial = 2 × deg_angular` | C3 | unasserted; the real missing law |
+| **Claim C** — flavor embedding + `√5` compatibility | C2–C3 | flavor coin is `Cl₅`, depths postulated; open obstruction |
+| `N=3` from "scalar baseline + two parity-odd `[111]`-singlets" | C4 | new route; prior `N=3` kills don't cover it, but unproven |
 
 The earlier working grade of "C6 for the mechanism" was for a structure not yet
-confirmed to be instantiated; **as a derivation of the flavor depths it is C3–C4**.
+confirmed to be instantiated. Correctly split, with §7 now run (incl. the covariant
+escape hatch): **arithmetic/cube C9; angular selection FALSIFIED both lenses (W2
+`T₂g`, W4 covariant `E` present + `T₁` absent); actual flavor-depth derivation
+remains C3 — the depths are an honest free fit.**
 
 ---
 
@@ -277,45 +324,118 @@ confirmed to be instantiated; **as a derivation of the flavor depths it is C3–
 
 ---
 
-## 7. Proposed next step (the kill-gate)
+## 7. The kill-gate — and its result (BUILT: `depth_hop_walsh/`)
 
-**Do not** build the originally-proposed "project the flavor `Cl₅` source onto cube
-`T₂g`" gate — its premise (a cube in the flavor source) is false. Instead, the one
-cheap, decisive experiment that runs against objects that **exist**:
+**The object decomposed is the raw BCC hop-shell, not the effective Hamiltonian.**
+The gate computes the **coefficient-Walsh transform of the eight 2×2 hop matrices**
+`H_v` (`spacetime_qca.bcc_weyl`), `Ĥ_S = (1/8) Σ_v χ_S(v) H_v`, and assigns `O_h`
+irreps by **primitive Walsh degree** `|S|` (`A₁g`=0, `T₁u`=1, `T₂g`=2, `A₂u`=3,
+depth `2|S|`). "Degree" must mean Walsh degree of the hop coefficients, **not** the
+Taylor degree of `h(k)` — the exponential `e^{−iα k·v}` makes a scalar source
+generate harmless quadratic Taylor descendants, which are not a `T₂g` family mode.
+Restrict to `[111]`-singlets and test, **per helicity** (support = nonzero norm):
+`A₁g`, `T₁u[111]`, `A₂u` present and `T₂g[111] = 0`.
 
-> **Decompose the genuine BCC-Weyl boundary source** (`spacetime_qca.bcc_weyl`,
-> the same `opposite_helicity_hops` object the strong-CP audit uses) **in cubic
-> harmonics through degree 3** (reusing `cp.cubic_harmonics` +
-> `strongcp.cubic_harmonics_degree3` + `strongcp.higher_order_parity`), **restrict
-> to `[111]`-singlets, and test:**
->
-> - **support on `A₁g`(deg 0) ⊕ `T₁u`(deg 1) ⊕ `A₂u`(deg 3)**, and
-> - **zero on the degree-2 even sector (`Eg`, `T₂g`).**
+> **Warning — the strong-CP `H_eff` result is a diagnostic, not the depth kill-gate.**
+> The BCH/effective Hamiltonian (where `A₂u(H⁽²⁾)=0`) is the low-energy Lorentz
+> grammar, a different object from the primitive hop-shell alphabet. A missing
+> *effective* `A₂u` says nothing about a primitive hop-shell `A₂u` coefficient.
+> Using `H_eff` as the depth kill would be a category error; it is kept as a
+> separate `diagnostic_only` gate (W3). The correct, weaker conjecture is: *the
+> family `A₂u` is a primitive BCC hop-shell component whose radial transfer depth
+> is 6* — not "the family `A₂u` must survive as an effective Lorentz `A₂u` term."
 
-**Pass** (`DEPTH_DEGREE_PARITY_SUPPORT_PASS`): the model's own Weyl operator carries
-the `{0,1,3}` parity-graded `[111]` tower. The only remaining input is then the
-bridge `radial_depth = 2 × degree`, which would collapse
-`generation_depth_embedding_derived` to that single axiom.
+**Verdicts** (`DEPTH_HOP_WALSH_SUPPORT_*`): `PASS`; `KILL_MISSING_A2U`;
+`KILL_T2G_PRESENT`; `KILL_MISSING_T1U`; `HELICITY_SPLIT`. A `PASS` would establish
+**Claim A only**; it does not derive the depths (Claims B, C remain open).
 
-**Kill** (`DEPTH_DEGREE_PARITY_SUPPORT_KILL`): the source has degree-2 even
-`[111]`-singlet support → the parity/cubic-harmonic story is wrong → depths remain
-an honest fit, no harm done.
+**Computed result — Claim A is KILLED: `DEPTH_HOP_WALSH_SUPPORT_KILL_T2G_PRESENT`.**
+The genuine BB Weyl hop source carries the `A₁g` baseline, the `T₁u[111]` vector,
+**and** the `A₂u` pseudoscalar (`Ĥ_xyz = ±i/8·I` — the depth-6 mode *is* present),
+but **also a nonzero degree-2 even `T₂g[111]` singlet** (`Ĥ_xy=(i/8)σ_z`,
+`Ĥ_yz=(i/8)σ_x`, `Ĥ_zx=−(i/8)σ_y`) — exactly the quadrupole the parity selection
+rule must remove. Both helicities give the same kill. Moreover the lattice hop
+symbol is **not C₃-covariant** about `[111]` (`covariance_check = False`; only the
+IR limit `σ·k` restores rotation symmetry), so the coefficient-Walsh labels do not
+even lift cleanly to covariant `O_h` irreps.
 
-**What it establishes / does not.**
-- *Establishes:* whether the parity selection rule is realized by the real BCC
-  Weyl operator (the make-or-break for the cube picture).
-- *Does NOT establish:* the bridge `radial_depth = 2×degree`, nor `√5` consistency,
-  nor `N=3`. Even on a pass, the depths are not yet derived — only the angular
-  selection rule is confirmed.
+**The escape hatch — and its closure (W4, covariant `O`-decomposition).** The one
+serious objection: the `T₂g` coefficient block is *matrix-valued*, so under a cubic
+rotation the Paulis transform too; the relevant object may be the full covariant
+`H_v ↦ U_R H_{R⁻¹v} U_R†`, not the coefficient-only Walsh expansion. This is real:
+decomposing the source under the full octahedral rotation group `O` (24 elements,
+`R = Ad(U)`, character projectors, reconstruction exact) gives
 
-**Location.** This is a cross-sector probe and belongs in `strongcp`/`spacetime_qca`
-(where the harmonics and the Weyl operator live), reusing the strong-CP parity
-engine — **not** in the flavor sidecar. The roadmap flags cross-sector consistency
-as the sharpest internal falsifier; this is one.
+```
+A₁ = 1,   A₂ = 1/3,   E = 2/3,   T₁ = 0,   T₂ = 0   (both helicities; Σ = 2 = total).
+```
 
-**Cost / risk.** Cheap (reuses existing projectors and the existing Weyl source;
-a few symbolic projections). Main risk is **framing drift**: a pass must be
-reported as "the angular selection rule holds," not "the depths are derived."
+So the coefficient-Walsh `T₂g` **does** reassemble — covariant `T₂ = 0` (the escape
+hatch's mechanism is genuine). **But** the covariant decomposition exposes its own
+forbidden content: a nonzero **`E` quadrupole (2/3)** — the other `ℓ=2` even irrep —
+and the depth-2 **`T₁` vector is absent (0)**. The source is `A₁ ⊕ A₂ ⊕ E`, not the
+clean `A₁ ⊕ T₁ ⊕ A₂` tower. So **Claim A is killed under both lenses**; the precise
+forbidden mode shifts (coefficient `T₂g` ↔ covariant `E`) but a forbidden even
+quadrupole is always present, and covariantly the vector mode is missing too.
+**Deeper:** `depth = 2 × Walsh-degree` is not even a covariant label (the directional
+`T₁` ⊗ spin contracts to covariant `A₁`), so the cube depth-ladder framing is
+undermined regardless of lens. **The cube/parity mechanism is falsified for the BB
+source: `{0,2,6}` is not a (parity- or covariantly-) selected cube hop source, and
+the depth embedding reverts to an honest free fit.** Intended cheap falsification,
+not a failure of the gate.
+
+**Location.** Built as `src/clifford_3plus2_d5/depth_hop_walsh/` (W1 decomposition,
+W2 coefficient-support — named primary, W4 covariant `O`-decomposition — escape-hatch
+resolution, W5 `S₃`/Schur obstruction — closure, W3 diagnostic, aggregate), in the
+spacetime/BCC sector, reusing `spacetime_qca.bcc_weyl`, `topology.bcc_z3_rotation`,
+`koide.koide_geometry`, and (diagnostic) `strongcp`. 27 tests pass; ruff clean.
+
+---
+
+## 7b. Post-cube mechanisms and the `S₃`/Schur closure (CLOSED)
+
+After the cube route was killed, a family of new candidates for `{0,2,6}` was
+considered — flag dimension `dim SU(n+1)/U(1)ⁿ`, positive-root count `2|Φ⁺(Aₙ)|`,
+Coxeter length of `w₀(Sₙ₊₁)`, `K_{n+1}` edge count, Clifford bivector planes, `2·L(P₃)`,
+rotor `N(N+1)`. **They are all the same arithmetic** `n(n+1) = 2·C(n+1,2) = 2Tₙ`;
+reproducing the numbers is not the question. Three cheap reality-checks settle them:
+
+- **F1 — instantiation: wrong-sector (KILL).** There is no generation-indexed
+  `SU(1)⊂SU(2)⊂SU(3)` ladder in the construction. Color `SU(3)` and weak `SU(2)`
+  are fixed single copies across generations; there is no positive-root / Weyl /
+  flag machinery; the three generations are integer labels with postulated depths
+  in a *fixed* family space `I₃` (`H_Q = H_chain ⊗ I₃`). Same wrong-sector failure
+  as the cube — and it kills the whole family at once, since each needs the same
+  nonexistent per-generation growing structure.
+- **F2 — the `ε²` unit: the bipartite half is real.** Even-depth-from-bipartiteness
+  and the `ε²` two-step return are genuinely derived; only the "per pair-closure"
+  assignment is absent (the same unproven bridge).
+- **F3 — `N=3` cutoff: closed-negative.** Three generations is empirical
+  (`triality`/`broken_triality`/`exceptional` all KILL); color `SU(3)` does **not**
+  supply a cutoff (one fixed copy; the exceptional-Jordan route gives one
+  generation, not three).
+
+**The closure theorem (W5, Schur's lemma).** The residual three-port family space
+is `3 = 1 ⊕ 2` under `S₃`. By Schur, any `S₃`-**invariant** depth operator commutes
+with the rep and has spectrum `{α, β, β}` (commutant dim 2, machine-checked). The
+residual `K₃` Laplacian — the graph that supplies `ε` — has spectrum `{0, 3, 3}` →
+doubled `{0, 6}`, never `{0, 2, 6}`. But `diag(0,2,6)` has **three distinct**
+eigenvalues, so it is necessarily an `S₃`-breaking spurion: invariant part `(8/3)I`,
+breaking spurion `diag(−8/3, −2/3, 10/3) ∼ (−4,−1,5)` in the doublet sector.
+
+> **Therefore deriving `{0,2,6}` is equivalent to deriving the family-symmetry-breaking
+> spurion — the same closed-negative generation problem.** The depth hierarchy is not
+> a separable topological consequence of BCC; it is the `N=3`/generation problem in
+> transfer-depth language. What is derived is the `ε²` unit and `ε`; the *number of
+> units per generation* (`{0,1,3}`) requires the symmetry breaking the kills cannot
+> supply.
+
+This prevents the model from hiding an empirical family-breaking input behind
+elegant arithmetic. The depths stand as an honest declared input with a precise
+reason. If pursued further, the only non-illusory route is an **explicit `S₃`-doublet
+spurion** — ideally the same one that breaks Koide/Yukawa alignment — declared unless
+dynamically derived (and an `S₃`-invariant potential does not obviously select the
+specific `(−4,−1,5)` direction without parameter choices).
 
 ---
 
@@ -337,6 +457,16 @@ reported as "the angular selection rule holds," not "the depths are derived."
 the angular half of the story; if it passes, the `√5` consistency check is the next
 ruthless filter before any claim that the depths are derived. The bridge (2) is
 only worth deriving if both survive.
+
+**Final decision (one line).** The family depth ladder is **not derived yet** — but
+there is now a falsifiable BCC-angular mechanism that, if it survives, would reduce
+the depth input to a single bridge axiom `d_radial = 2 × deg_angular`. The immediate
+experiment must not touch the flavor sidecar; it tests whether the real BCC Weyl
+operator carries the `A₁g(0) ⊕ T₁u^[111](1) ⊕ A₂u(3)` tower with no degree-2 even
+support. If it fails, the cube-depth story is killed and the depths remain an honest
+free input. **The cube mechanism currently lives in the wrong sector; the next gate
+tests whether it is a real BCC angular structure before any attempt to bridge it
+into flavor.**
 
 ---
 
