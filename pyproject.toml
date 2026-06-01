@@ -49,6 +49,7 @@ testpaths = [
     "src/clifford_3plus2_d5/strongcp/tests",
     "src/clifford_3plus2_d5/koide/tests",
     "src/clifford_3plus2_d5/boundary_response/tests",
+    "src/clifford_3plus2_d5/depth_scar/tests",
 ]
 markers = [
     "slow: exact symbolic or large numerical tests that are not part of the default fast development loop",

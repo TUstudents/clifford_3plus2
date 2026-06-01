@@ -468,6 +468,21 @@ free input. **The cube mechanism currently lives in the wrong sector; the next g
 tests whether it is a real BCC angular structure before any attempt to bridge it
 into flavor.**
 
+**Follow-up sidecar.** After the `depth_hop_walsh` kill, the next clean
+operator-level route is `depth_scar`: replace the diagonal depth assignment by a
+defected boundary repair Laplacian.  Its V1 theorem proves that an `S₃ -> Z₂`
+path scar gives
+
+```text
+D_scar = 2 Delta(P3),        Spec(D_scar) = {0,2,6}.
+```
+
+This does not dynamically derive the scar, but it does upgrade the spectrum from
+a hand-written diagonal spurion to a positive graph-native operator conditional
+on the scar.  The remaining hard question is now sharply isolated: derive the
+`S₃ -> Z₂` repair scar from a boundary condition, edge-weight potential,
+monodromy, or microscopic update.
+
 ---
 
 ## 9. Open questions for the reviewer

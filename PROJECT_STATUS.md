@@ -295,6 +295,40 @@ single-Weyl BB walk
 - `src/clifford_3plus2_d5/boundary_response/PLAN.md`
 - `src/clifford_3plus2_d5/boundary_response/parameter_ledger.md`
 
+## depth_scar — boundary repair-scar depth audit
+
+**Goal**: test whether the quark family depth spectrum `{0,2,6}` can be
+represented by a graph-native boundary repair operator rather than by a
+hand-written diagonal spurion.
+
+**Result**: V1 PASS.  An `S3 -> Z2` repair scar with path graph `P3` gives
+
+```text
+D_scar = 2 Delta(P3)
+Spec(D_scar) = {0, 2, 6}
+epsilon^D_scar = diag(1, epsilon^2, epsilon^6)
+```
+
+in the defect normal-mode basis.
+
+**Controls**:
+- Unbroken `K3` remains degenerate: `{0,3,3}` before doubling and `{0,6,6}`
+  after doubling.
+- The diagonal `diag(0,2,6)` control has the right spectrum but is rejected as
+  non-graph-native.
+- The weighted-scar variants `(1,1,0)` and `(1/3,1/3,4/3)` reproduce
+  `{0,1,3}` before doubling, while the symmetric triangle remains degenerate.
+
+**Honest limit**: the sidecar does not dynamically derive the repair scar.  It
+only proves that once the `S3 -> Z2` scar is supplied, the depth spectrum has an
+exact positive graph-Laplacian operator origin.
+
+**Primary docs**:
+- `src/clifford_3plus2_d5/depth_scar/README.md`
+- `src/clifford_3plus2_d5/depth_scar/STATUS.md`
+- `src/clifford_3plus2_d5/depth_scar/PLAN.md`
+- `src/clifford_3plus2_d5/depth_scar/parameter_ledger.md`
+
 ## triality — closed: negative result
 
 **Goal**: test whether the explicit Spin(8) triality outer automorphism can

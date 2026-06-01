@@ -15,6 +15,7 @@ matrix algebra, exterior algebra, Spin(10) branching).
 | [`lepton`](src/clifford_3plus2_d5/lepton/) | **Positive result, active** | Cl(0,10) Pati-Salam factorization producing the full SM gauge content (`SU(3) × SU(2)_L × U(1)_Y`), a compatible complex structure, and the correct one-generation hypercharge spectrum, with 1+1D massless-Dirac/Weyl continuum dynamics under background gauge links. |
 | [`spacetime_qca`](src/clifford_3plus2_d5/spacetime_qca/) | **In progress** | 3D BCC Weyl/Dirac walk, tensor lift to the lepton internal carrier, position-dependent gauge covariance, Wilson plaquette dynamics, Pati-Salam/SM compact gauge prototypes, dynamical Higgs/Yukawa controls, Gauss projection diagnostics, scan-backed simulator with sparse observation recording. Sessions 20–58. |
 | [`boundary_response`](src/clifford_3plus2_d5/boundary_response/) | **V1–V43 implemented** | Theorem-gated sidecar for BCC-QCA boundary-response flavor. It derives the framed neutrino core `K_ν = ε²P_u + P_b`, keeps PMNS/CKM behind explicit boundary-shell gates, and closes the vacuum-selector thread through V43 modulo one named intermediate axiom: positive quartic backreaction bounds the selector radius. |
+| [`depth_scar`](src/clifford_3plus2_d5/depth_scar/) | **V1 PASS, active** | Boundary repair-scar sidecar for the quark depth spectrum. It proves that an `S3 → Z2` path repair scar has `D_scar = 2 Δ(P3)` with spectrum `{0,2,6}` and transfer factors `{1, ε², ε⁶}`. The dynamic origin of the scar remains open. |
 
 ### Shared infrastructure
 
@@ -62,6 +63,7 @@ Each sidecar imports from upstream modules through a thin `reuse.py` shim
 - `strongcp` → `cp` (continuum CP, cubic harmonics, discrete symmetries) + `spacetime_qca` (BCC walk, continuum BCH).
 - `koide` → `cp` (Higgs map basis, BCC R rotation) + `topology` + `broken_triality` (3×3 Yukawa-from-orbit template).
 - `boundary_response` -> `spacetime_qca` (BB Weyl/Dirac walk imports for the selector gates); otherwise mostly local exact/symbolic machinery.
+- `depth_scar` -> `boundary_response.transfer` (exact silver-ratio transfer factor).
 
 ## Working in a module
 
@@ -85,6 +87,7 @@ uv run pytest src/clifford_3plus2_d5/topology/tests/ -q
 uv run pytest src/clifford_3plus2_d5/sme/tests/ -q
 uv run pytest src/clifford_3plus2_d5/strongcp/tests/ -q
 uv run pytest src/clifford_3plus2_d5/koide/tests/ -q
+uv run pytest src/clifford_3plus2_d5/depth_scar/tests/ -q
 
 # Run a script via module invocation
 uv run python -m clifford_3plus2_d5.obstruction_r10.scripts.gauge_equivalence_check --check
@@ -116,6 +119,7 @@ module. Each module asks a different question and answers honestly:
 - `lepton` *constructs* the SM gauge content from a declared Clifford framework, accepting specific algebraic choices as input.
 - `spacetime_qca` builds the 3+1D BCC-lattice simulation arena around that internal carrier.
 - `boundary_response` derives the framed neutrino core and closes the vacuum-selector sector through V43 modulo the positive-quartic backreaction axiom; PMNS/CKM remain gated by explicit boundary-shell assumptions.
+- `depth_scar` upgrades the `{0,2,6}` quark depth spectrum to a graph-Laplacian operator conditional on an `S3 → Z2` repair scar; the scar itself is not dynamically derived.
 - The closed sidecars (`triality`, `broken_triality`, `exceptional`, `topology`) cumulatively rule out the algebraic routes to three generations.
 - The closed-PASS sidecars (`sme`, `strongcp`, `koide`) check consistency with current experimental bounds and identify the residual physical inputs.
 
