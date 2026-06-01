@@ -140,6 +140,85 @@ selects exactly the six path flags.  The minimum cost is `2`; the shortcuts have
 cost `3`.  Relaxed controls show the constraints and the edge-count cost are
 load-bearing.
 
+V9 passes the microscopic locality/minimality split:
+
+```text
+MICROSCOPIC_LOCALITY_MINIMALITY_CONDITIONAL_PASS
+```
+
+V9a proves the support theorem:
+
+```text
+three-level filtration + monotone repair + one-tick geometry u-a-b
++ rank-complete repair
+=> support(N) = {a -> u, b -> a}.
+```
+
+The shortcut `b -> u` is monotone but not one-tick local: it has residual
+boundary distance `2` and preserves the BCC bipartite parity.  If one-tick
+locality is relaxed, the shortcut support reappears.
+
+V9b records the normalization theorem as conditional: partial-isometry
+saturation fixes the two active repair weights to unity and removes tree phases.
+Without saturation the result is a weighted path, and `{0,1,3}` forces
+`w1=w2=1`.
+
+V10 passes the repair-isometry saturation gate:
+
+```text
+V10_REPAIR_ISOMETRY_SATURATION_PASS
+```
+
+For the active repair block `N=P_R U P_A` and leakage block
+`L=(I-P_R) U P_A`, full unitarity gives:
+
+```text
+N.H N + L.H L = I_A.
+```
+
+Thus `N` is an isometry exactly when `L=0`.  Under the V9 path support, this
+forces unit edge weights up to removable tree phases.  If leakage remains, the
+result is a weighted path: symmetric leakage rescales `{0,1,3}`, while unequal
+leakage destroys the `1:3` ratio.
+
+V11 passes the selection-signature no-leakage gate:
+
+```text
+V11_SELECTION_SIGNATURE_NO_LEAKAGE_PASS
+```
+
+If the microscopic one-tick selection rules leave exactly one allowed successor
+for each active state,
+
+```text
+Omega(a) = {u}
+Omega(b) = {a},
+```
+
+then no output lies outside the repaired range, so `L=0`.  V10 then supplies
+unit weights.  V11 does not perform the actual microscopic enumeration; it
+turns the remaining physical problem into the finite V12 successor count.
+
+V12 passes the unique-successor enumeration certificate gate:
+
+```text
+V12_UNIQUE_SUCCESSOR_ENUMERATION_CERTIFICATE_PASS
+```
+
+For the current finite local boundary candidate basis, every transition
+`source -> target` from `source in {a,b}` is certified as either `ALLOW` or
+`FORBID` with an exact veto.  The resulting allowed successor sets are:
+
+```text
+Omega(a) = {u}
+Omega(b) = {a}.
+```
+
+The shortcut `b -> u` is classified separately as topology-changing
+`SHORTCUT_REPAIR`, while bulk, spectator, wrong-sector, and orthogonal-coin
+candidates are classified as external leakage and vetoed by their corresponding
+selection rules.
+
 ## What This Means
 
 The generations are represented as normal modes of the repair graph:
@@ -156,7 +235,10 @@ scar.
 
 ## What Is Still Open
 
-- The sidecar does not derive why microscopic QCA repair must minimize edge count.
+- The sidecar does not derive the height filtration or one-tick residual
+  boundary geometry from the actual BCC-QCA update.
+- It does not prove that the V12 finite candidate basis is the complete
+  microscopic BCC-QCA local boundary basis.
 - It does not derive CKM magnitudes.
 - It does not solve the generation problem.
 - It does not make `P3` a mass model without a left/right Yukawa assignment.

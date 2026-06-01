@@ -38,6 +38,17 @@
 | `P_final` | `N_local N_local.H = diag(r^2,s^2,0)` | V6 final projection |
 | `cost(N)` | `edge_count(N)` | V8 causal repair cost |
 | feasible repair supports | `N^3=0`, `N^2!=0`, `rank(N)=2`, all ports active | V8 variational domain |
+| `h` | `h(u)=0`, `h(a)=1`, `h(b)=2` | V9 defect filtration |
+| residual boundary distance | `d(u,a)=1`, `d(a,b)=1`, `d(u,b)=2` | V9 one-tick geometry |
+| bipartite parity | `p(u)=0`, `p(a)=1`, `p(b)=0` | V9 BCC-locality control |
+| weighted path `Delta(w1,w2)` | two-edge path Laplacian with weights `w1,w2` | V9 normalization fallback |
+| `A` | `span{|a>, |b>}` | V10 active repair domain |
+| `R` | `span{|u>, |a>}` | V10 repaired range |
+| `N` | `P_R U P_A` | V10 active repair block |
+| `L` | `(I-P_R) U P_A` | V10 leakage block |
+| `Omega(a)` | allowed one-tick successors of active state `a` | V11 selection set |
+| `Omega(b)` | allowed one-tick successors of active state `b` | V11 selection set |
+| transition certificate | `(source,target,verdict,vetoes,failure_class)` | V12 finite certificate row |
 
 ## Mode Ledger
 
@@ -86,6 +97,23 @@
 | `VARIATIONAL_MINIMIZER_NOT_PATH_KILL` | V8 minimizers are not uniquely the path-flag orbit |
 | `VARIATIONAL_CONSTRAINT_CONTROL_KILL` | V8 relaxed-constraint controls fail |
 | `VARIATIONAL_COST_CONTROL_KILL` | V8 edge-count cost does not separate path flags from shortcuts |
+| `MICROSCOPIC_LOCALITY_MINIMALITY_CONDITIONAL_PASS` | V9 support locality passes and normalization is conditional on partial-isometry saturation |
+| `V9A_MICROSCOPIC_SUPPORT_MINIMALITY_PASS` | V9 one-tick locality forbids the shortcut and uniquely forces path support |
+| `V9B_MICROSCOPIC_NORMALIZATION_MINIMALITY_CONDITIONAL_PASS` | V9 unit weights follow only with partial-isometry saturation |
+| `MICROSCOPIC_SUPPORT_LOCALITY_KILL` | V9 one-tick locality does not force path support |
+| `MICROSCOPIC_NORMALIZATION_SATURATION_KILL` | V9 support passes but saturation does not fix unit weights |
+| `V10_REPAIR_ISOMETRY_SATURATION_PASS` | V10 unitarity proves unit weights iff active repair has no leakage |
+| `REPAIR_ISOMETRY_BALANCE_KILL` | V10 projected unitarity balance failed |
+| `REPAIR_ISOMETRY_EQUIVALENCE_KILL` | V10 no-leakage was not equivalent to unit active repair weights |
+| `REPAIR_ISOMETRY_CONTROL_KILL` | V10 leakage or target-weight controls failed |
+| `V11_SELECTION_SIGNATURE_NO_LEAKAGE_PASS` | V11 unique allowed successors imply no leakage and hence unit path repair |
+| `SELECTION_SIGNATURE_NOT_UNIQUE_KILL` | V11 allowed-successor data do not force no leakage |
+| `SELECTION_NO_LEAKAGE_CONSEQUENCE_KILL` | V11 unique successors fail to imply the expected isometry/path consequences |
+| `SELECTION_NO_LEAKAGE_CONTROL_KILL` | V11 leakage-bound or negative-control checks fail |
+| `V12_UNIQUE_SUCCESSOR_ENUMERATION_CERTIFICATE_PASS` | V12 finite certificate table proves `Omega(a)={u}`, `Omega(b)={a}` for the modeled basis |
+| `SUCCESSOR_CERTIFICATE_INCOMPLETE_KILL` | V12 certificate is missing rows or forbidden rows without vetoes |
+| `UNIQUE_SUCCESSOR_ENUMERATION_KILL` | V12 certificate does not prove unique active successors |
+| `SUCCESSOR_CERTIFICATE_CONTROL_KILL` | V12 shortcut, leakage, or V11 implication controls fail |
 
 ## Prediction Ledger
 
@@ -174,11 +202,62 @@
 | relaxed nilpotent minimizers | one-edge rank-one repairs | V8 constraint control |
 | constant-cost feasible minimizers | `12`, two support orbits | V8 cost control |
 
+## Microscopic Locality Ledger
+
+| Object | Value | Status |
+|---|---|---|
+| defect heights | `(0,1,2)` for `(u,a,b)` | V9 declared filtration |
+| monotone edges | `a->u`, `b->a`, `b->u` | V9 derived from `h` |
+| one-tick edges | `a->u`, `b->a` | V9 derived from path geometry |
+| shortcut edge | `b->u` | V9 forbidden by distance 2 |
+| BCC parity control | `p(u)=p(b)`, `p(a)` opposite | V9 shortcut rejected |
+| local rank-complete supports | `1` | V9 path flag |
+| relaxed monotone rank-complete supports | `2` | V9 path + shortcut |
+| weighted path spectrum | `0`, `w1+w2 ± sqrt(w1^2-w1w2+w2^2)` | V9 derived |
+| target-weight condition | `w1=w2=1` | V9 derived |
+
+## Repair Isometry Ledger
+
+| Object | Value | Status |
+|---|---|---|
+| projected unitarity balance | `N.H N + L.H L = I_A` | V10 derived |
+| isometry condition | `N.H N = I_A iff L=0` | V10 derived |
+| no-leakage weights | `|alpha|=|beta|=1` | V10 derived |
+| symmetric leakage spectrum | `{0,w,3w}` | V10 rescaled control |
+| unequal leakage | breaks `lambda_+ = 3 lambda_-` | V10 control |
+| no-leakage microscopic origin | open | V10 not derived |
+
+## Selection No-Leakage Ledger
+
+| Object | Value | Status |
+|---|---|---|
+| target successors | `a -> u`, `b -> a` | V11 condition |
+| unique successor sets | `Omega(a)={u}`, `Omega(b)={a}` | V11 abstract pass |
+| leaky control | `Omega(a)={u, bulk_a}` | V11 rejected |
+| unique successor block | `diag(e^{i theta_a}, e^{i theta_b})` into `(u,a)` | V11 isometry |
+| approximate leakage bound | `1-eta^2 <= w_i <= 1` | V11 soft control |
+| microscopic successor enumeration | not done | V12 target |
+
+## Successor Certificate Ledger
+
+| Object | Value | Status |
+|---|---|---|
+| finite candidate basis size | `12` | V12 modeled basis |
+| certificate rows | `24` | V12 two active sources times basis |
+| allowed successors | `Omega(a)={u}`, `Omega(b)={a}` | V12 certified |
+| veto labels | `LOCALITY`, `HEIGHT`, `BCC_PARITY`, `COLOR`, `WEYL`, `BOUNDARY_SECTOR`, `SUPERSELECTION` | V12 exact vetoes |
+| shortcut control | `b -> u` is `SHORTCUT_REPAIR` | V12 rejected |
+| external leakage controls | bulk/spectator/wrong-sector candidates vetoed | V12 rejected |
+| V11 implication | certificate satisfies unique-successor no-leakage | V12 derived |
+| microscopic basis completeness | not derived | remaining input |
+
 ## Remaining Input
 
 | Input | Status |
 |---|---|
-| microscopic origin of edge-count / shortest-causal-repair minimization | open |
+| microscopic origin of height filtration `h(u,a,b)` | open |
+| microscopic origin of residual one-tick geometry `u-a-b` | open |
+| completeness theorem for the V12 finite local boundary basis | open |
 | microscopic boundary response returning `P3` normal modes | open |
 | left/right Yukawa assignment for mass exponents | open |
 | microscopic values of loop-healing `delta` and `phi` | open |

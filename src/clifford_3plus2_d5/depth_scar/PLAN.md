@@ -302,10 +302,187 @@ of the edge-count / shortest-causal-repair principle itself.
 
 ## Next Gate After V8
 
+## V9 Question
+
+Can the edge-count / shortest-repair principle be replaced by a microscopic
+one-tick locality statement?
+
+## V9 Implementation
+
+- `microscopic_locality.py`: three-level defect filtration, residual path
+  distance, BCC bipartite parity, monotone/local support predicates, local and
+  relaxed support enumeration, weighted-path spectrum formula, partial-isometry
+  saturation link to V6, and aggregate verdict.
+- tests: defect-height and boundary-distance checks, shortcut locality control,
+  unique local rank-complete support, relaxed shortcut admission,
+  weighted-spectrum formula, unit-weight target condition, and payload.
+
+## V9 Verdict Standard
+
+V9 reports `MICROSCOPIC_LOCALITY_MINIMALITY_CONDITIONAL_PASS` only if:
+
+- monotone repair with `h(u)=0`, `h(a)=1`, `h(b)=2` admits
+  `{a -> u, b -> a, b -> u}`;
+- one-tick boundary geometry `u-a-b` admits only `{a -> u, b -> a}`;
+- the shortcut `b -> u` is rejected by distance `2` and same BCC bipartite
+  parity;
+- rank-complete local repair has a unique support, the V5 flag;
+- relaxing one-tick locality admits the shortcut support;
+- the local support induces `Delta(P3)` and `{0,2,6}` after BCC doubling;
+- weighted path spectra obey the exact formula and `{0,1,3}` forces
+  `w1=w2=1`;
+- V6 partial-isometry saturation supplies the conditional unit normalization.
+
+## Interpretation If V9 Passes
+
+Support minimality follows from local repair axioms:
+
+```text
+filtration + monotone repair + one-tick geometry + rank completeness
+=> path support.
+```
+
+Normalization minimality is conditional:
+
+```text
+path support + partial-isometry saturation
+=> unweighted P3.
+```
+
+Without saturation, the theorem gives a weighted path.  The remaining
+microscopic gates are deriving the height filtration, deriving the residual
+one-tick geometry from the actual BCC-QCA boundary update, and proving or
+replacing repair-subblock isometry saturation.
+
+## Next Gate After V9
+
+## V10 Question
+
+When does V9's weighted path become the unit-weight path needed for the exact
+`{0,1,3}` Laplacian spectrum?
+
+## V10 Implementation
+
+- `repair_isometry.py`: active-domain and repaired-range projectors, repair
+  block, leakage block, projected unitarity balance, no-leakage/unit-weight
+  equivalence, symmetric/unequal leakage controls, and aggregate verdict.
+- tests: projector definitions, symbolic balance identity, no-leakage
+  equivalence, leakage controls, and payload.
+
+## V10 Verdict Standard
+
+V10 reports `V10_REPAIR_ISOMETRY_SATURATION_PASS` only if:
+
+- for `N=P_R U P_A` and `L=(I-P_R) U P_A`, unitarity gives
+  `N.H N + L.H L = I_A`;
+- `L=0` forces unit active repair weights;
+- unit active repair weights force `L=0` under the balance identity;
+- tree phases remain removable;
+- the target `{0,1,3}` spectrum forces `w1=w2=1`;
+- symmetric leakage preserves the `1:3` ratio but rescales the spectrum;
+- unequal leakage breaks the `1:3` ratio.
+
+## Interpretation If V10 Passes
+
+Unit edge weights are exactly no-leakage:
+
+```text
+N.H N = I_A  <=>  L = 0.
+```
+
+So V10 closes the algebraic normalization theorem, but moves the remaining
+physical burden to a sharper gate: derive `L=0` from microscopic selection
+rules.
+
+## Next Gate After V10
+
+## V11 Question
+
+Can no-leakage be reduced to a finite microscopic successor-uniqueness
+condition?
+
+## V11 Implementation
+
+- `selection_no_leakage.py`: target successor map, abstract allowed-successor
+  sets, leaky negative control, unique-successor repair block, no-leakage
+  implication, approximate leakage bounds, and aggregate verdict.
+- tests: unique successor sets, leaky successor rejection, active isometry block,
+  path support, leakage bounds, and payload.
+
+## V11 Verdict Standard
+
+V11 reports `V11_SELECTION_SIGNATURE_NO_LEAKAGE_PASS` only if:
+
+- `Omega(a)={u}` and `Omega(b)={a}` imply no leakage by construction;
+- the induced active update block is an isometry;
+- its support is exactly `{a -> u, b -> a}`;
+- V10 repair-isometry saturation is available;
+- a control with an extra allowed successor is rejected as leaky;
+- small leakage is recorded as a weight deformation bounded by
+  `1-eta^2 <= w_i <= 1`.
+
+## Interpretation If V11 Passes
+
+Unique microscopic successor is sufficient for no leakage:
+
+```text
+Omega(a)={u}, Omega(b)={a}
+=> L=0
+=> N.H N = I_A
+=> unit P3 flag.
+```
+
+V11 does **not** enumerate the actual microscopic basis.  It states the exact
+condition V12 must check.
+
+## V12 Question
+
+Can the unique-successor condition be represented as a finite certificate table
+with explicit vetoes for every forbidden one-tick candidate?
+
+## V12 Implementation
+
+- `successor_certificate.py`: finite local boundary candidate basis,
+  transition predicates, exact veto labels, transition certificate rows,
+  allowed-successor extraction, shortcut vs external-leakage classification,
+  V11 implication check, and aggregate payload.
+- tests: basis completeness, residual signatures, row completeness,
+  allowed-successor sets, forbidden-row vetoes, shortcut classification,
+  external leakage controls, and payload.
+
+## V12 Verdict Standard
+
+V12 reports `V12_UNIQUE_SUCCESSOR_ENUMERATION_CERTIFICATE_PASS` only if:
+
+- every active source/candidate pair has exactly one certificate row;
+- every forbidden row has at least one exact veto;
+- the only allowed successors are `a -> u` and `b -> a`;
+- `b -> u` is classified as `SHORTCUT_REPAIR` and vetoed by one-tick
+  locality / BCC parity;
+- bulk, spectator, wrong-color, wrong-Weyl, and orthogonal-coin candidates are
+  classified as external leakage and vetoed by named selection rules;
+- the resulting allowed sets satisfy V11's no-leakage condition.
+
+## Interpretation If V12 Passes
+
+The finite certificate proves:
+
+```text
+Omega(a)={u}, Omega(b)={a}
+```
+
+for the currently modeled candidate basis.  This is enough to trigger V11 and
+therefore the unit `P3` repair flag.  The remaining caveat is basis
+completeness: the sidecar has not derived that this finite table is the full
+microscopic BCC-QCA local boundary basis.
+
+## Next Gate After V12
+
 Derive or kill the scar itself from one of:
 
-- a missing repair channel boundary condition;
-- a microscopic boundary update.
+- a microscopic derivation of the height filtration;
+- a microscopic derivation of the one-tick residual geometry `u-a-b`;
+- a completeness theorem for the V12 local boundary candidate basis.
 
 Also derive or kill the microscopic loop-healing parameters `delta` and `phi`;
 V4 proves their graph role, not their numerical values.

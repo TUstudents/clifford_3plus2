@@ -39,9 +39,20 @@ orbit, while nonminimal shortcut supports prove minimality is load-bearing.  V8
 then promotes minimality to a finite variational statement: among rank-2,
 length-3, all-port-active nilpotent supports, minimizing
 `cost(N)=edge_count(N)` selects exactly the path-flag orbit and excludes the
-shortcut supports by cost.  This does not reverse the cube-hop kill; it records
-the replacement mechanism and its remaining microscopic input, now sharpened to
-the origin of the shortest-causal-repair cost principle.
+shortcut supports by cost.  V9 separates this into support and normalization:
+given a height filtration and one-tick residual geometry `u-a-b`, locality
+forbids the shortcut `b->u`; equal unit weights remain conditional on active
+repair partial-isometry saturation.  V10 proves that this saturation is exactly
+the no-leakage identity `N.H N = I_A <=> L=0` for the active repair block.  This
+is followed by V11: if the microscopic selection signature has unique
+successors `Omega(a)={u}` and `Omega(b)={a}`, then `L=0` follows.  V11 leaves
+the actual successor enumeration as the next finite gate.  V12 implements that
+gate as a finite certificate table for the modeled candidate basis: all
+source/target rows are allowed or vetoed, `Omega(a)={u}`, `Omega(b)={a}`, and
+the shortcut `b->u` is separated from external leakage.  This
+does not reverse the cube-hop kill; it records the replacement mechanism and its
+remaining microscopic inputs, now sharpened to the origin of the height
+filtration, the residual one-tick geometry, and the basis-completeness theorem.
 
 ---
 

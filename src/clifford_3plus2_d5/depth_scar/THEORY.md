@@ -358,3 +358,316 @@ microscopic QCA repair minimizes edge count / causal repair length.
 ```
 
 That is still not derived by this sidecar.
+
+## Microscopic Locality / Minimality Split
+
+V9 replaces the abstract edge-count principle with an explicit locality theorem,
+conditional on a residual defect filtration.  Assign:
+
+```text
+h(u)=0, h(a)=1, h(b)=2.
+```
+
+The repair block `N` is the strictly height-lowering part of the boundary
+update, not the full unitary update.  Monotone repair permits:
+
+```text
+a -> u,
+b -> a,
+b -> u.
+```
+
+If the residual one-tick boundary geometry is:
+
+```text
+u -- a -- b,
+```
+
+then `b -> u` is not one-tick local.  Equivalently, under BCC bipartite parity:
+
+```text
+p(u)=0, p(a)=1, p(b)=0,
+```
+
+the allowed one-tick links change parity, while `b -> u` preserves parity.
+
+Thus:
+
+```text
+three-level filtration
++ monotone repair
++ one-tick locality
++ rank-complete repair
+=> N = alpha |u><a| + beta |a><b|,
+```
+
+with `alpha,beta` nonzero.  This is V9a:
+
+```text
+V9A_MICROSCOPIC_SUPPORT_MINIMALITY_PASS
+```
+
+The normalization is a separate statement.  Locality gives support, but a
+generic unitary subblock can leak and need only be a contraction.  If the active
+repair block saturates to a partial isometry, V6 applies:
+
+```text
+|alpha|=|beta|=1,
+```
+
+and tree rephasings remove both phases.  This is V9b:
+
+```text
+V9B_MICROSCOPIC_NORMALIZATION_MINIMALITY_CONDITIONAL_PASS
+```
+
+If saturation fails, the support theorem still gives a weighted path with
+weights `w1,w2`.  Its exact spectrum is:
+
+```text
+0,
+w1+w2 - sqrt(w1^2 - w1 w2 + w2^2),
+w1+w2 + sqrt(w1^2 - w1 w2 + w2^2).
+```
+
+The target `{0,1,3}` forces:
+
+```text
+w1=w2=1.
+```
+
+So equal weights are not cosmetic; they are exactly the condition fixing the
+nonzero eigenvalue ratio.
+
+The combined V9 verdict is:
+
+```text
+MICROSCOPIC_LOCALITY_MINIMALITY_CONDITIONAL_PASS
+```
+
+The open physics is now highly localized:
+
+```text
+derive h(u,a,b),
+derive residual one-tick geometry u-a-b,
+prove or replace active repair isometry saturation.
+```
+
+## Active Repair Isometry Saturation
+
+V10 proves the algebra behind the last item.  Let the active domain be:
+
+```text
+A = span{|a>, |b>},
+```
+
+and the repaired range be:
+
+```text
+R = span{|u>, |a>}.
+```
+
+For the full microscopic unitary update `U`, define:
+
+```text
+N = P_R U P_A,
+L = (I - P_R) U P_A.
+```
+
+Restricting `U.H U = I` to the active domain gives:
+
+```text
+N.H N + L.H L = I_A.
+```
+
+Therefore the active repair block is a unit isometry if and only if there is no
+leakage:
+
+```text
+N.H N = I_A  <=>  L = 0.
+```
+
+Under V9's path support:
+
+```text
+N = alpha |u><a| + beta |a><b|.
+```
+
+No leakage forces:
+
+```text
+|alpha| = |beta| = 1.
+```
+
+Tree rephasings then remove the two phases, giving the canonical flag:
+
+```text
+N ~ |u><a| + |a><b|.
+```
+
+If leakage is present, write:
+
+```text
+w1 = |alpha|^2,
+w2 = |beta|^2.
+```
+
+The repair graph is a weighted path.  Equal leakage gives `w1=w2=w`, hence
+spectrum:
+
+```text
+{0,w,3w}.
+```
+
+It preserves the `1:3` ratio but rescales the depth spectrum.  Unequal leakage
+breaks the `1:3` ratio.  The exact target `{0,1,3}` requires:
+
+```text
+w1=w2=1.
+```
+
+The V10 verdict is:
+
+```text
+V10_REPAIR_ISOMETRY_SATURATION_PASS
+```
+
+This is still conditional physics.  V10 does not prove that the actual QCA has
+`L=0`.  It proves that `L=0` is exactly the missing microscopic normalization
+condition.
+
+## Selection-Signature No-Leakage
+
+V11 proves that no-leakage follows from unique microscopic successors.  For each
+active residual state, define the allowed successor subspace:
+
+```text
+Omega(j) = span{one-tick outputs satisfying all selection rules from j}.
+```
+
+The relevant active states are `a` and `b`.  If:
+
+```text
+Omega(a) = {u},
+Omega(b) = {a},
+```
+
+then unitarity forces:
+
+```text
+U|a> = exp(i theta_a)|u>,
+U|b> = exp(i theta_b)|a>.
+```
+
+Both outputs lie in:
+
+```text
+R = span{|u>, |a>}.
+```
+
+Therefore:
+
+```text
+L = (I-P_R) U P_A = 0.
+```
+
+By V10:
+
+```text
+N.H N = I_A.
+```
+
+The tree phases are removable, giving:
+
+```text
+N ~ |u><a| + |a><b|.
+```
+
+The V11 verdict is:
+
+```text
+V11_SELECTION_SIGNATURE_NO_LEAKAGE_PASS.
+```
+
+This is still an abstract theorem, not a microscopic enumeration.  Its negative
+control is immediate: if
+
+```text
+Omega(a) = {u, bulk_a},
+```
+
+then leakage is allowed and the theorem does not apply.
+
+The next gate is therefore finite and concrete:
+
+```text
+V12_UNIQUE_SUCCESSOR_ENUMERATION_GATE.
+```
+
+It must enumerate the actual local boundary basis and apply the selection
+filters.  The pass condition is exactly:
+
+```text
+Omega(a) = {u},
+Omega(b) = {a}.
+```
+
+If V12 fails, the honest model becomes an effective weighted-path scar with
+leakage corrections.  If V12 passes, the unit `P3` scar becomes a microscopic
+consequence of the selection rules.
+
+## Unique-Successor Enumeration Certificate
+
+V12 implements the certificate format for the V11 condition.  A finite local
+boundary candidate basis is supplied, and every transition from active source
+`a` or `b` to every candidate target is assigned:
+
+```text
+ALLOW
+```
+
+or:
+
+```text
+FORBID + exact vetoes.
+```
+
+The veto labels are:
+
+```text
+LOCALITY,
+HEIGHT,
+BCC_PARITY,
+COLOR,
+WEYL,
+BOUNDARY_SECTOR,
+SUPERSELECTION.
+```
+
+The certificate table proves:
+
+```text
+Omega(a) = {u},
+Omega(b) = {a}.
+```
+
+It also distinguishes two failure classes.  External leakage candidates, such
+as bulk/spectator/wrong-sector states, are vetoed by internal or boundary-sector
+selection rules.  The direct `b -> u` candidate is different: it is a shortcut
+repair candidate, vetoed by one-tick locality, height, and BCC parity.  If that
+shortcut ever becomes allowed, the graph topology changes toward loop healing,
+not merely weighted-path leakage.
+
+The V12 verdict is:
+
+```text
+V12_UNIQUE_SUCCESSOR_ENUMERATION_CERTIFICATE_PASS.
+```
+
+This is still not the final microscopic theorem.  V12 certifies the current
+finite candidate table.  It does not prove that the table is the complete local
+BCC-QCA boundary basis.  The remaining microscopic statement is therefore:
+
+```text
+the V12 candidate basis is complete.
+```

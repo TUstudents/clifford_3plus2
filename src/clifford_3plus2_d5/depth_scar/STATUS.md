@@ -1,6 +1,6 @@
 # depth_scar — Status
 
-**Status**: V1-V8 implemented.
+**Status**: V1-V12 implemented.
 
 ## Verdict
 
@@ -456,6 +456,356 @@ MINIMAL_CAUSAL_REPAIR_VARIATIONAL_PASS
 The remaining input is now even sharper: derive why the microscopic QCA
 boundary implements edge-count / shortest-causal-repair minimization, rather
 than treating that variational principle as an effective postulate.
+
+## V9 Microscopic Locality / Minimality Split
+
+V9 separates support minimality from normalization minimality.
+
+The residual ports are assigned a three-level filtration:
+
+```text
+h(u)=0,  h(a)=1,  h(b)=2.
+```
+
+Monotone repair allows three strictly lowering edges:
+
+```text
+a -> u,
+b -> a,
+b -> u.
+```
+
+The one-tick residual boundary geometry is:
+
+```text
+u -- a -- b,
+```
+
+or equivalently the BCC bipartite parity assignment:
+
+```text
+p(u)=0,  p(a)=1,  p(b)=0.
+```
+
+Thus `a -> u` and `b -> a` are one-tick / parity-changing links, while the
+shortcut `b -> u` has distance `2` and preserves bipartite parity.  It is
+forbidden at one microscopic tick.
+
+V9a support theorem:
+
+```text
+three-level filtration
++ monotone repair
++ one-tick locality u-a-b
++ rank-complete repair
+=> support(N) = {a -> u, b -> a}.
+```
+
+This gives:
+
+```text
+V9A_MICROSCOPIC_SUPPORT_MINIMALITY_PASS
+```
+
+If one-tick locality is relaxed, the shortcut support reappears:
+
+```text
+N = |u><a| + |a><b| + |u><b|.
+```
+
+So the locality axiom is load-bearing.
+
+V9b normalization theorem:
+
+```text
+support(N) = {a -> u, b -> a}
++ partial-isometry saturation
+=> N ~ |u><a| + |a><b|.
+```
+
+This gives:
+
+```text
+V9B_MICROSCOPIC_NORMALIZATION_MINIMALITY_CONDITIONAL_PASS
+```
+
+The qualification is important: a generic subblock of a unitary update is a
+contraction, not automatically a partial isometry.  Without saturation, V9 gives
+a weighted path.  For weights `w1,w2`, the weighted path spectrum is:
+
+```text
+{0,
+ w1+w2 - sqrt(w1^2 - w1 w2 + w2^2),
+ w1+w2 + sqrt(w1^2 - w1 w2 + w2^2)}.
+```
+
+Recovering `{0,1,3}` forces:
+
+```text
+w1 = w2 = 1.
+```
+
+Combined V9 verdict:
+
+```text
+MICROSCOPIC_LOCALITY_MINIMALITY_CONDITIONAL_PASS
+```
+
+The remaining microscopic gates are now narrow:
+
+- derive the height filtration from the actual BCC-QCA boundary sector;
+- derive the residual one-tick geometry `u-a-b`;
+- prove or replace partial-isometry saturation of the active repair subblock.
+
+## V10 Active Repair Isometry Saturation
+
+V10 proves exactly when V9's weighted path becomes the unit path.
+
+Let:
+
+```text
+A = span{|a>, |b>}
+R = span{|u>, |a>}
+N = P_R U P_A
+L = (I - P_R) U P_A.
+```
+
+Here `U` is the full microscopic unitary update, `N` is the active repair
+subblock, and `L` is leakage out of the repaired range.
+
+Unitarity implies the projected balance identity:
+
+```text
+N.H N + L.H L = I_A.
+```
+
+Therefore:
+
+```text
+N.H N = I_A  iff  L = 0.
+```
+
+Under the V9 path support:
+
+```text
+N = alpha |u><a| + beta |a><b|.
+```
+
+So no leakage forces:
+
+```text
+|alpha| = |beta| = 1.
+```
+
+The remaining phases live on a tree and are removable.  Hence:
+
+```text
+N ~ |u><a| + |a><b|.
+```
+
+V10 also records the leakage controls:
+
+- symmetric leakage gives a weighted path `{0,w,3w}` and preserves the `1:3`
+  ratio while rescaling the depths;
+- unequal leakage breaks the `1:3` ratio;
+- exact `{0,1,3}` requires `w1=w2=1`, i.e. no leakage.
+
+V10 verdict:
+
+```text
+V10_REPAIR_ISOMETRY_SATURATION_PASS
+```
+
+This is an algebraic theorem.  It does **not** derive `L=0`.  The next physical
+gate is the unique-successor / no-leakage theorem: prove that the actual
+microscopic boundary update maps active repair states only into their repaired
+successors,
+
+```text
+a -> u,
+b -> a,
+```
+
+with no bulk, spectator-boundary, same-height, or orthogonal coin leakage.
+
+## V11 Selection-Signature No-Leakage
+
+V11 proves the abstract bridge from microscopic selection rules to V10's
+no-leakage condition.
+
+For active states:
+
+```text
+A = span{|a>, |b>},
+```
+
+define allowed one-tick successor sets:
+
+```text
+Omega(a), Omega(b).
+```
+
+The V11 condition is:
+
+```text
+Omega(a) = {u}
+Omega(b) = {a}.
+```
+
+If this holds, then:
+
+```text
+U|a> = exp(i theta_a)|u>
+U|b> = exp(i theta_b)|a>.
+```
+
+Both outputs lie in the repaired range:
+
+```text
+R = span{|u>, |a>}.
+```
+
+Therefore:
+
+```text
+L = (I - P_R) U P_A = 0.
+```
+
+V10 then gives:
+
+```text
+N.H N = I_A.
+```
+
+The phases are tree phases and are removable, so:
+
+```text
+N ~ |u><a| + |a><b|.
+```
+
+V11 verdict:
+
+```text
+V11_SELECTION_SIGNATURE_NO_LEAKAGE_PASS
+```
+
+Negative control:
+
+```text
+Omega(a) = {u, bulk_a}
+```
+
+is rejected because it admits leakage.  V11 also records the approximate case:
+if leakage norm is `eta`, active repair weights are bounded by:
+
+```text
+1 - eta^2 <= w_i <= 1.
+```
+
+V11 is still conditional.  It does not enumerate the actual microscopic
+successors.  It reduces the next gate to a finite enumeration:
+
+```text
+V12_UNIQUE_SUCCESSOR_ENUMERATION_GATE
+```
+
+whose pass condition is:
+
+```text
+Omega(a) = {u}
+Omega(b) = {a}
+```
+
+after applying height monotonicity, one-tick locality, BCC parity, boundary
+sector, color/singlet, and spin/Weyl compatibility filters.
+
+## V12 Unique-Successor Enumeration Certificate
+
+V12 implements the finite certificate format required by V11.
+
+For the active sources:
+
+```text
+a, b,
+```
+
+and the current finite local boundary candidate basis, V12 builds a table of
+all source/candidate pairs:
+
+```text
+(source, target, verdict, vetoes, failure_class).
+```
+
+Each row is either:
+
+```text
+ALLOW
+```
+
+or:
+
+```text
+FORBID
+```
+
+with at least one exact veto from:
+
+```text
+LOCALITY,
+HEIGHT,
+BCC_PARITY,
+COLOR,
+WEYL,
+BOUNDARY_SECTOR,
+SUPERSELECTION.
+```
+
+The certificate result is:
+
+```text
+Omega(a) = {u}
+Omega(b) = {a}.
+```
+
+The direct shortcut:
+
+```text
+b -> u
+```
+
+is classified separately as:
+
+```text
+SHORTCUT_REPAIR
+```
+
+and is vetoed by locality, height, and BCC parity.  External leakage controls
+such as bulk, spectator, wrong-color, wrong-Weyl, and orthogonal-coin candidates
+are vetoed by their corresponding selection rule.
+
+V12 verdict:
+
+```text
+V12_UNIQUE_SUCCESSOR_ENUMERATION_CERTIFICATE_PASS
+```
+
+This certificate satisfies V11, so within the certified finite basis:
+
+```text
+Omega(a)={u}, Omega(b)={a}
+=> L=0
+=> unit P3 repair flag.
+```
+
+Important caveat: V12 certifies a finite candidate table.  It still does **not**
+derive that the table is the complete microscopic BCC-QCA local boundary basis.
+That basis-completeness theorem remains open.
+
+The two failure classes are now explicit:
+
+- external leakage: produces a weighted path and deforms `{0,2,6}`;
+- shortcut repair: adds the missing edge and changes topology toward loop
+  healing / `K3`.
 
 ## Test Command
 

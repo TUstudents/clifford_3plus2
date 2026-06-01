@@ -301,7 +301,7 @@ single-Weyl BB walk
 represented by a graph-native boundary repair operator rather than by a
 hand-written diagonal spurion.
 
-**Result**: V1-V8 PASS.  An `S3 -> Z2` repair scar with path graph `P3` gives
+**Result**: V1-V12 PASS.  An `S3 -> Z2` repair scar with path graph `P3` gives
 
 ```text
 D_scar = 2 Delta(P3)
@@ -363,6 +363,32 @@ there are twelve feasible supports: six path flags and six acyclic shortcuts.
 Minimizing `cost(N)=edge_count(N)` gives minimum cost `2` and selects exactly
 the six path flags; shortcuts have cost `3`.
 
+V9 separates support minimality from normalization minimality.  Given a
+three-level filtration `h(u,a,b)=(0,1,2)`, monotone repair allows
+`a->u`, `b->a`, and `b->u`; one-tick residual geometry `u-a-b` forbids the
+shortcut `b->u` by distance `2` / same BCC bipartite parity.  Rank-complete
+local repair therefore has the unique path support.  Equal unit weights remain
+conditional on active repair partial-isometry saturation; without it the result
+is a weighted path, and `{0,1,3}` forces `w1=w2=1`.
+
+V10 proves the active repair-isometry saturation identity.  For
+`N=P_R U P_A` and leakage `L=(I-P_R) U P_A`, unitarity gives
+`N.H N + L.H L = I_A`.  Hence the active repair block has unit edge weights
+exactly when `L=0`.  Symmetric leakage preserves the `1:3` weighted-path ratio
+but rescales the spectrum; unequal leakage breaks the ratio.
+
+V11 proves the selection-signature no-leakage bridge.  If the microscopic
+successor sets are `Omega(a)={u}` and `Omega(b)={a}`, then no output lies
+outside the repaired range, so `L=0`; V10 then gives the unit path flag.  V11
+does not perform the microscopic enumeration, but reduces the next gate to the
+finite successor count.
+
+V12 implements that finite successor certificate for the currently modeled
+local boundary candidate basis.  Every active source/candidate transition has an
+`ALLOW` or `FORBID` row with exact vetoes.  The certificate gives
+`Omega(a)={u}`, `Omega(b)={a}`; classifies `b->u` as shortcut repair; and
+rejects bulk/spectator/wrong-sector candidates as external leakage.
+
 **Controls**:
 - Unbroken `K3` remains degenerate: `{0,3,3}` before doubling and `{0,6,6}`
   after doubling.
@@ -371,10 +397,11 @@ the six path flags; shortcuts have cost `3`.
 - The weighted-scar variants `(1,1,0)` and `(1/3,1/3,4/3)` reproduce
   `{0,1,3}` before doubling, while the symmetric triangle remains degenerate.
 
-**Honest limit**: the sidecar does not derive why microscopic QCA repair must
-minimize edge count / shortest causal repair, does not make `P3` a mass model
-without a left/right Yukawa assignment, and does not derive the microscopic
-loop-healing parameters `delta` and `phi`.
+**Honest limit**: the sidecar does not derive the height filtration or
+one-tick residual geometry from the actual BCC-QCA update, does not prove that
+the V12 finite candidate basis is the complete microscopic local boundary
+basis, does not make `P3` a mass model without a left/right Yukawa assignment,
+and does not derive the microscopic loop-healing parameters `delta` and `phi`.
 
 **Primary docs**:
 - `src/clifford_3plus2_d5/depth_scar/README.md`
