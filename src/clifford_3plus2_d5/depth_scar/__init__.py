@@ -5,8 +5,8 @@ can be represented by a graph-native boundary repair defect:
 
     D_scar = 2 Delta(P3).
 
-It does not derive the dynamical origin of the scar.  A pass means the depth
-spectrum has an exact path-defect Laplacian operator origin once an
-``S3 -> Z2`` repair scar is supplied.
+It does not derive the microscopic origin of the scar.  A pass means the depth
+spectrum has an exact path-defect Laplacian operator origin, a nilpotent repair
+flag realization, and a shortest-repair variational characterization once the
+edge-count cost principle is supplied.
 """
-

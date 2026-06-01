@@ -36,6 +36,8 @@
 | `N_local` | `r e^{i alpha}|u><a| + s e^{i beta}|a><b|` | V6 generic local flag |
 | `P_initial` | `N_local.H N_local = diag(0,r^2,s^2)` | V6 initial projection |
 | `P_final` | `N_local N_local.H = diag(r^2,s^2,0)` | V6 final projection |
+| `cost(N)` | `edge_count(N)` | V8 causal repair cost |
+| feasible repair supports | `N^3=0`, `N^2!=0`, `rank(N)=2`, all ports active | V8 variational domain |
 
 ## Mode Ledger
 
@@ -76,6 +78,14 @@
 | `LOCAL_FLAG_SUPPORT_KILL` | V6 shorter support was not rejected |
 | `LOCAL_FLAG_PHASE_GAUGE_KILL` | V6 tree phases were not removable |
 | `LOCAL_FLAG_CONTROL_KILL` | V6 projection, transfer, contractive, unequal, or cyclic controls fail |
+| `MINIMAL_NILPOTENT_SUPPORT_CLASSIFICATION_PASS` | V7 minimal binary support census has one path-flag orbit |
+| `NILPOTENT_SUPPORT_NOT_UNIQUE_KILL` | V7 minimal length-3 nilpotent supports are not unique up to relabeling |
+| `MINIMALITY_ASSUMPTION_LOAD_BEARING_KILL` | V7 did not show minimality as load-bearing |
+| `SUPPORT_CLASSIFICATION_CONTROL_KILL` | V7 census, spectrum, rank-one, or cycle controls fail |
+| `MINIMAL_CAUSAL_REPAIR_VARIATIONAL_PASS` | V8 edge-count minimization over feasible repairs selects exactly the path-flag orbit |
+| `VARIATIONAL_MINIMIZER_NOT_PATH_KILL` | V8 minimizers are not uniquely the path-flag orbit |
+| `VARIATIONAL_CONSTRAINT_CONTROL_KILL` | V8 relaxed-constraint controls fail |
+| `VARIATIONAL_COST_CONTROL_KILL` | V8 edge-count cost does not separate path flags from shortcuts |
 
 ## Prediction Ledger
 
@@ -137,11 +147,38 @@
 | unequal control | `(r,s)=(1,2)` | V6 rejected |
 | cyclic control | `N^3=I`, returns `K3` | V6 rejected |
 
+## Support Classification Ledger
+
+| Object | Value | Status |
+|---|---|---|
+| no-self-loop binary supports | `64` | V7 exhaustive census |
+| minimal accepted supports | `6` | V7 derived |
+| accepted `S3` orbits | `1` | V7 derived |
+| accepted representative | `|u><a| + |a><b|` | V7 equivalent to V5 |
+| minimal support spectra | `{0,1,3}`, doubled `{0,2,6}` | V7 verified |
+| rank-one nilpotent controls | nonempty, `N^2=0` | V7 rejected |
+| directed cycle controls | `2`, `N^3=I` | V7 rejected |
+| nonminimal shortcut supports | `6` | V7 load-bearing control |
+
+## Minimal Repair Variational Ledger
+
+| Object | Value | Status |
+|---|---|---|
+| feasible supports | `12` | V8 derived domain |
+| feasible support costs | `{2,3}` | V8 finite census |
+| minimal causal repair cost | `2` | V8 derived |
+| minimizers | `6` | V8 derived |
+| minimizer `S3` orbits | `1` | V8 derived |
+| minimizer representative | `|u><a| + |a><b|` | V8 equivalent to V5 |
+| shortcut supports | feasible but cost `3` | V8 excluded by cost |
+| relaxed nilpotent minimizers | one-edge rank-one repairs | V8 constraint control |
+| constant-cost feasible minimizers | `12`, two support orbits | V8 cost control |
+
 ## Remaining Input
 
 | Input | Status |
 |---|---|
-| microscopic origin of the length-3 nilpotent support | open |
+| microscopic origin of edge-count / shortest-causal-repair minimization | open |
 | microscopic boundary response returning `P3` normal modes | open |
 | left/right Yukawa assignment for mass exponents | open |
 | microscopic values of loop-healing `delta` and `phi` | open |

@@ -224,6 +224,84 @@ repair graph.
 
 ## Next Gate After V6
 
+## V7 Question
+
+Is the length-3 path support unique under finite minimal-support constraints, or
+are there other binary directed supports that satisfy the same nilpotent repair
+conditions?
+
+## V7 Implementation
+
+- `support_classification.py`: exhaustive census of all `2^6` no-self-loop
+  binary directed supports on three ports, nilpotency/rank/edge-count predicates,
+  `S3` orbit canonicalization, induced-Laplacian checks, controls, and aggregate
+  verdict.
+- tests: enumeration size, minimal accepted supports, orbit uniqueness, target
+  spectra, rank-one/cycle/shortcut controls, and payload.
+
+## V7 Verdict Standard
+
+V7 reports `MINIMAL_NILPOTENT_SUPPORT_CLASSIFICATION_PASS` only if:
+
+- all `64` no-self-loop binary supports are enumerated;
+- supports satisfying `N^3=0`, `N^2!=0`, `rank(N)=2`, and exactly two edges
+  form one `S3` orbit;
+- the unique orbit is represented by V5's flag `|u><a|+|a><b|`;
+- every accepted minimal support induces `{0,1,3}` before doubling and
+  `{0,2,6}` after doubling;
+- rank-one nilpotents are found and rejected by `N^2=0`;
+- directed cycles are found and rejected by non-nilpotency;
+- nonminimal acyclic shortcut supports exist, proving the two-edge minimality
+  condition is load-bearing.
+
+## Interpretation If V7 Passes
+
+The support itself is classified at the finite binary level: minimal rank-2
+length-3 nilpotent repair is uniquely the path flag up to port relabeling.  The
+remaining input is no longer "why this support"; it is "why microscopic repair
+is minimal two-edge nilpotent repair."
+
+## V8 Question
+
+Can the V7 minimality condition be promoted from a named support assumption to
+the solution of a finite constrained variational problem?
+
+## V8 Implementation
+
+- `minimal_repair_variational.py`: edge-count repair cost, active-port
+  predicate, feasible-support set, minimizers, shortcut controls, relaxed
+  constraint controls, constant-cost control, and aggregate verdict.
+- tests: feasible-set count, minimizer equality with V7's flag orbit, spectra,
+  shortcut exclusion, relaxed rank-one/cycle controls, constant-cost control,
+  and payload.
+
+## V8 Verdict Standard
+
+V8 reports `MINIMAL_CAUSAL_REPAIR_VARIATIONAL_PASS` only if:
+
+- feasible supports satisfy `N^3=0`, `N^2!=0`, `rank(N)=2`, and all three
+  ports active;
+- the feasible set contains `12` supports: V7's six path flags plus six
+  shortcut acyclic supports;
+- minimizing `edge_count(N)` over this feasible set gives minimum cost `2`;
+- the cost-2 minimizers are exactly V7's six path-flag supports;
+- the minimizers form one `S3` orbit and induce `{0,1,3}` before doubling and
+  `{0,2,6}` after doubling;
+- shortcut supports have cost `3` and are excluded only by the edge-count cost;
+- relaxing the length/rank/all-port constraints collapses to rank-one
+  one-edge nilpotents;
+- directed cycles remain rejected by nilpotency;
+- constant cost over feasible supports loses the unique path-flag orbit.
+
+## Interpretation If V8 Passes
+
+The path flag is the unique shortest causal repair among rank-2 length-3
+nilpotent all-port supports.  This upgrades "minimal two-edge support" to a
+finite variational theorem.  The remaining input is now the microscopic origin
+of the edge-count / shortest-causal-repair principle itself.
+
+## Next Gate After V8
+
 Derive or kill the scar itself from one of:
 
 - a missing repair channel boundary condition;

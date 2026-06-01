@@ -33,9 +33,15 @@ path is a tree and has no intrinsic graph-holonomy phase, while restoring the
 missing edge creates one loop with one gauge-invariant phase.  V5 derives the
 same path Laplacian from a length-3 nilpotent repair flag
 `N=|u><a|+|a><b|`.  V6 shows local partial-isometry fixes the flag's nonzero
-magnitudes and tree-gauges its phases.  This does not reverse the cube-hop kill;
-it records the replacement mechanism and its remaining microscopic support
-input.
+magnitudes and tree-gauges its phases.  V7 classifies all three-port binary
+supports and shows minimal rank-2 length-3 nilpotent repair has a unique path
+orbit, while nonminimal shortcut supports prove minimality is load-bearing.  V8
+then promotes minimality to a finite variational statement: among rank-2,
+length-3, all-port-active nilpotent supports, minimizing
+`cost(N)=edge_count(N)` selects exactly the path-flag orbit and excludes the
+shortcut supports by cost.  This does not reverse the cube-hop kill; it records
+the replacement mechanism and its remaining microscopic input, now sharpened to
+the origin of the shortest-causal-repair cost principle.
 
 ---
 

@@ -261,3 +261,100 @@ LOCAL_FLAG_PARTIAL_ISOMETRY_PASS
 After V6, the remaining scar axiom is not an arbitrary normalization.  It is the
 support statement: the microscopic boundary must provide the length-3 nilpotent
 support `b -> a -> u`.
+
+## Minimal Support Classification
+
+V7 classifies the support statement itself at the finite binary level.  On three
+ports there are six off-diagonal entries, hence:
+
+```text
+2^6 = 64
+```
+
+no-self-loop directed supports.  Imposing:
+
+```text
+N^3 = 0,
+N^2 != 0,
+rank(N) = 2,
+edge_count(N) = 2
+```
+
+leaves six supports, all related by `S3` port relabeling.  The unique orbit is
+represented by:
+
+```text
+N = |u><a| + |a><b|.
+```
+
+Thus minimal length-3 nilpotent repair implies the V5/V6 flag and therefore the
+path Laplacian.  The verdict is:
+
+```text
+MINIMAL_NILPOTENT_SUPPORT_CLASSIFICATION_PASS
+```
+
+The two-edge minimality condition is load-bearing.  If it is dropped, additional
+rank-2 length-3 acyclic shortcut supports survive.  Therefore the remaining
+physical input is now sharply named:
+
+```text
+microscopic repair is minimal two-edge nilpotent repair.
+```
+
+## Minimal Causal-Repair Variational Principle
+
+V8 turns that named minimality input into a finite constrained optimization.
+Instead of imposing `edge_count(N)=2`, start with all supports satisfying:
+
+```text
+N^3 = 0,
+N^2 != 0,
+rank(N) = 2,
+all three ports active.
+```
+
+There are twelve such supports: six path flags and six shortcut acyclic
+supports.  Define the causal repair cost:
+
+```text
+cost(N) = edge_count(N).
+```
+
+Then the finite variational problem:
+
+```text
+minimize cost(N)
+```
+
+has:
+
+```text
+minimum cost = 2
+minimizers = one S3 orbit.
+```
+
+That orbit is exactly the V5/V6/V7 path flag:
+
+```text
+N = |u><a| + |a><b|
+```
+
+up to port relabeling.  The shortcut supports remain feasible but have cost
+`3`, so they are not shortest causal repairs.
+
+The verdict is:
+
+```text
+MINIMAL_CAUSAL_REPAIR_VARIATIONAL_PASS
+```
+
+This is stronger than V7's support classification: the two-edge condition is no
+longer a separate support predicate, but the minimizer of a declared finite
+repair cost.  The remaining physics is the cost principle itself:
+
+```text
+microscopic QCA repair minimizes edge count / causal repair length.
+```
+
+That is still not derived by this sidecar.

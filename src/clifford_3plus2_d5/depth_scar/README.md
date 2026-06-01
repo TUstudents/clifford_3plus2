@@ -111,6 +111,35 @@ local partial-isometry forces the active nonzero magnitudes to be unit, and tree
 rephasing removes both phases.  Thus the canonical V5 flag follows once the
 length-3 support is supplied.
 
+V7 passes the minimal support-classification gate:
+
+```text
+MINIMAL_NILPOTENT_SUPPORT_CLASSIFICATION_PASS
+```
+
+Among all `64` no-self-loop binary directed supports on three ports, the
+supports with `N^3=0`, `N^2!=0`, rank `2`, and exactly two edges form one `S3`
+orbit: the V5 path flag.  Dropping the two-edge condition admits shortcut
+acyclic supports, so minimality is a real remaining assumption.
+
+V8 passes the minimal causal-repair variational gate:
+
+```text
+MINIMAL_CAUSAL_REPAIR_VARIATIONAL_PASS
+```
+
+Over all rank-2, length-3 nilpotent, all-port-active supports, there are
+twelve feasible supports: the six V7 path flags plus six acyclic shortcuts.
+Minimizing the causal repair cost
+
+```text
+cost(N) = edge_count(N)
+```
+
+selects exactly the six path flags.  The minimum cost is `2`; the shortcuts have
+cost `3`.  Relaxed controls show the constraints and the edge-count cost are
+load-bearing.
+
 ## What This Means
 
 The generations are represented as normal modes of the repair graph:
@@ -127,7 +156,7 @@ scar.
 
 ## What Is Still Open
 
-- The sidecar does not derive the length-3 nilpotent support from a microscopic QCA update.
+- The sidecar does not derive why microscopic QCA repair must minimize edge count.
 - It does not derive CKM magnitudes.
 - It does not solve the generation problem.
 - It does not make `P3` a mass model without a left/right Yukawa assignment.

@@ -301,7 +301,7 @@ single-Weyl BB walk
 represented by a graph-native boundary repair operator rather than by a
 hand-written diagonal spurion.
 
-**Result**: V1-V6 PASS.  An `S3 -> Z2` repair scar with path graph `P3` gives
+**Result**: V1-V8 PASS.  An `S3 -> Z2` repair scar with path graph `P3` gives
 
 ```text
 D_scar = 2 Delta(P3)
@@ -352,6 +352,17 @@ V6 removes the remaining normalization freedom on that support.  For the generic
 local flag `r exp(i alpha)|u><a| + s exp(i beta)|a><b|`, partial-isometry
 conditions force nonzero `r^2=s^2=1`, and tree rephasing removes both phases.
 
+V7 classifies all `64` no-self-loop binary directed supports on three ports.
+Minimal rank-2 length-3 nilpotent supports with exactly two edges form one `S3`
+orbit, represented by the V5 path flag.  Dropping the two-edge minimality
+condition admits six shortcut supports, so minimality is load-bearing.
+
+V8 promotes the minimality condition to a finite constrained variational
+principle.  Over all rank-2, length-3 nilpotent, all-port-active supports,
+there are twelve feasible supports: six path flags and six acyclic shortcuts.
+Minimizing `cost(N)=edge_count(N)` gives minimum cost `2` and selects exactly
+the six path flags; shortcuts have cost `3`.
+
 **Controls**:
 - Unbroken `K3` remains degenerate: `{0,3,3}` before doubling and `{0,6,6}`
   after doubling.
@@ -360,10 +371,10 @@ conditions force nonzero `r^2=s^2=1`, and tree rephasing removes both phases.
 - The weighted-scar variants `(1,1,0)` and `(1/3,1/3,4/3)` reproduce
   `{0,1,3}` before doubling, while the symmetric triangle remains degenerate.
 
-**Honest limit**: the sidecar does not derive the length-3 nilpotent support
-from a microscopic QCA update, does not make `P3` a mass model without a
-left/right Yukawa assignment, and does not derive the microscopic loop-healing
-parameters `delta` and `phi`.
+**Honest limit**: the sidecar does not derive why microscopic QCA repair must
+minimize edge count / shortest causal repair, does not make `P3` a mass model
+without a left/right Yukawa assignment, and does not derive the microscopic
+loop-healing parameters `delta` and `phi`.
 
 **Primary docs**:
 - `src/clifford_3plus2_d5/depth_scar/README.md`

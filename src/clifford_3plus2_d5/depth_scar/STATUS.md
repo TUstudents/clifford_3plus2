@@ -1,6 +1,6 @@
 # depth_scar — Status
 
-**Status**: V1-V6 implemented.
+**Status**: V1-V8 implemented.
 
 ## Verdict
 
@@ -339,6 +339,123 @@ LOCAL_FLAG_PARTIAL_ISOMETRY_PASS
 
 The remaining input is now sharper: derive the length-3 nilpotent support
 `b -> a -> u` from the microscopic boundary update.
+
+## V7 Minimal Nilpotent Support Classification
+
+V7 classifies all no-self-loop binary directed supports on three ports.  There
+are:
+
+```text
+2^6 = 64
+```
+
+such supports.  The acceptance conditions are:
+
+```text
+N^3 = 0,
+N^2 != 0,
+rank(N) = 2,
+edge_count(N) = 2.
+```
+
+The result:
+
+```text
+accepted supports = 6
+accepted S3 orbits = 1.
+```
+
+Every accepted support is permutation-equivalent to:
+
+```text
+N = |u><a| + |a><b|.
+```
+
+Every accepted support induces:
+
+```text
+Spec(Delta_flag) = {0,1,3}
+Spec(2 Delta_flag) = {0,2,6}.
+```
+
+Controls:
+
+- Rank-one nilpotents exist but have `N^2=0`, so they fail length three.
+- Directed three-cycles have `N^3=I`, fail nilpotency, and return the `K3`
+  sector.
+- If the two-edge minimality condition is dropped, six rank-2 length-three
+  acyclic shortcut supports survive.  They form an additional support orbit, so
+  minimality is load-bearing.
+
+V7 verdict:
+
+```text
+MINIMAL_NILPOTENT_SUPPORT_CLASSIFICATION_PASS
+```
+
+The remaining input is now the microscopic origin of minimality: why the
+boundary repair support is minimal two-edge nilpotent repair rather than a
+shortcut acyclic support.
+
+## V8 Minimal Causal-Repair Variational Principle
+
+V8 recasts V7's minimality condition as a finite optimization.  The feasible
+supports satisfy:
+
+```text
+N^3 = 0,
+N^2 != 0,
+rank(N) = 2,
+all three ports active.
+```
+
+There are:
+
+```text
+feasible supports = 12.
+```
+
+These are the six V7 path flags plus six acyclic shortcut supports.  Define the
+causal repair cost:
+
+```text
+cost(N) = edge_count(N).
+```
+
+Then:
+
+```text
+min cost = 2
+minimizers = 6
+minimizer S3 orbits = 1.
+```
+
+The minimizers are exactly the V7 path-flag orbit, and every minimizer induces:
+
+```text
+Spec(Delta_flag) = {0,1,3}
+Spec(2 Delta_flag) = {0,2,6}.
+```
+
+Controls:
+
+- The six shortcut supports are feasible but have cost `3`, so shortest repair
+  excludes them.
+- If length/rank/all-port constraints are relaxed, the minimum nonzero
+  nilpotent supports are one-edge rank-one repairs with `N^2=0`.
+- Directed cycles remain rejected by nilpotency.
+- If all feasible supports are assigned constant cost, the shortcut orbit also
+  minimizes, so the edge-count cost is load-bearing.
+
+V8 verdict:
+
+```text
+MINIMAL_CAUSAL_REPAIR_VARIATIONAL_PASS
+```
+
+The remaining input is now even sharper: derive why the microscopic QCA
+boundary implements edge-count / shortest-causal-repair minimization, rather
+than treating that variational principle as an effective postulate.
 
 ## Test Command
 
