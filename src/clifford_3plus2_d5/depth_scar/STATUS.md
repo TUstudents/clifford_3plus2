@@ -1,6 +1,6 @@
 # depth_scar — Status
 
-**Status**: V1-V4 implemented.
+**Status**: V1-V5 implemented.
 
 ## Verdict
 
@@ -228,6 +228,57 @@ LOOP_HEALING_CP_DEFORMATION_PASS
 This proves that a loop-healing deformation is the minimal graph-native place
 for CP holonomy.  It does **not** derive the microscopic values of `delta` or
 `phi`.
+
+## V5 Nilpotent Boundary-Flag Origin
+
+V5 derives the same path repair graph from a canonical length-3 nilpotent
+boundary flag.  In port order `(u,a,b)`, define:
+
+```text
+N = |u><a| + |a><b|
+  = [[0,1,0],
+     [0,0,1],
+     [0,0,0]].
+```
+
+Then:
+
+```text
+N^3 = 0,   N^2 != 0.
+```
+
+The Hermitian graph data induced by the flag are:
+
+```text
+A_flag     = N + N.T
+D_flag     = N N.T + N.T N
+Delta_flag = D_flag - A_flag.
+```
+
+For the equal unit flag:
+
+```text
+Delta_flag = Delta(P3)
+Spec(Delta_flag) = {0,1,3}
+Spec(2 Delta_flag) = {0,2,6}.
+```
+
+Controls:
+
+- A rank-one nilpotent has spectrum `{0,0,2}` and is rejected.
+- Closing the cycle gives the unbroken `K3` control `{0,3,3}` and is rejected.
+- The weighted flag `N(x,y)=x|u><a|+y|a><b|` hits the target spectrum only for
+  `x^2=y^2=1`; on nonnegative amplitudes this is the canonical `(1,1)` flag.
+
+V5 verdict:
+
+```text
+NILPOTENT_FLAG_SCAR_ORIGIN_PASS
+```
+
+This upgrades the path scar from an effective edge-weight minimum to a
+nilpotent repair-flag origin.  It still does **not** derive why the microscopic
+QCA boundary must realize that equal unit length-3 flag.
 
 ## Test Command
 

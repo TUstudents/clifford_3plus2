@@ -30,9 +30,10 @@ projection.  V1-V3 show that an `S3 -> Z2` path repair scar has
 `D_scar = 2 Delta(P3)` with spectrum `{0,2,6}` and can be selected by an
 effective symmetric edge-weight potential.  V4 adds the clean CP split: the pure
 path is a tree and has no intrinsic graph-holonomy phase, while restoring the
-missing edge creates one loop with one gauge-invariant phase.  This does not
-reverse the cube-hop kill; it records the replacement mechanism and its remaining
-microscopic inputs.
+missing edge creates one loop with one gauge-invariant phase.  V5 derives the
+same path Laplacian from a length-3 nilpotent repair flag
+`N=|u><a|+|a><b|`.  This does not reverse the cube-hop kill; it records the
+replacement mechanism and its remaining microscopic inputs.
 
 ---
 

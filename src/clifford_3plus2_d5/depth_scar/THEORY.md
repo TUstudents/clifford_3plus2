@@ -163,3 +163,53 @@ LOOP_HEALING_CP_DEFORMATION_PASS
 This does not derive `delta` or `phi`.  It proves where they must live if the
 depth-scar route is used for quark mixing: `P3` supplies hierarchy, the healed
 loop supplies holonomy.
+
+## Nilpotent Flag Origin
+
+V5 gives the path scar an algebraic origin.  In port order `(u,a,b)`, define the
+length-3 repair monodromy:
+
+```text
+N = |u><a| + |a><b|.
+```
+
+It obeys:
+
+```text
+N^3 = 0,   N^2 != 0.
+```
+
+The nilpotent induces the graph data:
+
+```text
+A_flag     = N + N.T
+D_flag     = N N.T + N.T N
+Delta_flag = D_flag - A_flag.
+```
+
+For equal unit adjacent flag steps:
+
+```text
+Delta_flag = Delta(P3).
+```
+
+So the hierarchy operator follows:
+
+```text
+Spec(2 Delta_flag) = {0,2,6}.
+```
+
+The rank-one flag fails because it does not have three layers.  The cyclic
+closure fails because it restores the `K3` degeneracy.  A weighted flag
+`N(x,y)` reaches the target spectrum only when `x^2=y^2=1`; with nonnegative
+amplitudes this fixes the canonical unit flag.
+
+The verdict is:
+
+```text
+NILPOTENT_FLAG_SCAR_ORIGIN_PASS
+```
+
+The remaining physical input is now sharper: derive the equal unit length-3
+nilpotent flag from the microscopic boundary update, or declare it as the scar
+axiom.

@@ -29,6 +29,10 @@
 | `V_edge(w)` | `(S1 - 2)^2 + (S2 - 1)^2 + S3` | V3 effective scar potential |
 | `Delta(delta)` | weighted triangle with weights `(1,1,delta)` | V4 real loop healing |
 | `Delta(delta,phi)` | Hermitian triangle with loop phase `phi` | V4 magnetic loop healing |
+| `N_flag` | `|u><a| + |a><b|` | V5 nilpotent repair flag |
+| `A_flag` | `N_flag + N_flag.T` | V5 path adjacency |
+| `D_flag` | `N_flag N_flag.T + N_flag.T N_flag` | V5 path degree |
+| `Delta_flag` | `D_flag - A_flag` | V5 equals `Delta(P3)` |
 
 ## Mode Ledger
 
@@ -60,6 +64,10 @@
 | `PURE_PATH_CP_KILL` | V4 pure path unexpectedly carries an intrinsic CP holonomy |
 | `LOOP_HOLONOMY_KILL` | V4 healed triangle does not produce exactly one gauge-invariant phase |
 | `LOOP_HEALING_CONTROL_KILL` | V4 spectrum, Hermiticity, conjugation, or limit controls fail |
+| `NILPOTENT_FLAG_SCAR_ORIGIN_PASS` | V5 length-3 nilpotent flag induces the path scar |
+| `NILPOTENT_FLAG_ORDER_KILL` | V5 operator is not a genuine length-3 nilpotent |
+| `NILPOTENT_FLAG_SPECTRUM_KILL` | V5 induced Laplacian misses `{0,1,3}` |
+| `NILPOTENT_FLAG_CONTROL_KILL` | V5 transfer, rank-one, cyclic, or weighted controls fail |
 
 ## Prediction Ledger
 
@@ -94,11 +102,24 @@
 | healed triangle cycle rank | `1` | V4 loop holonomy |
 | loop phase | `phi` on `u -> a -> b -> u` | V4 gauge invariant |
 
+## Nilpotent Flag Ledger
+
+| Object | Value | Status |
+|---|---|---|
+| canonical flag | `N=|u><a|+|a><b|` | V5 derived operator input |
+| nilpotent order | `N^3=0`, `N^2!=0` | V5 verified |
+| induced adjacency | `N+N.T` | V5 path adjacency |
+| induced degree | `N N.T + N.T N = diag(1,2,1)` | V5 path degree |
+| induced Laplacian | `Delta_flag=Delta(P3)` | V5 derived |
+| rank-one control | spectrum `{0,0,2}` | V5 rejected |
+| cyclic closure control | spectrum `{0,3,3}` | V5 rejected |
+| weighted target condition | `x^2=y^2=1` | V5 derived |
+
 ## Remaining Input
 
 | Input | Status |
 |---|---|
-| microscopic origin of the effective edge-weight potential | open |
+| microscopic origin of the equal unit length-3 flag | open |
 | microscopic boundary response returning `P3` normal modes | open |
 | left/right Yukawa assignment for mass exponents | open |
 | microscopic values of loop-healing `delta` and `phi` | open |

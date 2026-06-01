@@ -80,6 +80,21 @@ are removable.  Restoring the missing edge creates one loop.  The real healed
 triangle has spectrum `{0, 1+2 delta, 3}` before BCC doubling, and the complex
 healed triangle carries one gauge-invariant loop phase `phi`.
 
+V5 passes the nilpotent boundary-flag gate:
+
+```text
+NILPOTENT_FLAG_SCAR_ORIGIN_PASS
+```
+
+The canonical length-3 repair flag `N=|u><a|+|a><b|` induces the path adjacency,
+degree operator, and Laplacian:
+
+```text
+Delta_flag = N N.T + N.T N - N - N.T = Delta(P3).
+```
+
+The rank-one nilpotent and cyclic closure controls are rejected.
+
 ## What This Means
 
 The generations are represented as normal modes of the repair graph:
@@ -96,7 +111,7 @@ scar.
 
 ## What Is Still Open
 
-- The sidecar does not derive the edge-weight potential from a microscopic QCA update.
+- The sidecar does not derive the equal unit length-3 flag from a microscopic QCA update.
 - It does not derive CKM magnitudes.
 - It does not solve the generation problem.
 - It does not make `P3` a mass model without a left/right Yukawa assignment.
