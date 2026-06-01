@@ -186,6 +186,44 @@ microscopic QCA boundary must realize an equal unit length-3 flag.
 
 ## Next Gate After V5
 
+## V6 Question
+
+If the microscopic boundary supplies the length-3 nilpotent support, does local
+unitarity force the equal unit flag amplitudes?
+
+## V6 Implementation
+
+- `local_flag_unitarity.py`: generic complex flag, partial-isometry projection
+  equations, tree phase-gauge removal, canonical representative, controls, and
+  aggregate verdict.
+- tests: projection formulas, unit-magnitude derivation, phase removal,
+  canonical representative, rank-one/contractive/unequal/cyclic controls, and
+  payload.
+
+## V6 Verdict Standard
+
+V6 reports `LOCAL_FLAG_PARTIAL_ISOMETRY_PASS` only if:
+
+- the generic flag
+  `N=r exp(i alpha)|u><a| + s exp(i beta)|a><b|` has projections
+  `N.H N=diag(0,r^2,s^2)` and `N N.H=diag(r^2,s^2,0)`;
+- the partial-isometry equations force nonzero magnitudes `r^2=s^2=1`;
+- the unique nonnegative representative has `r=s=1`;
+- the two phases are removable by port rephasings because the support is a tree;
+- the gauged representative is V5's canonical nilpotent flag;
+- the induced Laplacian and transfer match V5/V1;
+- rank-one, contractive, unequal-magnitude, and cyclic controls are rejected.
+
+## Interpretation If V6 Passes
+
+The equal unit flag is no longer a free normalization.  It follows from local
+partial-isometry on the length-3 support plus tree gauge freedom.  The remaining
+input is the support itself: why the microscopic boundary realizes
+`b -> a -> u` rather than a rank-one support, a cyclic closure, or a different
+repair graph.
+
+## Next Gate After V6
+
 Derive or kill the scar itself from one of:
 
 - a missing repair channel boundary condition;

@@ -213,3 +213,51 @@ NILPOTENT_FLAG_SCAR_ORIGIN_PASS
 The remaining physical input is now sharper: derive the equal unit length-3
 nilpotent flag from the microscopic boundary update, or declare it as the scar
 axiom.
+
+## Local Unitarity Normalization
+
+V6 removes the equal-amplitude part of that input.  On the same support, take the
+most general complex local flag:
+
+```text
+N = r exp(i alpha)|u><a| + s exp(i beta)|a><b|.
+```
+
+If `N` is a subblock of a local unitary boundary update, it must preserve norm on
+its active repair subspace.  Algebraically this is the partial-isometry
+condition:
+
+```text
+(N.H N)^2 = N.H N
+(N N.H)^2 = N N.H.
+```
+
+But:
+
+```text
+N.H N = diag(0, r^2, s^2)
+N N.H = diag(r^2, s^2, 0).
+```
+
+Therefore every nonzero active singular value is forced to be one:
+
+```text
+r^2 = s^2 = 1.
+```
+
+With nonnegative magnitudes, `r=s=1`.  The remaining phases lie on a tree and are
+removed by port rephasings.  Hence:
+
+```text
+N ~ |u><a| + |a><b|.
+```
+
+The verdict is:
+
+```text
+LOCAL_FLAG_PARTIAL_ISOMETRY_PASS
+```
+
+After V6, the remaining scar axiom is not an arbitrary normalization.  It is the
+support statement: the microscopic boundary must provide the length-3 nilpotent
+support `b -> a -> u`.

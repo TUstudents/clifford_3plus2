@@ -33,6 +33,9 @@
 | `A_flag` | `N_flag + N_flag.T` | V5 path adjacency |
 | `D_flag` | `N_flag N_flag.T + N_flag.T N_flag` | V5 path degree |
 | `Delta_flag` | `D_flag - A_flag` | V5 equals `Delta(P3)` |
+| `N_local` | `r e^{i alpha}|u><a| + s e^{i beta}|a><b|` | V6 generic local flag |
+| `P_initial` | `N_local.H N_local = diag(0,r^2,s^2)` | V6 initial projection |
+| `P_final` | `N_local N_local.H = diag(r^2,s^2,0)` | V6 final projection |
 
 ## Mode Ledger
 
@@ -68,6 +71,11 @@
 | `NILPOTENT_FLAG_ORDER_KILL` | V5 operator is not a genuine length-3 nilpotent |
 | `NILPOTENT_FLAG_SPECTRUM_KILL` | V5 induced Laplacian misses `{0,1,3}` |
 | `NILPOTENT_FLAG_CONTROL_KILL` | V5 transfer, rank-one, cyclic, or weighted controls fail |
+| `LOCAL_FLAG_PARTIAL_ISOMETRY_PASS` | V6 local partial-isometry fixes unit magnitudes and tree-gauges phases |
+| `LOCAL_FLAG_UNITARITY_MAGNITUDE_KILL` | V6 partial-isometry does not force unit nonzero magnitudes |
+| `LOCAL_FLAG_SUPPORT_KILL` | V6 shorter support was not rejected |
+| `LOCAL_FLAG_PHASE_GAUGE_KILL` | V6 tree phases were not removable |
+| `LOCAL_FLAG_CONTROL_KILL` | V6 projection, transfer, contractive, unequal, or cyclic controls fail |
 
 ## Prediction Ledger
 
@@ -115,11 +123,25 @@
 | cyclic closure control | spectrum `{0,3,3}` | V5 rejected |
 | weighted target condition | `x^2=y^2=1` | V5 derived |
 
+## Local Flag Unitarity Ledger
+
+| Object | Value | Status |
+|---|---|---|
+| generic flag | `r e^{i alpha}|u><a| + s e^{i beta}|a><b|` | V6 starting support |
+| partial-isometry equations | `r^4-r^2=0`, `s^4-s^2=0` | V6 derived |
+| nonzero nonnegative solution | `r=s=1` | V6 derived |
+| phase gauge | `(eta_u,eta_a,eta_b)=(0,alpha,alpha+beta)` | V6 derived |
+| canonical representative | `|u><a| + |a><b|` | V6 derived from support |
+| rank-one control | partial isometry but `N^2=0` | V6 rejected |
+| contractive control | `r=s=1/2` | V6 rejected |
+| unequal control | `(r,s)=(1,2)` | V6 rejected |
+| cyclic control | `N^3=I`, returns `K3` | V6 rejected |
+
 ## Remaining Input
 
 | Input | Status |
 |---|---|
-| microscopic origin of the equal unit length-3 flag | open |
+| microscopic origin of the length-3 nilpotent support | open |
 | microscopic boundary response returning `P3` normal modes | open |
 | left/right Yukawa assignment for mass exponents | open |
 | microscopic values of loop-healing `delta` and `phi` | open |

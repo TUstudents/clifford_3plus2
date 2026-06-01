@@ -1,6 +1,6 @@
 # depth_scar — Status
 
-**Status**: V1-V5 implemented.
+**Status**: V1-V6 implemented.
 
 ## Verdict
 
@@ -279,6 +279,66 @@ NILPOTENT_FLAG_SCAR_ORIGIN_PASS
 This upgrades the path scar from an effective edge-weight minimum to a
 nilpotent repair-flag origin.  It still does **not** derive why the microscopic
 QCA boundary must realize that equal unit length-3 flag.
+
+## V6 Local Partial-Isometry Normalization
+
+V6 removes the remaining normalization freedom in the flag.  Start with the most
+general complex flag on the same support:
+
+```text
+N = r exp(i alpha) |u><a| + s exp(i beta) |a><b|.
+```
+
+If this is a local boundary subblock of a unitary QCA update, it must be a
+partial isometry on the active repair subspace:
+
+```text
+(N.H N)^2 = N.H N
+(N N.H)^2 = N N.H.
+```
+
+Since:
+
+```text
+N.H N = diag(0, r^2, s^2)
+N N.H = diag(r^2, s^2, 0),
+```
+
+the nonzero support condition forces:
+
+```text
+r^2 = s^2 = 1.
+```
+
+On nonnegative magnitudes:
+
+```text
+r = s = 1.
+```
+
+The phases `alpha` and `beta` live on a tree, so port rephasings remove both:
+
+```text
+N ~ |u><a| + |a><b|.
+```
+
+Controls:
+
+- A rank-one partial isometry is rejected because `N^2=0`, so it is not a
+  length-3 flag.
+- Contractive magnitudes such as `r=s=1/2` fail partial-isometry.
+- Unequal nonzero magnitudes such as `(1,2)` fail partial-isometry.
+- A cyclic unitary closure has `N^3=I`, not `N^3=0`, and returns the `K3`
+  control.
+
+V6 verdict:
+
+```text
+LOCAL_FLAG_PARTIAL_ISOMETRY_PASS
+```
+
+The remaining input is now sharper: derive the length-3 nilpotent support
+`b -> a -> u` from the microscopic boundary update.
 
 ## Test Command
 

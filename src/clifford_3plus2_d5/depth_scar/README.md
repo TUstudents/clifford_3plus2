@@ -95,6 +95,22 @@ Delta_flag = N N.T + N.T N - N - N.T = Delta(P3).
 
 The rank-one nilpotent and cyclic closure controls are rejected.
 
+V6 passes the local partial-isometry normalization gate:
+
+```text
+LOCAL_FLAG_PARTIAL_ISOMETRY_PASS
+```
+
+For the generic complex flag
+
+```text
+N = r exp(i alpha)|u><a| + s exp(i beta)|a><b|,
+```
+
+local partial-isometry forces the active nonzero magnitudes to be unit, and tree
+rephasing removes both phases.  Thus the canonical V5 flag follows once the
+length-3 support is supplied.
+
 ## What This Means
 
 The generations are represented as normal modes of the repair graph:
@@ -111,7 +127,7 @@ scar.
 
 ## What Is Still Open
 
-- The sidecar does not derive the equal unit length-3 flag from a microscopic QCA update.
+- The sidecar does not derive the length-3 nilpotent support from a microscopic QCA update.
 - It does not derive CKM magnitudes.
 - It does not solve the generation problem.
 - It does not make `P3` a mass model without a left/right Yukawa assignment.
