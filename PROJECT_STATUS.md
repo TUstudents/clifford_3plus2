@@ -301,7 +301,7 @@ single-Weyl BB walk
 represented by a graph-native boundary repair operator rather than by a
 hand-written diagonal spurion.
 
-**Result**: V1 PASS.  An `S3 -> Z2` repair scar with path graph `P3` gives
+**Result**: V1-V4 PASS.  An `S3 -> Z2` repair scar with path graph `P3` gives
 
 ```text
 D_scar = 2 Delta(P3)
@@ -311,6 +311,33 @@ epsilon^D_scar = diag(1, epsilon^2, epsilon^6)
 
 in the defect normal-mode basis.
 
+V2 separates built-in outputs from genuine predictions.  The sidecar now records
+the exact projector transfer kernel
+
+```text
+T = P0 + epsilon^2 P2 + epsilon^6 P6
+```
+
+with fixed port relations, a democratic rank-one leading response, CKM exponents
+`lambda:lambda^2:lambda^3`, and the no-go that a pure path graph supplies no
+intrinsic graph-holonomy CP phase.
+
+V3 derives the scar at the effective edge-weight level.  For nonnegative repair
+weights `w=(w_ua,w_ab,w_ub)`, the symmetric potential
+
+```text
+V=(S1-2)^2+(S2-1)^2+S3
+```
+
+has exactly the three missing-edge path scars `(1,1,0)` and permutations as
+zero-energy minima.  Each minimum gives `Spec(Delta)={0,1,3}` before doubling.
+
+V4 proves the loop-healing CP separation.  The pure path has cycle rank `0`, so
+all tree phases are removable and no intrinsic graph-holonomy CP phase exists.
+Restoring the missing edge gives one cycle.  The real healed spectrum is
+`{0,1+2 delta,3}` before doubling and `{0,2+4 delta,6}` after doubling; the
+complex healed triangle carries one gauge-invariant loop phase `phi`.
+
 **Controls**:
 - Unbroken `K3` remains degenerate: `{0,3,3}` before doubling and `{0,6,6}`
   after doubling.
@@ -319,12 +346,14 @@ in the defect normal-mode basis.
 - The weighted-scar variants `(1,1,0)` and `(1/3,1/3,4/3)` reproduce
   `{0,1,3}` before doubling, while the symmetric triangle remains degenerate.
 
-**Honest limit**: the sidecar does not dynamically derive the repair scar.  It
-only proves that once the `S3 -> Z2` scar is supplied, the depth spectrum has an
-exact positive graph-Laplacian operator origin.
+**Honest limit**: the sidecar does not derive the effective edge-weight
+potential from a microscopic QCA update, does not make `P3` a mass model without
+a left/right Yukawa assignment, and does not derive the microscopic loop-healing
+parameters `delta` and `phi`.
 
 **Primary docs**:
 - `src/clifford_3plus2_d5/depth_scar/README.md`
+- `src/clifford_3plus2_d5/depth_scar/THEORY.md`
 - `src/clifford_3plus2_d5/depth_scar/STATUS.md`
 - `src/clifford_3plus2_d5/depth_scar/PLAN.md`
 - `src/clifford_3plus2_d5/depth_scar/parameter_ledger.md`

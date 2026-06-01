@@ -24,6 +24,16 @@ kill-disciplined probe. This note lays out the argument, the
 codebase reality, an explicit claim hierarchy with an honest certainty ledger, and
 the computed result.
 
+**Depth-scar sidecar update:** the follow-up `depth_scar` sidecar now treats the
+depth hierarchy as a boundary repair-scar hypothesis rather than a cube-hop
+projection.  V1-V3 show that an `S3 -> Z2` path repair scar has
+`D_scar = 2 Delta(P3)` with spectrum `{0,2,6}` and can be selected by an
+effective symmetric edge-weight potential.  V4 adds the clean CP split: the pure
+path is a tree and has no intrinsic graph-holonomy phase, while restoring the
+missing edge creates one loop with one gauge-invariant phase.  This does not
+reverse the cube-hop kill; it records the replacement mechanism and its remaining
+microscopic inputs.
+
 ---
 
 ## 1. Background: what "depth" is and what is currently assumed
@@ -482,6 +492,24 @@ a hand-written diagonal spurion to a positive graph-native operator conditional
 on the scar.  The remaining hard question is now sharply isolated: derive the
 `S₃ -> Z₂` repair scar from a boundary condition, edge-weight potential,
 monodromy, or microscopic update.
+
+`depth_scar` V2 then separates the operator's built-in output from real
+predictions: fixed `P₃` normal-mode families, the exact kernel
+`T = P0 + ε²P2 + ε⁶P6`, a democratic rank-one leading response, CKM transfer
+exponents `λ:λ²:λ³`, and the no-go that a pure path tree carries no intrinsic
+graph-holonomy CP phase.  Mass exponents remain conditional on a later
+left/right Yukawa assignment.
+
+`depth_scar` V3 derives the path scar at the effective edge-weight level.  The
+symmetric potential
+
+```text
+V=(S1-2)^2+(S2-1)^2+S3
+```
+
+over nonnegative repair weights has exactly the three missing-edge path scars
+as zero-energy minima.  This is stronger than declaring a path, but weaker than
+a microscopic QCA derivation of the potential.
 
 ---
 
