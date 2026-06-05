@@ -12,6 +12,20 @@ every nontrivial claim. It is assembled from a set of internal "sidecar"
 notebooks (proofs, obstruction audits, and simulators); those are referenced by
 name but are not required to follow the argument here.
 
+**Central claim.** Flavor is not an internal finite-group spectrum but
+**boundary spectroscopy of the BCC Weyl automaton**. Conditional on a framed
+three-port boundary (taken as a primitive axiom, §6.5, *not* derived), the
+orientation-preserving BB $q=0$ scar fixes a single **silver contraction class**
+$\epsilon=\sqrt2-1$ ($\det{+}1$, $\operatorname{tr}=2\sqrt2$), and each fermion
+sector is a distinct **Schur readout sharing that class**: neutrinos the
+one-sided sterile eigenresponse; charged leptons and quarks two-sided active
+chiral kernels (Koide-equipartition holonomy; colored residues); CKM/PMNS the
+relative left-frame rotations of paired kernels. The sterile branch is a
+theorem-in-a-model; the active branches are conditional on the weak-framed repair
+doublet and remain the open work. (Strength is stratified: the framing is `C:7`,
+the silver-class universality `C:8`, the neutrino readout `C:9`-in-model; the
+active-sector readouts are the conditional `C:3`–`C:6` claims.)
+
 ---
 
 ## 0. How to read this document
@@ -66,12 +80,26 @@ b=\tfrac1{\sqrt2}(0,1,-1).
 $$
 
 Here $u$ is the collective/trace mode and $(a,b)$ span the traceless doublet.
-$P_u,P_a,P_b$ are the rank-one projectors. The origin of these three ports is
-geometric (§9), not a postulated flavor space.
+$P_u,P_a,P_b$ are the rank-one projectors. The tetrahedral geometry (§9) fixes
+this *basis* once a three-port boundary is granted; it does **not** derive the
+*existence* of exactly three generations — that is the §6.5 axiom
+$\dim\mathcal H_{\rm fam}=3$.
 
 ---
 
 ## 1. The central thesis
+
+> **Flavor is not an internal finite-group spectrum but boundary spectroscopy of
+> the BCC Weyl automaton.** Conditional on a framed three-port boundary (a
+> primitive axiom, §6.5, not derived), the orientation-preserving BB $q=0$ scar
+> fixes a single silver contraction class $\epsilon=\sqrt2-1$ ($\det{+}1$,
+> $\operatorname{tr}=2\sqrt2$), and each fermion sector is a distinct Schur readout
+> sharing that class: neutrinos the one-sided sterile eigenresponse (§9); charged
+> leptons and quarks two-sided active chiral kernels — Koide-equipartition
+> holonomy (§10), colored residues (§11); CKM/PMNS the relative left-frame
+> rotations of paired kernels. The sterile branch is a theorem-in-a-model; the
+> active branches are conditional on the weak-framed repair doublet (§11.5) and
+> remain the open work.
 
 The theory factorizes the physics of one fermion into three layers:
 
@@ -242,6 +270,25 @@ $\big[z-H_{\rm QCA}(k)-\Sigma_f(z)\big]\psi_f=0$, where the flavor label $f$
 records *which internal charge sector and which family boundary channel* are
 coupled through $V_f$ — it is **not** a new gauge group. `C:9` for the
 Schur/Feshbach identity; `C:7` as the common flavor language.
+
+**Two object classes, introduced from the start.** The boundary response appears
+in *two* distinct forms, and conflating them is an error:
+
+- a **one-sided self-energy** $\Sigma(z)=V^\dagger(z-H_Q)^{-1}V$ for
+  *propagation / sterile* responses (same in- and out-coupling, $V_L=V_R$). Its
+  pole residue $V^\dagger P_\lambda V\ge0$ is *positive semidefinite* — Hermitian.
+  This governs the neutrino sterile sector (§9) and kinetic self-energies.
+- a **two-sided chiral Yukawa kernel**
+  $B(z)=V_R^\dagger(z-H_Q)^{-1}V_L$ for *active, chirality-flipping* (Dirac mass)
+  responses, with generally $V_L\ne V_R$. Its residue need not be positive or even
+  Hermitian, so it can carry the rotations/holonomies that masses-as-singular-
+  values and CKM/PMNS require. This governs charged leptons (§10) and quarks
+  (§11). The hidden bath $H_Q$ is Hermitian in both cases; only the kernel differs.
+
+A one-sided Hermitian self-energy **cannot** produce the active rotations (§10.4),
+so the active sectors *require* the two-sided kernel. Masses are then: poles/
+residues of $\Sigma$ (sterile eigenvalues), or singular values $m_f\sim v\,s_i(B)$
+(active amplitudes), with mixing $=$ relative left-frame holonomy of two kernels.
 
 In time language this is a quantum memory kernel
 $K(t)=V^\dagger e^{-iH_Qt}V$ — the "quantum Brownian" picture: the visible
@@ -644,7 +691,12 @@ gives four primitive exits forming a regular tetrahedron
 ($v_i\cdot v_j=-1/3$, $i\ne j$). Selecting one vacuum-framed exit leaves **three**
 residual exits with adjacency $K_3$ and stabilizer $S_3$
 ($S_4\supset\mathrm{Stab}(v_{\rm sel})\simeq S_3$). `C:8` for the finite orbit
-audit; `C:6` for the physical vacuum selector.
+audit; `C:6` for the physical vacuum selector. **Scope (cf. §6.5):** this
+*explains the three-port basis and its $S_3$ structure given a selected exit*; it
+is a geometric motivation for $\dim\mathcal H_{\rm fam}=3$, **not** a derivation
+that the universe has exactly three generations — the "$4-1=3$" count is itself
+conditional on the framing dynamics. The existence of the three-port flag remains
+the §6.5 axiom.
 
 ### 9.2 Symmetry → framing is necessary
 
@@ -847,7 +899,9 @@ $$
 $$
 
 Numerically $m_u/m_c\approx1.79\times10^{-3}$, $m_c/m_t\approx3.57\times10^{-3}$ —
-both in the observed band. **Plausible new unification (`C:4`–`C:5`):** the entry
+both in the observed band (inputs, scheme, scale, and RG-stability in
+**Appendix D**; note $m_c/m_t$ is the scale-sensitive entry). **Plausible new
+unification (`C:4`–`C:5`):** the entry
 amplitude $x=1/\sqrt2$ may be the *same* BB scar survival norm $1/\sqrt2$ that
 sets the silver transfer (§5.4) — both are "one of two coherent channels." Not
 yet proven identical, but no longer an unrelated input.
@@ -864,7 +918,8 @@ $$
 \frac{m_d}{m_s}=\sqrt3\,\eta^2,\quad \frac{m_s}{m_b}=\frac{\eta^2}{\sqrt2}.
 $$
 
-Numerically $m_d/m_s\approx0.051$, $m_s/m_b\approx0.021$ — both observed-band.
+Numerically $m_d/m_s\approx0.051$, $m_s/m_b\approx0.021$ — both observed-band
+(Appendix D).
 These residues are Hermitian shell overlaps, *not* Taylor coefficients: the
 coherent/Hermitian readout split is exactly the up/down distinction.
 
@@ -900,6 +955,23 @@ whose paired Hermitian closure generates the regular $S_3$ shell (down residues)
 The old "up = coherent, down = Hermitian" is then the *consequence* of which
 component each Higgs door contracts, not an independent postulate. The existence
 and gauge-covariance of $\mathcal B$ is the central remaining hypothesis (§11.6–7).
+
+**Subclaim grading (canonical — supersedes any single label elsewhere).** The
+up/down "bit" is not one claim but a stack; grading it as a single number is
+misleading. The honest decomposition:
+
+| Subclaim | Grade | Where |
+|---|---|---|
+| Gauge doors ($\tilde H\!\to\!u$, $H\!\to\!d$ by hypercharge) | `C:9` | §11.0, DPL |
+| Path-locality ($[D,X]=X\Rightarrow X=aE_1+bE_2$) | `C:9` | §6.5, §11.7 |
+| Equal-strength $|a|=|b|$ (chiral-reflection / cover homogeneity) | `C:7` (conditional) | §11.7 |
+| Orientation doublet $\mathcal B=(N,N^\dagger)$ from $J_H=i\sigma_2K$ | `C:8` (conditional on weak-framed defect) | §11.6–7 |
+| Coherent-vs-Hermitian *type* split | `C:4` | §11.6 |
+| Down $(6,2,4)$ via $3\to6$ regular-rep promotion | `C:4` | §11.6 |
+| **Full up/down mechanism** (all of the above, microscopic) | **`C:3`–`C:5`** | §11.5–8 |
+
+Where any earlier or later passage prints a single bare label for "the up/down
+bit," this table is the intended reading.
 
 The premise (in either form) is **not** forced by $S_3$ (its one sign grading $A_3\triangleleft S_3$ is
 already used for even/odd repair; no second grading encodes weak isospin) **nor**
@@ -1295,18 +1367,19 @@ deliberately.
    §11.8. The honest split: the *number* is axiomatized; the *hierarchy, residues,
    and mixings given the number* are the conditional theorems the rest of the
    document builds.
-2. **Silver from BCC.** *Largely closed (§5.4).* The pinned BB coin, restricted
-   to the $q=r_1-r_2=0$ synchronous-normal scar at $k_3=0$, gives a subunitary
-   no-leakage branch (survival $1/\sqrt2$) whose radial transfer is
-   orientation-preserving ($\det=+1$) with eigenvalues $\sqrt2\pm1$ at the
-   trace-minimum/survival point $\zeta=1/\sqrt2$ — yielding $\epsilon=\sqrt2-1$ and
-   conjugate to the neutrino sterile chain (one silver universality class,
-   $\det=+1$, $\operatorname{tr}=2\sqrt2$). Verified in the canonical convention,
-   `C:8`. Residual gaps: (a) derive the $q$-superselection from the BB coin/defect
-   Hamiltonian rather than imposing it; (b) justify reading the radial mass factor
-   as the decaying eigenvalue at the survival/trace-minimum $\zeta=1/\sqrt2$
-   (`C:5`–`C:6`). The Pell/impedance ($\det=-1$) forms are demoted to the
-   arithmetic shadow.
+2. **Silver from BCC.** *Exact transfer-class theorem; microscopic selection
+   still conditional (§5.4).* The pinned BB coin, restricted to the
+   $q=r_1-r_2=0$ synchronous-normal scar at $k_3=0$, gives a subunitary no-leakage
+   branch (survival $1/\sqrt2$) whose radial transfer is orientation-preserving
+   ($\det=+1$) with eigenvalues $\sqrt2\pm1$ at the trace-minimum/survival point
+   $\zeta=1/\sqrt2$ — yielding $\epsilon=\sqrt2-1$, conjugate to the neutrino
+   sterile chain (one silver universality class, $\det=+1$,
+   $\operatorname{tr}=2\sqrt2$). The *transfer-class algebra* is verified in the
+   canonical convention (`C:8`). It is **not** "closed": two inputs remain
+   conditional — (a) the $q$-superselection is *imposed*, not derived from the BB
+   coin/defect Hamiltonian; (b) the mass-readout interpretation (decaying
+   eigenvalue at the survival/trace-minimum $\zeta=1/\sqrt2$) is a physical choice
+   (`C:5`–`C:6`). The Pell/impedance ($\det=-1$) forms are the arithmetic shadow.
 3. **Up/down dynamical bit.** *Split into two by the §11.6 seven-step
    construction.* (i) **Type** (coherent vs Hermitian): the Higgs duality
    $J_H=i\sigma_2K$ gives an orientation flip $N\leftrightarrow N^T$, but that
@@ -1361,7 +1434,7 @@ deliberately.
 | Up Clebsch $(\tfrac14,\tfrac1{\sqrt2},1)$; down baseline $(1,\tfrac1{\sqrt3},\sqrt{2/3})$ | 6–7 |
 | Unified backbone: one BB $q{=}0$ silver source, sector-specific readouts (§11.0) | 6 |
 | Quark ratios + CKM angles from shared $\eta$ (verified numerically) | 6–7 |
-| Up/down coherent-vs-Hermitian assignment | 3 |
+| Up/down mechanism (subclaim stack, see §11.5 table) | 9/9/7/8/4/4 → 3–5 full |
 | Microscopic origin of silver, depth, $\mu_\nu$, mass measures | 3 |
 | All algebraic/topological generation routes | 1 (killed) |
 | $N_{\rm gen}=3$ as a primitive boundary axiom (not derived) (§6.5) | 5 (axiom) |
@@ -1444,3 +1517,44 @@ Carrier: `lepton`, `obstruction_r10`. Stage: `spacetime_qca`, `sim`. Boundary:
 Kills: `triality`/`broken_triality`/`exceptional`, `topology`. The narrative
 layer is in `src/clifford_3plus2_d5/synthesis/` (`OVERVIEW.md`,
 `COMMON_PICTURE.md`, `SECTOR_MAP.md`, `MASS_SECTOR.md`).
+
+## Appendix D. Phenomenological inputs and RG-stability
+
+Representative reference data (PDG 2024 / NuFIT 5.2, normal ordering). These are
+*inputs against which the program's ratio predictions are compared*; they are
+not a fit. The program predicts **ratios and angles**, not absolute scales, so
+the table flags which comparisons are renormalization-group (RG) stable.
+
+**Quark masses** ($\overline{\rm MS}$): light $u,d,s$ at $\mu=2$ GeV
+($m_u=2.16^{+0.5}_{-0.3}$, $m_d=4.67^{+0.5}_{-0.2}$, $m_s=93.4^{+8.6}_{-3.4}$ MeV);
+$m_c(m_c)=1.27(2)$ GeV; $m_b(m_b)=4.18(3)$ GeV; $m_t(m_t)\simeq163$ GeV
+($\overline{\rm MS}$), pole $172.7(3)$ GeV. **Within-sector mass ratios are
+RG-stable** to good approximation: the QCD mass anomalous dimension is
+flavor-independent, so $m_i/m_j$ in one sector is nearly scale-invariant.
+**Cross-sector** (up/down) ratios and absolute scales are **not** RG-stable and
+require a common scale plus a sector normalization $r_d$ (§7.3).
+
+| Observable | Theory (in $\eta=(\sqrt2-1)^2$) | Predicted | Reference | RG-stable? |
+|---|---|---:|---:|---|
+| $m_u/m_c$ | $\eta^3/2\sqrt2$ | $0.0018$ | $\sim0.0017$–$0.002$ | yes (within-sector) |
+| $m_d/m_s$ | $\sqrt3\,\eta^2$ | $0.0510$ | $\sim0.050$ | yes |
+| $m_s/m_b$ | $\eta^2/\sqrt2$ | $0.0208$ | $\sim0.020$–$0.023$ | yes |
+| $m_c/m_t$ | $\eta^3/\sqrt2$ | $0.0036$ | $\sim0.0035$–$0.008$ | **scale-sensitive** (top) |
+| $\lvert V_{us}\rvert$ | $\tfrac43\eta/\sqrt{1+\eta^2}$ | $0.2255$ | $0.2243(5)$ | mild running |
+| $\lvert V_{cb}\rvert$ | $\sqrt2\,\eta^2$ | $0.0416$ | $0.0408(13)$ | mild |
+| $\lvert V_{ub}\rvert$ | $\eta^3/\sqrt2$ | $0.00357$ | $0.00382(20)$ | mild |
+| $\delta_{\rm CKM}$ | $\arctan\sqrt5$ | $65.9^\circ$ | $\sim66^\circ$ | mild |
+| $\Delta m^2_{21}/\Delta m^2_{31}$ | $\epsilon^4=17-12\sqrt2$ | $0.0294$ | $0.0296$ | mild (mass-ratio) |
+| $\sin^2\theta_{13}$ | $\tfrac34\epsilon^4$ | $0.0221$ | $0.0222(6)$ | mild |
+| $K_{\rm Koide}$ | $2/3$ (exact, by construction) | $0.66667$ | $0.666661$ | tiny (QED) |
+
+**Caveats for external review.** (i) $m_c/m_t$ is the single most scale-sensitive
+entry: the $\overline{\rm MS}$-at-own-scale value $\sim0.0078$ versus the
+common-scale value near the prediction differ by the running flagged in §7.3 —
+this comparison must be quoted at a stated common scale, not at each quark's own
+scale. (ii) The CKM phase $\delta_q=\arctan\sqrt5$ has the largest unverified
+coefficient (the angle *powers* in $\eta$ are on firmer footing than the rational
+prefactors $\tfrac43,\sqrt2$, §11.4). (iii) Charged-lepton masses use pole values;
+Koide holds at the $10^{-5}$ level there but the program's $\theta_e=-2\pi/3-2/9$
+torsion is `C:3`–`C:4` (§10). (iv) No absolute mass scale ($v$, $\mu_\nu$, $\mu_e$)
+is predicted; only ratios and angles.
