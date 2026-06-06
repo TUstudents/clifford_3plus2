@@ -50,6 +50,9 @@ testpaths = [
     "src/clifford_3plus2_d5/koide/tests",
     "src/clifford_3plus2_d5/boundary_response/tests",
     "src/clifford_3plus2_d5/depth_scar/tests",
+    "src/clifford_3plus2_d5/scalar_clebsch/tests",
+    "src/clifford_3plus2_d5/radial_response/tests",
+    "src/clifford_3plus2_d5/universal_bath/tests",
 ]
 markers = [
     "slow: exact symbolic or large numerical tests that are not part of the default fast development loop",

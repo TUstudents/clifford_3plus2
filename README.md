@@ -16,6 +16,9 @@ matrix algebra, exterior algebra, Spin(10) branching).
 | [`spacetime_qca`](src/clifford_3plus2_d5/spacetime_qca/) | **In progress** | 3D BCC Weyl/Dirac walk, tensor lift to the lepton internal carrier, position-dependent gauge covariance, Wilson plaquette dynamics, Pati-Salam/SM compact gauge prototypes, dynamical Higgs/Yukawa controls, Gauss projection diagnostics, scan-backed simulator with sparse observation recording. Sessions 20–58. |
 | [`boundary_response`](src/clifford_3plus2_d5/boundary_response/) | **V1–V43 implemented** | Theorem-gated sidecar for BCC-QCA boundary-response flavor. It derives the framed neutrino core `K_ν = ε²P_u + P_b`, keeps PMNS/CKM behind explicit boundary-shell gates, and closes the vacuum-selector thread through V43 modulo one named intermediate axiom: positive quartic backreaction bounds the selector radius. |
 | [`depth_scar`](src/clifford_3plus2_d5/depth_scar/) | **V1–V12 PASS, active** | Boundary repair-scar sidecar for the quark depth spectrum. V1 proves that an `S3 → Z2` path repair scar has `D_scar = 2 Δ(P3)` with spectrum `{0,2,6}`. V2 records the prediction ledger. V3 derives the path scars as minima of a symmetric effective edge-weight potential. V4 proves that CP holonomy requires loop healing. V5 derives `Δ(P3)` from a canonical length-3 nilpotent repair flag. V6 fixes unit flag normalization by local partial-isometry. V7 classifies minimal binary nilpotent supports. V8 shows edge-count minimization over feasible rank-2 length-3 all-port repairs uniquely selects the path-flag orbit. V9 refines minimality into a locality theorem: one-tick residual geometry forbids the shortcut support. V10 proves unit edge weights are exactly the no-leakage / repair-isometry condition. V11 proves unique allowed successors imply no leakage. V12 adds the finite successor certificate for the modeled candidate basis. |
+| [`scalar_clebsch`](src/clifford_3plus2_d5/scalar_clebsch/) | **V3 conditional pass, active** | Scalar quark mass-Clebsch sidecar. V2 separates scalar mass coefficients from CKM current amplitudes: the up-sector vector `(1/4,1/√2,1)` follows from a length-3 nilpotent Taylor response with `x=1/√2`; the down sector records the natural S3/projector baseline `(6,2,4) -> (1,1/√3,√(2/3))` and the data-improved odd-shell candidate `(6,2,5) -> (1,1/√3,√(5/6))`. V3 proves `(6,2,5)` is available in the regular S3 algebra but not forced by S3 alone: rank 2 needs a defect-selected standard copy and rank 5 needs a chosen excluded one-dimensional line. |
+| [`radial_response`](src/clifford_3plus2_d5/radial_response/) | **R1–R13 PASS, active** | Radial mass-response sidecar. It reframes quark masses as QCA boundary recirculation residues / pole shifts, proves the Feshbach self-energy form, separates exponential vs geometric up-sector stacking (`1/2` vs `1`), kills literal `exp(xN)` as the family-space Yukawa matrix, derives `x=1/sqrt(2)` only under two-channel no-leakage repair hypotheses, reduces the scalar repair shell to vacuum-framed S3 under named locality premises, inherits the silver transfer root from existing boundary-response ledgers, proves finite S3/silver data do not force poles/residues, and shows the target quark textures are inverse spectral-measure reconstructions rather than forward QCA mass derivations. |
+| [`universal_bath`](src/clifford_3plus2_d5/universal_bath/) | **Session 08A/08B PASS, active** | Universal spectral-bath sidecar. It turns the bath idea into `finite Lanczos head + universal retarded silver tail`, proves the common Jacobi/Schur spine, records the positive/indefinite/CMV reduction taxonomy, inherits the period-one silver terminator from the BB band-edge theorem, freezes supported lepton-side source anchors, proves the neutrino core inside the product half-line bath, builds the charged-lepton finite CMV head, derives `2/9` as a charged-lepton source occupation moment, closes the conditional up/down quark finite heads, and audits the two quark-source preconditions: height-door dynamics and active hidden color return. |
 
 ### Shared infrastructure
 
@@ -64,6 +67,11 @@ Each sidecar imports from upstream modules through a thin `reuse.py` shim
 - `koide` → `cp` (Higgs map basis, BCC R rotation) + `topology` + `broken_triality` (3×3 Yukawa-from-orbit template).
 - `boundary_response` -> `spacetime_qca` (BB Weyl/Dirac walk imports for the selector gates); otherwise mostly local exact/symbolic machinery.
 - `depth_scar` -> `boundary_response.transfer` (exact silver-ratio transfer factor).
+- `scalar_clebsch` -> `boundary_response.quark_boundary_shell` (six-channel quark primitive labels).
+- `radial_response` -> `scalar_clebsch` (S3 projector count audit).
+- `universal_bath` -> `boundary_response` (lepton source anchors and holonomy),
+  `scalar_clebsch` (quark Clebsch/count gates), and `radial_response`
+  (up-sector stacking fork).
 
 ## Working in a module
 
@@ -88,6 +96,9 @@ uv run pytest src/clifford_3plus2_d5/sme/tests/ -q
 uv run pytest src/clifford_3plus2_d5/strongcp/tests/ -q
 uv run pytest src/clifford_3plus2_d5/koide/tests/ -q
 uv run pytest src/clifford_3plus2_d5/depth_scar/tests/ -q
+uv run pytest src/clifford_3plus2_d5/scalar_clebsch/tests/ -q
+uv run pytest src/clifford_3plus2_d5/radial_response/tests/ -q
+uv run pytest src/clifford_3plus2_d5/universal_bath/tests/ -q
 
 # Run a script via module invocation
 uv run python -m clifford_3plus2_d5.obstruction_r10.scripts.gauge_equivalence_check --check
@@ -120,6 +131,14 @@ module. Each module asks a different question and answers honestly:
 - `spacetime_qca` builds the 3+1D BCC-lattice simulation arena around that internal carrier.
 - `boundary_response` derives the framed neutrino core and closes the vacuum-selector sector through V43 modulo the positive-quartic backreaction axiom; PMNS/CKM remain gated by explicit boundary-shell assumptions.
 - `depth_scar` upgrades the `{0,2,6}` quark depth spectrum to a graph-Laplacian transfer operator, derives the path scar from an effective edge-weight potential, a locally normalized nilpotent repair flag, a minimal support classification, a finite shortest-repair variational principle, a conditional one-tick locality theorem, an active repair isometry/no-leakage equivalence, a unique-successor no-leakage bridge, and a finite successor certificate, and identifies loop healing as the minimal graph-native CP location, while keeping the microscopic origin of the height filtration, basis-completeness theorem, and loop parameters open.
+- `scalar_clebsch` separates scalar mass Clebsches from coherent CKM current Clebsches, deriving the corrected up vector from a nilpotent Taylor response with `x=1/sqrt(2)` and splitting the down sector into an S3/projector baseline plus a data-improved odd-shell candidate; its S3 audit shows the candidate counts are available but not forced until the defect-selection rule is derived.
+- `radial_response` reframes the mass sector as boundary Green-function recirculation, preserving the up factorial relation, deriving `x=1/sqrt(2)` only under a two-channel no-leakage repair condition, proving that pair is complete inside the S3 scalar shell, reducing that shell to vacuum-framed BCC tetrahedral automorphisms under named premises, killing literal nilpotent Yukawa matrices, constructing the minimal exact unitary S3 defect form, inheriting the silver transfer root from existing ledgers, proving that finite S3/silver data do not force poles/residues, and showing that the target quark textures are positive inverse spectral-measure reconstructions until a forward bath-selection principle is derived.
+- `universal_bath` upgrades the forward bath-selection program into a
+  session-gated architecture: lepton sources are frozen, the neutrino product
+  bath is proved inside its ansatz, charged-lepton `2/9` is an exact source
+  occupation moment, quark finite heads are implemented conditionally, and the
+  height-door/color-lift audits reduce the unresolved up/down source-vector
+  problem to two named microscopic selection rules.
 - The closed sidecars (`triality`, `broken_triality`, `exceptional`, `topology`) cumulatively rule out the algebraic routes to three generations.
 - The closed-PASS sidecars (`sme`, `strongcp`, `koide`) check consistency with current experimental bounds and identify the residual physical inputs.
 

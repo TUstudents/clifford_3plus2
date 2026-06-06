@@ -78,6 +78,153 @@ physics policy.
 **Boundary**: BCC Weyl/Dirac kernels, BCC plaquettes, Wilson observables, and
 SO(2)/SU(2)/SU(3) force policy remain in `spacetime_qca`.
 
+## scalar_clebsch — V3 conditional pass, active
+
+**Goal**: test whether corrected quark mass Clebsch coefficients have a scalar
+boundary-response origin rather than borrowing coherent CKM current-amplitude
+Clebsches.
+
+**Result**:
+- Up sector: a length-3 nilpotent Taylor response
+  `exp(xN)=I+xN+x^2 N^2/2` with `x=1/sqrt(2)` gives
+  `(1/4,1/sqrt(2),1)`.
+- Down sector: the natural S3/projector baseline gives counts `(6,2,4)` and
+  vector `(1,1/sqrt(3),sqrt(2/3))`.
+- Down data-improved candidate: the odd-shell bottom repair gives counts
+  `(6,2,5)` and vector `(1,1/sqrt(3),sqrt(5/6))`; the bottom `+1` is recorded
+  as open, not derived.
+- S3 projector audit: `(6,2,5)` is available in the regular S3 algebra, but
+  not forced by S3 alone. Rank 2 requires a defect-selected standard copy, and
+  rank 5 requires choosing which one-dimensional irrep is excluded.
+- The old up `sqrt(2)` coefficient is rejected as a scalar positive mass
+  coefficient; it belongs to coherent current-amplitude Clebsches.
+
+**Open**: derive the microscopic two-successor/no-leakage repair condition
+used by `radial_response` R5, and derive or kill the down-sector
+defect-selection rule.
+
+## radial_response — R1-R13 pass, active
+
+**Goal**: reframe the quark mass sector as QCA boundary recirculation residues /
+pole shifts instead of direct finite-group outputs.
+
+**Result**:
+- R1 proves the Feshbach/Schur form
+  `Sigma(z)=V^T(z-H_Q)^-1V`, so masses are repeated `P -> Q -> P`
+  boundary returns.
+- R2 separates up-sector radial stacking laws:
+  exponential/Poisson gives `C_u C_t / C_c^2 = 1/2`, while
+  geometric/resolvent gives `1`.
+- R3 kills literal `exp(xN)` as a family-space Yukawa matrix: at `x=1`, its
+  singular values are `(2,1,1/2)` and its left metric is non-diagonal.
+- R4 imports the S3 projector audit and reframes `C_b^2=5/6` as a regular
+  S3 shell minus one dark line, available but not derived.
+- R5 proves that two equal no-leakage scalar repair successors force the
+  amplitude `x=1/sqrt(2)`; the microscopic successor/no-leakage condition
+  remains the load-bearing hypothesis.
+- R6 builds a minimal exact unitary S3 Floquet defect form `U=S C` and verifies
+  the unitary Schur self-energy. Coin-angle and defect-vector controls show
+  that this form does not by itself force the physical phase or radial values.
+- R7 certifies R5's two-channel no-leakage condition in a finite modeled scalar
+  successor basis: only the Z2-conjugate `triality_plus/triality_minus` pair is
+  allowed, while same-state, wrong-height, two-tick, leakage, asymmetric, and
+  third-successor controls are vetoed.
+- R8 proves that this pair is complete inside the S3 regular shell: the
+  identity is same-state, the two non-identity cycles are the scalar
+  holomorphic successors, and the three transpositions belong to the
+  Hermitian/Z2 repair sector.
+- R9 reduces the S3 shell to vacuum-frame-preserving BCC tetrahedral exit
+  automorphisms: the selected-exit stabilizer induces residual S3, and scalar
+  holomorphic restriction leaves the same triality pair. The premise that
+  actual one-tick scalar repair is such an automorphism remains open.
+- R10 derives the R9 automorphism premise from a declared scalar-local,
+  deterministic exit-map class, while rejecting nonlocal, non-scalar, generic
+  linear-mixture, frame-breaking, same-state, and Hermitian/Z2 controls.
+- R11 inherits the silver transfer root from the existing boundary-response /
+  flavor-A stack: `epsilon=sqrt(2)-1`, `eta=epsilon^2`, `r=epsilon^4`.
+- R12 proves that finite S3/silver-transfer data do not force pole/residue
+  values: admissible baths with the same channel grammar give different
+  self-energies, poles, and residues.
+- R13 shows that the target quark textures are positive finite spectral
+  measures with inverse Jacobi-bath reconstructions, but the existing R12
+  baths, P3 Jacobi control, silver-tail control, and minimal unitary S3 toy do
+  not select them. This is reconstruction-only, not a mass derivation.
+
+**Open**: derive the scalar-local deterministic exit-map class from the actual
+BB/QCA scalar boundary update; identify a forward spectral-density principle
+that selects the target measure rather than reconstructing it; derive or kill
+the down dark-line selection rule; eventually build a simulator-backed boundary
+spectral density.
+
+## universal_bath — Session 08A/08B pass, active
+
+**Goal**: replace inverse spectral-measure reconstruction with a forward bath
+architecture:
+
+```text
+sector response = finite Lanczos head + universal retarded silver tail
+```
+
+**Result**:
+- Session 01 proves the common Schur/Jacobi spine.
+- The universal period-one tail satisfies `t = 1 / (z - t)`.
+- At the BB marginal probe, `t(2 sqrt(2)) = sqrt(2) - 1`.
+- Finite scalar moments round-trip through a Jacobi head.
+- Finite-head Schur response equals its continued fraction.
+- Alternate terminators change the response, so the universal silver tail is a
+  physical closure principle rather than a continued-fraction tautology.
+- The reduction taxonomy is fixed: positive sectors use scalar Jacobi, real
+  non-positive shells use indefinite look-ahead Jacobi, and chiral/unitary
+  sectors use CMV/OPUC.
+- Session 02 freezes the supported lepton-side source anchors:
+  `neutrino_collective_u` (`u`, depth 1), `neutrino_edge_b` (`b`, depth 0),
+  and `charged_lepton_active_e1` (`e1`, depth 2).
+- The BB source survival identity
+  `B_+^*B_+ + B_-^*B_-=I/2` gives every frozen normalized source first-hop
+  radial survival weight `1/2`.
+- Session 03 proves the neutrino core inside the product half-line bath:
+  `H_Q = H_chain tensor I_family` gives equal `u`/`b` diagonal returns,
+  zero cross-return moments through the checked finite orders, and normalized
+  response `epsilon^2 P_u + P_b` at the BB silver probe.
+- The resulting neutrino ratios are
+  `m2/m3 = epsilon^2` and `Delta m^2_21 / Delta m^2_31 = epsilon^4`.
+- Session 04 builds the charged-lepton finite CMV head:
+  `alpha_e = sqrt(3/2) epsilon^2 exp(-5 pi i / 12)` followed by the free
+  OPUC tail `alpha_n = 0`; the associated two-state CMV/Givens block is
+  exactly unitary.
+- Session 05 derives the charged-lepton torsion value as the frozen source
+  occupation moment:
+  `e1 = sqrt(2/3) a + 1/sqrt(3) u`, so `p_a p_u = (2/3)(1/3) = 2/9`.
+  The coherent amplitude `sqrt(2)/3`, equal-weight, and one-port controls are
+  rejected; this does not by itself rederive the CMV phase.
+- Session 06 implements the conditional up-quark nilpotent CMV head:
+  the BB survival weight `1/2` gives injection `x=1/sqrt(2)`, and the
+  length-3 Taylor head gives `(x^2/2,x,1) = (1/4,1/sqrt(2),1)` followed by the
+  free CMV tail. The up source vector remains unresolved.
+- Session 07 implements the conditional down-quark real/symmetric Jacobi head:
+  the 3-port shell gives `(3,1,2)/3 -> (1,1/sqrt(3),sqrt(2/3))`; the regular
+  S3 shell gives the baseline `(6,2,4)/6` and can host the candidate
+  `(6,2,5)/6 -> (1,1/sqrt(3),sqrt(5/6))`; S3 does not select the rank-5 line.
+- Session 08A audits the quark height doors: hypercharge forces `H_tilde` for
+  up and `H` for down, with neutral Higgs components, while the declared repair
+  split maps up to the oriented length-3 nilpotent and down to the Hermitian
+  path closure. Swapping repair modes remains hypercharge-allowed, so the
+  coherent-up / Hermitian-down split is a height-dynamics premise, not an
+  electroweak charge theorem.
+- Session 08B audits color lifting: a fixed visible color vector is rejected by
+  `SU(3)_c`; a color-scalar spectator embedding preserves visible color but
+  stays on the three-port shell; an active hidden color-return lift also
+  preserves visible color while reaching `1_direct + 2_BCC + 3_color`, making
+  the regular-S3 baseline and rank-five candidate available but not selected by
+  gauge covariance alone.
+
+**Open**: derive the product factorization from a microscopic BCC/QCA boundary
+graph; derive the charged-lepton holonomy selection dynamics microscopically;
+derive or replace the height-dynamics rule and active hidden color-return rule
+needed to freeze the up/down quark BCC source vectors and normal-depth
+placements without flavor data; derive or kill the down rank-5 bottom-line
+selection rule; assemble mixing from Krylov/CMV basis overlaps.
+
 ## spacetime_qca — in progress
 
 **Goal**: 3D BCC Weyl walk (Bialynicki-Birula 1994) → 4D Dirac chiral
