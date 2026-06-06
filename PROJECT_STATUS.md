@@ -156,7 +156,7 @@ that selects the target measure rather than reconstructing it; derive or kill
 the down dark-line selection rule; eventually build a simulator-backed boundary
 spectral density.
 
-## universal_bath — Session 10 internal graph pass, active
+## universal_bath — Session 14 charged-lepton graph, active
 
 **Goal**: replace inverse spectral-measure reconstruction with a forward bath
 architecture:
@@ -230,10 +230,30 @@ sector response = finite Lanczos head + universal retarded silver tail
   active plane with the universal tail gives `epsilon^2 P_u + P_b`. The
   remaining physical gate is deriving the selected active-plane projector
   `P_u + P_b` from the microscopic BB edge update rather than imposing it.
+- Session 11 derives the active-plane projector from selected residual-port
+  incidence: `e1 = sqrt(2/3) a + u/sqrt(3)`, so detracing `e1` against the
+  collective mode fixes the radial line `a`, and `a^perp = span(u,b)`. Selected
+  `S2` symmetry alone is shown not to be enough.
+- Session 12 connects that active plane to the exact BB q-mismatch and
+  retarded-compression model: same-normal and mixed-normal blocks split the BB
+  norm as `1/2+1/2`, `g q^2` gives mixed-sector Schur feedback
+  `I/[2(z-4g)] -> 0`, and retarded clock-error leads make visible powers equal
+  q=0 survival powers. A recurrent wedge control is rejected.
+- Session 13 audits the remaining material-origin premise. The local mismatch
+  coordinate `q=r1-r2` is unique and `K^T K=q^2` if the constraint is admitted,
+  but bare BB blocks contain no stiffness/gap parameter and do not select
+  outgoing clock-error leads over recurrent wedge return.
+- Session 14 constructs the minimal colorless active charged-lepton family-port
+  graph. The two-sided residue is exactly `sqrt(2) P_u + R_theta P_perp`, acting
+  on `e1` gives trace/traceless equipartition and Koide `K=2/3`, and one-trace
+  plus one-sided-Hermitian controls are rejected. The trace paths and `2/9`
+  torsion dynamics remain inputs.
 
-**Open**: derive the selected active-plane projector `P_u + P_b` from the
-microscopic BB edge update; derive the charged-lepton holonomy selection
-dynamics microscopically;
+**Open**: derive, or audit as irreducible, the deeper boundary-material origin
+of the single-clock locking field and outgoing clock-error asymptotics
+(Session 13 shows it is not derived from bare BB block algebra); derive the
+charged-lepton two-trace-path and active `2/9` torsion dynamics
+microscopically;
 derive or replace the height-dynamics rule and active hidden color-return rule
 needed to freeze the up/down quark BCC source vectors and normal-depth
 placements without flavor data; derive or kill the down rank-5 bottom-line

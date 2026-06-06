@@ -98,6 +98,10 @@ uv run python -m clifford_3plus2_d5.universal_bath.scripts.session_08a_quark_hei
 uv run python -m clifford_3plus2_d5.universal_bath.scripts.session_08b_quark_color_lift_audit
 uv run python -m clifford_3plus2_d5.universal_bath.scripts.session_09_neutrino_bcc_moment_audit
 uv run python -m clifford_3plus2_d5.universal_bath.scripts.session_10_neutrino_family_port_graph
+uv run python -m clifford_3plus2_d5.universal_bath.scripts.session_11_neutrino_active_plane
+uv run python -m clifford_3plus2_d5.universal_bath.scripts.session_12_neutrino_q_mismatch_retarded
+uv run python -m clifford_3plus2_d5.universal_bath.scripts.session_13_neutrino_boundary_material_audit
+uv run python -m clifford_3plus2_d5.universal_bath.scripts.session_14_charged_lepton_boundary_graph
 ```
 
 Current verdicts:
@@ -113,6 +117,10 @@ Current verdicts:
 - `QUARK_COLOR_LIFT_NO_SELECTION_AUDIT`
 - `NEUTRINO_BCC_MOMENT_GRAPH_NOT_DERIVED_AUDIT`
 - `NEUTRINO_FAMILY_PORT_GRAPH_INTERNAL_PASS`
+- `NEUTRINO_ACTIVE_PLANE_INCIDENCE_PASS`
+- `NEUTRINO_Q_MISMATCH_RETARDED_COMPRESSION_PASS`
+- `NEUTRINO_BOUNDARY_MATERIAL_ORIGIN_NOT_DERIVED_AUDIT`
+- `CHARGED_LEPTON_MINIMAL_BOUNDARY_GRAPH_PASS`
 
 Session 02 freezes the supported lepton-side anchors and keeps quark sources
 explicitly unresolved until their BCC source vectors are derived without flavor
@@ -139,3 +147,26 @@ fibers, direct graph moments give zero `u/b` cross returns and equal diagonal
 returns, and the universal tail readout gives `epsilon^2 P_u + P_b`.  The
 remaining physical gate is deriving that selected active-plane condition from
 the microscopic BB edge update.
+Session 11 derives that active plane at the incidence level: detracing the
+selected residual port `e1` against the collective channel gives the radial
+line `a`, and the orthogonal active plane is exactly `P_u + P_b`.  The
+remaining physical gate is now sharper: derive that BB q-mismatch penalizes
+this detraced `a` line and that the retarded outgoing boundary closes only on
+the active incidence plane.
+Session 12 closes that gate inside the single-clock/outgoing-boundary model:
+the BB edge directions split into same-normal `q=0` and mixed-normal `q=+-2`
+blocks with exact `1/2+1/2` norm split; a `g q^2` hard gap makes mixed-normal
+Schur feedback vanish; and retarded clock-error leads make visible powers equal
+the q=0 survival powers.  The remaining boundary-material question is why the
+physical defect realizes the single-clock locking field and outgoing
+asymptotics.
+Session 13 audits that last question and records a no-derivation result: the
+local mismatch coordinate `q=r1-r2` is unique, and `K^T K` gives a positive
+`q^2` penalty if the constraint field is admitted, but the bare BB blocks
+contain no stiffness parameter and no condition selecting outgoing clock-error
+leads over recurrent wedge return.
+Session 14 builds the minimal colorless active charged-lepton family-port graph.
+The two-sided chiral pole residue is exactly `sqrt(2) P_u + R_theta P_perp`,
+and acting on `e1` gives exact trace/traceless equipartition and Koide
+`K=2/3`.  The microscopic origin of the two trace paths and the active `2/9`
+torsion dynamics remain open.

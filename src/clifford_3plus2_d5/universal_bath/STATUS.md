@@ -1,6 +1,6 @@
 # universal_bath - Status
 
-**Status**: Session 10 implemented.
+**Status**: Session 14 implemented.
 
 ## Current theorem-level status
 
@@ -452,6 +452,277 @@ This completes the internal neutrino family-port graph.  The remaining physical
 gate is deriving the selected active-plane boundary condition
 `P_act=P_u+P_b` from the microscopic BB edge update rather than imposing it.
 
+## Session 11 selected active-plane incidence
+
+Session 11 derives the Session 10 active projector from selected residual-port
+incidence.  The selected residual port is
+
+```text
+e1 = (1,0,0)
+```
+
+and in the residual basis it decomposes as:
+
+```text
+e1 = sqrt(2/3) a + u/sqrt(3)
+```
+
+with no `b` component.  Removing the collective trace gives the selected
+traceless radial line:
+
+```text
+e1 - <u,e1> u = sqrt(2/3) a
+```
+
+Therefore:
+
+```text
+P_rad = P_a
+P_act = I - P_a = P_u + P_b
+```
+
+Equivalently, the active incidence channels are the collective channel `u` and
+the unique current perpendicular to both `u` and `a`, namely:
+
+```text
+b = (0,1,-1)/sqrt(2)
+```
+
+Controls:
+
+- selected `S2` symmetry alone is too weak, because `P_e1` is selected-`S2`
+  invariant but mixes the radial `a` and active `u` lines;
+- the raw selected-port line control is rejected, since `I-P_e1 != P_u+P_b`;
+- full `S3` invariance is rejected, as required by the neutrino splitting.
+
+Thus the active plane is no longer an arbitrary product-family ansatz.  It is
+the selected-port incidence plane after detracing the collective mode.  The
+remaining physical BB/QCA gate is now sharper:
+
+```text
+bb q-mismatch penalizes the detraced selected-port radial line a
+retarded outgoing boundary condition closes only the active u/b incidence plane
+```
+
+## Session 12 q-mismatch hard gap and retarded closure
+
+Session 12 connects the Session 11 active-plane incidence result to the exact
+BB edge blocks under the single-clock/outgoing-boundary model.
+
+At a BCC edge:
+
+```text
+q = r1 - r2
+Delta q = sigma1 - sigma2
+```
+
+The eight body-diagonal hops split into:
+
+```text
+sigma1 = sigma2      -> Delta q = 0      (4 same-normal directions)
+sigma1 = -sigma2     -> Delta q = +-2    (4 mixed-normal directions)
+```
+
+The exact BB blocks satisfy:
+
+```text
+B_+^* B_+ + B_-^* B_- = I/2
+M_+2^* M_+2 + M_-2^* M_-2 = I/2
+```
+
+The single-clock mismatch model uses:
+
+```text
+H_lock = g q^2
+H_leak(q=+-2) = 4g I
+```
+
+With `M=(M_+2,M_-2)^T`, mixed-normal Schur feedback is:
+
+```text
+Sigma_mix(z,g) = M^* (z-4g)^-1 M = I/[2(z-4g)]
+```
+
+so:
+
+```text
+lim_{g->infty} Sigma_mix(z,g) = 0
+```
+
+The outgoing half-line Weyl branch satisfies:
+
+```text
+m = 1/(z-m),    m(z) ~ 1/z
+```
+
+and retarded clock-error closure has block-triangular form:
+
+```text
+T_R = [[A_N, 0],
+       [E,   S_chi]]
+```
+
+Therefore visible powers equal q=0 survival powers:
+
+```text
+P_vis T_R^t iota_vis = A_N^t
+```
+
+The recurrent wedge control is rejected. Its local two-step return is:
+
+```text
+M_-2 M_+2 + M_+2 M_-2
+= diag(-(1+i)/4, -(1-i)/4) != 0
+```
+
+Thus the Session 10 family graph is now microscopic inside the
+single-clock/outgoing-boundary model:
+
+```text
+H_fam = H_chain tensor (P_u+P_b) + I tensor Lambda P_a
+```
+
+Remaining physical inputs:
+
+```text
+single_clock_locking_field_is_realized_by_boundary_material
+mixed_normal_clock_error_ports_are_outgoing_asymptotic_leads
+```
+
+## Session 13 boundary-material origin audit
+
+Session 13 asks whether those two remaining inputs are already forced by bare
+BB block algebra.  The answer is no.
+
+Derived:
+
+```text
+K = a r1 + b r2
+K(r,r)=0  ->  a+b=0
+K proportional to r1-r2 = q
+```
+
+Thus the local linear single-clock mismatch coordinate is unique.  If the
+boundary admits this constraint field, then:
+
+```text
+K^T K = q^2
+```
+
+so the positive penalty has the required form.
+
+Not derived:
+
+```text
+g or Lambda stiffness parameter
+outgoing/no-incoming clock-error asymptotic condition
+```
+
+The bare BB blocks contain no stiffness symbol and no asymptotic boundary
+condition.  Retarded and recurrent completions use the same local mixed-normal
+emission norm, but the recurrent wedge has nonzero two-step return and changes
+visible powers.  Therefore the conditional Session 12 graph is not promoted to
+a from-bare-BB material theorem.
+
+The next required object is a boundary-material model deriving:
+
+```text
+positive single-clock locking
+outgoing clock-error asymptotics
+```
+
+## Session 14 charged-lepton minimal boundary graph
+
+Session 14 builds the minimal colorless active charged-lepton family-port graph.
+Because charged leptons are Dirac/Yukawa states, the correct object is a
+two-sided chiral Schur kernel:
+
+```text
+B_e(z) = V_R^T (z-H_Q,e)^-1 V_L
+```
+
+not a one-sided positive self-energy.
+
+Use:
+
+```text
+Q_e = span(t_+, t_-, p_a, p_b)
+P = span(u, a, b)
+```
+
+with left coupling:
+
+```text
+V_L =
+[[1/sqrt(2), 0, 0],
+ [1/sqrt(2), 0, 0],
+ [0, 1, 0],
+ [0, 0, 1]]
+```
+
+and right coupling:
+
+```text
+V_R =
+[[1, 0, 0],
+ [1, 0, 0],
+ [0, cos(theta), sin(theta)],
+ [0, -sin(theta), cos(theta)]]
+```
+
+Then:
+
+```text
+V_R^T V_L = sqrt(2) P_u + R_theta P_perp
+```
+
+exactly.  The angle is assembled from existing gates:
+
+```text
+theta = -2*pi/3 - 2/9
+```
+
+Acting on:
+
+```text
+e1 = u/sqrt(3) + sqrt(2/3) a
+```
+
+gives:
+
+```text
+B_e e1 = sqrt(2/3) [u + cos(theta) a + sin(theta) b]
+```
+
+and after normalization:
+
+```text
+w_hat = [u + cos(theta) a + sin(theta) b]/sqrt(2)
+```
+
+Therefore:
+
+```text
+trace weight = 1/2
+traceless weight = 1/2
+K = 2/3
+```
+
+Controls:
+
+- one trace path fails trace/traceless equipartition;
+- a one-sided Hermitian self-energy cannot produce the nontrivial plane
+  rotation;
+- the `2/9` torsion is still not derived by the graph.
+
+Remaining charged-lepton microscopic inputs:
+
+```text
+microscopic_colorless_bcc_higgs_boundary_derives_two_coherent_trace_paths
+active_cmv_torsion_angle_2_over_9_is_generated_by_boundary_dynamics
+charged_lepton_overall_scale_rho_or_mu_e
+```
+
 ## Verdict summary
 
 - Session 01 verdict: **UNIVERSAL_BATH_SPINE_PASS**.
@@ -465,6 +736,10 @@ gate is deriving the selected active-plane boundary condition
 - Session 08B verdict: **QUARK_COLOR_LIFT_NO_SELECTION_AUDIT**.
 - Session 09 verdict: **NEUTRINO_BCC_MOMENT_GRAPH_NOT_DERIVED_AUDIT**.
 - Session 10 verdict: **NEUTRINO_FAMILY_PORT_GRAPH_INTERNAL_PASS**.
+- Session 11 verdict: **NEUTRINO_ACTIVE_PLANE_INCIDENCE_PASS**.
+- Session 12 verdict: **NEUTRINO_Q_MISMATCH_RETARDED_COMPRESSION_PASS**.
+- Session 13 verdict: **NEUTRINO_BOUNDARY_MATERIAL_ORIGIN_NOT_DERIVED_AUDIT**.
+- Session 14 verdict: **CHARGED_LEPTON_MINIMAL_BOUNDARY_GRAPH_PASS**.
 
 ## Meaning
 
@@ -474,6 +749,13 @@ certified the neutrino core inside the product half-line bath, audited that the
 current microscopic BB edge update still lacks the family-port graph needed to
 upgrade that product result, supplied the selected internal family-port graph
 whose direct moments give the required `u/b` decoupling, built the
+selected-port incidence derivation of the active plane,
+connected that active plane to the exact BB q-mismatch hard-gap and retarded
+compression model,
+audited that the deeper boundary-material origin of locking/outgoing
+asymptotics is not derived from bare BB blocks,
+constructed the exact minimal charged-lepton two-sided boundary graph and its
+Koide equipartition residue,
 charged-lepton finite CMV head, derived the charged-lepton `2/9` torsion as an
 occupation moment, implemented the conditional up nilpotent finite head, and
 implemented the conditional down count-level Jacobi head. It has now also
@@ -484,11 +766,17 @@ The current open gates are now sharper:
 
 - build the microscopic BCC family-port graph and compute
   `<u|H_BCC^k|b>` without inserting `I_family` (**internal selected graph
-  supplied in Session 10; physical derivation still open**);
-- derive the selected active-plane condition `P_act=P_u+P_b`, `P_rad=P_a`
-  from the microscopic BB edge update;
+  supplied in Session 10; incidence projector supplied in Session 11;
+  q-mismatch/retarded closure supplied in Session 12 under the
+  single-clock/outgoing-boundary model; deeper boundary-material origin still
+  open**);
+- derive, or audit as irreducible, the deeper boundary-material origin of the
+  single-clock locking field and outgoing clock-error asymptotics (**audited
+  in Session 13 as not derived from bare BB blocks; a new boundary-material
+  model would be required**);
 - derive the charged-lepton holonomy selection dynamics beyond the `2/9`
-  occupation moment;
+  occupation moment (**Session 14 realizes the graph once the angle is supplied;
+  microscopic trace-path and torsion dynamics remain open**);
 - freeze the up/down quark BCC source vectors without flavor data;
 - derive or replace the height-dynamics rule that maps `H_tilde` to the
   oriented nilpotent and `H` to the Hermitian closure;

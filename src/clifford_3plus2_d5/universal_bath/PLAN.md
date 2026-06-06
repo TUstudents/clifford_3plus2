@@ -319,18 +319,138 @@ This completes the internal family-port graph needed by Session 09. It does not
 yet prove that the selected active-plane condition is forced by the microscopic
 BB edge update.
 
-## Session 11 - Derive selected active-plane boundary condition
+## Session 11 - Selected active-plane incidence
 
-Try to derive
+Derive
 
 ```text
 P_act = P_u + P_b, P_rad = P_a
 ```
 
-from the microscopic BB edge update, selected boundary normal, and residual
-port incidence. This is the physical gate behind Session 10.
+from selected boundary incidence:
 
-## Session 12 - Mixing from Krylov overlaps
+```text
+e1 = sqrt(2/3) a + u/sqrt(3)
+detrace(e1) = a
+active plane = a^perp = span(u,b)
+```
+
+Pass only if selected `S2` symmetry alone is shown not to be sufficient.  The
+verdict is:
+
+```text
+NEUTRINO_ACTIVE_PLANE_INCIDENCE_PASS
+```
+
+This proves the projector from selected-port incidence but still leaves the
+physical BB/QCA dynamics open.
+
+## Session 12 - Q-mismatch radial penalty and retarded closure
+
+Derive the conditional microscopic model that penalizes the detraced
+selected-port line `a` and closes the universal outgoing tail only on the
+active `u,b` plane:
+
+```text
+bb q-mismatch -> Lambda P_a
+retarded outgoing bath -> H_chain tensor (P_u + P_b)
+```
+
+The certificate combines:
+
+- exact BB same-normal/mixed-normal split by `Delta q`;
+- exact `1/2 + 1/2` BB norm split;
+- `g q^2` hard-gap Schur feedback `I/[2(z-4g)] -> 0`;
+- retarded half-line Weyl branch;
+- block-triangular retarded closure;
+- recurrent wedge control rejection.
+
+Verdict:
+
+```text
+NEUTRINO_Q_MISMATCH_RETARDED_COMPRESSION_PASS
+```
+
+This closes the gate inside the single-clock/outgoing-boundary model. It does
+not derive the deeper boundary material that realizes that model.
+
+## Session 13 - Boundary-material origin audit
+
+Audit the two remaining physical inputs:
+
+```text
+single_clock_locking_field_is_realized_by_boundary_material
+mixed_normal_clock_error_ports_are_outgoing_asymptotic_leads
+```
+
+The audit derives the local mismatch coordinate but rejects a full derivation
+from bare BB blocks:
+
+```text
+q = r1-r2 is unique among local linear single-clock mismatches
+K^T K = q^2 if the constraint field is admitted
+bare BB blocks contain no stiffness/gap parameter
+bare BB blocks do not select outgoing over recurrent asymptotics
+```
+
+Verdict:
+
+```text
+NEUTRINO_BOUNDARY_MATERIAL_ORIGIN_NOT_DERIVED_AUDIT
+```
+
+The conditional neutrino graph is now complete inside the
+single-clock/outgoing-boundary model; the deeper material origin remains a
+named premise.
+
+## Session 14 - Charged-lepton minimal family-port boundary graph
+
+Build the minimal two-sided colorless active boundary graph. The known source
+facts are:
+
+```text
+e1 = sqrt(2/3) a + u/sqrt(3)
+2/9 = p_a p_u source occupation moment
+```
+
+The exact graph is:
+
+```text
+Q_e = span(t_+, t_-, p_a, p_b)
+B_e = V_R^T (z-H_Q)^-1 V_L
+Res B_e = sqrt(2) P_u + R_theta P_perp
+theta = -2*pi/3 - 2/9
+```
+
+Pass only if:
+
+- the two-sided residue matches the target;
+- acting on `e1` gives trace/traceless equipartition;
+- Koide `K=2/3` is exact;
+- one trace path fails equipartition;
+- a one-sided Hermitian self-energy cannot produce the nontrivial rotation;
+- the `2/9` torsion is kept as an input, not rederived.
+
+Verdict:
+
+```text
+CHARGED_LEPTON_MINIMAL_BOUNDARY_GRAPH_PASS
+```
+
+This is a minimal graph realization.  It does not derive the microscopic
+BCC/Higgs origin of the two trace paths or the active `2/9` torsion dynamics.
+
+## Session 15 - Charged-lepton trace-path and torsion origin audit
+
+Try to derive, or honestly audit as irreducible, the two charged-lepton
+microscopic inputs left by Session 14:
+
+```text
+microscopic_colorless_bcc_higgs_boundary_derives_two_coherent_trace_paths
+active_cmv_torsion_angle_2_over_9_is_generated_by_boundary_dynamics
+```
+
+## Session 16 - Mixing from Krylov overlaps
 
 Treat CKM and PMNS as overlaps of sector left-Krylov bases. The powers are the
 first target; prefactors remain conditional until they are head coefficients.
