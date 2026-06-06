@@ -102,6 +102,10 @@ uv run python -m clifford_3plus2_d5.universal_bath.scripts.session_11_neutrino_a
 uv run python -m clifford_3plus2_d5.universal_bath.scripts.session_12_neutrino_q_mismatch_retarded
 uv run python -m clifford_3plus2_d5.universal_bath.scripts.session_13_neutrino_boundary_material_audit
 uv run python -m clifford_3plus2_d5.universal_bath.scripts.session_14_charged_lepton_boundary_graph
+uv run python -m clifford_3plus2_d5.universal_bath.scripts.session_15_quark_source_assembly
+uv run python -m clifford_3plus2_d5.universal_bath.scripts.session_16_quark_normal_depth_audit
+uv run python -m clifford_3plus2_d5.universal_bath.scripts.session_17_quark_active_color_microcanonical
+uv run python -m clifford_3plus2_d5.universal_bath.scripts.session_18_quark_down_odd_shell
 ```
 
 Current verdicts:
@@ -121,6 +125,10 @@ Current verdicts:
 - `NEUTRINO_Q_MISMATCH_RETARDED_COMPRESSION_PASS`
 - `NEUTRINO_BOUNDARY_MATERIAL_ORIGIN_NOT_DERIVED_AUDIT`
 - `CHARGED_LEPTON_MINIMAL_BOUNDARY_GRAPH_PASS`
+- `QUARK_SOURCE_FREEZE_NOT_DERIVED_AUDIT`
+- `QUARK_NORMAL_DEPTH_PLACEMENT_NOT_DERIVED_AUDIT`
+- `QUARK_ACTIVE_COLOR_RETURN_MICROCANONICAL_CONDITIONAL_PASS`
+- `QUARK_DOWN_ODD_SHELL_RANK_FIVE_CONDITIONAL_PASS`
 
 Session 02 freezes the supported lepton-side anchors and keeps quark sources
 explicitly unresolved until their BCC source vectors are derived without flavor
@@ -170,3 +178,24 @@ The two-sided chiral pole residue is exactly `sqrt(2) P_u + R_theta P_perp`,
 and acting on `e1` gives exact trace/traceless equipartition and Koide
 `K=2/3`.  The microscopic origin of the two trace paths and the active `2/9`
 torsion dynamics remain open.
+Session 15 assembles the quark source dependency graph.  The common residual
+family incidence basis, SM charge doors, conditional up nilpotent head, and
+conditional down real-symmetric heads are all available, but the source freeze
+is not derived.  The open microscopic inputs are the height-dynamics rule,
+active hidden color-return selection, the down rank-five decision, and actual
+normal-depth placements for `V_u,V_d`.
+Session 16 audits the normal-depth blocker against the depth-scar theorem.  It
+confirms the exact nilpotent flag and `{0,2,6}` normal-mode spectrum, but shows
+that these graph depths are not source placements: the path-scar operator is
+not a diagonal port-depth assignment, doubled port heights are `(0,2,4)`, and
+the quark dictionary still has `normal_depth=None` for both source anchors.
+Session 17 reduces the active hidden color-return blocker: inside the primitive
+six-label shell, equal-degeneracy microcanonical reduction gives `I_6/6` and
+selects the active `1_direct + 2_BCC + 3_color` shell over the compressed
+three-port spectator control.  The remaining input is the equal-degeneracy /
+max-entropy prior, not gauge covariance.
+Session 18 reduces the down rank-five blocker: in the active primitive shell,
+the bottom candidate is the full odd shell, the complement of the even direct
+line, and the strange middle channel is the BCC odd doublet.  The remaining
+premise is the physical down-head readout that assigns bottom to the full odd
+shell.

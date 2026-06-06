@@ -1,6 +1,6 @@
 # universal_bath - Status
 
-**Status**: Session 14 implemented.
+**Status**: Session 18 implemented.
 
 ## Current theorem-level status
 
@@ -723,6 +723,202 @@ active_cmv_torsion_angle_2_over_9_is_generated_by_boundary_dynamics
 charged_lepton_overall_scale_rho_or_mu_e
 ```
 
+## Session 15 quark source assembly audit
+
+Session 15 assembles the current quark-side certificates into one source-freeze
+ledger.  The quark source must live in
+
+```text
+C^3_color tensor C^2_weak tensor span(u,a,b)
+```
+
+and the write-once dictionary still reports:
+
+```text
+up_quark_boundary_source:
+  port_vector = None
+  residual_components = {}
+  normal_depth = None
+
+down_quark_boundary_source:
+  port_vector = None
+  residual_components = {}
+  normal_depth = None
+```
+
+Available:
+
+```text
+Session 11 common residual incidence basis
+Session 08A SM H_tilde/H charge doors
+Session 06 conditional up profile (1/4,1/sqrt(2),1)
+Session 07/08B conditional down baseline (1,1/sqrt(3),sqrt(2/3))
+Session 07/08B available down candidate (1,1/sqrt(3),sqrt(5/6))
+```
+
+Not derived:
+
+```text
+height_dynamics_selects_up_nilpotent_down_hermitian
+microscopic_active_hidden_color_return_selects_regular_s3_shell
+boundary_dynamics_selects_or_kills_down_rank_five_line
+quark_normal_depth_placements_on_bcc_scar_are_frozen
+```
+
+Thus the verdict is:
+
+```text
+QUARK_SOURCE_FREEZE_NOT_DERIVED_AUDIT
+```
+
+The conditional quark heads are assembled, but `V_u,V_d` remain unfrozen.  The
+sidecar must not promote the conditional up/down heads to complete microscopic
+BCC family-port boundary graphs until those four inputs are derived or killed.
+
+## Session 16 quark normal-depth placement audit
+
+Session 16 checks whether the existing `depth_scar` theorem already closes the
+quark normal-depth source-placement blocker.  It does not.
+
+Depth scar supplies:
+
+```text
+h(u,a,b) = (0,1,2)
+N = |u><a| + |a><b|
+Spec(2 Delta(P3)) = {0,2,6}
+```
+
+The path-scar depth operator in the port basis is:
+
+```text
+[[ 2, -2,  0],
+ [-2,  4, -2],
+ [ 0, -2,  2]]
+```
+
+It is not the hand-written port diagonal:
+
+```text
+diag(0,2,6)
+```
+
+Also:
+
+```text
+2 h(u,a,b) = (0,2,4) != {0,2,6}
+```
+
+Thus the graph-depth theorem is exact but does not define:
+
+```text
+V_u.normal_depth
+V_d.normal_depth
+```
+
+The current dictionary still has both values set to `None`.  The verdict is:
+
+```text
+QUARK_NORMAL_DEPTH_PLACEMENT_NOT_DERIVED_AUDIT
+```
+
+The normal-depth blocker is now sharpened to a source-placement theorem, not a
+missing proof of the depth-scar algebra.
+
+## Session 17 quark active color-return microcanonical audit
+
+Session 17 reduces the active hidden color-return blocker using the upstream
+primitive-shell microcanonical theorem.
+
+The primitive quark shell is:
+
+```text
+1_even + 5_odd = 1_direct + 2_BCC + 3_color
+```
+
+The active hidden color lift reaches exactly that shell:
+
+```text
+even_direct = 1
+bcc_odd     = 2
+color_odd   = 3
+odd_total   = 5
+total       = 6
+```
+
+Equal-degeneracy microcanonical reduction gives:
+
+```text
+rho_label = I_6 / 6
+weights = (1/6,1/6,1/6,1/6,1/6,1/6)
+```
+
+The spectator branch is a compressed 3-port control.  Compressed macrochannel
+counting gives:
+
+```text
+r = 1/sqrt(5)
+phase = pi/4
+```
+
+and is rejected by the upstream control.  Thus the verdict is:
+
+```text
+QUARK_ACTIVE_COLOR_RETURN_MICROCANONICAL_CONDITIONAL_PASS
+```
+
+This does not make active return a gauge theorem.  It reduces the blocker to:
+
+```text
+equal_boundary_degeneracy_or_max_entropy_prior
+```
+
+plus the upstream `vacuum_framing` and `transfer_probe` inputs of the
+primitive-shell theorem.
+
+## Session 18 down odd-shell rank-five audit
+
+Session 18 reduces the down rank-five blocker using the active primitive shell.
+
+Inside
+
+```text
+1_even + 5_odd = 1_direct + 2_BCC + 3_color
+```
+
+the down candidate counts are:
+
+```text
+d: full primitive shell = 6
+s: BCC odd doublet      = 2
+b: full odd shell       = 5
+```
+
+Thus:
+
+```text
+(6,2,5)/6 -> (1,1/sqrt(3),sqrt(5/6))
+```
+
+The rank-five line is the primitive odd shell:
+
+```text
+odd shell = regular primitive shell - even direct line
+```
+
+This removes the S3 rank-five ambiguity inside the primitive-shell model.  The
+color-only middle control and compressed parity control are rejected.  The
+verdict is:
+
+```text
+QUARK_DOWN_ODD_SHELL_RANK_FIVE_CONDITIONAL_PASS
+```
+
+The remaining premise is:
+
+```text
+down_bottom_reads_full_primitive_odd_shell
+```
+
 ## Verdict summary
 
 - Session 01 verdict: **UNIVERSAL_BATH_SPINE_PASS**.
@@ -740,6 +936,10 @@ charged_lepton_overall_scale_rho_or_mu_e
 - Session 12 verdict: **NEUTRINO_Q_MISMATCH_RETARDED_COMPRESSION_PASS**.
 - Session 13 verdict: **NEUTRINO_BOUNDARY_MATERIAL_ORIGIN_NOT_DERIVED_AUDIT**.
 - Session 14 verdict: **CHARGED_LEPTON_MINIMAL_BOUNDARY_GRAPH_PASS**.
+- Session 15 verdict: **QUARK_SOURCE_FREEZE_NOT_DERIVED_AUDIT**.
+- Session 16 verdict: **QUARK_NORMAL_DEPTH_PLACEMENT_NOT_DERIVED_AUDIT**.
+- Session 17 verdict: **QUARK_ACTIVE_COLOR_RETURN_MICROCANONICAL_CONDITIONAL_PASS**.
+- Session 18 verdict: **QUARK_DOWN_ODD_SHELL_RANK_FIVE_CONDITIONAL_PASS**.
 
 ## Meaning
 
@@ -754,13 +954,21 @@ connected that active plane to the exact BB q-mismatch hard-gap and retarded
 compression model,
 audited that the deeper boundary-material origin of locking/outgoing
 asymptotics is not derived from bare BB blocks,
+packaged the charged-lepton finite CMV head,
+derived the charged-lepton `2/9` torsion as an occupation moment,
 constructed the exact minimal charged-lepton two-sided boundary graph and its
 Koide equipartition residue,
-charged-lepton finite CMV head, derived the charged-lepton `2/9` torsion as an
-occupation moment, implemented the conditional up nilpotent finite head, and
-implemented the conditional down count-level Jacobi head. It has now also
-isolated the two quark-source preconditions: the height-door premise and the
-color-lift/active-return bit.
+implemented the conditional up nilpotent finite head,
+implemented the conditional down count-level Jacobi head,
+and assembled the quark source dependency graph while refusing to freeze
+`V_u,V_d` because the four microscopic source prerequisites remain open. It
+has now also audited the normal-depth prerequisite against the exact
+depth-scar theorem and shown that graph normal-mode depths do not by themselves
+freeze source placements. It has now reduced the active hidden color-return
+bit to the primitive-shell equal-degeneracy / max-entropy prior. The isolated
+quark-source preconditions are: the height-door premise, that microcanonical
+active-return prior, the down bottom odd-shell readout, and the normal-depth
+placements.
 
 The current open gates are now sharper:
 
@@ -777,10 +985,15 @@ The current open gates are now sharper:
 - derive the charged-lepton holonomy selection dynamics beyond the `2/9`
   occupation moment (**Session 14 realizes the graph once the angle is supplied;
   microscopic trace-path and torsion dynamics remain open**);
-- freeze the up/down quark BCC source vectors without flavor data;
+- freeze the up/down quark BCC source vectors without flavor data (**Session
+  15 assembles the exact dependency graph and records this as not yet
+  derived; Session 16 shows the depth-scar spectrum alone does not provide
+  normal-depth source placements**);
 - derive or replace the height-dynamics rule that maps `H_tilde` to the
   oriented nilpotent and `H` to the Hermitian closure;
 - derive or replace the active hidden color-return rule that selects the
-  regular six-channel shell over the spectator three-port shell;
-- derive or kill the down rank-5 bottom-line selection rule;
+  regular six-channel shell over the spectator three-port shell (**Session 17
+  reduces this to the equal-degeneracy / max-entropy primitive-shell prior**);
+- derive or kill the down rank-5 bottom-line selection rule (**Session 18
+  reduces this to the premise that bottom reads the full primitive odd shell**);
 - assemble mixing from Krylov/CMV basis overlaps.

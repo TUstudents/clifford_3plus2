@@ -156,7 +156,7 @@ that selects the target measure rather than reconstructing it; derive or kill
 the down dark-line selection rule; eventually build a simulator-backed boundary
 spectral density.
 
-## universal_bath — Session 14 charged-lepton graph, active
+## universal_bath — Session 18 down odd-shell audit, active
 
 **Goal**: replace inverse spectral-measure reconstruction with a forward bath
 architecture:
@@ -248,6 +248,26 @@ sector response = finite Lanczos head + universal retarded silver tail
   on `e1` gives trace/traceless equipartition and Koide `K=2/3`, and one-trace
   plus one-sided-Hermitian controls are rejected. The trace paths and `2/9`
   torsion dynamics remain inputs.
+- Session 15 assembles the quark source dependency graph. The common residual
+  family incidence basis, SM charge doors, conditional up nilpotent head, and
+  conditional down real-symmetric heads are available. The source freeze is
+  not derived: `V_u,V_d` still lack port vectors, residual components, and
+  normal-depth placements, and four microscopic inputs remain open.
+- Session 16 audits the normal-depth blocker against `depth_scar`. The
+  nilpotent repair flag and `{0,2,6}` normal-mode spectrum are exact, but the
+  path-scar operator is not a diagonal port-depth assignment and doubled port
+  heights are `(0,2,4)`, so this does not freeze `V_u.normal_depth` or
+  `V_d.normal_depth`.
+- Session 17 reduces the active hidden color-return blocker. Inside the
+  primitive six-label shell, equal-degeneracy microcanonical reduction gives
+  `I_6/6` and selects the active `1_direct + 2_BCC + 3_color` shell over the
+  compressed three-port spectator control. The remaining input is the
+  equal-degeneracy / max-entropy prior.
+- Session 18 reduces the down rank-five blocker. In the active primitive shell,
+  the bottom candidate is the full odd shell, the complement of the even direct
+  line, and the strange channel is the BCC odd doublet. The remaining premise
+  is that the physical down bottom readout selects the full primitive odd
+  shell.
 
 **Open**: derive, or audit as irreducible, the deeper boundary-material origin
 of the single-clock locking field and outgoing clock-error asymptotics
@@ -257,7 +277,12 @@ microscopically;
 derive or replace the height-dynamics rule and active hidden color-return rule
 needed to freeze the up/down quark BCC source vectors and normal-depth
 placements without flavor data; derive or kill the down rank-5 bottom-line
-selection rule; assemble mixing from Krylov/CMV basis overlaps.
+selection rule; Session 15 records these as the exact quark source-freeze
+blockers, and Session 16 sharpens the normal-depth blocker into a source
+placement theorem; Session 17 reduces active color return to a primitive-shell
+microcanonical prior; Session 18 reduces the rank-five bottom line to the
+primitive odd-shell readout premise; assemble mixing from Krylov/CMV basis
+overlaps.
 
 ## spacetime_qca — in progress
 

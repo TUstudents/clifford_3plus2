@@ -440,7 +440,103 @@ CHARGED_LEPTON_MINIMAL_BOUNDARY_GRAPH_PASS
 This is a minimal graph realization.  It does not derive the microscopic
 BCC/Higgs origin of the two trace paths or the active `2/9` torsion dynamics.
 
-## Session 15 - Charged-lepton trace-path and torsion origin audit
+## Session 15 - Quark source assembly and freeze audit
+
+Assemble the conditional quark heads and the source-freeze prerequisites in one
+ledger.  The goal is not to fit quark masses.  The gate is:
+
+```text
+Can V_u,V_d be frozen as microscopic BCC family-port sources without flavor data?
+```
+
+Pass the audit only if:
+
+- the common residual family incidence basis from Session 11 is available;
+- SM Higgs charge doors from Session 08A are available;
+- the conditional up nilpotent head from Session 06 is assembled;
+- the conditional down real-symmetric heads from Session 07 and color lift from
+  Session 08B are assembled;
+- unresolved source fields are explicitly reported;
+- the audit refuses to freeze quark sources while these inputs remain open:
+
+```text
+height_dynamics_selects_up_nilpotent_down_hermitian
+microscopic_active_hidden_color_return_selects_regular_s3_shell
+boundary_dynamics_selects_or_kills_down_rank_five_line
+quark_normal_depth_placements_on_bcc_scar_are_frozen
+```
+
+Verdict target:
+
+```text
+QUARK_SOURCE_FREEZE_NOT_DERIVED_AUDIT
+```
+
+## Session 16 - Quark normal-depth placement audit
+
+Audit whether the existing depth-scar theorem already freezes quark source
+normal-depth placements.
+
+Pass the audit only if:
+
+- the Session 15 quark source assembly ledger is available;
+- the nilpotent depth-scar flag `N=|u><a|+|a><b|` passes;
+- the microscopic-locality theorem supplies the conditional filtration
+  `h(u,a,b)=(0,1,2)`;
+- the normal-mode depth spectrum is `{0,2,6}`;
+- the audit shows this does **not** imply `V_u.normal_depth` or
+  `V_d.normal_depth`, because graph depths are normal-mode data, not source
+  placements.
+
+Verdict target:
+
+```text
+QUARK_NORMAL_DEPTH_PLACEMENT_NOT_DERIVED_AUDIT
+```
+
+## Session 17 - Quark active color-return microcanonical audit
+
+Reduce the active hidden color-return blocker using the upstream primitive-shell
+microcanonical theorem.
+
+Pass only if:
+
+- the active hidden color lift reaches the full primitive shell
+  `1_direct + 2_BCC + 3_color`;
+- the spectator shell is a compressed 3-port control;
+- equal-degeneracy microcanonical reduction gives the uniform six-label
+  density `I_6/6`;
+- compressed macrochannel counting gives the rejected `r=1/sqrt(5)`,
+  `phase=pi/4` branch;
+- the audit keeps the equal-degeneracy / max-entropy prior as an input rather
+  than a gauge theorem.
+
+Verdict target:
+
+```text
+QUARK_ACTIVE_COLOR_RETURN_MICROCANONICAL_CONDITIONAL_PASS
+```
+
+## Session 18 - Down odd-shell rank-five audit
+
+Reduce the down rank-five blocker using the active primitive shell.
+
+Pass only if:
+
+- the active primitive shell from Session 17 is available;
+- the full shell, BCC odd doublet, and full odd shell have counts `(6,2,5)`;
+- the rank-five bottom line is the primitive odd shell, i.e. the complement of
+  the even direct line;
+- the BCC odd doublet, not the color triplet, supplies the middle count;
+- the audit keeps the physical bottom readout as a remaining premise.
+
+Verdict target:
+
+```text
+QUARK_DOWN_ODD_SHELL_RANK_FIVE_CONDITIONAL_PASS
+```
+
+## Session 19 - Charged-lepton trace-path and torsion origin audit
 
 Try to derive, or honestly audit as irreducible, the two charged-lepton
 microscopic inputs left by Session 14:
@@ -450,7 +546,7 @@ microscopic_colorless_bcc_higgs_boundary_derives_two_coherent_trace_paths
 active_cmv_torsion_angle_2_over_9_is_generated_by_boundary_dynamics
 ```
 
-## Session 16 - Mixing from Krylov overlaps
+## Session 20 - Mixing from Krylov overlaps
 
 Treat CKM and PMNS as overlaps of sector left-Krylov bases. The powers are the
 first target; prefactors remain conditional until they are head coefficients.
