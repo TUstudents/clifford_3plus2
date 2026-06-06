@@ -156,7 +156,7 @@ that selects the target measure rather than reconstructing it; derive or kill
 the down dark-line selection rule; eventually build a simulator-backed boundary
 spectral density.
 
-## universal_bath — Session 09 audit, active
+## universal_bath — Session 10 internal graph pass, active
 
 **Goal**: replace inverse spectral-measure reconstruction with a forward bath
 architecture:
@@ -223,10 +223,17 @@ sector response = finite Lanczos head + universal retarded silver tail
   family-port nodes. Therefore `<u|H_BCC^k|b>` is not yet a BCC
   walk-counting observable; the `epsilon^4` neutrino result remains protected
   by the product ansatz until that graph is built.
+- Session 10 supplies the selected internal family-port graph
+  `H_fam = H_chain tensor (P_u + P_b) + I tensor Lambda P_a`. Direct graph
+  moments give zero `u/b` cross returns, equal `u/b` diagonal returns, and
+  radial-active separation through the checked finite powers. Closing the
+  active plane with the universal tail gives `epsilon^2 P_u + P_b`. The
+  remaining physical gate is deriving the selected active-plane projector
+  `P_u + P_b` from the microscopic BB edge update rather than imposing it.
 
-**Open**: build the microscopic BCC family-port graph and compute
-`<u|H_BCC^k|b>` without inserting `I_family`; derive the charged-lepton
-holonomy selection dynamics microscopically;
+**Open**: derive the selected active-plane projector `P_u + P_b` from the
+microscopic BB edge update; derive the charged-lepton holonomy selection
+dynamics microscopically;
 derive or replace the height-dynamics rule and active hidden color-return rule
 needed to freeze the up/down quark BCC source vectors and normal-depth
 placements without flavor data; derive or kill the down rank-5 bottom-line

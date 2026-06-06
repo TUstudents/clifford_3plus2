@@ -1,6 +1,6 @@
 # universal_bath - Status
 
-**Status**: Session 09 implemented.
+**Status**: Session 10 implemented.
 
 ## Current theorem-level status
 
@@ -393,6 +393,65 @@ Therefore the true microscopic family moments are not yet defined.  Adding
 no-family control still has a nonzero `u/b` cross return, so the product result
 is sensitive but not microscopic.
 
+## Session 10 selected neutrino family-port graph
+
+Session 10 supplies the family-port graph that Session 09 identified as
+missing.  The graph uses the residual basis:
+
+```text
+u = (1,1,1)/sqrt(3)
+a = (2,-1,-1)/sqrt(6)
+b = (0,1,-1)/sqrt(2)
+```
+
+and splits the selected boundary family space as:
+
+```text
+P_act = P_u + P_b
+P_rad = P_a
+P_act + P_rad = I
+```
+
+with ranks:
+
+```text
+rank(P_act) = 2
+rank(P_rad) = 1
+```
+
+The finite graph is:
+
+```text
+H_fam = H_chain tensor P_act + I tensor Lambda P_rad
+```
+
+It is not the full product graph `H_chain tensor I_family`, because the radial
+`a` mode is not propagated as a third active copy.  Direct finite graph
+moments give:
+
+```text
+<u|H_fam^k|b> = 0,          k = 0..4
+<u|H_fam^k|u> = <b|H_fam^k|b>,  k = 0..4
+<a|H_fam^k|u> = 0,          k = 0..4
+```
+
+Closing the active plane with the universal retarded tail gives:
+
+```text
+Sigma_hat_nu = epsilon^2 P_u + P_b
+```
+
+Controls:
+
+- the full residual `K3` graph fails equal `u/b` diagonal returns;
+- the full product identity graph propagates the radial `a` mode;
+- the rank-one no-family control has nonzero `u/b` cross return;
+- the alternate-tail control fails.
+
+This completes the internal neutrino family-port graph.  The remaining physical
+gate is deriving the selected active-plane boundary condition
+`P_act=P_u+P_b` from the microscopic BB edge update rather than imposing it.
+
 ## Verdict summary
 
 - Session 01 verdict: **UNIVERSAL_BATH_SPINE_PASS**.
@@ -405,6 +464,7 @@ is sensitive but not microscopic.
 - Session 08A verdict: **QUARK_HEIGHT_DOOR_NO_DERIVATION_AUDIT**.
 - Session 08B verdict: **QUARK_COLOR_LIFT_NO_SELECTION_AUDIT**.
 - Session 09 verdict: **NEUTRINO_BCC_MOMENT_GRAPH_NOT_DERIVED_AUDIT**.
+- Session 10 verdict: **NEUTRINO_FAMILY_PORT_GRAPH_INTERNAL_PASS**.
 
 ## Meaning
 
@@ -412,7 +472,8 @@ The sidecar has converted "universal silver tail" into exact Schur/Jacobi/CMV
 algebra, frozen the lepton-side source anchors that are supported upstream,
 certified the neutrino core inside the product half-line bath, audited that the
 current microscopic BB edge update still lacks the family-port graph needed to
-upgrade that product result, built the
+upgrade that product result, supplied the selected internal family-port graph
+whose direct moments give the required `u/b` decoupling, built the
 charged-lepton finite CMV head, derived the charged-lepton `2/9` torsion as an
 occupation moment, implemented the conditional up nilpotent finite head, and
 implemented the conditional down count-level Jacobi head. It has now also
@@ -422,7 +483,10 @@ color-lift/active-return bit.
 The current open gates are now sharper:
 
 - build the microscopic BCC family-port graph and compute
-  `<u|H_BCC^k|b>` without inserting `I_family`;
+  `<u|H_BCC^k|b>` without inserting `I_family` (**internal selected graph
+  supplied in Session 10; physical derivation still open**);
+- derive the selected active-plane condition `P_act=P_u+P_b`, `P_rad=P_a`
+  from the microscopic BB edge update;
 - derive the charged-lepton holonomy selection dynamics beyond the `2/9`
   occupation moment;
 - freeze the up/down quark BCC source vectors without flavor data;

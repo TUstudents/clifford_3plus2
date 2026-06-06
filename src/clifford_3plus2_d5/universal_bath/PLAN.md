@@ -285,7 +285,52 @@ This is not a pass of the neutrino crown. It records that the exact BB edge
 update exists, but the BCC family-port graph needed to define
 `<u|H_BCC^k|b>` has not been built.
 
-## Session 10 - Mixing from Krylov overlaps
+## Session 10 - Selected neutrino family-port graph
+
+Build the missing family-port graph without using flavor data:
+
+```text
+H_fam = H_chain tensor (P_u + P_b) + I tensor Lambda P_a
+```
+
+The selected radial mode `a` is separated. The active neutrino plane `span(u,b)`
+gets two isomorphic radial scar fibers.
+
+Pass only if:
+
+- `P_u + P_b + P_a = I`;
+- the graph differs from `H_chain tensor I_family`;
+- direct graph moments give `<u|H_fam^k|b> = 0` for checked finite powers;
+- direct graph moments give equal `u` and `b` diagonal returns;
+- radial-active moments such as `<a|H_fam^k|u>` vanish;
+- the full residual `K3` graph control fails equal `u/b` returns;
+- the full product identity control propagates the radial `a` mode and is
+  therefore not the selected graph;
+- closing the active plane with the universal retarded tail gives
+  `epsilon^2 P_u + P_b`.
+
+Verdict target:
+
+```text
+NEUTRINO_FAMILY_PORT_GRAPH_INTERNAL_PASS
+```
+
+This completes the internal family-port graph needed by Session 09. It does not
+yet prove that the selected active-plane condition is forced by the microscopic
+BB edge update.
+
+## Session 11 - Derive selected active-plane boundary condition
+
+Try to derive
+
+```text
+P_act = P_u + P_b, P_rad = P_a
+```
+
+from the microscopic BB edge update, selected boundary normal, and residual
+port incidence. This is the physical gate behind Session 10.
+
+## Session 12 - Mixing from Krylov overlaps
 
 Treat CKM and PMNS as overlaps of sector left-Krylov bases. The powers are the
 first target; prefactors remain conditional until they are head coefficients.

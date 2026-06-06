@@ -97,6 +97,7 @@ uv run python -m clifford_3plus2_d5.universal_bath.scripts.session_07_down_quark
 uv run python -m clifford_3plus2_d5.universal_bath.scripts.session_08a_quark_height_door_audit
 uv run python -m clifford_3plus2_d5.universal_bath.scripts.session_08b_quark_color_lift_audit
 uv run python -m clifford_3plus2_d5.universal_bath.scripts.session_09_neutrino_bcc_moment_audit
+uv run python -m clifford_3plus2_d5.universal_bath.scripts.session_10_neutrino_family_port_graph
 ```
 
 Current verdicts:
@@ -111,6 +112,7 @@ Current verdicts:
 - `QUARK_HEIGHT_DOOR_NO_DERIVATION_AUDIT`
 - `QUARK_COLOR_LIFT_NO_SELECTION_AUDIT`
 - `NEUTRINO_BCC_MOMENT_GRAPH_NOT_DERIVED_AUDIT`
+- `NEUTRINO_FAMILY_PORT_GRAPH_INTERNAL_PASS`
 
 Session 02 freezes the supported lepton-side anchors and keeps quark sources
 explicitly unresolved until their BCC source vectors are derived without flavor
@@ -131,3 +133,9 @@ Session 09 audits the strongest neutrino upgrade gate: the exact microscopic
 BB edge update supplies the q=0 scar and leakage blocks, but it has no `u,b`
 family-port graph.  Thus the Session 03 `epsilon^4` result remains internal to
 the product bath until the BCC family-port moment graph is built.
+Session 10 supplies the minimal selected family-port graph: the radial `a`
+mode is separated, the active `u,b` plane carries isomorphic radial scar
+fibers, direct graph moments give zero `u/b` cross returns and equal diagonal
+returns, and the universal tail readout gives `epsilon^2 P_u + P_b`.  The
+remaining physical gate is deriving that selected active-plane condition from
+the microscopic BB edge update.
