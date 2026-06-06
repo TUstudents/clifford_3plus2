@@ -687,7 +687,53 @@ DOWN_IDENTITY_RETURN_VETO_RANK_FIVE_CONDITIONAL_PASS
 This decides the bottom coefficient inside the retarded-current model.  It does
 not derive the physical non-contact criterion from bare BB block algebra.
 
-## Session 24 - Mixing from Krylov overlaps
+## Session 24 - Quark Higgs-door orientation coupling
 
-Treat CKM and PMNS as overlaps of sector left-Krylov bases. The powers are the
-first target; prefactors remain conditional until they are head coefficients.
+Try to derive, or honestly audit as irreducible, the assignment:
+
+```text
+H_tilde -> retarded/oriented flag N
+H       -> Hermitian closure Delta_N
+```
+
+Pass as a theorem only if the available gauge/current/flag geometry rejects the
+swapped assignment.  Pass as an audit if the obstruction is exact and the
+swapped assignment remains allowed.
+
+Checks:
+
+- SM hypercharge still forces the `H_tilde/H` doors;
+- Session 22 supplies the selected-`S2` odd current source;
+- Session 20 supplies one certified flag and its Hermitian closure;
+- endpoint reflection satisfies `R N R = N.T`;
+- `Delta_N` is reflection-invariant;
+- endpoint reflection does not map `N` to `Delta_N`;
+- the declared assignment is constructible;
+- the swapped assignment is also constructible under the same available
+  constraints.
+
+Verdict target:
+
+```text
+QUARK_HIGGS_ORIENTATION_COUPLING_NOT_DERIVED_AUDIT
+```
+
+This would show the missing operation is the dynamical pairing/Hermitian
+closure selected by the direct Higgs door, not Higgs conjugation alone.
+
+## Parked - No automatic Session 25
+
+The sidecar is parked after Session 24.  Do not proceed to CKM/PMNS Krylov
+overlaps as the next automatic session.  Mixing requires quark kernels whose
+door-to-readout assignments are not just conditional.
+
+Reopen only if a new physical principle derives or replaces at least one
+parked dynamical gate, especially:
+
+```text
+H_tilde -> retarded/oriented flag N
+H       -> paired Hermitian current covariance Delta_N
+```
+
+Without that, CKM/PMNS assembly would mostly stack conditional overlaps on top
+of the unresolved Higgs-door orientation premise.

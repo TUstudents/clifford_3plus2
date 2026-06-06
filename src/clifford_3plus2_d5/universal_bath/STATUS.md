@@ -1,6 +1,12 @@
 # universal_bath - Status
 
-**Status**: Session 23 implemented.
+**Status**: PARKED after Session 24.  See `CLOSURE.md`.
+
+The sidecar is closed for now because the quark route has reached a genuine
+dynamical blocker: the available symmetry/current/flag data do not derive the
+Higgs-door orientation coupling.  Session 24 shows that endpoint reflection
+maps the flag to `N.T`, not to the Hermitian closure `Delta_N`; the swapped
+assignment remains allowed.
 
 ## Current theorem-level status
 
@@ -1215,6 +1221,85 @@ DOWN_IDENTITY_RETURN_VETO_RANK_FIVE_CONDITIONAL_PASS
 This proves the rank-five coefficient inside the retarded-current model.  It
 does not derive the non-contact criterion from bare BB block algebra.
 
+## Session 24 quark Higgs-door orientation coupling
+
+Session 24 tests the remaining quark keystone:
+
+```text
+H_tilde -> retarded/oriented flag N
+H       -> Hermitian closure Delta_N
+```
+
+The available ingredients pass:
+
+```text
+SM hypercharge forces H_tilde/H doors
+selected-S2 odd current selects b
+depth-scar successor certificate supplies N
+Hermitian closure supplies Delta_N
+```
+
+The endpoint reflection in residual order `(u,a,b)` is:
+
+```text
+R = [[0,0,1],
+     [0,1,0],
+     [1,0,0]]
+```
+
+It obeys:
+
+```text
+R N R = N.T
+```
+
+so Higgs conjugation/reversal supplies the reverse flag.  The down operator is
+the paired Hermitian closure:
+
+```text
+Delta_N = N N.T + N.T N - (N + N.T)
+```
+
+and it is reflection-invariant:
+
+```text
+R Delta_N R = Delta_N
+```
+
+but:
+
+```text
+R N R != Delta_N
+```
+
+Thus conjugation/reversal does not produce the Hermitian closure.  It produces
+the reverse oriented flag, while the down readout needs an additional pairing
+operation.
+
+The declared assignment and the swapped assignment both survive the currently
+encoded gauge, selected-current, and flag constraints:
+
+```text
+declared: H_tilde -> N,       H -> Delta_N
+swapped:  H_tilde -> Delta_N, H -> N
+```
+
+The verdict is:
+
+```text
+QUARK_HIGGS_ORIENTATION_COUPLING_NOT_DERIVED_AUDIT
+```
+
+The remaining premise is still:
+
+```text
+higgs_door_orientation_couples_H_tilde_to_retarded_flag_and_H_to_flag_closure
+```
+
+but it is now sharper: the missing physics is the boundary dynamics that makes
+the direct Higgs door read a paired Hermitian current covariance rather than
+the reverse flag.
+
 ## Verdict summary
 
 - Session 01 verdict: **UNIVERSAL_BATH_SPINE_PASS**.
@@ -1241,6 +1326,7 @@ does not derive the non-contact criterion from bare BB block algebra.
 - Session 21 verdict: **QUARK_ACTIVE_CURRENT_READOUT_CONDITIONAL_PASS**.
 - Session 22 verdict: **QUARK_CURRENT_PARITY_SELECTOR_PASS**.
 - Session 23 verdict: **DOWN_IDENTITY_RETURN_VETO_RANK_FIVE_CONDITIONAL_PASS**.
+- Session 24 verdict: **QUARK_HIGGS_ORIENTATION_COUPLING_NOT_DERIVED_AUDIT**.
 
 ## Meaning
 
@@ -1274,6 +1360,8 @@ reduced the current-source selector by showing that the selected-port `S2`
 odd current is exactly `b`,
 decided the down bottom fork inside the retarded-current model by vetoing the
 direct identity/contact return and selecting the five-channel odd shell,
+audited the Higgs-door orientation coupling and showed that endpoint
+reflection gives `N.T`, not the Hermitian closure `Delta_N`,
 implemented the conditional up nilpotent finite head,
 implemented the conditional down count-level Jacobi head,
 and assembled the quark source dependency graph while refusing to freeze
@@ -1291,7 +1379,7 @@ reduces the source condition to a selected-`S2` odd-current statement; it
 remains conditional until that odd-current dynamics is derived from the
 microscopic colored boundary event.
 
-The current open gates are now sharper:
+The parked gates are now sharper:
 
 - build the microscopic BCC family-port graph and compute
   `<u|H_BCC^k|b>` without inserting `I_family` (**internal selected graph
@@ -1316,7 +1404,9 @@ The current open gates are now sharper:
 - derive or replace the Higgs-door orientation-coupling rule that maps
   `H_tilde` to the retarded/oriented flag readout and `H` to the Hermitian
   closure (**Session 20 shows both repair objects come from one certified
-  successor flag, but hypercharge still permits the swapped assignment**);
+  successor flag, but hypercharge still permits the swapped assignment;
+  Session 24 shows Higgs conjugation/reversal gives `N.T`, not `Delta_N`,
+  so the missing operation is a dynamical pairing/Hermitian closure rule**);
 - derive or replace the active hidden color-return rule that selects the
   regular six-channel shell over the spectator three-port shell (**Session 17
   reduces this to the equal-degeneracy / max-entropy primitive-shell prior**);
@@ -1327,4 +1417,7 @@ The current open gates are now sharper:
   criterion from bare BB dynamics**);
 - derive that a colored quark boundary mass event is a selected-`S2` odd
   boundary current (**Session 22 then forces the line to be `b`**);
-- assemble mixing from Krylov/CMV basis overlaps.
+
+CKM/PMNS mixing from Krylov/CMV overlaps is deliberately parked.  It should not
+be the next automatic session until at least one of the dynamical gates above
+is replaced by a physical principle rather than another conditional audit.

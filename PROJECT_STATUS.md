@@ -156,7 +156,7 @@ that selects the target measure rather than reconstructing it; derive or kill
 the down dark-line selection rule; eventually build a simulator-backed boundary
 spectral density.
 
-## universal_bath — Session 23 down identity-veto, active
+## universal_bath — parked after Session 24
 
 **Goal**: replace inverse spectral-measure reconstruction with a forward bath
 architecture:
@@ -302,6 +302,13 @@ sector response = finite Lanczos head + universal retarded silver tail
   `(6,2,5)/6 -> (1,1/sqrt(3),sqrt(5/6))`. The contact/S3 baseline
   `(6,2,4)/6 -> (1,1/sqrt(3),sqrt(2/3))` remains the rejected control under
   that predicate.
+- Session 24 audits the Higgs-door orientation coupling. Endpoint reflection
+  maps the certified flag as `R N R=N.T`, while the Hermitian down closure
+  `Delta_N=NN.T+N.TN-(N+N.T)` is reflection-invariant and is not produced by
+  reversal alone. The declared assignment `H_tilde -> N`, `H -> Delta_N` and
+  the swapped assignment both survive the current gauge/current/flag
+  constraints, so the door-to-readout rule remains a dynamical boundary
+  premise.
 
 **Open**: derive, or audit as irreducible, the deeper boundary-material origin
 of the single-clock locking field and outgoing clock-error asymptotics
@@ -322,8 +329,14 @@ orientation-coupling rule; Session 21 proposes the active-current source `b`
 and first-passage depth theorem; Session 22 reduces the colored-current
 selection to the selected-`S2` odd-current premise; Session 23 proves the down
 rank-five bottom line inside the non-contact retarded-current model, while the
-material/dynamical origin of that non-contact criterion remains open;
-assemble mixing from Krylov/CMV basis overlaps.
+material/dynamical origin of that non-contact criterion remains open; Session
+24 shows that Higgs conjugation supplies orientation reversal, not the
+Hermitian closure operation needed for the down readout;
+
+**Parked**: do not continue to CKM/mixing inside this sidecar until a new
+physical principle supplies the Higgs-door pairing rule or another parked gate.
+The closure note is
+[`universal_bath/CLOSURE.md`](src/clifford_3plus2_d5/universal_bath/CLOSURE.md).
 
 ## spacetime_qca — in progress
 

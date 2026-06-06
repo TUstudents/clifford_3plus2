@@ -2,6 +2,12 @@
 
 Universal bath sidecar for the flavor and mass theory.
 
+**Status**: parked after Session 24.  See [`CLOSURE.md`](CLOSURE.md).
+
+The sidecar produced a useful universal-tail architecture and sharpened the
+quark source problem, but it is closed for now because the Higgs-door
+orientation coupling remains a dynamical premise rather than a theorem.
+
 The sidecar studies the hypothesis
 
 $$
@@ -111,6 +117,7 @@ uv run python -m clifford_3plus2_d5.universal_bath.scripts.session_20_quark_heig
 uv run python -m clifford_3plus2_d5.universal_bath.scripts.session_21_quark_active_current_readout
 uv run python -m clifford_3plus2_d5.universal_bath.scripts.session_22_quark_current_parity_selector
 uv run python -m clifford_3plus2_d5.universal_bath.scripts.session_23_quark_down_identity_veto
+uv run python -m clifford_3plus2_d5.universal_bath.scripts.session_24_quark_higgs_orientation_coupling
 ```
 
 Current verdicts:
@@ -139,6 +146,7 @@ Current verdicts:
 - `QUARK_ACTIVE_CURRENT_READOUT_CONDITIONAL_PASS`
 - `QUARK_CURRENT_PARITY_SELECTOR_PASS`
 - `DOWN_IDENTITY_RETURN_VETO_RANK_FIVE_CONDITIONAL_PASS`
+- `QUARK_HIGGS_ORIENTATION_COUPLING_NOT_DERIVED_AUDIT`
 
 Session 02 freezes the supported lepton-side anchors and keeps quark sources
 explicitly unresolved until their BCC source vectors are derived without flavor
@@ -240,3 +248,9 @@ returns `2_BCC+3_color`.  Requiring the down mass event to leave the visible
 sheet before returning vetoes the identity line and selects the rank-five
 profile `(1,1/sqrt(3),sqrt(5/6))`; the contact/S3 baseline
 `(1,1/sqrt(3),sqrt(2/3))` remains the rejected control under that predicate.
+Session 24 audits the Higgs-door orientation coupling.  Endpoint reflection
+maps the retarded flag `N` to `N.T`, while the Hermitian closure `Delta_N` is
+reflection-invariant and requires an extra pairing operation.  The declared
+assignment `H_tilde -> N`, `H -> Delta_N` and the swapped assignment remain
+constructible under the current gauge/current/flag constraints, so the
+door-to-readout coupling is not derived.
