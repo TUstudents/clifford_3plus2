@@ -1,6 +1,6 @@
 # universal_bath - Status
 
-**Status**: Session 18 implemented.
+**Status**: Session 21 implemented.
 
 ## Current theorem-level status
 
@@ -919,6 +919,185 @@ The remaining premise is:
 down_bottom_reads_full_primitive_odd_shell
 ```
 
+## Session 19 charged-lepton trace/torsion origin audit
+
+Session 19 audits the two microscopic charged-lepton inputs left by Session 14:
+
+```text
+microscopic_colorless_bcc_higgs_boundary_derives_two_coherent_trace_paths
+active_cmv_torsion_angle_2_over_9_is_generated_by_boundary_dynamics
+```
+
+For `n` coherent trace-return paths, the selected source
+
+```text
+e1 = sqrt(2/3) a + u/sqrt(3)
+```
+
+gives the exact weights
+
+```text
+w_trace(n) = n/(n+2)
+w_perp(n)  = 2/(n+2)
+```
+
+Therefore trace/traceless equipartition uniquely selects:
+
+```text
+n = 2
+```
+
+The Session 14 minimal graph supplies exactly two trace-only pole rows.  The
+one-trace and three-trace controls fail.  Thus the trace count is internally
+sharp, but its microscopic BCC/Higgs origin is not derived.
+
+The torsion side is similarly sharpened.  Session 05 derived:
+
+```text
+p_a p_u = 2/9
+```
+
+as a source-occupation moment, and Session 14 uses exactly that number as a
+real plane-rotation angle:
+
+```text
+theta = -2*pi/3 - 2/9
+```
+
+Session 19 confirms the insertion but does not derive an occupation-to-angle
+dynamics.  The CMV holonomy phase word is distinct from the `2/9` torsion.
+
+The verdict is:
+
+```text
+CHARGED_LEPTON_TRACE_TORSION_ORIGIN_NOT_DERIVED_AUDIT
+```
+
+## Session 20 quark height-orientation bridge audit
+
+Session 20 reduces the height-door premise using the depth-scar successor
+certificate.  The certified active successors are:
+
+```text
+a -> u
+b -> a
+```
+
+so the oriented repair flag is
+
+```text
+N = |u><a| + |a><b|
+```
+
+The declared up repair is exactly this nilpotent flag.  The declared down
+repair is exactly the Hermitian flag-Laplacian closure:
+
+```text
+Delta_N = N N^T + N^T N - (N + N^T)
+```
+
+Thus the two quark repair objects are not independent assumptions:
+
+```text
+up repair   = retarded/oriented readout of N
+down repair = Hermitian closure readout of N
+```
+
+What still does not follow is the coupling of the SM Higgs doors to those
+readouts.  Hypercharge forces:
+
+```text
+up   -> H_tilde
+down -> H
+```
+
+but the swapped repair assignment is still hypercharge-allowed.  The remaining
+premise is now:
+
+```text
+higgs_door_orientation_couples_H_tilde_to_retarded_flag_and_H_to_flag_closure
+```
+
+The verdict is:
+
+```text
+QUARK_HEIGHT_ORIENTATION_BRIDGE_NOT_DERIVED_AUDIT
+```
+
+## Session 21 quark active-current readout
+
+Session 21 implements the new quark-source ansatz:
+
+```text
+quark source = colored active current line b
+```
+
+The selected-incidence geometry already supplies:
+
+```text
+P_rad = P_a
+P_act = P_u + P_b
+```
+
+Inside that active plane, `u` is the scalar trace and `b` is the unique
+non-scalar current line.  In residual coordinates `(u,a,b)`:
+
+```text
+b = (0,0,1)
+```
+
+The certified oriented flag gives:
+
+```text
+N^0 b = b
+N b   = a
+N^2 b = u
+```
+
+so the first-passage orders are:
+
+```text
+n(u,a,b) = (2,1,0)
+```
+
+This replaces the failed idea of reading source depth from the eigenvalues of
+`2 Delta(P3)`.  The closure types give:
+
+```text
+k_up   = 3 n      = (6,3,0)
+k_down = 2(n + 1) = (6,4,2)
+```
+
+The coherent up readout is:
+
+```text
+exp(N/sqrt(2)) b = (1/4) u + (1/sqrt(2)) a + b
+```
+
+so the up profile is:
+
+```text
+(1/4,1/sqrt(2),1)
+```
+
+The down readout is not frozen as a scalar `b` vector.  It is kept as a
+Hermitian current covariance / word-shell measure, with both shell measures
+visible:
+
+```text
+(6,2,4)/6 -> (1,1/sqrt(3),sqrt(2/3))
+(6,2,5)/6 -> (1,1/sqrt(3),sqrt(5/6))
+```
+
+The odd-shell candidate is selected only if one-tick retarded causality vetoes
+the identity/direct return.  That veto is not derived here.
+
+The verdict is:
+
+```text
+QUARK_ACTIVE_CURRENT_READOUT_CONDITIONAL_PASS
+```
+
 ## Verdict summary
 
 - Session 01 verdict: **UNIVERSAL_BATH_SPINE_PASS**.
@@ -940,6 +1119,9 @@ down_bottom_reads_full_primitive_odd_shell
 - Session 16 verdict: **QUARK_NORMAL_DEPTH_PLACEMENT_NOT_DERIVED_AUDIT**.
 - Session 17 verdict: **QUARK_ACTIVE_COLOR_RETURN_MICROCANONICAL_CONDITIONAL_PASS**.
 - Session 18 verdict: **QUARK_DOWN_ODD_SHELL_RANK_FIVE_CONDITIONAL_PASS**.
+- Session 19 verdict: **CHARGED_LEPTON_TRACE_TORSION_ORIGIN_NOT_DERIVED_AUDIT**.
+- Session 20 verdict: **QUARK_HEIGHT_ORIENTATION_BRIDGE_NOT_DERIVED_AUDIT**.
+- Session 21 verdict: **QUARK_ACTIVE_CURRENT_READOUT_CONDITIONAL_PASS**.
 
 ## Meaning
 
@@ -958,6 +1140,17 @@ packaged the charged-lepton finite CMV head,
 derived the charged-lepton `2/9` torsion as an occupation moment,
 constructed the exact minimal charged-lepton two-sided boundary graph and its
 Koide equipartition residue,
+audited the charged-lepton trace/torsion origin and shown that equipartition
+forces exactly two coherent trace paths inside the minimal graph while their
+microscopic BCC/Higgs origin and the `2/9` occupation-to-angle dynamics remain
+open,
+reduced the quark height-door premise by showing that the up nilpotent and down
+Hermitian repair are two readouts of the same certified depth-scar successor
+flag,
+implemented the colored active-current quark ansatz in which the source line is
+`b`, normal depth is first-passage order from `b`, the up profile follows from
+`exp(N/sqrt(2))b`, and the down sector is treated as a Hermitian current
+covariance over shell measures rather than a scalar vector,
 implemented the conditional up nilpotent finite head,
 implemented the conditional down count-level Jacobi head,
 and assembled the quark source dependency graph while refusing to freeze
@@ -966,9 +1159,12 @@ has now also audited the normal-depth prerequisite against the exact
 depth-scar theorem and shown that graph normal-mode depths do not by themselves
 freeze source placements. It has now reduced the active hidden color-return
 bit to the primitive-shell equal-degeneracy / max-entropy prior. The isolated
-quark-source preconditions are: the height-door premise, that microcanonical
-active-return prior, the down bottom odd-shell readout, and the normal-depth
-placements.
+quark-source preconditions are: the Higgs-door orientation-coupling rule, that
+microcanonical active-return prior, the down bottom odd-shell readout, and the
+normal-depth placements.
+Session 21 supplies a better candidate for the normal-depth placements:
+first-passage order from the colored active-current endpoint `b`.  It remains
+conditional until the colored-current source condition itself is derived.
 
 The current open gates are now sharper:
 
@@ -984,16 +1180,25 @@ The current open gates are now sharper:
   model would be required**);
 - derive the charged-lepton holonomy selection dynamics beyond the `2/9`
   occupation moment (**Session 14 realizes the graph once the angle is supplied;
-  microscopic trace-path and torsion dynamics remain open**);
+  Session 19 proves that equipartition forces two coherent trace paths inside
+  the minimal graph, but microscopic trace-path origin and occupation-to-angle
+  dynamics remain open**);
 - freeze the up/down quark BCC source vectors without flavor data (**Session
   15 assembles the exact dependency graph and records this as not yet
   derived; Session 16 shows the depth-scar spectrum alone does not provide
-  normal-depth source placements**);
-- derive or replace the height-dynamics rule that maps `H_tilde` to the
-  oriented nilpotent and `H` to the Hermitian closure;
+  normal-depth source placements; Session 21 proposes first-passage order from
+  the active current endpoint `b` as the replacement source-depth theorem**);
+- derive or replace the Higgs-door orientation-coupling rule that maps
+  `H_tilde` to the retarded/oriented flag readout and `H` to the Hermitian
+  closure (**Session 20 shows both repair objects come from one certified
+  successor flag, but hypercharge still permits the swapped assignment**);
 - derive or replace the active hidden color-return rule that selects the
   regular six-channel shell over the spectator three-port shell (**Session 17
   reduces this to the equal-degeneracy / max-entropy primitive-shell prior**);
 - derive or kill the down rank-5 bottom-line selection rule (**Session 18
-  reduces this to the premise that bottom reads the full primitive odd shell**);
+  reduces this to the premise that bottom reads the full primitive odd shell;
+  Session 21 reframes this as an identity/direct-return veto in the Hermitian
+  current covariance readout**);
+- derive that a colored quark boundary current must select the active
+  non-scalar line `b`, rather than treating that condition as an ansatz;
 - assemble mixing from Krylov/CMV basis overlaps.

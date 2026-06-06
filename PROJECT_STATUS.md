@@ -268,21 +268,47 @@ sector response = finite Lanczos head + universal retarded silver tail
   line, and the strange channel is the BCC odd doublet. The remaining premise
   is that the physical down bottom readout selects the full primitive odd
   shell.
+- Session 19 audits the charged-lepton trace-path and torsion origin. Inside
+  the minimal graph, `n` coherent trace paths give trace weight `n/(n+2)`, so
+  trace/traceless equipartition uniquely forces `n=2`. The Session 14 graph
+  supplies exactly two trace-only pole rows, and one/three-trace controls fail.
+  This still does not derive those rows from a microscopic colorless BCC/Higgs
+  boundary, and the `2/9` occupation moment is still inserted as a real
+  rotation angle rather than produced by an occupation-to-angle dynamics.
+- Session 20 reduces the quark height-door premise. The depth-scar successor
+  certificate supplies the oriented flag `a -> u`, `b -> a`; the up repair is
+  this nilpotent flag and the down repair is its Hermitian flag-Laplacian
+  closure. Thus the two repair objects are not independent. The remaining
+  open input is the Higgs-door orientation coupling that maps `H_tilde` to the
+  retarded flag readout and `H` to the Hermitian closure.
+- Session 21 implements the colored active-current quark ansatz. Selected
+  incidence gives `P_act=P_u+P_b`, and the non-scalar current condition selects
+  `b`; first-passage from `b` under the certified flag gives orders `(2,1,0)`,
+  hence up depths `(6,3,0)` and down depths `(6,4,2)`. The coherent up readout
+  `exp(N/sqrt(2))b` gives `(1/4,1/sqrt(2),1)`. The down readout is kept as a
+  Hermitian current covariance over shell measures, with baseline `(6,2,4)`
+  and odd-shell `(6,2,5)` alternatives visible until the identity-return veto
+  is derived.
 
 **Open**: derive, or audit as irreducible, the deeper boundary-material origin
 of the single-clock locking field and outgoing clock-error asymptotics
 (Session 13 shows it is not derived from bare BB block algebra); derive the
-charged-lepton two-trace-path and active `2/9` torsion dynamics
-microscopically;
-derive or replace the height-dynamics rule and active hidden color-return rule
-needed to freeze the up/down quark BCC source vectors and normal-depth
-placements without flavor data; derive or kill the down rank-5 bottom-line
-selection rule; Session 15 records these as the exact quark source-freeze
-blockers, and Session 16 sharpens the normal-depth blocker into a source
-placement theorem; Session 17 reduces active color return to a primitive-shell
-microcanonical prior; Session 18 reduces the rank-five bottom line to the
-primitive odd-shell readout premise; assemble mixing from Krylov/CMV basis
-overlaps.
+charged-lepton microscopic two-trace-path origin and active `2/9`
+occupation-to-angle dynamics;
+derive or replace the Higgs-door orientation-coupling rule and active hidden
+color-return rule needed to freeze the up/down quark BCC source vectors and
+normal-depth placements without flavor data; derive or kill the down rank-5
+bottom-line selection rule; Session 15 records these as the exact quark
+source-freeze blockers, and Session 16 sharpens the normal-depth blocker into
+a source placement theorem; Session 17 reduces active color return to a
+primitive-shell microcanonical prior; Session 18 reduces the rank-five bottom
+line to the primitive odd-shell readout premise; Session 19 reduces the
+charged-lepton trace-path question to the microscopic origin of two coherent
+trace returns; Session 20 reduces the quark height premise to a Higgs-door
+orientation-coupling rule; Session 21 proposes the active-current source `b`
+and first-passage depth theorem, but still needs the colored-current selection
+and down identity-return veto;
+assemble mixing from Krylov/CMV basis overlaps.
 
 ## spacetime_qca — in progress
 

@@ -546,7 +546,82 @@ microscopic_colorless_bcc_higgs_boundary_derives_two_coherent_trace_paths
 active_cmv_torsion_angle_2_over_9_is_generated_by_boundary_dynamics
 ```
 
-## Session 20 - Mixing from Krylov overlaps
+Pass the audit only if:
+
+- the Session 14 minimal graph is available;
+- the Session 05 torsion occupation gate is available;
+- the trace/traceless weight formula for `n` coherent trace paths is derived:
+
+```text
+w_trace(n) = n/(n+2),   w_perp(n) = 2/(n+2)
+```
+
+- trace/traceless equipartition uniquely selects `n=2`;
+- the Session 14 graph supplies exactly two trace-only pole rows;
+- one-trace and three-trace controls fail;
+- the audit keeps the BCC/Higgs origin of those two rows open;
+- the audit confirms that `2/9` is inserted as a rotation angle while no
+  occupation-to-angle boundary dynamics is derived.
+
+Verdict target:
+
+```text
+CHARGED_LEPTON_TRACE_TORSION_ORIGIN_NOT_DERIVED_AUDIT
+```
+
+## Session 20 - Quark height-orientation bridge audit
+
+Reduce the height-door premise using the depth-scar successor certificate.
+
+Pass only if:
+
+- Session 08A still shows that hypercharge forces `H_tilde/H` doors but not
+  repair modes;
+- the depth-scar successor certificate supplies the oriented flag
+  `a -> u`, `b -> a`;
+- the up repair is exactly the oriented nilpotent flag;
+- the down repair is exactly the Hermitian flag-Laplacian closure of the same
+  flag;
+- the audit keeps the Higgs-door orientation-coupling rule open rather than
+  pretending it follows from hypercharge.
+
+Verdict target:
+
+```text
+QUARK_HEIGHT_ORIENTATION_BRIDGE_NOT_DERIVED_AUDIT
+```
+
+## Session 21 - Quark active-current readout
+
+Test the source-freeze hypothesis:
+
+```text
+quark source = colored active current line b
+```
+
+rather than the selected scalar port `e1`.
+
+Pass only if:
+
+- Session 11 supplies `P_rad=P_a` and `P_act=P_u+P_b`;
+- the non-scalar active current line is uniquely `b`;
+- first-passage orders from `b` under the certified flag are `(2,1,0)` in
+  light-to-heavy order;
+- coherent up readout `exp(N/sqrt(2)) b` reproduces
+  `(1/4,1/sqrt(2),1)`;
+- the geometric up control is rejected;
+- down is treated as a Hermitian current covariance / word-shell measure, with
+  both `(6,2,4)` and `(6,2,5)` visible;
+- the identity-word veto remains an open microscopic rule, not an inserted
+  data preference.
+
+Verdict target:
+
+```text
+QUARK_ACTIVE_CURRENT_READOUT_CONDITIONAL_PASS
+```
+
+## Session 22 - Mixing from Krylov overlaps
 
 Treat CKM and PMNS as overlaps of sector left-Krylov bases. The powers are the
 first target; prefactors remain conditional until they are head coefficients.

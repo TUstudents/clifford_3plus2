@@ -106,6 +106,9 @@ uv run python -m clifford_3plus2_d5.universal_bath.scripts.session_15_quark_sour
 uv run python -m clifford_3plus2_d5.universal_bath.scripts.session_16_quark_normal_depth_audit
 uv run python -m clifford_3plus2_d5.universal_bath.scripts.session_17_quark_active_color_microcanonical
 uv run python -m clifford_3plus2_d5.universal_bath.scripts.session_18_quark_down_odd_shell
+uv run python -m clifford_3plus2_d5.universal_bath.scripts.session_19_charged_lepton_trace_torsion_origin
+uv run python -m clifford_3plus2_d5.universal_bath.scripts.session_20_quark_height_orientation_bridge
+uv run python -m clifford_3plus2_d5.universal_bath.scripts.session_21_quark_active_current_readout
 ```
 
 Current verdicts:
@@ -129,6 +132,9 @@ Current verdicts:
 - `QUARK_NORMAL_DEPTH_PLACEMENT_NOT_DERIVED_AUDIT`
 - `QUARK_ACTIVE_COLOR_RETURN_MICROCANONICAL_CONDITIONAL_PASS`
 - `QUARK_DOWN_ODD_SHELL_RANK_FIVE_CONDITIONAL_PASS`
+- `CHARGED_LEPTON_TRACE_TORSION_ORIGIN_NOT_DERIVED_AUDIT`
+- `QUARK_HEIGHT_ORIENTATION_BRIDGE_NOT_DERIVED_AUDIT`
+- `QUARK_ACTIVE_CURRENT_READOUT_CONDITIONAL_PASS`
 
 Session 02 freezes the supported lepton-side anchors and keeps quark sources
 explicitly unresolved until their BCC source vectors are derived without flavor
@@ -199,3 +205,21 @@ the bottom candidate is the full odd shell, the complement of the even direct
 line, and the strange middle channel is the BCC odd doublet.  The remaining
 premise is the physical down-head readout that assigns bottom to the full odd
 shell.
+Session 19 audits the charged-lepton trace/torsion origin inputs: `n`
+coherent trace paths give trace weight `n/(n+2)`, so equipartition uniquely
+requires `n=2`, and the minimal graph supplies exactly two trace-only pole
+rows.  But the current BCC/Higgs boundary model does not derive those rows,
+and it still inserts the `2/9` occupation weight as a rotation angle rather
+than deriving an occupation-to-angle dynamics.
+Session 20 reduces the quark height-door premise: the depth-scar successor
+certificate supplies the oriented flag `a -> u`, `b -> a`; the up repair is
+that nilpotent flag and the down repair is its Hermitian flag-Laplacian
+closure.  The remaining input is the Higgs-door orientation coupling that maps
+`H_tilde` to the retarded flag readout and `H` to the Hermitian closure.
+Session 21 implements the colored active-current quark ansatz.  The selected
+active plane is `P_u+P_b`; requiring a non-scalar current selects `b`, and
+first-passage from `b` gives orders `(2,1,0)`, hence up depths `(6,3,0)` and
+down depths `(6,4,2)`.  The up readout `exp(N/sqrt(2))b` gives
+`(1/4,1/sqrt(2),1)`.  Down is kept as a Hermitian current covariance over shell
+measures, with the baseline `(6,2,4)` and odd-shell `(6,2,5)` alternatives
+visible until the identity-return veto is derived.
