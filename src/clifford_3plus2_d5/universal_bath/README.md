@@ -109,6 +109,8 @@ uv run python -m clifford_3plus2_d5.universal_bath.scripts.session_18_quark_down
 uv run python -m clifford_3plus2_d5.universal_bath.scripts.session_19_charged_lepton_trace_torsion_origin
 uv run python -m clifford_3plus2_d5.universal_bath.scripts.session_20_quark_height_orientation_bridge
 uv run python -m clifford_3plus2_d5.universal_bath.scripts.session_21_quark_active_current_readout
+uv run python -m clifford_3plus2_d5.universal_bath.scripts.session_22_quark_current_parity_selector
+uv run python -m clifford_3plus2_d5.universal_bath.scripts.session_23_quark_down_identity_veto
 ```
 
 Current verdicts:
@@ -135,6 +137,8 @@ Current verdicts:
 - `CHARGED_LEPTON_TRACE_TORSION_ORIGIN_NOT_DERIVED_AUDIT`
 - `QUARK_HEIGHT_ORIENTATION_BRIDGE_NOT_DERIVED_AUDIT`
 - `QUARK_ACTIVE_CURRENT_READOUT_CONDITIONAL_PASS`
+- `QUARK_CURRENT_PARITY_SELECTOR_PASS`
+- `DOWN_IDENTITY_RETURN_VETO_RANK_FIVE_CONDITIONAL_PASS`
 
 Session 02 freezes the supported lepton-side anchors and keeps quark sources
 explicitly unresolved until their BCC source vectors are derived without flavor
@@ -223,3 +227,16 @@ down depths `(6,4,2)`.  The up readout `exp(N/sqrt(2))b` gives
 `(1/4,1/sqrt(2),1)`.  Down is kept as a Hermitian current covariance over shell
 measures, with the baseline `(6,2,4)` and odd-shell `(6,2,5)` alternatives
 visible until the identity-return veto is derived.
+Session 22 reduces the current-source selector: the selected-port `S2` swap
+acts on `(u,a,b)` as `diag(+,+,-)`, so the odd projector is exactly `P_b`.
+The oriented current across the two unselected ports is
+`(e2-e3)/sqrt(2)=b`, and intersecting this odd-current line with the active
+plane selects the Session 21 source.  The remaining current premise is now the
+physical statement that a colored quark mass source is a selected-`S2` odd
+boundary current.
+Session 23 decides the down bottom fork inside the retarded-current model.  The
+primitive shell has one direct even identity/contact line and five odd hidden
+returns `2_BCC+3_color`.  Requiring the down mass event to leave the visible
+sheet before returning vetoes the identity line and selects the rank-five
+profile `(1,1/sqrt(3),sqrt(5/6))`; the contact/S3 baseline
+`(1,1/sqrt(3),sqrt(2/3))` remains the rejected control under that predicate.

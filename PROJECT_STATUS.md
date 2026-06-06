@@ -156,7 +156,7 @@ that selects the target measure rather than reconstructing it; derive or kill
 the down dark-line selection rule; eventually build a simulator-backed boundary
 spectral density.
 
-## universal_bath — Session 18 down odd-shell audit, active
+## universal_bath — Session 23 down identity-veto, active
 
 **Goal**: replace inverse spectral-measure reconstruction with a forward bath
 architecture:
@@ -289,6 +289,19 @@ sector response = finite Lanczos head + universal retarded silver tail
   Hermitian current covariance over shell measures, with baseline `(6,2,4)`
   and odd-shell `(6,2,5)` alternatives visible until the identity-return veto
   is derived.
+- Session 22 reduces the current-source selector. The selected-port `S2` swap
+  acts on `(u,a,b)` as `diag(+,+,-)`, so `P_odd=P_b`; the oriented current
+  across the two unselected ports is `(e2-e3)/sqrt(2)=b`; and
+  `P_act P_odd=P_b`. Thus the Session 21 source line is no longer just the
+  active non-scalar choice. It is the unique selected-`S2` odd boundary-current
+  line, conditional on interpreting colored quark mass events as such currents.
+- Session 23 decides the down bottom fork inside the retarded-current model.
+  The primitive shell has one direct even identity/contact line and five odd
+  hidden returns `2_BCC+3_color`. Requiring a down mass event to leave the
+  visible sheet before returning vetoes the identity line and selects
+  `(6,2,5)/6 -> (1,1/sqrt(3),sqrt(5/6))`. The contact/S3 baseline
+  `(6,2,4)/6 -> (1,1/sqrt(3),sqrt(2/3))` remains the rejected control under
+  that predicate.
 
 **Open**: derive, or audit as irreducible, the deeper boundary-material origin
 of the single-clock locking field and outgoing clock-error asymptotics
@@ -306,8 +319,10 @@ line to the primitive odd-shell readout premise; Session 19 reduces the
 charged-lepton trace-path question to the microscopic origin of two coherent
 trace returns; Session 20 reduces the quark height premise to a Higgs-door
 orientation-coupling rule; Session 21 proposes the active-current source `b`
-and first-passage depth theorem, but still needs the colored-current selection
-and down identity-return veto;
+and first-passage depth theorem; Session 22 reduces the colored-current
+selection to the selected-`S2` odd-current premise; Session 23 proves the down
+rank-five bottom line inside the non-contact retarded-current model, while the
+material/dynamical origin of that non-contact criterion remains open;
 assemble mixing from Krylov/CMV basis overlaps.
 
 ## spacetime_qca — in progress

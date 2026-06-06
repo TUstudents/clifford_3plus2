@@ -621,7 +621,73 @@ Verdict target:
 QUARK_ACTIVE_CURRENT_READOUT_CONDITIONAL_PASS
 ```
 
-## Session 22 - Mixing from Krylov overlaps
+## Session 22 - Quark current-parity selector
+
+Reduce the Session 21 current-source ansatz using the selected-port residual
+symmetry.
+
+Pass only if:
+
+- the selected `S2` swap of the two unselected ports acts on `(u,a,b)` as
+  `diag(+,+,-)`;
+- the even projector is `P_u+P_a`;
+- the odd projector is `P_b`;
+- the oriented current across the unselected pair is
+  `(e2-e3)/sqrt(2)=b`;
+- Session 11 active incidence still gives `P_act=P_u+P_b`;
+- active incidence alone is shown insufficient because it also contains the
+  even scalar line `u`;
+- intersecting the active plane with the selected-odd current line selects
+  `b`;
+- scalar `u`, radial `a`, and selected scalar port `e1` controls are rejected.
+
+Verdict target:
+
+```text
+QUARK_CURRENT_PARITY_SELECTOR_PASS
+```
+
+This reduces the old Session 21 premise
+`colored_quark_current_selects_active_non_scalar_b_line` to the sharper
+physical premise
+`colored_quark_mass_source_is_selected_S2_odd_boundary_current`.  It does not
+derive the Higgs-door orientation coupling, the down Hermitian covariance
+readout, or the identity-return veto.
+
+## Session 23 - Down identity-return veto
+
+Decide the down bottom fork inside the retarded-current model:
+
+```text
+sqrt(2/3)  contact/S3 baseline
+sqrt(5/6)  nonidentity odd-current shell
+```
+
+Pass only if:
+
+- Session 21 supplies the Hermitian down current-covariance readout frame;
+- Session 22 supplies the selected-`S2` odd current line;
+- Session 18 supplies the active primitive shell;
+- the primitive shell has a unique identity/direct return line;
+- the finite retarded-current criterion rejects exactly that zero-excursion
+  identity/direct line;
+- the allowed down current returns are exactly the five odd channels
+  `2_BCC + 3_color`;
+- the strange count remains the BCC odd doublet;
+- the retarded count vector is `(6,2,5)`;
+- the contact/S3 baseline `(6,2,4)` is kept as a rejected control under the
+  retarded predicate, not erased.
+
+Verdict target:
+
+```text
+DOWN_IDENTITY_RETURN_VETO_RANK_FIVE_CONDITIONAL_PASS
+```
+
+This decides the bottom coefficient inside the retarded-current model.  It does
+not derive the physical non-contact criterion from bare BB block algebra.
+
+## Session 24 - Mixing from Krylov overlaps
 
 Treat CKM and PMNS as overlaps of sector left-Krylov bases. The powers are the
 first target; prefactors remain conditional until they are head coefficients.

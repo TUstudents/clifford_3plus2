@@ -1,6 +1,6 @@
 # universal_bath - Status
 
-**Status**: Session 21 implemented.
+**Status**: Session 23 implemented.
 
 ## Current theorem-level status
 
@@ -1098,6 +1098,123 @@ The verdict is:
 QUARK_ACTIVE_CURRENT_READOUT_CONDITIONAL_PASS
 ```
 
+## Session 22 quark current-parity selector
+
+Session 22 reduces the Session 21 current-source condition using the selected
+residual symmetry.  Once the first family port is selected, the residual
+symmetry preserving it is the swap of the two unselected ports:
+
+```text
+e2 <-> e3
+```
+
+In residual coordinates `(u,a,b)`, this selected `S2` acts as:
+
+```text
+diag(+,+,-)
+```
+
+Therefore:
+
+```text
+P_even = P_u + P_a
+P_odd  = P_b
+```
+
+The oriented current across the unselected pair is:
+
+```text
+J_23 = (e2-e3)/sqrt(2) = b
+```
+
+Session 11 supplies the active incidence plane:
+
+```text
+P_act = P_u + P_b
+```
+
+The active plane alone is insufficient because it still contains the even
+scalar line `u`.  Intersecting active incidence with the selected-odd current
+line gives:
+
+```text
+P_act P_odd = P_b
+```
+
+Controls:
+
+```text
+selected scalar e1 has no b component
+u is active but even/scalar
+a is even and radial/gapped
+active plane alone is a plane, not a current line
+```
+
+The verdict is:
+
+```text
+QUARK_CURRENT_PARITY_SELECTOR_PASS
+```
+
+This does not derive the full quark source from microscopic BCC dynamics.  It
+reduces the old current-source premise to:
+
+```text
+colored_quark_mass_source_is_selected_S2_odd_boundary_current
+```
+
+## Session 23 down identity-return veto
+
+Session 23 decides the down bottom fork inside the retarded-current model.
+The primitive quark shell is:
+
+```text
+1_even + 5_odd = 1_direct + 2_BCC + 3_color
+```
+
+The finite retarded-current criterion is:
+
+```text
+down mass event leaves the visible sheet before returning
+```
+
+The only zero-excursion return is:
+
+```text
+direct_even_return
+```
+
+so the criterion rejects it.  The allowed retarded returns are exactly the five
+odd current channels:
+
+```text
+2_BCC + 3_color
+```
+
+Therefore the selected retarded down profile is:
+
+```text
+(6,2,5)/6 -> (1,1/sqrt(3),sqrt(5/6))
+```
+
+The contact/S3 baseline remains visible as a control:
+
+```text
+(6,2,4)/6 -> (1,1/sqrt(3),sqrt(2/3))
+```
+
+It fails the nonidentity retarded-current predicate because its bottom count
+is not the five hidden odd returns.
+
+The verdict is:
+
+```text
+DOWN_IDENTITY_RETURN_VETO_RANK_FIVE_CONDITIONAL_PASS
+```
+
+This proves the rank-five coefficient inside the retarded-current model.  It
+does not derive the non-contact criterion from bare BB block algebra.
+
 ## Verdict summary
 
 - Session 01 verdict: **UNIVERSAL_BATH_SPINE_PASS**.
@@ -1122,6 +1239,8 @@ QUARK_ACTIVE_CURRENT_READOUT_CONDITIONAL_PASS
 - Session 19 verdict: **CHARGED_LEPTON_TRACE_TORSION_ORIGIN_NOT_DERIVED_AUDIT**.
 - Session 20 verdict: **QUARK_HEIGHT_ORIENTATION_BRIDGE_NOT_DERIVED_AUDIT**.
 - Session 21 verdict: **QUARK_ACTIVE_CURRENT_READOUT_CONDITIONAL_PASS**.
+- Session 22 verdict: **QUARK_CURRENT_PARITY_SELECTOR_PASS**.
+- Session 23 verdict: **DOWN_IDENTITY_RETURN_VETO_RANK_FIVE_CONDITIONAL_PASS**.
 
 ## Meaning
 
@@ -1151,6 +1270,10 @@ implemented the colored active-current quark ansatz in which the source line is
 `b`, normal depth is first-passage order from `b`, the up profile follows from
 `exp(N/sqrt(2))b`, and the down sector is treated as a Hermitian current
 covariance over shell measures rather than a scalar vector,
+reduced the current-source selector by showing that the selected-port `S2`
+odd current is exactly `b`,
+decided the down bottom fork inside the retarded-current model by vetoing the
+direct identity/contact return and selecting the five-channel odd shell,
 implemented the conditional up nilpotent finite head,
 implemented the conditional down count-level Jacobi head,
 and assembled the quark source dependency graph while refusing to freeze
@@ -1160,11 +1283,13 @@ depth-scar theorem and shown that graph normal-mode depths do not by themselves
 freeze source placements. It has now reduced the active hidden color-return
 bit to the primitive-shell equal-degeneracy / max-entropy prior. The isolated
 quark-source preconditions are: the Higgs-door orientation-coupling rule, that
-microcanonical active-return prior, the down bottom odd-shell readout, and the
-normal-depth placements.
+microcanonical active-return prior, the non-contact retarded down-current rule,
+and the normal-depth placements.
 Session 21 supplies a better candidate for the normal-depth placements:
-first-passage order from the colored active-current endpoint `b`.  It remains
-conditional until the colored-current source condition itself is derived.
+first-passage order from the colored active-current endpoint `b`.  Session 22
+reduces the source condition to a selected-`S2` odd-current statement; it
+remains conditional until that odd-current dynamics is derived from the
+microscopic colored boundary event.
 
 The current open gates are now sharper:
 
@@ -1195,10 +1320,11 @@ The current open gates are now sharper:
 - derive or replace the active hidden color-return rule that selects the
   regular six-channel shell over the spectator three-port shell (**Session 17
   reduces this to the equal-degeneracy / max-entropy primitive-shell prior**);
-- derive or kill the down rank-5 bottom-line selection rule (**Session 18
-  reduces this to the premise that bottom reads the full primitive odd shell;
-  Session 21 reframes this as an identity/direct-return veto in the Hermitian
-  current covariance readout**);
-- derive that a colored quark boundary current must select the active
-  non-scalar line `b`, rather than treating that condition as an ansatz;
+- derive or replace the non-contact retarded down-current rule (**Session 18
+  reduces rank five to the full primitive odd shell; Session 21 reframes this
+  as an identity/direct-return veto; Session 23 proves the veto selects
+  `(6,2,5)` inside the retarded-current model, but does not derive the
+  criterion from bare BB dynamics**);
+- derive that a colored quark boundary mass event is a selected-`S2` odd
+  boundary current (**Session 22 then forces the line to be `b`**);
 - assemble mixing from Krylov/CMV basis overlaps.
