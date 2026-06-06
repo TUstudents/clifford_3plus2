@@ -200,7 +200,7 @@ def quark_color_lift_payload() -> QuarkColorLiftPayload:
     spectator = spectator_color_embedding()
     active = active_color_embedding()
 
-    height_pass = height.final_verdict == "QUARK_HEIGHT_DOOR_AUDIT_CONDITIONAL_PASS"
+    height_pass = height.final_verdict == "QUARK_HEIGHT_DOOR_NO_DERIVATION_AUDIT"
     shell_pass = shell.final_verdict == "QUARK_BOUNDARY_SHELL_Q1_PASS"
     fixed_rejected = not fixed.commutes_with_su3 and not fixed.visible_color_scalar
     spectator_preserves = spectator.commutes_with_su3 and spectator.visible_color_scalar
@@ -243,7 +243,7 @@ def quark_color_lift_payload() -> QuarkColorLiftPayload:
     )
 
     if checks_pass:
-        final_verdict = "QUARK_COLOR_LIFT_AUDIT_CONDITIONAL_PASS"
+        final_verdict = "QUARK_COLOR_LIFT_NO_SELECTION_AUDIT"
         interpretation = (
             "Visible color covariance rejects a fixed color vector.  Both the "
             "spectator and active embeddings are visible color scalars, so "

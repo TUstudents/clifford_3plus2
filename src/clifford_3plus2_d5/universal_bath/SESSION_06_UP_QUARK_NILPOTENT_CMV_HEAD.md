@@ -77,7 +77,7 @@ $$
 The certificate verdict is:
 
 ```text
-UP_NILPOTENT_CMV_HEAD_CONDITIONAL_PASS
+UP_NILPOTENT_HEAD_CONDITIONAL_PASS
 ```
 
 Meaning:

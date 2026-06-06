@@ -46,7 +46,7 @@ interpretation that any two-channel source automatically gives $2/9$.
 The certificate verdict is:
 
 ```text
-CHARGED_LEPTON_TORSION_2_OVER_9_PASS
+CHARGED_LEPTON_2_OVER_9_OCCUPATION_PASS
 ```
 
 Meaning:

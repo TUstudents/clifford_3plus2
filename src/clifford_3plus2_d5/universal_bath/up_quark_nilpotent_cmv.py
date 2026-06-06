@@ -185,7 +185,7 @@ def up_quark_nilpotent_cmv_payload() -> UpQuarkNilpotentCMVPayload:
     )
 
     if checks_pass:
-        final_verdict = "UP_NILPOTENT_CMV_HEAD_CONDITIONAL_PASS"
+        final_verdict = "UP_NILPOTENT_HEAD_CONDITIONAL_PASS"
         interpretation = (
             "The BB same-normal survival branch gives weight 1/2 and injection "
             "amplitude x=1/sqrt(2).  Feeding that value into the length-3 "

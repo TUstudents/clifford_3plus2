@@ -67,7 +67,7 @@ indefinite/look-ahead because the physical down bath has not been constructed.
 The certificate verdict is:
 
 ```text
-DOWN_INDEFINITE_JACOBI_HEAD_CONDITIONAL_PASS
+DOWN_HEAD_FORK_LOCALIZED_PASS
 ```
 
 Meaning:

@@ -97,11 +97,12 @@ to verify:
 Verdict target:
 
 ```text
-NEUTRINO_PRODUCT_BATH_CORE_PASS
+NEUTRINO_PRODUCT_BATH_INTERNAL_PASS
 ```
 
-This is `C:9` inside the product half-line bath and `C:7` as a physical
-mechanism until product factorization is derived microscopically.
+This is `C:9` inside the product half-line bath. Session 09 blocks the physical
+upgrade until a microscopic BCC family-port graph defines the `u/b` cross
+moments without inserting `I_family`.
 
 ## Session 04 - Charged-lepton CMV/OPUC head
 
@@ -130,7 +131,7 @@ and builds an exact two-state CMV/Givens head followed by the free OPUC tail
 Verdict target:
 
 ```text
-CHARGED_LEPTON_CMV_HEAD_PASS
+CHARGED_LEPTON_CMV_HEAD_PACKAGING_PASS
 ```
 
 This session does not derive charged-lepton masses and does not assemble PMNS.
@@ -165,7 +166,7 @@ phase or charged-lepton masses.
 Verdict target:
 
 ```text
-CHARGED_LEPTON_TORSION_2_OVER_9_PASS
+CHARGED_LEPTON_2_OVER_9_OCCUPATION_PASS
 ```
 
 ## Session 06 - Up-quark nilpotent CMV head
@@ -183,7 +184,7 @@ unfrozen in the Session 02 dictionary.
 Verdict target:
 
 ```text
-UP_NILPOTENT_CMV_HEAD_CONDITIONAL_PASS
+UP_NILPOTENT_HEAD_CONDITIONAL_PASS
 ```
 
 ## Session 07 - Down-quark indefinite symmetric head
@@ -200,7 +201,7 @@ rank-5 line.
 Verdict target:
 
 ```text
-DOWN_INDEFINITE_JACOBI_HEAD_CONDITIONAL_PASS
+DOWN_HEAD_FORK_LOCALIZED_PASS
 ```
 
 ## Session 08A - Quark height-door audit
@@ -221,7 +222,7 @@ Pass only if:
 Verdict target:
 
 ```text
-QUARK_HEIGHT_DOOR_AUDIT_CONDITIONAL_PASS
+QUARK_HEIGHT_DOOR_NO_DERIVATION_AUDIT
 ```
 
 This session does not freeze `V_u` or `V_d`.
@@ -243,10 +244,48 @@ Pass only if:
 Verdict target:
 
 ```text
-QUARK_COLOR_LIFT_AUDIT_CONDITIONAL_PASS
+QUARK_COLOR_LIFT_NO_SELECTION_AUDIT
 ```
 
-## Session 09 - Mixing from Krylov overlaps
+## Session 09 - Neutrino microscopic BCC moment audit
+
+Attack the strongest product-bath premise before assembling more sectors.
+Session 03 vanishing cross moments are internal to
+
+```text
+H_Q = H_chain tensor I_family
+```
+
+and are automatic from the inserted family identity.  The microscopic gate is:
+
+```text
+<u|H_BCC^k|b>, k = 0,1,2,3,4
+```
+
+computed from a BCC boundary graph carrying the `u` and `b` family ports.
+
+The implemented Session 09 audit checks the currently available microscopic BB
+edge update:
+
+- exact q=0 same-normal norm `I/2`;
+- exact q=+-2 mixed-normal leakage norm `I/2`;
+- total edge norm `I`;
+- Session 03 product-bath cross moments still vanish internally;
+- the rank-one no-family control still has cross return;
+- the current microscopic BB edge graph has spinor/q-depth labels but no `u,b`
+  family-port labels.
+
+Verdict target:
+
+```text
+NEUTRINO_BCC_MOMENT_GRAPH_NOT_DERIVED_AUDIT
+```
+
+This is not a pass of the neutrino crown. It records that the exact BB edge
+update exists, but the BCC family-port graph needed to define
+`<u|H_BCC^k|b>` has not been built.
+
+## Session 10 - Mixing from Krylov overlaps
 
 Treat CKM and PMNS as overlaps of sector left-Krylov bases. The powers are the
 first target; prefactors remain conditional until they are head coefficients.

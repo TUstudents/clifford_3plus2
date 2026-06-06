@@ -97,7 +97,7 @@ boundary-return selection rule.
 The certificate verdict is:
 
 ```text
-QUARK_COLOR_LIFT_AUDIT_CONDITIONAL_PASS
+QUARK_COLOR_LIFT_NO_SELECTION_AUDIT
 ```
 
 Meaning:

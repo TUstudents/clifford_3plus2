@@ -90,7 +90,7 @@ def test_b_leakage_control_is_rejected() -> None:
 def test_charged_lepton_cmv_head_payload_reports_pass_and_parks_pmns() -> None:
     payload = charged_lepton_cmv_head_payload()
 
-    assert payload.final_verdict == "CHARGED_LEPTON_CMV_HEAD_PASS"
+    assert payload.final_verdict == "CHARGED_LEPTON_CMV_HEAD_PACKAGING_PASS"
     assert payload.source_dictionary_pass
     assert payload.holonomy_prerequisite_pass
     assert payload.source_label == CHARGED_LEPTON_SOURCE_LABEL

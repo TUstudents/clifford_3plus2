@@ -116,12 +116,13 @@ together.
 The certificate verdict is:
 
 ```text
-NEUTRINO_PRODUCT_BATH_CORE_PASS
+NEUTRINO_PRODUCT_BATH_INTERNAL_PASS
 ```
 
 Meaning:
 
 - `C:9` inside the stated product half-line bath;
-- `C:7` as a physical neutrino boundary mechanism until the product
-  factorization is derived from a microscopic BCC/QCA boundary graph;
+- physical upgrade blocked by Session 09 until a microscopic BCC family-port
+  graph defines $\langle u|H_{\rm BCC}^k|b\rangle$ without inserting
+  $I_{\rm fam}$;
 - PMNS, charged leptons, quarks, and CKM remain parked.

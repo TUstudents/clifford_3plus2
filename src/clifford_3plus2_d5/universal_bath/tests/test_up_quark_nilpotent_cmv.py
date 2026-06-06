@@ -59,7 +59,7 @@ def test_finite_nilpotent_head_is_inside_disk_then_free_tail() -> None:
 def test_up_quark_nilpotent_cmv_payload_reports_conditional_pass() -> None:
     payload = up_quark_nilpotent_cmv_payload()
 
-    assert payload.final_verdict == "UP_NILPOTENT_CMV_HEAD_CONDITIONAL_PASS"
+    assert payload.final_verdict == "UP_NILPOTENT_HEAD_CONDITIONAL_PASS"
     assert payload.source_dictionary_pass
     assert payload.quark_source_unresolved
     assert payload.scalar_clebsch_prerequisite_pass

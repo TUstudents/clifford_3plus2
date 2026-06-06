@@ -97,7 +97,7 @@ def test_negative_controls_are_rejected() -> None:
 def test_neutrino_product_bath_payload_reports_core_pass() -> None:
     payload = neutrino_product_bath_payload()
 
-    assert payload.final_verdict == "NEUTRINO_PRODUCT_BATH_CORE_PASS"
+    assert payload.final_verdict == "NEUTRINO_PRODUCT_BATH_INTERNAL_PASS"
     assert payload.source_dictionary_pass
     assert payload.frozen_neutrino_sources == NEUTRINO_SOURCE_LABELS
     assert payload.checked_moment_powers == (0, 1, 2, 3, 4)

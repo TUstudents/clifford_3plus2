@@ -68,7 +68,7 @@ def test_su3_return_contraction_is_color_scalar() -> None:
 def test_quark_color_lift_payload_reports_conditional_pass_not_source_freeze() -> None:
     payload = quark_color_lift_payload()
 
-    assert payload.final_verdict == "QUARK_COLOR_LIFT_AUDIT_CONDITIONAL_PASS"
+    assert payload.final_verdict == "QUARK_COLOR_LIFT_NO_SELECTION_AUDIT"
     assert payload.height_door_prerequisite_pass
     assert payload.quark_shell_prerequisite_pass
     assert payload.fixed_color_rejected

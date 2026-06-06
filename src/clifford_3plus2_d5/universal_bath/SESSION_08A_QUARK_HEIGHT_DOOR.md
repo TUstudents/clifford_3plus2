@@ -91,7 +91,7 @@ down -> Hermitian path closure
 The certificate verdict is:
 
 ```text
-QUARK_HEIGHT_DOOR_AUDIT_CONDITIONAL_PASS
+QUARK_HEIGHT_DOOR_NO_DERIVATION_AUDIT
 ```
 
 Meaning:

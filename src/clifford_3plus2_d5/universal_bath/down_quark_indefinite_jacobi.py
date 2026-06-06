@@ -247,7 +247,7 @@ def down_quark_indefinite_jacobi_payload() -> DownQuarkIndefiniteJacobiPayload:
     )
 
     if checks_pass:
-        final_verdict = "DOWN_INDEFINITE_JACOBI_HEAD_CONDITIONAL_PASS"
+        final_verdict = "DOWN_HEAD_FORK_LOCALIZED_PASS"
         interpretation = (
             "The down real-symmetric head comparison is implemented.  The "
             "3-port shell and the regular S3 shell both reproduce the clean "

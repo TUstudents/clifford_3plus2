@@ -96,23 +96,25 @@ uv run python -m clifford_3plus2_d5.universal_bath.scripts.session_06_up_quark_n
 uv run python -m clifford_3plus2_d5.universal_bath.scripts.session_07_down_quark_indefinite_jacobi_head
 uv run python -m clifford_3plus2_d5.universal_bath.scripts.session_08a_quark_height_door_audit
 uv run python -m clifford_3plus2_d5.universal_bath.scripts.session_08b_quark_color_lift_audit
+uv run python -m clifford_3plus2_d5.universal_bath.scripts.session_09_neutrino_bcc_moment_audit
 ```
 
 Current verdicts:
 
 - `UNIVERSAL_BATH_SPINE_PASS`
 - `SOURCE_DICTIONARY_CORE_PASS`
-- `NEUTRINO_PRODUCT_BATH_CORE_PASS`
-- `CHARGED_LEPTON_CMV_HEAD_PASS`
-- `CHARGED_LEPTON_TORSION_2_OVER_9_PASS`
-- `UP_NILPOTENT_CMV_HEAD_CONDITIONAL_PASS`
-- `DOWN_INDEFINITE_JACOBI_HEAD_CONDITIONAL_PASS`
-- `QUARK_HEIGHT_DOOR_AUDIT_CONDITIONAL_PASS`
-- `QUARK_COLOR_LIFT_AUDIT_CONDITIONAL_PASS`
+- `NEUTRINO_PRODUCT_BATH_INTERNAL_PASS`
+- `CHARGED_LEPTON_CMV_HEAD_PACKAGING_PASS`
+- `CHARGED_LEPTON_2_OVER_9_OCCUPATION_PASS`
+- `UP_NILPOTENT_HEAD_CONDITIONAL_PASS`
+- `DOWN_HEAD_FORK_LOCALIZED_PASS`
+- `QUARK_HEIGHT_DOOR_NO_DERIVATION_AUDIT`
+- `QUARK_COLOR_LIFT_NO_SELECTION_AUDIT`
+- `NEUTRINO_BCC_MOMENT_GRAPH_NOT_DERIVED_AUDIT`
 
 Session 02 freezes the supported lepton-side anchors and keeps quark sources
 explicitly unresolved until their BCC source vectors are derived without flavor
-data. Session 03 proves the neutrino core inside the product half-line bath,
+data. Session 03 certifies the neutrino core inside the product half-line bath,
 with the physical product-factorization premise still named. Session 04 builds
 the charged-lepton finite CMV head and keeps PMNS assembly parked. Session 05
 derives `2/9` as the frozen charged-lepton source occupation transition
@@ -125,3 +127,7 @@ coherent-up/Hermitian-down height split is not derived from hypercharge alone.
 Session 08B rejects a fixed visible color vector, then separates color-scalar
 spectator return from active hidden color return; the latter reaches the
 regular six-channel shell but is not selected by gauge covariance alone.
+Session 09 audits the strongest neutrino upgrade gate: the exact microscopic
+BB edge update supplies the q=0 scar and leakage blocks, but it has no `u,b`
+family-port graph.  Thus the Session 03 `epsilon^4` result remains internal to
+the product bath until the BCC family-port moment graph is built.

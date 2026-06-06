@@ -43,7 +43,7 @@ def test_equal_and_one_port_controls_are_rejected() -> None:
 def test_charged_lepton_torsion_payload_reports_pass_but_not_phase_derivation() -> None:
     payload = charged_lepton_torsion_payload()
 
-    assert payload.final_verdict == "CHARGED_LEPTON_TORSION_2_OVER_9_PASS"
+    assert payload.final_verdict == "CHARGED_LEPTON_2_OVER_9_OCCUPATION_PASS"
     assert payload.source_dictionary_pass
     assert payload.source_reduction == ReductionKind.CMV_OPUC
     assert payload.occupation_weights_normalized

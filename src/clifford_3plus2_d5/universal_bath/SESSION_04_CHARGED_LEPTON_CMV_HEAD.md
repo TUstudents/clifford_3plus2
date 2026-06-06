@@ -102,7 +102,7 @@ $$
 The certificate verdict is:
 
 ```text
-CHARGED_LEPTON_CMV_HEAD_PASS
+CHARGED_LEPTON_CMV_HEAD_PACKAGING_PASS
 ```
 
 Meaning:

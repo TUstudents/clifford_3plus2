@@ -243,7 +243,7 @@ def quark_height_door_payload() -> QuarkHeightDoorPayload:
     )
 
     if checks_pass:
-        final_verdict = "QUARK_HEIGHT_DOOR_AUDIT_CONDITIONAL_PASS"
+        final_verdict = "QUARK_HEIGHT_DOOR_NO_DERIVATION_AUDIT"
         interpretation = (
             "The SM charges force H_tilde for up and H for down, with neutral "
             "Higgs components.  The declared height-door assignment then maps "

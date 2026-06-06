@@ -1,6 +1,6 @@
 # universal_bath - Status
 
-**Status**: Session 08A/08B implemented.
+**Status**: Session 09 implemented.
 
 ## Current theorem-level status
 
@@ -340,23 +340,79 @@ available:
 Gauge covariance alone rejects fixed color but does not select active over
 spectator. The microscopic active-return selection rule remains open.
 
+## Session 09 neutrino BCC moment audit
+
+Session 09 audits the strongest upgrade gate for the neutrino sector.  Session
+03 checks
+
+```text
+H_Q = H_chain tensor I_family
+```
+
+so its `u/b` cross moments vanish by the product family factor.  Session 09
+asks whether the currently modeled microscopic BB edge update can instead
+compute
+
+```text
+<u|H_BCC^k|b>
+```
+
+as a BCC walk-counting observable.
+
+The exact microscopic edge data pass:
+
+```text
+B_+^* B_+ + B_-^* B_- = I/2
+M_+2^* M_+2 + M_-2^* M_-2 = I/2
+```
+
+and therefore the local same-normal/leakage split is exact:
+
+```text
+I/2 + I/2 = I
+```
+
+However, the current microscopic edge graph has only:
+
+```text
+spinor
+q0_same_normal
+q_plus2_leakage
+q_minus2_leakage
+```
+
+It does not yet contain:
+
+```text
+family_port_u
+family_port_b
+```
+
+Therefore the true microscopic family moments are not yet defined.  Adding
+`I_family` would return to the Session 03 product ansatz.  The rank-one
+no-family control still has a nonzero `u/b` cross return, so the product result
+is sensitive but not microscopic.
+
 ## Verdict summary
 
 - Session 01 verdict: **UNIVERSAL_BATH_SPINE_PASS**.
 - Session 02 verdict: **SOURCE_DICTIONARY_CORE_PASS**.
-- Session 03 verdict: **NEUTRINO_PRODUCT_BATH_CORE_PASS**.
-- Session 04 verdict: **CHARGED_LEPTON_CMV_HEAD_PASS**.
-- Session 05 verdict: **CHARGED_LEPTON_TORSION_2_OVER_9_PASS**.
-- Session 06 verdict: **UP_NILPOTENT_CMV_HEAD_CONDITIONAL_PASS**.
-- Session 07 verdict: **DOWN_INDEFINITE_JACOBI_HEAD_CONDITIONAL_PASS**.
-- Session 08A verdict: **QUARK_HEIGHT_DOOR_AUDIT_CONDITIONAL_PASS**.
-- Session 08B verdict: **QUARK_COLOR_LIFT_AUDIT_CONDITIONAL_PASS**.
+- Session 03 verdict: **NEUTRINO_PRODUCT_BATH_INTERNAL_PASS**.
+- Session 04 verdict: **CHARGED_LEPTON_CMV_HEAD_PACKAGING_PASS**.
+- Session 05 verdict: **CHARGED_LEPTON_2_OVER_9_OCCUPATION_PASS**.
+- Session 06 verdict: **UP_NILPOTENT_HEAD_CONDITIONAL_PASS**.
+- Session 07 verdict: **DOWN_HEAD_FORK_LOCALIZED_PASS**.
+- Session 08A verdict: **QUARK_HEIGHT_DOOR_NO_DERIVATION_AUDIT**.
+- Session 08B verdict: **QUARK_COLOR_LIFT_NO_SELECTION_AUDIT**.
+- Session 09 verdict: **NEUTRINO_BCC_MOMENT_GRAPH_NOT_DERIVED_AUDIT**.
 
 ## Meaning
 
 The sidecar has converted "universal silver tail" into exact Schur/Jacobi/CMV
 algebra, frozen the lepton-side source anchors that are supported upstream,
-proved the neutrino core inside the product half-line bath, built the
+certified the neutrino core inside the product half-line bath, audited that the
+current microscopic BB edge update still lacks the family-port graph needed to
+upgrade that product result, built the
 charged-lepton finite CMV head, derived the charged-lepton `2/9` torsion as an
 occupation moment, implemented the conditional up nilpotent finite head, and
 implemented the conditional down count-level Jacobi head. It has now also
@@ -365,7 +421,8 @@ color-lift/active-return bit.
 
 The current open gates are now sharper:
 
-- derive the product factorization from a microscopic BCC/QCA boundary graph;
+- build the microscopic BCC family-port graph and compute
+  `<u|H_BCC^k|b>` without inserting `I_family`;
 - derive the charged-lepton holonomy selection dynamics beyond the `2/9`
   occupation moment;
 - freeze the up/down quark BCC source vectors without flavor data;

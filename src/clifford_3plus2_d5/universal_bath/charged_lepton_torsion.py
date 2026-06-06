@@ -148,7 +148,7 @@ def charged_lepton_torsion_payload() -> ChargedLeptonTorsionPayload:
     )
 
     if checks_pass:
-        final_verdict = "CHARGED_LEPTON_TORSION_2_OVER_9_PASS"
+        final_verdict = "CHARGED_LEPTON_2_OVER_9_OCCUPATION_PASS"
         interpretation = (
             "The frozen charged-lepton source e1 has occupation weights "
             "p_a=2/3 and p_u=1/3, so the incoherent a-u transition weight is "

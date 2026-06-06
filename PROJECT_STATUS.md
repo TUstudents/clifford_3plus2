@@ -156,7 +156,7 @@ that selects the target measure rather than reconstructing it; derive or kill
 the down dark-line selection rule; eventually build a simulator-backed boundary
 spectral density.
 
-## universal_bath — Session 08A/08B pass, active
+## universal_bath — Session 09 audit, active
 
 **Goal**: replace inverse spectral-measure reconstruction with a forward bath
 architecture:
@@ -182,7 +182,7 @@ sector response = finite Lanczos head + universal retarded silver tail
 - The BB source survival identity
   `B_+^*B_+ + B_-^*B_-=I/2` gives every frozen normalized source first-hop
   radial survival weight `1/2`.
-- Session 03 proves the neutrino core inside the product half-line bath:
+- Session 03 certifies the neutrino core only inside the product half-line bath:
   `H_Q = H_chain tensor I_family` gives equal `u`/`b` diagonal returns,
   zero cross-return moments through the checked finite orders, and normalized
   response `epsilon^2 P_u + P_b` at the BB silver probe.
@@ -217,9 +217,16 @@ sector response = finite Lanczos head + universal retarded silver tail
   preserves visible color while reaching `1_direct + 2_BCC + 3_color`, making
   the regular-S3 baseline and rank-five candidate available but not selected by
   gauge covariance alone.
+- Session 09 audits the neutrino product-bath upgrade gate: the exact
+  microscopic BB edge update supplies the q=0 scar and q=+-2 leakage blocks
+  with norm split `I/2 + I/2 = I`, but the current edge graph has no `u,b`
+  family-port nodes. Therefore `<u|H_BCC^k|b>` is not yet a BCC
+  walk-counting observable; the `epsilon^4` neutrino result remains protected
+  by the product ansatz until that graph is built.
 
-**Open**: derive the product factorization from a microscopic BCC/QCA boundary
-graph; derive the charged-lepton holonomy selection dynamics microscopically;
+**Open**: build the microscopic BCC family-port graph and compute
+`<u|H_BCC^k|b>` without inserting `I_family`; derive the charged-lepton
+holonomy selection dynamics microscopically;
 derive or replace the height-dynamics rule and active hidden color-return rule
 needed to freeze the up/down quark BCC source vectors and normal-depth
 placements without flavor data; derive or kill the down rank-5 bottom-line

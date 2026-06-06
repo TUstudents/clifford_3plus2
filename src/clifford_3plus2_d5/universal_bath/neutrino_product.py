@@ -272,7 +272,7 @@ def neutrino_product_bath_payload(
     )
 
     if checks_pass:
-        final_verdict = "NEUTRINO_PRODUCT_BATH_CORE_PASS"
+        final_verdict = "NEUTRINO_PRODUCT_BATH_INTERNAL_PASS"
         interpretation = (
             "With the Session 02 frozen neutrino sources, the product bath "
             "H_chain tensor I_family makes the u and b diagonal return moments "
@@ -280,8 +280,9 @@ def neutrino_product_bath_payload(
             "The normalized semi-infinite response is t(z)^2 P_u + P_b; at "
             "z=2 sqrt(2), t=epsilon, giving epsilon^2 P_u + P_b and the "
             "neutrino mass-squared ratio epsilon^4.  The result is C:9 inside "
-            "the product half-line bath and C:7 as a physical source model "
-            "until product factorization is derived microscopically."
+            "the product half-line bath.  Its physical upgrade is blocked "
+            "until a microscopic BCC family-port graph defines the u/b "
+            "cross moments without inserting I_family."
         )
     else:
         final_verdict = "NEUTRINO_PRODUCT_BATH_KILL"

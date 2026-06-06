@@ -64,7 +64,7 @@ def test_hypercharge_does_not_select_repair_mode_by_itself() -> None:
 def test_quark_height_door_payload_reports_conditional_pass() -> None:
     payload = quark_height_door_payload()
 
-    assert payload.final_verdict == "QUARK_HEIGHT_DOOR_AUDIT_CONDITIONAL_PASS"
+    assert payload.final_verdict == "QUARK_HEIGHT_DOOR_NO_DERIVATION_AUDIT"
     assert payload.source_dictionary_pass
     assert payload.up_source_unresolved
     assert payload.down_source_unresolved

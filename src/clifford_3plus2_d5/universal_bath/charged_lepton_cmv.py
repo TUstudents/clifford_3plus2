@@ -242,7 +242,7 @@ def charged_lepton_cmv_head_payload() -> ChargedLeptonCMVHeadPayload:
     )
 
     if checks_pass:
-        final_verdict = "CHARGED_LEPTON_CMV_HEAD_PASS"
+        final_verdict = "CHARGED_LEPTON_CMV_HEAD_PACKAGING_PASS"
         interpretation = (
             "The frozen charged-lepton source e1 gives the two-step leakage "
             "sin(theta_e)=sqrt(3/2) epsilon^2, and the primitive boundary "

@@ -62,7 +62,7 @@ def test_signature_breakdown_control_is_detected_not_clamped() -> None:
 def test_down_quark_indefinite_jacobi_payload_reports_conditional_pass() -> None:
     payload = down_quark_indefinite_jacobi_payload()
 
-    assert payload.final_verdict == "DOWN_INDEFINITE_JACOBI_HEAD_CONDITIONAL_PASS"
+    assert payload.final_verdict == "DOWN_HEAD_FORK_LOCALIZED_PASS"
     assert payload.source_dictionary_pass
     assert payload.quark_source_unresolved
     assert payload.subset_prerequisite_pass
