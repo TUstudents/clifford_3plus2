@@ -8,7 +8,7 @@ from clifford_3plus2_d5 import qca_smv0
 def test_qca_smv0_sidecar_metadata() -> None:
     assert qca_smv0.SIDECAR_NAME == "qca_smv0"
     assert qca_smv0.SIDECAR_TITLE == "QCA_SMv0"
-    assert qca_smv0.SIDECAR_STATUS == "Infrastructure only"
+    assert qca_smv0.SIDECAR_STATUS == "Stage 1 free BCC Weyl/Dirac walk implemented"
 
 
 def test_qca_smv0_scaffold_files_exist() -> None:

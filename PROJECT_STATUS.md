@@ -78,7 +78,7 @@ physics policy.
 **Boundary**: BCC Weyl/Dirac kernels, BCC plaquettes, Wilson observables, and
 SO(2)/SU(2)/SU(3) force policy remain in `spacetime_qca`.
 
-## qca_smv0 — infrastructure only
+## qca_smv0 — Stage 1 free BCC Weyl/Dirac walk
 
 **Goal**: focused simulator sidecar for the next Standard-Model QCA prototype,
 using the shared `sim` infrastructure and existing `spacetime_qca` kernels only
@@ -88,12 +88,22 @@ through explicit session-scoped imports.
 - Package scaffold.
 - `README.md`, `PLAN.md`, and `STATUS.md`.
 - `scripts/` and `tests/` directories.
-- Metadata-only package exports.
-- Placeholder infrastructure test.
+- Two-component free BCC Weyl state layout `(nx, ny, nz, 2)`.
+- Pauli/projector helpers and eight BCC hop matrices.
+- Pull-convention JAX step `psi_next[x]=sum_h A_h psi[x+h]`.
+- Split-product and hop-sum Bloch symbols.
+- Focused diagnostics for hop completeness, symbol unitarity, norm drift, and
+- small-k Weyl speed.
+- Directional anisotropy scaling audit: phase-speed spread decreases under
+  momentum halving toward the continuum.
+- Massless Dirac assembly from two opposite-chirality Weyl blocks, with Dirac
+  hop completeness, symbol unitarity, periodic norm conservation, and JIT
+  compatibility.
+- Session 01 script and focused tests.
 
-**Boundary**: no simulator kernels, state layouts, physics ledgers, or
-performance claims are implemented yet. The next session must specify the
-first physical simulator target before this sidecar grows.
+**Boundary**: no boundary condition, gauge links, dynamic gauge fields, SM
+carrier beyond the free Dirac spin block, Higgs/Yukawa collision, flavor
+recirculation, or center-holonomy CP is implemented yet.
 
 ## scalar_clebsch — V3 conditional pass, active
 
