@@ -338,6 +338,83 @@ physical principle supplies the Higgs-door pairing rule or another parked gate.
 The closure note is
 [`universal_bath/CLOSURE.md`](src/clifford_3plus2_d5/universal_bath/CLOSURE.md).
 
+## threeclocks — on hold after Session 02
+
+**Goal**: explore a simpler quark-model branch based on finite clocks, without
+importing the full parked universal-bath machinery.
+
+**Result**:
+- Session 01 implements the exact finite-clock spine.
+- The default prototype is:
+
+```text
+Z3 x Z3 x Z3
+```
+
+- The product dimension is `27` and common closure order is `3`.
+- Each local clock has exact shift/phase matrices satisfying:
+
+```text
+Z X = omega X Z
+```
+
+- Clock words compose, invert, and report closure order exactly.
+- A non-uniform control `Z2 x Z3 x Z5` passes with dimension and closure order
+  `30`, so the `Z3^3` default is not hard-wired as a theorem.
+- Session 02 attaches a selected `D3 ~= S3` clock to the three-port family
+  boundary.  With
+
+```text
+u=(1,1,1)/sqrt(3), a=(2,-1,-1)/sqrt(6), b=(0,1,-1)/sqrt(2),
+```
+
+  it proves the exact identities:
+
+```text
+(C e1 - C^-1 e1)/sqrt(2) = b
+(2 e1 - C e1 - C^-1 e1)/sqrt(6) = a
+```
+
+  so `b` is the oriented tangent current and `a` is the radial second
+  difference of the selected tooth.
+- Controls show `spec(2I-C-C^-1)={0,3,3}`, so the three-port D3 Laplacian is
+  not the down shell, and a literal port-basis cut does not equal the target
+  repair flag `N=|u><a|+|a><b|`.
+- Conditional profiles are recorded only as next-gate targets:
+  `C_u=(1/4,1/sqrt(2),1)`, rank-five `C_d=(1,1/sqrt(3),sqrt(5/6))`, and the
+  contact-allowed down control `(1,1/sqrt(3),sqrt(2/3))`.
+
+**Open**: derive or kill the representation-basis repair flag from the D3
+clock defect; embed `B_+ tensor C + B_- tensor C^-1` in a unitary dilation;
+select the active quark shell over the spectator embedding; audit the bottom
+contact veto; derive closure exponents; compute CKM from two-sided clock
+kernels.
+
+**Parked**: this sidecar is on hold until the D3-clock route is resumed.
+
+## cusp — infrastructure initialized, theory pending
+
+**Goal**: provide a clean sidecar location for the upcoming cusp program.
+
+**Implemented**:
+- package directory;
+- scripts directory placeholder;
+- tests directory placeholder;
+- placeholder import test;
+- local README, status, and plan files;
+- root README and pytest-path links.
+
+**Not implemented**:
+- theory modules;
+- session scripts;
+- session notes;
+- proof payloads;
+- sector maps;
+- mass or mixing claims.
+
+**Next action**: wait for the cusp-program theory instructions, then add the
+first focused session module and matching tests.
+
 ## spacetime_qca — in progress
 
 **Goal**: 3D BCC Weyl walk (Bialynicki-Birula 1994) → 4D Dirac chiral

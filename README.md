@@ -19,6 +19,8 @@ matrix algebra, exterior algebra, Spin(10) branching).
 | [`scalar_clebsch`](src/clifford_3plus2_d5/scalar_clebsch/) | **V3 conditional pass, active** | Scalar quark mass-Clebsch sidecar. V2 separates scalar mass coefficients from CKM current amplitudes: the up-sector vector `(1/4,1/√2,1)` follows from a length-3 nilpotent Taylor response with `x=1/√2`; the down sector records the natural S3/projector baseline `(6,2,4) -> (1,1/√3,√(2/3))` and the data-improved odd-shell candidate `(6,2,5) -> (1,1/√3,√(5/6))`. V3 proves `(6,2,5)` is available in the regular S3 algebra but not forced by S3 alone: rank 2 needs a defect-selected standard copy and rank 5 needs a chosen excluded one-dimensional line. |
 | [`radial_response`](src/clifford_3plus2_d5/radial_response/) | **R1–R13 PASS, active** | Radial mass-response sidecar. It reframes quark masses as QCA boundary recirculation residues / pole shifts, proves the Feshbach self-energy form, separates exponential vs geometric up-sector stacking (`1/2` vs `1`), kills literal `exp(xN)` as the family-space Yukawa matrix, derives `x=1/sqrt(2)` only under two-channel no-leakage repair hypotheses, reduces the scalar repair shell to vacuum-framed S3 under named locality premises, inherits the silver transfer root from existing boundary-response ledgers, proves finite S3/silver data do not force poles/residues, and shows the target quark textures are inverse spectral-measure reconstructions rather than forward QCA mass derivations. |
 | [`universal_bath`](src/clifford_3plus2_d5/universal_bath/) | **Parked after Session 24** | Universal spectral-bath sidecar. It turns the bath idea into `finite Lanczos head + universal retarded silver tail`, proves the common Jacobi/Schur spine, records the positive/indefinite/CMV reduction taxonomy, inherits the period-one silver terminator from the BB band-edge theorem, freezes supported lepton-side source anchors, certifies the neutrino core only inside the product half-line bath, audits that the raw microscopic BB edge update lacks the `u,b` family-port graph, supplies the selected internal family-port graph whose direct moments decouple `u` and `b`, derives the `P_u+P_b` active plane from selected-port incidence by detracing `e1`, connects it to BB q-mismatch hard-gap and retarded compression inside the single-clock/outgoing model, audits that the deeper boundary-material origin is not derived from bare BB blocks, constructs the minimal charged-lepton two-sided boundary graph with exact Koide equipartition, derives `2/9` as a source occupation moment, proves that charged-lepton equipartition forces exactly two coherent trace paths inside the minimal graph while leaving their BCC/Higgs origin and the occupation-to-angle dynamics open, localizes the conditional up/down quark finite heads, implements the colored active-current quark ansatz where source `b` gives first-passage depths `(2,1,0)`, proves that `b` is the unique selected-`S2` odd boundary-current line, and selects the down rank-five bottom profile inside the non-contact retarded-current model. Session 24 closes it for now: Higgs conjugation gives flag reversal `N.T`, not the Hermitian closure `Delta_N`, so the door-to-readout coupling remains a dynamical premise. |
+| [`threeclocks`](src/clifford_3plus2_d5/threeclocks/) | **On hold after Session 02** | Simpler quark-model sidecar based on finite clocks. Session 01 implements exact clock specs, shift/phase matrices, Weyl relations, word composition, inverses, and closure orders. Session 02 attaches a selected `D3 ~= S3` clock to the three-port boundary and proves the exact source identities `(C e1-C^-1 e1)/sqrt(2)=b` and `(2e1-Ce1-C^-1e1)/sqrt(6)=a`, identifying `b` as the oriented tangent current and `a` as the radial second difference. Controls keep the repair flag, down shell, contact veto, closure exponents, and CKM as open gates rather than mass claims. |
+| [`cusp`](src/clifford_3plus2_d5/cusp/) | **Infrastructure initialized, theory pending** | New sidecar placeholder for the upcoming cusp program. It currently contains only package/scripts/tests folders, placeholder docs, and a placeholder import test. No theory modules, session scripts, proof payloads, sector maps, mass claims, or mixing claims are recorded yet. |
 
 ### Shared infrastructure
 
@@ -99,6 +101,8 @@ uv run pytest src/clifford_3plus2_d5/depth_scar/tests/ -q
 uv run pytest src/clifford_3plus2_d5/scalar_clebsch/tests/ -q
 uv run pytest src/clifford_3plus2_d5/radial_response/tests/ -q
 uv run pytest src/clifford_3plus2_d5/universal_bath/tests/ -q
+uv run pytest src/clifford_3plus2_d5/threeclocks/tests/ -q
+uv run pytest src/clifford_3plus2_d5/cusp/tests/ -q
 
 # Run a script via module invocation
 uv run python -m clifford_3plus2_d5.obstruction_r10.scripts.gauge_equivalence_check --check
@@ -150,6 +154,13 @@ module. Each module asks a different question and answers honestly:
   conjugation gives `N.T` rather than `Delta_N`, and the
   height-door/color-lift/current-parity audits reduce the unresolved up/down
   source-vector problem to named microscopic selection rules.
+- `threeclocks` is on hold as a simpler quark-model branch with exact finite-clock
+  infrastructure and the first D3 source identity: `b` is the selected clock's
+  oriented tangent current while `a` is its radial second difference.  It keeps
+  the representation-basis repair flag, active down shell, contact veto,
+  closure exponents, and CKM frames behind explicit finite gates.
+- `cusp` is only initialized infrastructure for a future cusp-program sidecar;
+  its theory content is intentionally pending.
 - The closed sidecars (`triality`, `broken_triality`, `exceptional`, `topology`) cumulatively rule out the algebraic routes to three generations.
 - The closed-PASS sidecars (`sme`, `strongcp`, `koide`) check consistency with current experimental bounds and identify the residual physical inputs.
 
