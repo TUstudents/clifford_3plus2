@@ -22,7 +22,8 @@ It should not be used for:
 
 ## Current State
 
-Stage 1 implements the free BCC Weyl/Dirac bulk walk:
+Stage 2 implements the free BCC Weyl/Dirac bulk walk plus static
+Standard-Model gauge-background transport:
 
 ```text
 qca_smv0/
@@ -31,10 +32,13 @@ qca_smv0/
   STATUS.md
   __init__.py
   bulk_bcc.py
+  sm_gauge.py
   scripts/
     session_01_bare_bcc_walk.py
+    session_02_static_sm_gauge_background.py
   tests/
     test_bulk_bcc.py
+    test_sm_gauge.py
 ```
 
 The implemented Weyl kernel is a two-component periodic BCC bulk walk:
@@ -72,9 +76,26 @@ Stage 1 also includes:
 - massless Dirac assembly from opposite-chirality Weyl blocks;
 - JIT compatibility checks.
 
-No boundary, gauge links, dynamic gauge fields, Higgs field, Standard Model
-carrier beyond the free Dirac spin block, flavor register, or recirculation
-module is implemented yet.
+Stage 2 adds a static background gauge layer:
+
+- a local 32-component internal SM carrier: one left-handed chiral-16 label set
+  duplicated across the four-component Dirac spin block;
+- local anti-Hermitian `SU(3)_c x SU(2)_L x U(1)_Y` generators;
+- finite BCC edge links with shape `(nx, ny, nz, 8, 32, 32)`;
+- a gauge-covariant Dirac BCC step through those static links;
+- site-local gauge transformations of states and links;
+- selected BCC plaquette Wilson traces;
+- weak-link linearization as the simulator covariant-derivative check;
+- JIT compatibility for the gauged transport step.
+
+Stage 2 verdict:
+
+```text
+QCA_SMV0_STAGE2_STATIC_SM_GAUGE_PASS
+```
+
+Dynamic gauge fields, Higgs/Yukawa collision, boundary rules, flavor register,
+FN recirculation, and center-holonomy CP are not implemented yet.
 
 ## Reuse Boundary
 
@@ -82,8 +103,12 @@ Allowed upstream infrastructure:
 
 - `clifford_3plus2_d5.sim` for generic JAX state, links, scan runners, profiling,
   and persistence;
-- `clifford_3plus2_d5.spacetime_qca` for existing BCC/BB/QCA kernels when a
-  session explicitly imports them.
+- `clifford_3plus2_d5.qca_smv0` local modules for the Stage 1/2 kernels.
+
+This sidecar should not import from `spacetime_qca`, `lepton`, `cusp`, or other
+theory sidecars.  If later work needs an older QCA kernel, copy/adapt the code
+locally so this simulator can change orderings and performance boundaries
+without changing the older sidecars.
 
 Future sessions should keep imports narrow and run only the tests for the
 current session.
@@ -92,5 +117,6 @@ current session.
 
 ```bash
 uv run python -m clifford_3plus2_d5.qca_smv0.scripts.session_01_bare_bcc_walk
+uv run python -m clifford_3plus2_d5.qca_smv0.scripts.session_02_static_sm_gauge_background
 uv run pytest src/clifford_3plus2_d5/qca_smv0/tests -q
 ```

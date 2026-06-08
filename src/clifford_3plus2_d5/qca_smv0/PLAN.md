@@ -57,15 +57,44 @@ Verdict:
 QCA_SMV0_STAGE1_FREE_BCC_PASS
 ```
 
+## Stage 2 - Static SM Gauge Background
+
+Pass only if:
+
+- the only upstream runtime imports are from `sim` and local `qca_smv0`
+  modules;
+- the internal register has shape `32`, interpreted as one SM chiral-16 label
+  set duplicated over the Dirac spin block;
+- local anti-Hermitian `SU(3)_c x SU(2)_L x U(1)_Y` generators are explicit;
+- finite static BCC links have shape `(nx, ny, nz, 8, 32, 32)`;
+- link exponentiation produces unitary matrices;
+- identity links reduce the gauged Dirac update to the Stage 1 free Dirac
+  update applied independently to each internal component;
+- the static-link update preserves norm on a periodic lattice;
+- the state/link transformation law gives local gauge covariance:
+  `U_G(psi^Omega, A^Omega) = Omega U_G(psi, A)`;
+- identity and pure-gauge backgrounds have zero Wilson action, while a
+  deterministic non-pure background has non-zero Wilson action;
+- normalized Wilson traces are gauge-invariant;
+- weak-link transport agrees with the first-order covariant-derivative
+  expansion with quadratic residual scaling under `epsilon -> epsilon/2`;
+- the gauged step is JIT-compatible;
+- no dynamic gauge-field update, Higgs, Yukawa, flavor, boundary, or
+  recirculation rule is introduced.
+
+Verdict:
+
+```text
+QCA_SMV0_STAGE2_STATIC_SM_GAUGE_PASS
+```
+
 ## Next Session Placeholder
 
-The next session should specify:
+The next session should specify whether Stage 3 is:
 
-- whether to add static gauge links or a minimal SM carrier next;
-- the minimal upstream imports;
-- the state layout;
-- the JAX performance boundary;
-- the focused test or audit that defines success.
+- dynamic gauge-field evolution and Gauss-law diagnostics;
+- Higgs/Yukawa collision on static gauge backgrounds;
+- or performance/layout work before adding new physics.
 
-Until that is specified, this sidecar should remain at the free bulk-walk
-layer.
+Until that is specified, this sidecar should remain at the static-background
+transport layer.

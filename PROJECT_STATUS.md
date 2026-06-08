@@ -78,11 +78,10 @@ physics policy.
 **Boundary**: BCC Weyl/Dirac kernels, BCC plaquettes, Wilson observables, and
 SO(2)/SU(2)/SU(3) force policy remain in `spacetime_qca`.
 
-## qca_smv0 — Stage 1 free BCC Weyl/Dirac walk
+## qca_smv0 — Stage 2 static SM gauge background
 
 **Goal**: focused simulator sidecar for the next Standard-Model QCA prototype,
-using the shared `sim` infrastructure and existing `spacetime_qca` kernels only
-through explicit session-scoped imports.
+using the shared `sim` infrastructure and local `qca_smv0` kernels only.
 
 **Implemented**:
 - Package scaffold.
@@ -100,10 +99,18 @@ through explicit session-scoped imports.
   hop completeness, symbol unitarity, periodic norm conservation, and JIT
   compatibility.
 - Session 01 script and focused tests.
+- Local 32-component SM internal carrier.
+- Anti-Hermitian `SU(3)_c x SU(2)_L x U(1)_Y` generator basis.
+- Static BCC SM link fields with shape `(nx, ny, nz, 8, 32, 32)`.
+- Static gauge-covariant Dirac BCC transport and site-local gauge
+  transformations.
+- Identity-link reduction to the free internal Dirac step.
+- Wilson plaquette traces over selected BCC parallelograms.
+- Weak-link linearization check for continuum covariant derivative scaling.
+- Session 02 script and focused tests.
 
-**Boundary**: no boundary condition, gauge links, dynamic gauge fields, SM
-carrier beyond the free Dirac spin block, Higgs/Yukawa collision, flavor
-recirculation, or center-holonomy CP is implemented yet.
+**Boundary**: no boundary condition, dynamic gauge fields, Higgs/Yukawa
+collision, flavor recirculation, or center-holonomy CP is implemented yet.
 
 ## scalar_clebsch — V3 conditional pass, active
 
