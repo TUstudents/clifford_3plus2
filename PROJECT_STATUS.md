@@ -392,28 +392,78 @@ kernels.
 
 **Parked**: this sidecar is on hold until the D3-clock route is resumed.
 
-## cusp — infrastructure initialized, theory pending
+## cusp — A-D finite pass, micro gates open
 
-**Goal**: provide a clean sidecar location for the upcoming cusp program.
+**Goal**: implement `CUSP-PLAN.md`: Froggatt-Nielsen flavor from the valuation
+filtration of a `(2,3)` recirculation cusp.
 
 **Implemented**:
-- package directory;
-- scripts directory placeholder;
-- tests directory placeholder;
-- placeholder import test;
-- local README, status, and plan files;
-- root README and pytest-path links.
+- Target A: the local BCC edge q-clock has two q-preserving same-normal
+  branches and two q-changing leakage branches; the q-preserving pair supplies
+  weak/BCC multiplicity `2`, while the exact BB edge blocks supply the
+  same-normal/leakage norm split `I/2 + I/2 = I`.  Stacking the exact same/mixed
+  BB blocks gives an `8 x 2` isometry with finite unitary completion; q-changing
+  feedback vanishes under the hard-gap/outgoing condition, while recurrent
+  leakage has a nonzero visible return and is rejected.  A finite
+  material-origin audit derives `p(q)=gq^2` as the unique lowest-degree
+  q-local, q-reflection-even positive penalty that vanishes on `q=0`, rejects
+  linear and constant controls, and selects the no-incoming retarded closure
+  over recurrent leakage.  The color `SU(3)` center supplies primitive closure
+  `3`.  These sources now generate local center-charge recirculation automata:
+  one tick advances center charge, visible readout occurs only at charge `0`,
+  and the weak/color automata force primitive returns `2` and `3`.  Closed-walk
+  enumeration gives valuation algebra `C[t^2,t^3]`, first valuations
+  `(0,2,3)`, and gap `1`; `C[t]`, `C[t^2]`, `C[t^3]`, one-step-loop,
+  weak-only, color-only, and wrong-color-length graph controls give different
+  low valuations.
+- Target B: normalized color/weak amplitude shear gives
+  `lambda_rec=sqrt(3/2)-1=0.224744871...` as the unique stable minimum of the
+  squared mismatch functional.  Session 07 promotes this to a finite
+  one-sided matching theorem: the cusp readout solves
+  `(1+t)sqrt(2)=sqrt(3)`, while the ordinary reflection coefficient solves the
+  different two-sided scattering control
+  `(1+r)sqrt(2)=(1-r)sqrt(3)` and is rejected by the retarded recirculation
+  boundary because it leaves a nonzero one-sided residual.  Count-ratio and
+  inverse-amplitude shear controls fail the same one-sided equation.  No CKM
+  data are used.
+- Target C: SM hypercharge conservation forces the up Yukawa to use `H_tilde`
+  and the down Yukawa to use `H`, rejecting swapped doors.  Given that door
+  orientation, `S=<2,3>` derives conductor `c=2`.  Session 08 selects the down
+  right charges as the conductor-ideal residue `D=max(Q-c,0)=(1,0,0)` and
+  selects the up lift factor from the weak/BCC primitive closure order `2`,
+  giving `U=(5,2,0)` without using fitted mass data as an input.
+  Wrong-conductor, trivial-lift, and color-order-lift controls miss the target
+  exponent skeleton.  The resulting charges reproduce diagonal FN exponents
+  `(8,4,0)` and `(4,2,0)` plus CKM powers `V_us=lambda`, `V_cb=lambda^2`,
+  `V_ub=lambda^3`; the diagonal solver is retained only as a consistency check.
+- Target D: coefficients are finite path sums
+  `c_ij=sum_gamma A_gamma Omega_gamma` with `Omega_gamma` in the color center;
+  Session 10 selects the up center powers as geodesic distances on the
+  non-cyclic length-3 cusp flag and the down center powers as the unit bilinear
+  pairing on `F3` center labels.  This rule pair gives nonzero
+  `Im tr([YuYu^dagger,YdYd^dagger]^3)`, while all-real, one-sector, and
+  separable row/column controls give zero and full field rephasing leaves the
+  invariant unchanged.  Session 09 derives the positive amplitude weights from
+  the cusp-module path-count rule
+  `A_ij=max(1,# decompositions of q_i+r_j in <2,3>)`, with the gap exponent `1`
+  treated as one irreducible conductor-module/contact path.  This derived
+  measure remains CP-active, while the all-real control with the same
+  amplitudes stays CP-zero.  The earlier fixed non-unit positive deformation is
+  retained only as a robustness control.
 
-**Not implemented**:
-- theory modules;
-- session scripts;
-- session notes;
-- proof payloads;
-- sector maps;
-- mass or mixing claims.
-
-**Next action**: wait for the cusp-program theory instructions, then add the
-first focused session module and matching tests.
+**Boundary**:
+- Target A/B are exact certificates inside the minimal recirculation model.
+- Target C is a finite origin audit inside the conductor-module /
+  weak-double-cover boundary model; the deeper microscopic BCC/SM origin of
+  that boundary dynamics remains open.
+- Target D now has a finite center-topology selection and a finite cusp-module
+  amplitude measure; the microscopic BCC boundary-material derivation of that
+  topology remains open.
+- The finite BB/material dilation and material-origin audits still are not a
+  full local boundary theorem.  The next main gate is deriving the q-local
+  positive q-reflection stiffness and the no-incoming retarded asymptotics from
+  deeper BCC boundary-material dynamics rather than taking them as material
+  axioms.
 
 ## spacetime_qca — in progress
 
