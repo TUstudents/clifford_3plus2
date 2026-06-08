@@ -3,14 +3,14 @@
 ## Verdict
 
 ```text
-CUSP_TARGETS_A_D_FINITE_PASS_MICRO_GATES_OPEN
+CUSP_TARGETS_A_D_MICRO_BOUNDARY_PASS
 ```
 
-The CUSP-PLAN Targets A-D are implemented and verified at the finite
-recirculation-model level.  This is not a claim that the deeper BCC boundary
-material theorem is closed; it records that the target sidecar gates now have
-finite certificates or finite audits, with the remaining microscopic gates
-named explicitly.
+The CUSP-PLAN Targets A-D are implemented and verified, and MicroCUSP Sessions
+A-H close the microscopic boundary-material gate inside the current BCC/SM
+boundary-register model.  This is not a claim that the Standard Model gauge
+group alone proves three generations; it records that the CUSP sidecar's
+declared microscopic gates have finite certificates or audits.
 
 ## Target A
 
@@ -63,6 +63,12 @@ color-order-lift controls miss the exponent skeleton.  The nonnegative solver
 is retained only as a consistency check for the diagonal powers `(8,4,0)` and
 `(4,2,0)`.
 
+MicroCUSP Session G recovers this Target-C module from microscopic Schur
+moments rather than diagonal targets: `(0,2,3)` gives `Q=(3,2,0)`, conductor
+`c=2` gives `D=(1,0,0)`, and the weak/BCC double-cover factor gives
+`U=(5,2,0)`.  Wrong-conductor, trivial-lift, color-order-lift, diagonal-target,
+and mass-fit controls are rejected.
+
 ## Target D
 
 Target D now has both a finite center-topology selection and a finite positive
@@ -80,21 +86,38 @@ nonzero `Im tr([YuYu^dagger,YdYd^dagger]^3)`, all-real controls are CP-zero,
 and full common-left/up-right/down-right field rephasings leave the invariant
 unchanged.
 
-## Open Post-Target Gates
+MicroCUSP Session H recovers this Target-D topology from microscopic boundary
+data: the up powers are geodesic distances on the non-cyclic cusp flag, the
+down powers are the unit bilinear pairing of `F3` color-center labels, the
+cusp-module path-count amplitudes are retained, and the all-real / one-sector /
+separable controls remain zero.
 
-- Derive q-local positive q-reflection stiffness and no-incoming retarded
-  asymptotics from deeper BCC boundary material, rather than taking them as
-  finite material axioms.
-- Derive the microscopic BCC/SM realization of the conductor-module and
-  weak-double-cover dynamics behind Target C.
-- Derive why the microscopic BCC boundary realizes the finite center topology
-  selected in Target D.
+## Closed MicroCUSP Gates
+
+- Session A: q-local positive q-reflection stiffness.
+- Session B: no-incoming retarded asymptotics.
+- Session C: weak `Z2` same-normal branch parity.
+- Session D: color `Z3` center holonomy.
+- Global gate: independent weak/color center axes rather than correlated `Z6`.
+- Session E: Schur moments recover `C[t^2,t^3]`.
+- Session F: one-sided matching recovers `lambda_rec=sqrt(3/2)-1`.
+- Session G: Target C recovered from microscopic modules.
+- Session H: Target D recovered from microscopic topology.
 
 ## Focused Verification
 
 ```bash
 uv run python -m clifford_3plus2_d5.cusp.scripts.session_01_targets
 uv run python -m clifford_3plus2_d5.cusp.scripts.session_10_center_topology
+uv run python -m clifford_3plus2_d5.cusp.scripts.session_11_micro_q_stiffness
+uv run python -m clifford_3plus2_d5.cusp.scripts.session_12_micro_retarded_asymptotics
+uv run python -m clifford_3plus2_d5.cusp.scripts.session_13_micro_weak_z2
+uv run python -m clifford_3plus2_d5.cusp.scripts.session_14_micro_color_z3
+uv run python -m clifford_3plus2_d5.cusp.scripts.session_15_sm_global_quotient
+uv run python -m clifford_3plus2_d5.cusp.scripts.session_16_micro_schur_semigroup
+uv run python -m clifford_3plus2_d5.cusp.scripts.session_17_micro_lambda_rec
+uv run python -m clifford_3plus2_d5.cusp.scripts.session_18_micro_target_c_module
+uv run python -m clifford_3plus2_d5.cusp.scripts.session_19_micro_target_d_topology
 uv run pytest src/clifford_3plus2_d5/cusp/tests -q
 uv run ruff check src/clifford_3plus2_d5/cusp
 git diff --check

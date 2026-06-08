@@ -36,7 +36,7 @@ Pass only if:
 Verdict:
 
 ```text
-CUSP_TARGETS_A_D_FINITE_PASS_MICRO_GATES_OPEN
+CUSP_TARGETS_A_D_MICRO_BOUNDARY_PASS
 ```
 
 ## Closure
@@ -44,15 +44,14 @@ CUSP_TARGETS_A_D_FINITE_PASS_MICRO_GATES_OPEN
 The current sidecar verdict is recorded in [CLOSURE.md](CLOSURE.md):
 
 ```text
-CUSP_TARGETS_A_D_FINITE_PASS_MICRO_GATES_OPEN
+CUSP_TARGETS_A_D_MICRO_BOUNDARY_PASS
 ```
 
-Targets A-D are implemented and verified at the finite recirculation-model
-level.  The remaining work is explicitly post-target: derive the q-local
-positive stiffness/no-incoming retarded boundary material, the microscopic
-BCC/SM realization of the Target C conductor-module / weak-double-cover
-dynamics, and the microscopic BCC realization of the Target D finite center
-topology.
+Targets A-D are implemented and verified inside the current CUSP finite model,
+and MicroCUSP Sessions A-H now derive the q-local stiffness, no-incoming
+retarded boundary, weak `Z2`, color `Z3`, independent SM center axes, Schur
+semigroup, `lambda_rec`, Target-C module, and Target-D topology from the
+current microscopic BCC boundary-register model.
 
 ## Session 02 - Local Center-Charge Source
 
@@ -75,7 +74,7 @@ Pass only if:
 Verdict remains:
 
 ```text
-CUSP_TARGETS_A_D_FINITE_PASS_MICRO_GATES_OPEN
+CUSP_TARGETS_A_D_MICRO_BOUNDARY_PASS
 ```
 
 Session 02 is a finite local source model, not the full microscopic BB
@@ -99,7 +98,7 @@ Pass only if:
 Verdict remains:
 
 ```text
-CUSP_TARGETS_A_D_FINITE_PASS_MICRO_GATES_OPEN
+CUSP_TARGETS_A_D_MICRO_BOUNDARY_PASS
 ```
 
 Session 03 is a finite material-source certificate.  It still does not derive
@@ -121,7 +120,7 @@ Pass only if:
 Verdict remains:
 
 ```text
-CUSP_TARGETS_A_D_FINITE_PASS_MICRO_GATES_OPEN
+CUSP_TARGETS_A_D_MICRO_BOUNDARY_PASS
 ```
 
 Session 04 is still conditional on two material inputs: the single-clock
@@ -143,7 +142,7 @@ Pass only if:
 Verdict remains:
 
 ```text
-CUSP_TARGETS_A_D_FINITE_PASS_MICRO_GATES_OPEN
+CUSP_TARGETS_A_D_MICRO_BOUNDARY_PASS
 ```
 
 Session 05 still assumes the deeper physical axioms: q-local positive
@@ -169,7 +168,7 @@ Pass only if:
 Verdict remains:
 
 ```text
-CUSP_TARGETS_A_D_FINITE_PASS_MICRO_GATES_OPEN
+CUSP_TARGETS_A_D_MICRO_BOUNDARY_PASS
 ```
 
 ## Session 08 - Right-Handed Charge Origin
@@ -193,11 +192,11 @@ Pass only if:
 Verdict remains:
 
 ```text
-CUSP_TARGETS_A_D_FINITE_PASS_MICRO_GATES_OPEN
+CUSP_TARGETS_A_D_MICRO_BOUNDARY_PASS
 ```
 
-Session 08 still leaves the deeper microscopic BCC/SM origin of the
-conductor-module and weak-double-cover boundary dynamics open.
+Session 08 left the deeper microscopic BCC/SM origin of the conductor-module
+and weak-double-cover boundary dynamics open; Session 18 closes that gate.
 
 ## Next Gates
 
@@ -214,6 +213,170 @@ Pass only if:
   imposed;
 - the resulting boundary model preserves the `(2,3)` cusp graph and its
   controls.
+
+### Session 11 / MicroCUSP A - q-Stiffness
+
+Implement the first MicroCUSP microscopic boundary-material gate.
+
+Pass only if:
+
+- a local two-normal BCC boundary material produces a rank-one positive
+  stiffness matrix for the mismatch mode `q=r1-r2`;
+- the microscopic action is `g(r1-r2)^2`, hence `gq^2` on the q-coordinate;
+- the trace/center normal mode remains ungapped;
+- q-reflection evenness removes the linear term and the q-mode curvature is
+  positive;
+- the adjacent mixed-normal gap is `4g`, matching Session 05;
+- the hard-gap limit still suppresses mixed-normal feedback;
+- zero-stiffness, q-odd linear, and nonanalytic `g|q|` controls are rejected.
+
+Status: implemented as a local harmonic material audit.  This closes the
+q-stiffness part of Session 06, but not the no-incoming retarded asymptotics or
+the microscopic center-recirculation/topology gates.
+
+### Session 12 / MicroCUSP B - Retarded Asymptotics
+
+Implement the no-incoming outgoing-boundary gate.
+
+Pass only if:
+
+- mixed-normal outgoing clock-error channels are modeled as genuine hidden
+  asymptotic channels in a local unitary-completable BB boundary isometry;
+- the no-incoming condition is encoded as zero hidden return matrix `R=0`;
+- the local Schur correction `G R M` from mixed-normal channels back to the
+  visible sheet vanishes;
+- visible powers under the no-incoming closure match the q=0 survival powers;
+- recurrent leakage, hard-wall reflection, and incoming/outgoing symmetric
+  closure all produce nonzero visible feedback and are rejected;
+- the finite cusp graph preserves primitive closures `(2,3)`, first valuations
+  `(0,2,3)`, and one-step gap `1`.
+
+Status: implemented as a local outgoing-boundary audit.  This closed the
+no-incoming retarded-asymptotic part of Session 06 and left the microscopic
+`Z2/Z3` center recirculation, SM global quotient, and Target C/D topology gates
+for subsequent sessions.
+
+### Session 13 / MicroCUSP C - Weak Z2 Recirculation
+
+Implement the weak/BCC center-charge automaton from same-normal branch parity.
+
+Pass only if:
+
+- the q-preserving same-normal BCC branches carry common signs
+  `s=sigma1=sigma2=(+1,-1)`;
+- those signs form the local `Z2` branch-parity group;
+- one primitive weak/BCC tick is center charged and visible readout is allowed
+  only after two ticks;
+- the finite automaton charge table is `(0,1,0,1,0,1,0)`;
+- primitive return length and channel count are both `2`;
+- trivial weak charge, order-one weak closure, and weak-only semigroup controls
+  miss the cusp module.
+
+Status: implemented as a microscopic same-normal branch-parity audit.
+
+### Session 14 / MicroCUSP D - Color Z3 Recirculation
+
+Implement the color-center automaton as a closed `SU(3)` center Wilson
+holonomy.
+
+Pass only if:
+
+- one primitive color tick carries the nontrivial center phase
+  `omega=-1/2+i sqrt(3)/2`;
+- one- and two-tick paths are center charged, while the three-tick closed
+  holonomy is neutral;
+- the finite automaton charge table is `(0,1,2,0,1,2,0)`;
+- primitive return length and channel count are both `3`;
+- combining weak `Z2` and color `Z3` preserves primitive closures `(2,3)`,
+  first valuations `(0,2,3)`, and gap `1`;
+- wrong color length `2`, wrong color length `4`, spectator color, and
+  gauged-away open-phase controls miss the cusp module.
+
+Status: implemented as a microscopic color-center holonomy audit.  The next
+gate is the SM global quotient audit: independent primitive `Z2,Z3` closures
+versus a correlated `Z6` boundary rule.
+
+### Session 15 / MicroCUSP Global Gate - SM Quotient
+
+Audit independent nonabelian center closures against a quotient-correlated
+`Z6` boundary rule.
+
+Pass only if:
+
+- the weak and color boundary ticks are independent axes `(1,0)` and `(0,1)`
+  in `Z2 x Z3`;
+- their primitive neutral lengths are `(2,3)`;
+- the resulting low valuations and family basis are `(0,2,3)` and
+  `1,t^2,t^3`;
+- the quotient-diagonal tick `(1,1)` closes only at length `6` and gives low
+  valuations `(0,6,12)`;
+- a U(1)-collapsed one-step control gives `(0,1,2)`;
+- both quotient controls are rejected.
+
+Status: implemented.  This left the Target C/D boundary topology:
+conductor-module / weak-cover origin and center-holonomy topology.
+
+### Session 16 / MicroCUSP E - Schur Semigroup
+
+Recover `S=<2,3>` from microscopic Schur moments.
+
+Pass only if:
+
+- the visible return moments satisfy `M1=0`, `M2!=0`, and `M3!=0`;
+- the primitive return semigroup is `(2,3)`;
+- the recirculation algebra is `C[t^2,t^3]`;
+- the family module basis is `1,t^2,t^3`;
+- controls `S=<1>`, `S=<2>`, `S=<3>`, `S=<2,4>`, and `S=<3,4>` miss
+  `(0,2,3)`.
+
+Status: implemented.
+
+### Session 17 / MicroCUSP F - Lambda Rec
+
+Recover `lambda_rec=sqrt(3/2)-1` from microscopic return moments and the
+one-sided retarded matching rule.
+
+Pass only if:
+
+- weak/color moments give channel counts `2` and `3`;
+- `(1+t)sqrt(2)=sqrt(3)` has the unique positive solution
+  `t=sqrt(3/2)-1`;
+- ordinary reflection, count-ratio shear, and inverse-amplitude shear fail the
+  one-sided equation.
+
+Status: implemented.
+
+### Session 18 / MicroCUSP G - Target C Module
+
+Recover Target C from modules, not exponent targets.
+
+Pass only if:
+
+- microscopic module valuations `(0,2,3)` give `Q=(3,2,0)` in light-to-heavy
+  order;
+- conductor `c=2` comes from `S=<2,3>`;
+- `D=max(Q-c,0)=(1,0,0)`;
+- the weak/BCC double-cover factor `2` gives `U=(5,2,0)`;
+- wrong-conductor, trivial-lift, color-order-lift, diagonal-target, and
+  mass-fit controls are rejected.
+
+Status: implemented.
+
+### Session 19 / MicroCUSP H - Target D Topology
+
+Recover Target D from microscopic topology.
+
+Pass only if:
+
+- up center powers are geodesic distances on the microscopic non-cyclic cusp
+  flag;
+- down center powers are the unit bilinear pairing of microscopic `F3`
+  color-center labels;
+- cusp-module path-count amplitudes are retained;
+- the CP invariant is nonzero, all-real / one-sector / separable controls are
+  zero, and field-rephasing invariance holds.
+
+Status: implemented.  No MicroCUSP A-H gates remain open.
 
 ### Session 09 - Center-Holonomy Coefficient Measure
 
@@ -233,12 +396,12 @@ Pass only if:
 Verdict remains:
 
 ```text
-CUSP_TARGETS_A_D_FINITE_PASS_MICRO_GATES_OPEN
+CUSP_TARGETS_A_D_MICRO_BOUNDARY_PASS
 ```
 
 Session 09 derives the positive amplitude measure inside the finite
-cusp-module model.  It still does not derive the up flag-winding / down
-bilinear-linking center-power topology from microscopic boundary dynamics.
+cusp-module model.  Session 19 later derives the up flag-winding / down
+bilinear-linking center-power topology from microscopic boundary data.
 
 ### Session 10 - Center-Holonomy Topology
 
@@ -262,5 +425,5 @@ Pass only if:
 Verdict remains:
 
 ```text
-CUSP_TARGETS_A_D_FINITE_PASS_MICRO_GATES_OPEN
+CUSP_TARGETS_A_D_MICRO_BOUNDARY_PASS
 ```

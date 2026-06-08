@@ -15,6 +15,15 @@ from clifford_3plus2_d5.cusp.targets import (
     CuspCoefficientMeasureAudit,
     CuspRightChargeOriginAudit,
     CuspShearMatchingPrincipleAudit,
+    MicroscopicColorZ3RecirculationAudit,
+    MicroscopicQStiffnessAudit,
+    MicroscopicQStiffnessControlAudit,
+    MicroscopicQStiffnessMaterial,
+    MicroscopicRetardedBoundaryAudit,
+    MicroscopicRetardedClosureControls,
+    MicroscopicTargetCModuleAudit,
+    MicroscopicTargetDTopologyAudit,
+    MicroscopicWeakZ2RecirculationAudit,
     NumericalSemigroup,
     QLocalLockingOriginAudit,
     RecirculationGraph,
@@ -35,11 +44,22 @@ from clifford_3plus2_d5.cusp.targets import (
     exact_omega,
     finite_recirculation_graph_from_automata,
     finite_recirculation_graph_from_sources,
+    flag_distance_center_powers_from_edges,
     graph_low_valuation_summary,
+    microscopic_lambda_rec_audit,
+    microscopic_color_z3_recirculation_audit,
+    microscopic_q_stiffness_audit,
+    microscopic_retarded_boundary_audit,
+    microscopic_schur_semigroup_audit,
+    microscopic_target_c_module_audit,
+    microscopic_target_d_topology_audit,
+    microscopic_weak_z2_recirculation_audit,
     minimal_center_recirculation_walk_graph,
     oriented_double_up_right_charges,
     path_flag_distance_center_powers,
     path_measure_from_center_powers,
+    shortest_path_distance_on_flag,
+    sm_global_quotient_cusp_audit,
     subtract_conductor_floor,
     standard_model_center_automata,
     target_a_neighbor_walk_graphs,
@@ -129,6 +149,313 @@ def test_q_local_locking_origin_selects_unique_q_squared_penalty() -> None:
     assert locking.linear_control_rejected
     assert locking.constant_control_rejected
     assert locking.q_locking_origin_pass
+
+
+def test_microscopic_q_stiffness_derives_session_a_material_action() -> None:
+    audit = microscopic_q_stiffness_audit()
+    material = audit.material
+    controls = audit.controls
+    q = sp.symbols("q")
+    g = sp.symbols("g", positive=True)
+    r1, r2 = sp.symbols("r1 r2")
+
+    assert isinstance(audit, MicroscopicQStiffnessAudit)
+    assert isinstance(material, MicroscopicQStiffnessMaterial)
+    assert isinstance(controls, MicroscopicQStiffnessControlAudit)
+    assert material.stiffness_matrix == 2 * g * sp.Matrix([[1, -1], [-1, 1]])
+    assert material.microscopic_action == g * (r1 - r2) ** 2
+    assert material.action_in_q == g * q**2
+    assert material.q_reflection_even
+    assert material.no_linear_term
+    assert material.curvature == 2 * g
+    assert material.curvature_positive
+    assert material.trace_mode_ungapped
+    assert material.adjacent_leakage_gap == 4 * g
+    assert material.stiffness_matrix_positive_semidefinite
+    assert material.microscopic_q_stiffness_pass
+    assert audit.effective_action_matches_finite_locking
+    assert audit.adjacent_gap_matches_finite_locking
+    assert audit.hard_gap_limit_suppresses_mixed_feedback
+    assert audit.session_a_pass
+
+
+def test_microscopic_q_stiffness_controls_reject_wrong_material_laws() -> None:
+    controls = microscopic_q_stiffness_audit().controls
+    q = sp.symbols("q")
+    g = sp.symbols("g", positive=True)
+
+    assert controls.zero_control_action == 0
+    assert controls.zero_control_gap == 0
+    assert controls.zero_control_rejected
+    assert controls.linear_control_action == g * q
+    assert controls.linear_control_mirror_defect == 2 * g * q
+    assert controls.linear_control_rejected
+    assert controls.absolute_control_action == g * sp.Abs(q)
+    assert not controls.absolute_control_analytic_at_zero
+    assert controls.absolute_control_rejected
+    assert controls.controls_rejected
+
+
+def test_microscopic_retarded_boundary_selects_no_incoming_closure() -> None:
+    audit = microscopic_retarded_boundary_audit()
+    controls = audit.controls
+
+    assert isinstance(audit, MicroscopicRetardedBoundaryAudit)
+    assert isinstance(controls, MicroscopicRetardedClosureControls)
+    assert controls.no_incoming_reflection == sp.zeros(4)
+    assert controls.recurrent_reflection == sp.eye(4)
+    assert controls.hard_wall_reflection == -sp.eye(4)
+    assert controls.symmetric_reflection == sp.eye(4) / 2
+    assert audit.no_incoming_feedback == sp.zeros(2)
+    assert audit.no_incoming_feedback_zero
+    assert audit.local_unitary_dilation_exists
+    assert audit.no_incoming_visible_powers_match
+    assert audit.visible_schur_kernel_has_no_recurrent_mixed_return
+    assert audit.finite_cusp_graph_preserved
+    assert audit.session_b_pass
+
+
+def test_microscopic_retarded_boundary_rejects_returning_leakage_controls() -> None:
+    audit = microscopic_retarded_boundary_audit()
+
+    assert audit.recurrent_feedback == audit.dilation.recurrent_wedge_return
+    assert audit.recurrent_feedback_nonzero
+    assert audit.hard_wall_feedback == -audit.recurrent_feedback
+    assert audit.hard_wall_feedback_nonzero
+    assert audit.symmetric_feedback == audit.recurrent_feedback / 2
+    assert audit.symmetric_feedback_nonzero
+    assert audit.controls_rejected
+    assert "Z2_Z3_center_recirculation" in audit.microscopic_gate_remaining[0]
+
+
+def test_microscopic_weak_z2_recirculation_comes_from_same_normal_branch_parity() -> None:
+    audit = microscopic_weak_z2_recirculation_audit()
+
+    assert isinstance(audit, MicroscopicWeakZ2RecirculationAudit)
+    assert audit.branch_common_signs == (1, -1)
+    assert audit.branch_parity_group == (1, -1)
+    assert audit.branch_parity_group_closed
+    assert audit.charge_table_through_six == (0, 1, 0, 1, 0, 1, 0)
+    assert audit.sign_table_through_six == (1, -1, 1, -1, 1, -1, 1)
+    assert audit.common_sign_after_ticks(1) == -1
+    assert audit.common_sign_after_ticks(2) == 1
+    assert not audit.visible_readout_allowed(1)
+    assert audit.visible_readout_allowed(2)
+    assert audit.primitive_return_length == 2
+    assert audit.channel_count == 2
+    assert audit.one_step_forbidden
+    assert audit.automaton_matches_branch_parity
+    assert audit.session_c_pass
+
+
+def test_microscopic_weak_z2_recirculation_rejects_trivial_and_weak_only_controls() -> None:
+    audit = microscopic_weak_z2_recirculation_audit()
+
+    assert audit.trivial_charge_control_first_values == (0, 1, 2)
+    assert audit.order_one_control_first_values == (0, 1, 2)
+    assert audit.weak_only_control_first_values == (0, 2, 4)
+    assert audit.controls_rejected
+    assert "Z3_color_center_recirculation" in audit.microscopic_gate_remaining[0]
+
+
+def test_microscopic_color_z3_recirculation_comes_from_closed_center_holonomy() -> None:
+    audit = microscopic_color_z3_recirculation_audit()
+
+    assert isinstance(audit, MicroscopicColorZ3RecirculationAudit)
+    assert audit.center_phase == exact_omega()
+    assert audit.charge_table_through_six == (0, 1, 2, 0, 1, 2, 0)
+    assert audit.holonomy_table_through_three == (
+        1,
+        exact_omega(),
+        sp.simplify(exact_omega() ** 2),
+        1,
+    )
+    assert audit.open_holonomies_nontrivial
+    assert audit.closed_holonomy_neutral
+    assert not audit.visible_readout_allowed(1)
+    assert not audit.visible_readout_allowed(2)
+    assert audit.visible_readout_allowed(3)
+    assert audit.primitive_return_length == 3
+    assert audit.channel_count == 3
+    assert audit.one_step_forbidden
+    assert audit.automaton_matches_center_holonomy
+    assert audit.combined_cusp_graph_preserved
+    assert audit.session_d_pass
+
+
+def test_microscopic_color_z3_recirculation_rejects_wrong_and_spectator_controls() -> None:
+    audit = microscopic_color_z3_recirculation_audit()
+
+    assert audit.wrong_color_length_two_first_values == (0, 2, 4)
+    assert audit.wrong_color_length_four_first_values == (0, 2, 4)
+    assert audit.spectator_color_control_first_values == (0, 2, 4)
+    assert audit.gauged_away_open_phase_control_first_values == (0, 2, 4)
+    assert audit.controls_rejected
+    assert "Z6_quotient" in audit.microscopic_gate_remaining[0]
+
+
+def test_sm_global_quotient_gate_selects_independent_center_axes() -> None:
+    audit = sm_global_quotient_cusp_audit()
+
+    assert audit.independent_tick_vectors == ((1, 0), (0, 1))
+    assert audit.quotient_diagonal_tick_vector == (1, 1)
+    assert audit.neutral_length_for_tick((1, 0)) == 2
+    assert audit.neutral_length_for_tick((0, 1)) == 3
+    assert audit.independent_primitive_lengths == (2, 3)
+    assert audit.independent_low_valuations == (0, 2, 3)
+    assert audit.independent_family_basis == ("1", "t^2", "t^3")
+    assert audit.independent_axes_pass
+    assert audit.session_global_quotient_pass
+
+
+def test_sm_global_quotient_gate_rejects_correlated_z6_and_collapsed_controls() -> None:
+    audit = sm_global_quotient_cusp_audit()
+
+    assert audit.quotient_diagonal_primitive_length == 6
+    assert audit.quotient_diagonal_low_valuations == (0, 6, 12)
+    assert audit.quotient_diagonal_family_basis == ("1", "t^6", "t^12")
+    assert audit.u1_collapsed_low_valuations == (0, 1, 2)
+    assert audit.quotient_controls_rejected
+    assert "Target_C_D_micro_topology" in audit.microscopic_gate_remaining[0]
+
+
+def test_microscopic_schur_semigroup_recovers_two_three_from_return_moments() -> None:
+    audit = microscopic_schur_semigroup_audit()
+
+    assert audit.return_moments_through_six == (1, 0, 2, 3, 4, 12, 17)
+    assert audit.m1_zero
+    assert audit.m2_nonzero
+    assert audit.m3_nonzero
+    assert audit.primitive_return_semigroup == (2, 3)
+    assert audit.recirculation_algebra == "C[t^2,t^3]"
+    assert audit.maximal_ideal_generators == (2, 3)
+    assert audit.family_module_basis == ("1", "t^2", "t^3")
+    assert audit.low_valuations == (0, 2, 3)
+    assert audit.session_e_pass
+
+
+def test_microscopic_schur_semigroup_rejects_neighboring_controls() -> None:
+    audit = microscopic_schur_semigroup_audit()
+
+    assert audit.controls == {
+        "S=<1>": (0, 1, 2),
+        "S=<2>": (0, 2, 4),
+        "S=<3>": (0, 3, 6),
+        "S=<2,4>": (0, 2, 4),
+        "S=<3,4>": (0, 3, 4),
+    }
+    assert audit.controls_rejected
+    assert "lambda_rec" in audit.microscopic_gate_remaining[0]
+
+
+def test_microscopic_lambda_rec_comes_from_one_sided_return_moments() -> None:
+    audit = microscopic_lambda_rec_audit()
+
+    assert audit.weak_return_moment == 2
+    assert audit.color_return_moment == 3
+    assert sp.simplify(audit.lambda_rec - (sp.sqrt(sp.Rational(3, 2)) - 1)) == 0
+    assert audit.one_sided_residual == 0
+    assert audit.one_sided_stable_minimum
+    assert audit.session_f_pass
+
+
+def test_microscopic_lambda_rec_rejects_two_sided_and_wrong_shear_controls() -> None:
+    audit = microscopic_lambda_rec_audit()
+
+    assert set(audit.control_residuals) == {
+        "ordinary_reflection",
+        "count_ratio_minus_one",
+        "inverse_amplitude_shear",
+    }
+    assert all(sp.simplify(residual) != 0 for residual in audit.control_residuals.values())
+    assert audit.controls_rejected
+    assert "Target_C_D_micro_topology" in audit.microscopic_gate_remaining[0]
+
+
+def test_microscopic_target_c_module_recovers_right_charges_without_targets() -> None:
+    audit = microscopic_target_c_module_audit()
+
+    assert isinstance(audit, MicroscopicTargetCModuleAudit)
+    assert audit.primitive_return_semigroup == (2, 3)
+    assert audit.family_module_basis == ("1", "t^2", "t^3")
+    assert audit.module_valuations_heavy_to_light == (0, 2, 3)
+    assert audit.left_charges_light_to_heavy == (3, 2, 0)
+    assert audit.conductor == 2
+    assert audit.frobenius_gap == 1
+    assert audit.down_right_charges == (1, 0, 0)
+    assert audit.up_right_charges == (5, 2, 0)
+    assert audit.down_diagonal_exponents == (4, 2, 0)
+    assert audit.up_diagonal_exponents == (8, 4, 0)
+    assert audit.up_exponent_matrix == ((8, 5, 3), (7, 4, 2), (5, 2, 0))
+    assert audit.down_exponent_matrix == ((4, 3, 3), (3, 2, 2), (1, 0, 0))
+    assert audit.weak_double_cover_factor == 2
+    assert audit.color_order_control_factor == 3
+    assert audit.session_g_pass
+
+
+def test_microscopic_target_c_module_rejects_controls_and_fits() -> None:
+    audit = microscopic_target_c_module_audit()
+
+    assert audit.wrong_conductor_controls == {
+        1: (5, 3, 0),
+        3: (3, 2, 0),
+    }
+    assert audit.lift_controls == {
+        "trivial_lift": (4, 2, 0),
+        "color_order_lift": (12, 6, 0),
+    }
+    assert audit.controls_rejected
+    assert not audit.uses_diagonal_targets
+    assert not audit.uses_mass_fits
+    assert "Target_D" in audit.microscopic_gate_remaining[0]
+
+
+def test_microscopic_target_d_topology_recovers_center_rules_and_cp() -> None:
+    audit = microscopic_target_d_topology_audit()
+
+    assert isinstance(audit, MicroscopicTargetDTopologyAudit)
+    assert audit.family_flag_edges == ((0, 1), (1, 2))
+    assert audit.center_labels == (0, 1, 2)
+    assert shortest_path_distance_on_flag(0, 2, audit.family_flag_edges) == 2
+    assert flag_distance_center_powers_from_edges(audit.family_flag_edges) == (
+        (0, 1, 2),
+        (1, 0, 1),
+        (2, 1, 0),
+    )
+    assert audit.up_center_powers == path_flag_distance_center_powers()
+    assert audit.down_center_powers == bilinear_center_linking_powers(unit=1)
+    assert audit.up_amplitudes == (
+        (sp.Integer(2), sp.Integer(1), sp.Integer(1)),
+        (sp.Integer(1), sp.Integer(1), sp.Integer(1)),
+        (sp.Integer(1), sp.Integer(1), sp.Integer(1)),
+    )
+    assert audit.down_amplitudes == (
+        (sp.Integer(1), sp.Integer(1), sp.Integer(1)),
+        (sp.Integer(1), sp.Integer(1), sp.Integer(1)),
+        (sp.Integer(1), sp.Integer(1), sp.Integer(1)),
+    )
+    assert sp.simplify(audit.cp_invariant) != 0
+    assert sp.simplify(audit.real_control_invariant) == 0
+    assert sp.simplify(audit.cp_invariant - audit.rephased_cp_invariant) == 0
+    assert audit.session_h_pass
+    assert audit.microscopic_gate_remaining == ()
+
+
+def test_microscopic_target_d_topology_rejects_controls() -> None:
+    audit = microscopic_target_d_topology_audit()
+
+    assert audit.up_controls_rejected
+    assert audit.down_controls_rejected_except_conjugate
+    assert set(audit.one_sector_control_invariants) == {
+        "up_only",
+        "down_only",
+        "separable_row_col",
+    }
+    assert all(
+        sp.simplify(invariant) == 0
+        for invariant in audit.one_sector_control_invariants.values()
+    )
+    assert audit.topology_controls_rejected
 
 
 def test_causal_outgoing_origin_selects_retarded_closure_over_recurrence() -> None:
@@ -433,6 +760,11 @@ def test_target_c_candidate_reproduces_fn_power_skeleton() -> None:
     assert payload.right_charge_origin_lift_factor_from_weak_order == 2
     assert payload.right_charge_origin_trivial_lift_control == (4, 2, 0)
     assert payload.right_charge_origin_color_lift_control == (12, 6, 0)
+    assert isinstance(payload.microscopic_module_audit, MicroscopicTargetCModuleAudit)
+    assert payload.microscopic_module_audit.left_charges_light_to_heavy == (3, 2, 0)
+    assert payload.microscopic_module_audit.down_right_charges == (1, 0, 0)
+    assert payload.microscopic_module_audit.up_right_charges == (5, 2, 0)
+    assert payload.microscopic_module_pass
     assert payload.conductor_orientation_rule_pass
     assert payload.up_diagonal_exponents == (8, 4, 0)
     assert payload.down_diagonal_exponents == (4, 2, 0)
@@ -540,10 +872,12 @@ def test_target_d_center_holonomy_witness_has_nonzero_cp_invariant() -> None:
         payload.derived_measure_cp_invariant - payload.derived_measure_rephased_invariant
     ) == 0
     assert payload.derived_measure_pass
-    assert not payload.derived_measure_topology_selected
+    assert payload.derived_measure_topology_selected
     assert isinstance(payload.center_topology_audit, CuspCenterTopologyAudit)
     assert payload.center_topology_finite_selection_pass
-    assert not payload.center_topology_boundary_selected
+    assert payload.center_topology_boundary_selected
+    assert isinstance(payload.microscopic_topology_audit, MicroscopicTargetDTopologyAudit)
+    assert payload.microscopic_topology_pass
     assert payload.center_topology_up_control_powers == {
         "cyclic_group_difference": cyclic_difference_center_powers(),
         "complete_graph_distance": complete_graph_distance_center_powers(),
@@ -619,7 +953,7 @@ def test_cusp_center_topology_selects_flag_distance_and_bilinear_pairing() -> No
     assert audit.down_direct_row_col_zero
     assert audit.down_unit_pairing_normalized
     assert audit.finite_topology_selection_pass
-    assert not audit.boundary_microphysics_selected
+    assert audit.boundary_microphysics_selected
 
 
 def test_cusp_coefficient_measure_uses_module_path_counts() -> None:
@@ -651,7 +985,7 @@ def test_cusp_coefficient_measure_uses_module_path_counts() -> None:
     assert sp.simplify(audit.cp_invariant) != 0
     assert sp.simplify(audit.real_control_invariant) == 0
     assert sp.simplify(audit.cp_invariant - audit.rephased_cp_invariant) == 0
-    assert not audit.holonomy_topology_selected_by_boundary
+    assert audit.holonomy_topology_selected_by_boundary
     assert audit.coefficient_measure_pass
 
 
@@ -684,11 +1018,13 @@ def test_path_measure_accepts_entrywise_positive_amplitudes() -> None:
 def test_combined_payload_records_current_status_honestly() -> None:
     payload = cusp_targets_payload()
 
-    assert payload.final_verdict == "CUSP_TARGETS_A_D_FINITE_PASS_MICRO_GATES_OPEN"
+    assert payload.final_verdict == "CUSP_TARGETS_A_D_MICRO_BOUNDARY_PASS"
     assert payload.target_a.target_a_pass
     assert payload.target_b.shear_formula_pass
     assert payload.target_c.target_c_candidate_pass
     assert payload.target_d.target_d_witness_pass
+    assert payload.target_c.microscopic_module_pass
+    assert payload.target_d.microscopic_topology_pass
     assert "Target C proves the SM hypercharge Yukawa doors" in payload.interpretation
     assert "Target D has a finite center-holonomy topology selection" in (
         payload.interpretation

@@ -78,6 +78,23 @@ physics policy.
 **Boundary**: BCC Weyl/Dirac kernels, BCC plaquettes, Wilson observables, and
 SO(2)/SU(2)/SU(3) force policy remain in `spacetime_qca`.
 
+## qca_smv0 — infrastructure only
+
+**Goal**: focused simulator sidecar for the next Standard-Model QCA prototype,
+using the shared `sim` infrastructure and existing `spacetime_qca` kernels only
+through explicit session-scoped imports.
+
+**Implemented**:
+- Package scaffold.
+- `README.md`, `PLAN.md`, and `STATUS.md`.
+- `scripts/` and `tests/` directories.
+- Metadata-only package exports.
+- Placeholder infrastructure test.
+
+**Boundary**: no simulator kernels, state layouts, physics ledgers, or
+performance claims are implemented yet. The next session must specify the
+first physical simulator target before this sidecar grows.
+
 ## scalar_clebsch — V3 conditional pass, active
 
 **Goal**: test whether corrected quark mass Clebsch coefficients have a scalar
@@ -392,7 +409,7 @@ kernels.
 
 **Parked**: this sidecar is on hold until the D3-clock route is resumed.
 
-## cusp — A-D finite pass, micro gates open
+## cusp — MicroCUSP A-H pass
 
 **Goal**: implement `CUSP-PLAN.md`: Froggatt-Nielsen flavor from the valuation
 filtration of a `(2,3)` recirculation cusp.
@@ -436,6 +453,10 @@ filtration of a `(2,3)` recirculation cusp.
   exponent skeleton.  The resulting charges reproduce diagonal FN exponents
   `(8,4,0)` and `(4,2,0)` plus CKM powers `V_us=lambda`, `V_cb=lambda^2`,
   `V_ub=lambda^3`; the diagonal solver is retained only as a consistency check.
+  MicroCUSP Session 18 recovers this module from microscopic Schur moments:
+  `(0,2,3)` gives `Q=(3,2,0)`, conductor `c=2` gives `D=(1,0,0)`, and the
+  weak double cover gives `U=(5,2,0)` without using diagonal targets or mass
+  fits.
 - Target D: coefficients are finite path sums
   `c_ij=sum_gamma A_gamma Omega_gamma` with `Omega_gamma` in the color center;
   Session 10 selects the up center powers as geodesic distances on the
@@ -450,20 +471,28 @@ filtration of a `(2,3)` recirculation cusp.
   measure remains CP-active, while the all-real control with the same
   amplitudes stays CP-zero.  The earlier fixed non-unit positive deformation is
   retained only as a robustness control.
+  MicroCUSP Session 19 recovers this topology from microscopic boundary data:
+  up powers are geodesic distances on the non-cyclic cusp flag, down powers are
+  the unit bilinear pairing of `F3` color-center labels, the CP invariant is
+  nonzero, and all-real / one-sector / separable controls are zero.
 
 **Boundary**:
 - Target A/B are exact certificates inside the minimal recirculation model.
-- Target C is a finite origin audit inside the conductor-module /
-  weak-double-cover boundary model; the deeper microscopic BCC/SM origin of
-  that boundary dynamics remains open.
-- Target D now has a finite center-topology selection and a finite cusp-module
-  amplitude measure; the microscopic BCC boundary-material derivation of that
-  topology remains open.
+- Target C is a microscopic module audit inside the current conductor-module /
+  weak-double-cover boundary-register model.
+- Target D now has microscopic topology selection and a finite cusp-module
+  amplitude measure inside the current boundary-register model.
 - The finite BB/material dilation and material-origin audits still are not a
-  full local boundary theorem.  The next main gate is deriving the q-local
-  positive q-reflection stiffness and the no-incoming retarded asymptotics from
-  deeper BCC boundary-material dynamics rather than taking them as material
-  axioms.
+  full local boundary theorem.  MicroCUSP Session A now derives the q-local
+  positive q-reflection stiffness from a two-normal harmonic boundary material,
+  and Session B derives the no-incoming retarded boundary as `R=0` outgoing
+  mixed-normal asymptotics with recurrent/reflecting/symmetric controls
+  rejected.  Sessions C-D derive the weak `Z2` branch parity from same-normal
+  BCC signs and the color `Z3` return from closed `SU(3)` center holonomy.  The
+  Session 15 global quotient audit rejects the correlated diagonal `Z6` rule
+  and U(1)-collapsed control.  Sessions 16-19 derive the Schur semigroup,
+  `lambda_rec`, Target-C module, and Target-D topology.  No MicroCUSP A-H
+  gates remain open.
 
 ## spacetime_qca — in progress
 

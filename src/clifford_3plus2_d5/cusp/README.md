@@ -47,8 +47,9 @@ Implemented in [targets.py](targets.py):
   primitive closure order `2`, giving `U=(5,2,0)`.  Wrong-conductor, trivial
   lift, and color-order lift controls miss the exponent skeleton, and a finite
   solver confirms these charges are the unique nonnegative solution for the
-  CUSP-PLAN diagonal exponent targets.  The deeper microscopic origin of the
-  conductor-module and weak-double-cover boundary dynamics is still open.
+  CUSP-PLAN diagonal exponent targets.  MicroCUSP Session G recovers the same
+  module from microscopic Schur moments, conductor `c=2`, and weak/color
+  closure controls without using the diagonal targets as inputs.
 - **Target D**: coefficients are built as finite path sums
   `c_ij=sum_gamma A_gamma Omega_gamma` with `Omega_gamma` in the color center.
   The up center powers are selected as geodesic distances on the non-cyclic
@@ -62,18 +63,16 @@ Implemented in [targets.py](targets.py):
   `A_ij=max(1,# decompositions of q_i+r_j in <2,3>)`; the gap exponent `1` is
   one irreducible conductor-module/contact path.  This derived positive
   amplitude measure remains CP-active while the corresponding all-real control
-  is CP-zero.  The remaining witness part is no longer finite topology
-  selection, but the microscopic BCC boundary-material derivation of that
-  topology.
+  is CP-zero.  MicroCUSP Session H recovers the selected center topology from
+  the microscopic non-cyclic cusp flag and `SU(3)` center labels.
 
 Verdict:
 
 ```text
-CUSP_TARGETS_A_D_FINITE_PASS_MICRO_GATES_OPEN
+CUSP_TARGETS_A_D_MICRO_BOUNDARY_PASS
 ```
 
-See [CLOSURE.md](CLOSURE.md) for the completion audit and the remaining
-post-target microscopic gates.
+See [CLOSURE.md](CLOSURE.md) for the completion audit.
 
 ## Session 02 - Local Center-Charge Source
 
@@ -219,25 +218,168 @@ Implemented in [targets.py](targets.py) and
   labels, giving `((0,0,0),(0,1,2),(0,2,1))`;
 - rejects all-trivial, additive, and cyclic-difference down controls;
 - records the orientation-conjugate bilinear control separately;
-- keeps microscopic BCC boundary-material selection marked open.
+- keeps microscopic BCC boundary-material selection marked open for later
+  MicroCUSP Session H.
 
 This upgrades Target D from a declared topology witness to a finite topology
-selection audit.  The remaining gap is deriving why the microscopic boundary
-realizes this finite topology.
+selection audit.  Session H later derives why the microscopic boundary realizes
+this finite topology.
+
+## Session 11 - MicroCUSP q-Stiffness
+
+Implemented in [targets.py](targets.py) and
+[session_11_micro_q_stiffness.py](scripts/session_11_micro_q_stiffness.py):
+
+- starts [MicroCUSP-PLAN.md](MicroCUSP-PLAN.md) as a post-target microscopic
+  boundary-material gate;
+- builds the minimal two-normal local material with stiffness matrix
+  `2g [[1,-1],[-1,1]]`;
+- derives the microscopic action `g(r1-r2)^2`, hence the effective mismatch
+  action `gq^2` for `q=r1-r2`;
+- proves q-reflection evenness, zero linear term, positive curvature `2g`,
+  ungapped trace/center mode, and adjacent leakage gap `4g`;
+- matches the Session 05 finite q-locking polynomial and feeds the existing
+  hard-gap/retarded feedback suppression;
+- rejects the zero-stiffness, q-odd linear, and nonanalytic `g|q|` controls.
+
+This closes MicroCUSP Session A inside a local harmonic boundary-material
+model.  At this session boundary, no-incoming retarded asymptotics,
+microscopic `Z2/Z3` center recirculation, SM global quotient behavior, and the
+Target C/D microscopic topologies were still open.
+
+## Session 12 - MicroCUSP Retarded Asymptotics
+
+Implemented in [targets.py](targets.py) and
+[session_12_micro_retarded_asymptotics.py](scripts/session_12_micro_retarded_asymptotics.py):
+
+- implements [MicroCUSP-PLAN.md](MicroCUSP-PLAN.md) Session B as a local
+  outgoing-boundary audit;
+- encodes the mixed-normal boundary condition by a hidden return matrix `R`
+  from outgoing clock-error channels back to incoming clock-error channels;
+- selects no-incoming retarded asymptotics as `R=0`, giving local Schur
+  correction `G R M = 0`;
+- verifies the existing local BB channel stack is an isometry with finite
+  unitary completion;
+- checks that no-incoming visible powers match the q=0 survival powers;
+- rejects recurrent leakage (`R=I`), hard-wall reflection (`R=-I`), and
+  incoming/outgoing symmetric closure (`R=I/2`) because all give nonzero
+  visible mixed-normal feedback;
+- verifies the finite cusp graph still has primitive closures `(2,3)`, first
+  valuations `(0,2,3)`, and one-step gap `1`.
+
+This closes MicroCUSP Session B inside the local outgoing-boundary model.  It
+left microscopic `Z2/Z3` center recirculation, SM global quotient behavior,
+and the Target C/D microscopic topologies as the remaining gates at that point.
+
+## Session 13 - MicroCUSP Weak Z2 Recirculation
+
+Implemented in [targets.py](targets.py) and
+[session_13_micro_weak_z2.py](scripts/session_13_micro_weak_z2.py):
+
+- derives the weak/BCC `Z2` center automaton from q-preserving same-normal
+  branch parity, not just from the fact that there are two branches;
+- identifies the common branch sign `s=sigma1=sigma2` as the local `Z2`
+  parity group `(1,-1)`;
+- shows one primitive weak/BCC tick carries nontrivial parity, so visible
+  readout is forbidden at one tick and first allowed at two ticks;
+- recovers charge table `(0,1,0,1,0,1,0)`, sign table
+  `(1,-1,1,-1,1,-1,1)`, primitive return `2`, and channel count `2`;
+- rejects trivial weak charge, order-one weak closure, and weak-only
+  semigroup controls.
+
+## Session 14 - MicroCUSP Color Z3 Recirculation
+
+Implemented in [targets.py](targets.py) and
+[session_14_micro_color_z3.py](scripts/session_14_micro_color_z3.py):
+
+- derives the color primitive return as a closed `SU(3)` center Wilson
+  holonomy, not as a spectator color label;
+- uses the exact center phase `omega=-1/2+i sqrt(3)/2`;
+- shows one- and two-tick paths are center charged, while the three-tick
+  holonomy is neutral;
+- recovers color charge table `(0,1,2,0,1,2,0)`, primitive return `3`, and
+  channel count `3`;
+- combines weak `Z2` and color `Z3` sources to preserve the cusp graph with
+  primitive closures `(2,3)` and first valuations `(0,2,3)`;
+- rejects wrong color length `2`, wrong color length `4`, spectator color, and
+  gauged-away open-phase controls.
+
+## Session 15 - SM Global Quotient Gate
+
+Implemented in [targets.py](targets.py) and
+[session_15_sm_global_quotient.py](scripts/session_15_sm_global_quotient.py):
+
+- audits whether the boundary sees independent nonabelian center axes or a
+  single quotient-correlated `Z6` axis;
+- represents the independent weak/color ticks as `(1,0)` and `(0,1)` in
+  `Z2 x Z3`;
+- verifies their primitive neutral lengths are `(2,3)` and their low
+  valuations are `(0,2,3)`, giving basis `1,t^2,t^3`;
+- compares against a quotient-diagonal tick `(1,1)`, whose primitive neutral
+  length is `6` and whose low valuations are `(0,6,12)`;
+- rejects a U(1)-collapsed control with one-step low valuations `(0,1,2)`.
+
+This closes the SM global quotient gate inside the current boundary-register
+model.  It left the Target C/D conductor, weak-cover, and center-topology data
+as the remaining BCC/SM boundary-topology gates.
+
+## Session 16 - MicroCUSP Schur Semigroup
+
+Implemented in [targets.py](targets.py) and
+[session_16_micro_schur_semigroup.py](scripts/session_16_micro_schur_semigroup.py):
+
+- computes visible Schur return moments directly from the microscopic
+  weak/color return graph;
+- verifies `M1=0`, `M2!=0`, and `M3!=0`;
+- recovers primitive semigroup `(2,3)`, recirculation algebra `C[t^2,t^3]`,
+  maximal ideal generators `(2,3)`, basis `1,t^2,t^3`, and low valuations
+  `(0,2,3)`;
+- rejects `S=<1>`, `S=<2>`, `S=<3>`, `S=<2,4>`, and `S=<3,4>` controls.
+
+## Session 17 - MicroCUSP Lambda Rec
+
+Implemented in [targets.py](targets.py) and
+[session_17_micro_lambda_rec.py](scripts/session_17_micro_lambda_rec.py):
+
+- reads weak/color return moments as channel counts `M2=2`, `M3=3`;
+- derives `lambda_rec=sqrt(3/2)-1` from the one-sided retarded matching
+  equation;
+- rejects the ordinary two-sided reflection coefficient, count-ratio shear,
+  and inverse-amplitude shear.
+
+## Session 18 - MicroCUSP Target C Module
+
+Implemented in [targets.py](targets.py) and
+[session_18_micro_target_c_module.py](scripts/session_18_micro_target_c_module.py):
+
+- derives `Q=(3,2,0)` by reversing the microscopic module valuations
+  `(0,2,3)` from direct-to-delayed into light-to-heavy order;
+- derives conductor `c=2` from `S=<2,3>`;
+- derives `D=max(Q-c,0)=(1,0,0)`;
+- derives `U=(5,2,0)` from the weak/BCC double-cover factor `2`;
+- rejects wrong-conductor, trivial-lift, color-order-lift, diagonal-target,
+  and mass-fit controls.
+
+## Session 19 - MicroCUSP Target D Topology
+
+Implemented in [targets.py](targets.py) and
+[session_19_micro_target_d_topology.py](scripts/session_19_micro_target_d_topology.py):
+
+- derives up center powers from geodesic distances on the microscopic
+  non-cyclic cusp flag `0-1-2`;
+- derives down center powers from the unit bilinear pairing of microscopic
+  `F3` color-center labels `(0,1,2)`;
+- keeps amplitudes fixed by cusp-module path counts;
+- gives a nonzero CP invariant, zero all-real / one-sector / separable
+  controls, and full field-rephasing invariance;
+- leaves no remaining MicroCUSP A-H gates.
 
 ## Current Boundary
 
-This sidecar currently certifies the algebraic Cusp-FN skeleton.  It does not
-yet derive:
-
-- the deeper BCC boundary-material dynamics that realizes q-local positive
-  q-reflection stiffness and no-incoming retarded asymptotics;
-- the microscopic BCC/SM origin of the conductor-module and weak-double-cover
-  boundary dynamics behind Target C;
-- the microscopic BCC boundary-material selection of the finite Target-D
-  center-power topology.  The topology is selected inside the cusp flag /
-  center-label model, and the coefficient amplitudes follow from the
-  cusp-module path-count rule.
+This sidecar currently certifies the algebraic Cusp-FN skeleton and implements
+the MicroCUSP A-H microscopic boundary-material derivation inside the current
+BCC/SM boundary-register model.  This is still a flavor-sidecar theorem, not a
+claim that the Standard Model gauge group alone proves three generations.
 
 ## Run
 
@@ -251,5 +393,14 @@ uv run python -m clifford_3plus2_d5.cusp.scripts.session_07_shear_matching
 uv run python -m clifford_3plus2_d5.cusp.scripts.session_08_right_charge_origin
 uv run python -m clifford_3plus2_d5.cusp.scripts.session_09_coefficient_measure
 uv run python -m clifford_3plus2_d5.cusp.scripts.session_10_center_topology
+uv run python -m clifford_3plus2_d5.cusp.scripts.session_11_micro_q_stiffness
+uv run python -m clifford_3plus2_d5.cusp.scripts.session_12_micro_retarded_asymptotics
+uv run python -m clifford_3plus2_d5.cusp.scripts.session_13_micro_weak_z2
+uv run python -m clifford_3plus2_d5.cusp.scripts.session_14_micro_color_z3
+uv run python -m clifford_3plus2_d5.cusp.scripts.session_15_sm_global_quotient
+uv run python -m clifford_3plus2_d5.cusp.scripts.session_16_micro_schur_semigroup
+uv run python -m clifford_3plus2_d5.cusp.scripts.session_17_micro_lambda_rec
+uv run python -m clifford_3plus2_d5.cusp.scripts.session_18_micro_target_c_module
+uv run python -m clifford_3plus2_d5.cusp.scripts.session_19_micro_target_d_topology
 uv run pytest src/clifford_3plus2_d5/cusp/tests -q
 ```

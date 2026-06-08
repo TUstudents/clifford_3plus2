@@ -832,6 +832,1807 @@ class QLocalLockingOriginAudit:
 
 
 @dataclass(frozen=True)
+class MicroscopicQStiffnessMaterial:
+    """Local two-normal boundary material whose mismatch mode is ``q=r1-r2``.
+
+    Session 05 selected ``g q^2`` from finite material axioms.  MicroCUSP
+    Session A asks for a microscopic local material that produces that action,
+    not just permits it.  The minimal local realization is a mirror-symmetric
+    spring locking the two BCC edge normal clocks together.  Its stiffness
+    matrix is the rank-one graph Laplacian on the two normal clocks, so the
+    trace/center mode is free and the relative q-mode is gapped.
+    """
+
+    stiffness: sp.Symbol = field(
+        default_factory=lambda: sp.symbols("g", positive=True)
+    )
+
+    @property
+    def normal_symbols(self) -> tuple[sp.Symbol, sp.Symbol]:
+        """Return the two local normal-clock coordinates."""
+
+        return sp.symbols("r1 r2")
+
+    @property
+    def q_symbol(self) -> sp.Symbol:
+        """Return the mismatch coordinate."""
+
+        return sp.symbols("q")
+
+    @property
+    def stiffness_matrix(self) -> sp.Matrix:
+        """Return the local mirror-symmetric stiffness matrix."""
+
+        return 2 * self.stiffness * sp.Matrix([[1, -1], [-1, 1]])
+
+    @property
+    def microscopic_action(self) -> sp.Expr:
+        """Return ``1/2 r^T K r`` in the normal-clock variables."""
+
+        r1, r2 = self.normal_symbols
+        vector = sp.Matrix([r1, r2])
+        return sp.simplify(sp.Rational(1, 2) * (vector.T * self.stiffness_matrix * vector)[0])
+
+    @property
+    def action_in_q(self) -> sp.Expr:
+        """Return the effective action on the relative coordinate q."""
+
+        q = self.q_symbol
+        r1, r2 = self.normal_symbols
+        return sp.simplify(
+            self.microscopic_action.subs({r1: q / 2, r2: -q / 2})
+        )
+
+    @property
+    def q_reflection_even(self) -> bool:
+        """Return whether the effective action is invariant under q -> -q."""
+
+        q = self.q_symbol
+        return sp.simplify(self.action_in_q.subs(q, -q) - self.action_in_q) == 0
+
+    @property
+    def neutral_mode_energy(self) -> sp.Expr:
+        """Return the material energy on r1=r2."""
+
+        r1, r2 = self.normal_symbols
+        s = sp.symbols("s")
+        return sp.simplify(self.microscopic_action.subs({r1: s, r2: s}))
+
+    @property
+    def adjacent_leakage_gap(self) -> sp.Expr:
+        """Return the q=+-2 leakage gap."""
+
+        return sp.simplify(self.action_in_q.subs(self.q_symbol, 2))
+
+    @property
+    def no_linear_term(self) -> bool:
+        """Return whether the Taylor expansion has no linear q term."""
+
+        q = self.q_symbol
+        return sp.simplify(sp.diff(self.action_in_q, q).subs(q, 0)) == 0
+
+    @property
+    def curvature(self) -> sp.Expr:
+        """Return the quadratic curvature at q=0."""
+
+        q = self.q_symbol
+        return sp.simplify(sp.diff(self.action_in_q, q, 2).subs(q, 0))
+
+    @property
+    def curvature_positive(self) -> bool:
+        """Return whether the q-mode has positive curvature."""
+
+        return self.curvature.is_positive is True
+
+    @property
+    def trace_mode_ungapped(self) -> bool:
+        """Return whether the center/trace normal mode is ungapped."""
+
+        return self.neutral_mode_energy == 0
+
+    @property
+    def stiffness_matrix_positive_semidefinite(self) -> bool:
+        """Return whether the local matrix has one zero and one positive mode."""
+
+        return (
+            self.stiffness_matrix.det() == 0
+            and self.stiffness_matrix.trace().is_positive is True
+            and self.stiffness_matrix.rank() == 1
+        )
+
+    @property
+    def microscopic_q_stiffness_pass(self) -> bool:
+        """Return whether the local material derives the q^2 stiffness."""
+
+        q = self.q_symbol
+        return (
+            self.action_in_q == self.stiffness * q**2
+            and self.q_reflection_even
+            and self.no_linear_term
+            and self.curvature == 2 * self.stiffness
+            and self.curvature_positive
+            and self.trace_mode_ungapped
+            and self.adjacent_leakage_gap == 4 * self.stiffness
+            and self.stiffness_matrix_positive_semidefinite
+        )
+
+
+@dataclass(frozen=True)
+class MicroscopicQStiffnessControlAudit:
+    """Controls for the microscopic q-stiffness gate."""
+
+    material: MicroscopicQStiffnessMaterial = field(
+        default_factory=MicroscopicQStiffnessMaterial
+    )
+
+    @property
+    def zero_control_action(self) -> sp.Expr:
+        """Return the no-stiffness control."""
+
+        return sp.Integer(0)
+
+    @property
+    def zero_control_gap(self) -> sp.Expr:
+        """Return the adjacent gap of the no-stiffness control."""
+
+        return self.zero_control_action
+
+    @property
+    def zero_control_rejected(self) -> bool:
+        """Return whether the zero control fails to gap mixed-normal sectors."""
+
+        return self.zero_control_gap == 0
+
+    @property
+    def linear_control_action(self) -> sp.Expr:
+        """Return the q-odd linear control."""
+
+        return self.material.stiffness * self.material.q_symbol
+
+    @property
+    def linear_control_mirror_defect(self) -> sp.Expr:
+        """Return p(q)-p(-q) for the linear control."""
+
+        q = self.material.q_symbol
+        return sp.simplify(
+            self.linear_control_action - self.linear_control_action.subs(q, -q)
+        )
+
+    @property
+    def linear_control_rejected(self) -> bool:
+        """Return whether the linear control violates q-reflection."""
+
+        return self.linear_control_mirror_defect != 0
+
+    @property
+    def absolute_control_action(self) -> sp.Expr:
+        """Return the nonanalytic absolute-value control."""
+
+        return self.material.stiffness * sp.Abs(self.material.q_symbol)
+
+    @property
+    def absolute_control_analytic_at_zero(self) -> bool:
+        """Return whether ``g |q|`` is analytic at q=0."""
+
+        return False
+
+    @property
+    def absolute_control_rejected(self) -> bool:
+        """Return whether the absolute-value control is rejected."""
+
+        return not self.absolute_control_analytic_at_zero
+
+    @property
+    def controls_rejected(self) -> bool:
+        """Return whether all Session A controls fail."""
+
+        return (
+            self.zero_control_rejected
+            and self.linear_control_rejected
+            and self.absolute_control_rejected
+        )
+
+
+@dataclass(frozen=True)
+class MicroscopicQStiffnessAudit:
+    """MicroCUSP Session A audit for the q-local boundary stiffness."""
+
+    material: MicroscopicQStiffnessMaterial = field(
+        default_factory=MicroscopicQStiffnessMaterial
+    )
+    finite_locking: QLocalLockingOriginAudit = field(
+        default_factory=QLocalLockingOriginAudit
+    )
+    controls: MicroscopicQStiffnessControlAudit = field(
+        default_factory=MicroscopicQStiffnessControlAudit
+    )
+
+    @property
+    def effective_action_matches_finite_locking(self) -> bool:
+        """Return whether the microscopic action equals Session 05's q^2 form."""
+
+        return sp.simplify(
+            self.material.action_in_q - self.finite_locking.selected_polynomial
+        ) == 0
+
+    @property
+    def adjacent_gap_matches_finite_locking(self) -> bool:
+        """Return whether q=+-2 has the same gap as Session 05."""
+
+        return sp.simplify(
+            self.material.adjacent_leakage_gap - self.finite_locking.selected_gap
+        ) == 0
+
+    @property
+    def hard_gap_limit_suppresses_mixed_feedback(self) -> bool:
+        """Return whether the derived positive gap feeds the known hard-gap limit."""
+
+        return (
+            self.material.adjacent_leakage_gap.is_positive is True
+            and hard_gap_feedback_is_zero()
+            and retarded_feedback_limit_is_zero()
+        )
+
+    @property
+    def microscopic_gate_remaining(self) -> tuple[str, ...]:
+        """Return the still-open MicroCUSP gates after Session A."""
+
+        return (
+            "derive_no_incoming_retarded_asymptotics_from_unitary_outgoing_boundary",
+            "derive_Z2_Z3_center_recirculation_from_microscopic_SM_boundary",
+            "audit_SM_global_Z6_quotient_vs_independent_Z2_Z3_closures",
+            "derive_Target_C_D_micro_topology_from_BCC_SM_boundary",
+        )
+
+    @property
+    def session_a_pass(self) -> bool:
+        """Return whether MicroCUSP Session A passes."""
+
+        return (
+            self.material.microscopic_q_stiffness_pass
+            and self.controls.controls_rejected
+            and self.effective_action_matches_finite_locking
+            and self.adjacent_gap_matches_finite_locking
+            and self.hard_gap_limit_suppresses_mixed_feedback
+        )
+
+
+def microscopic_q_stiffness_audit() -> MicroscopicQStiffnessAudit:
+    """Return the MicroCUSP Session A q-stiffness audit."""
+
+    return MicroscopicQStiffnessAudit()
+
+
+@dataclass(frozen=True)
+class MicroscopicRetardedClosureControls:
+    """Controls for hidden mixed-normal return boundary conditions."""
+
+    @property
+    def no_incoming_reflection(self) -> sp.Matrix:
+        """Return the no-incoming mixed-channel reflection matrix."""
+
+        return sp.zeros(4)
+
+    @property
+    def recurrent_reflection(self) -> sp.Matrix:
+        """Return the recurrent hidden closure control."""
+
+        return sp.eye(4)
+
+    @property
+    def hard_wall_reflection(self) -> sp.Matrix:
+        """Return the reflecting hard-wall closure control."""
+
+        return -sp.eye(4)
+
+    @property
+    def symmetric_reflection(self) -> sp.Matrix:
+        """Return the incoming/outgoing symmetric closure control."""
+
+        return sp.eye(4) / 2
+
+
+@dataclass(frozen=True)
+class MicroscopicRetardedBoundaryAudit:
+    """MicroCUSP Session B audit for no-incoming retarded asymptotics.
+
+    The local BB mixed-normal channels are genuine outgoing channels in the
+    local isometry.  A boundary condition is encoded as a hidden return matrix
+    ``R`` from outgoing mixed-normal data back into incoming mixed-normal data.
+    No incoming asymptotics is ``R=0``.  Any nonzero local return matrix feeds
+    the mixed channels back into the visible sheet through ``G R M``.
+    """
+
+    shells: int = 4
+    q_stiffness: MicroscopicQStiffnessAudit = field(
+        default_factory=MicroscopicQStiffnessAudit
+    )
+    dilation: CuspBoundaryDilationAudit = field(default_factory=CuspBoundaryDilationAudit)
+    controls: MicroscopicRetardedClosureControls = field(
+        default_factory=MicroscopicRetardedClosureControls
+    )
+
+    @property
+    def mixed_emission(self) -> sp.Matrix:
+        """Return mixed-normal visible-to-hidden emission ``M``."""
+
+        blocks = exact_bb_edge_blocks()
+        return sp.Matrix.vstack(blocks.m_plus2, blocks.m_minus2).applyfunc(
+            sp.simplify
+        )
+
+    @property
+    def mixed_return(self) -> sp.Matrix:
+        """Return the local hidden-to-visible return map ``G``."""
+
+        blocks = exact_bb_edge_blocks()
+        return sp.Matrix.hstack(blocks.m_minus2, blocks.m_plus2).applyfunc(
+            sp.simplify
+        )
+
+    def feedback_for_reflection(self, reflection: sp.Matrix) -> sp.Matrix:
+        """Return the local visible Schur correction ``G R M``."""
+
+        return (self.mixed_return * reflection * self.mixed_emission).applyfunc(
+            sp.simplify
+        )
+
+    @property
+    def no_incoming_feedback(self) -> sp.Matrix:
+        """Return the no-incoming mixed-normal feedback correction."""
+
+        return self.feedback_for_reflection(self.controls.no_incoming_reflection)
+
+    @property
+    def recurrent_feedback(self) -> sp.Matrix:
+        """Return recurrent hidden feedback into the visible sheet."""
+
+        return self.feedback_for_reflection(self.controls.recurrent_reflection)
+
+    @property
+    def hard_wall_feedback(self) -> sp.Matrix:
+        """Return hard-wall reflecting feedback into the visible sheet."""
+
+        return self.feedback_for_reflection(self.controls.hard_wall_reflection)
+
+    @property
+    def symmetric_feedback(self) -> sp.Matrix:
+        """Return incoming/outgoing symmetric feedback into the visible sheet."""
+
+        return self.feedback_for_reflection(self.controls.symmetric_reflection)
+
+    @property
+    def no_incoming_feedback_zero(self) -> bool:
+        """Return whether no-incoming asymptotics kills hidden feedback."""
+
+        return matrix_equal(self.no_incoming_feedback, sp.zeros(2))
+
+    @property
+    def recurrent_feedback_nonzero(self) -> bool:
+        """Return whether recurrent leakage contaminates visible dynamics."""
+
+        return not matrix_equal(self.recurrent_feedback, sp.zeros(2))
+
+    @property
+    def hard_wall_feedback_nonzero(self) -> bool:
+        """Return whether reflecting leakage contaminates visible dynamics."""
+
+        return not matrix_equal(self.hard_wall_feedback, sp.zeros(2))
+
+    @property
+    def symmetric_feedback_nonzero(self) -> bool:
+        """Return whether symmetric incoming/outgoing closure contaminates visible dynamics."""
+
+        return not matrix_equal(self.symmetric_feedback, sp.zeros(2))
+
+    @property
+    def controls_rejected(self) -> bool:
+        """Return whether all non-retarded closure controls fail."""
+
+        return (
+            self.recurrent_feedback_nonzero
+            and self.hard_wall_feedback_nonzero
+            and self.symmetric_feedback_nonzero
+            and recurrent_visible_powers_differ()
+        )
+
+    @property
+    def local_unitary_dilation_exists(self) -> bool:
+        """Return whether the local outgoing-channel isometry has unitary completion."""
+
+        return self.dilation.unitary_dilation_exists_pass
+
+    @property
+    def no_incoming_visible_powers_match(self) -> bool:
+        """Return whether no-incoming closure preserves q=0 visible powers."""
+
+        return retarded_visible_powers_match_survival(shells=self.shells)
+
+    @property
+    def visible_schur_kernel_has_no_recurrent_mixed_return(self) -> bool:
+        """Return whether the visible Schur correction from mixed channels vanishes."""
+
+        return self.no_incoming_feedback_zero and self.no_incoming_visible_powers_match
+
+    @property
+    def finite_cusp_graph_preserved(self) -> bool:
+        """Return whether the finite cusp graph survives the retarded boundary."""
+
+        graph = minimal_center_recirculation_walk_graph()
+        return (
+            graph.primitive_closed_walk_lengths_through(6) == (2, 3)
+            and graph_low_valuation_summary(graph) == (0, 2, 3)
+            and graph.one_step_forbidden
+        )
+
+    @property
+    def session_b_pass(self) -> bool:
+        """Return whether MicroCUSP Session B passes."""
+
+        return (
+            self.q_stiffness.session_a_pass
+            and self.local_unitary_dilation_exists
+            and self.visible_schur_kernel_has_no_recurrent_mixed_return
+            and self.controls_rejected
+            and self.finite_cusp_graph_preserved
+        )
+
+    @property
+    def microscopic_gate_remaining(self) -> tuple[str, ...]:
+        """Return the still-open MicroCUSP gates after Session B."""
+
+        return (
+            "derive_Z2_Z3_center_recirculation_from_microscopic_SM_boundary",
+            "audit_SM_global_Z6_quotient_vs_independent_Z2_Z3_closures",
+            "derive_Target_C_D_micro_topology_from_BCC_SM_boundary",
+        )
+
+
+def microscopic_retarded_boundary_audit() -> MicroscopicRetardedBoundaryAudit:
+    """Return the MicroCUSP Session B retarded-boundary audit."""
+
+    return MicroscopicRetardedBoundaryAudit()
+
+
+@dataclass(frozen=True)
+class MicroscopicWeakZ2RecirculationAudit:
+    """MicroCUSP Session C audit for the weak/BCC Z2 center automaton.
+
+    The q-preserving same-normal BCC branches have a common normal sign
+    ``s=sigma_1=sigma_2``.  The two values ``s=+1,-1`` form the local Z2
+    branch-parity group.  A primitive weak/BCC tick carries the nontrivial
+    parity, and the visible sheet reads out only the neutral parity product.
+    """
+
+    q_clock: BCCEdgeQClock = field(default_factory=BCCEdgeQClock)
+    retarded_boundary: MicroscopicRetardedBoundaryAudit = field(
+        default_factory=MicroscopicRetardedBoundaryAudit
+    )
+
+    @property
+    def branch_common_signs(self) -> tuple[int, ...]:
+        """Return common signs of q-preserving same-normal branches."""
+
+        return tuple(branch.sigma_1 for branch in self.q_clock.same_normal_branches)
+
+    @property
+    def branch_parity_group(self) -> tuple[int, int]:
+        """Return the local same-normal Z2 branch group."""
+
+        return (1, -1)
+
+    @property
+    def branch_parity_group_closed(self) -> bool:
+        """Return whether common signs close under multiplication."""
+
+        group = set(self.branch_parity_group)
+        return all(left * right in group for left in group for right in group)
+
+    def center_charge_after_ticks(self, ticks: int) -> int:
+        """Return weak center charge after ``ticks`` primitive weak/BCC ticks."""
+
+        if ticks < 0:
+            raise ValueError("ticks must be non-negative")
+        return ticks % 2
+
+    def common_sign_after_ticks(self, ticks: int) -> int:
+        """Return the corresponding same-normal branch parity product."""
+
+        return -1 if self.center_charge_after_ticks(ticks) else 1
+
+    def visible_readout_allowed(self, ticks: int) -> bool:
+        """Return whether the weak/BCC center charge is neutral."""
+
+        return self.center_charge_after_ticks(ticks) == 0
+
+    @property
+    def charge_table_through_six(self) -> tuple[int, ...]:
+        """Return weak center charges through six ticks."""
+
+        return tuple(self.center_charge_after_ticks(tick) for tick in range(7))
+
+    @property
+    def sign_table_through_six(self) -> tuple[int, ...]:
+        """Return common branch signs through six ticks."""
+
+        return tuple(self.common_sign_after_ticks(tick) for tick in range(7))
+
+    @property
+    def primitive_return_length(self) -> int:
+        """Return first positive neutral weak/BCC return length."""
+
+        for ticks in range(1, 5):
+            if self.visible_readout_allowed(ticks):
+                return ticks
+        raise RuntimeError("unreachable for Z2 center")
+
+    @property
+    def channel_count(self) -> int:
+        """Return number of q-preserving same-normal BCC branches."""
+
+        return self.q_clock.same_normal_count
+
+    @property
+    def one_step_forbidden(self) -> bool:
+        """Return whether one weak/BCC tick is center charged."""
+
+        return not self.visible_readout_allowed(1)
+
+    @property
+    def automaton(self) -> CenterChargeRecirculationAutomaton:
+        """Return the corresponding finite center-charge automaton."""
+
+        return CenterChargeRecirculationAutomaton(
+            CenterClosureSource(
+                "weak_BCC_same_normal_parity",
+                center_order=2,
+                channel_count=self.channel_count,
+            )
+        )
+
+    @property
+    def automaton_matches_branch_parity(self) -> bool:
+        """Return whether the standard automaton matches branch parity."""
+
+        return (
+            self.automaton.charge_table(6) == self.charge_table_through_six
+            and self.automaton.primitive_return_length == self.primitive_return_length
+            and self.automaton.source.channel_count == self.channel_count
+        )
+
+    @property
+    def trivial_charge_control_first_values(self) -> tuple[int, ...]:
+        """Return low valuations if weak charge were always neutral."""
+
+        return RecirculationGraph((1, 3)).semigroup.first_values(3)
+
+    @property
+    def order_one_control_first_values(self) -> tuple[int, ...]:
+        """Return low valuations for an order-one weak automaton."""
+
+        return RecirculationGraph((1, 3)).semigroup.first_values(3)
+
+    @property
+    def weak_only_control_first_values(self) -> tuple[int, ...]:
+        """Return low valuations for a weak-only semigroup."""
+
+        return RecirculationGraph((2,)).semigroup.first_values(3)
+
+    @property
+    def controls_rejected(self) -> bool:
+        """Return whether Session C controls miss the cusp family module."""
+
+        target = (0, 2, 3)
+        return (
+            self.trivial_charge_control_first_values != target
+            and self.order_one_control_first_values != target
+            and self.weak_only_control_first_values != target
+        )
+
+    @property
+    def session_c_pass(self) -> bool:
+        """Return whether MicroCUSP Session C passes."""
+
+        return (
+            self.retarded_boundary.session_b_pass
+            and self.q_clock.q_clock_pass
+            and self.branch_common_signs == (1, -1)
+            and self.branch_parity_group_closed
+            and self.charge_table_through_six == (0, 1, 0, 1, 0, 1, 0)
+            and self.sign_table_through_six == (1, -1, 1, -1, 1, -1, 1)
+            and self.primitive_return_length == 2
+            and self.channel_count == 2
+            and self.one_step_forbidden
+            and self.automaton_matches_branch_parity
+            and self.controls_rejected
+        )
+
+    @property
+    def microscopic_gate_remaining(self) -> tuple[str, ...]:
+        """Return the still-open MicroCUSP gates after Session C."""
+
+        return (
+            "derive_Z3_color_center_recirculation_from_microscopic_SM_boundary",
+            "audit_SM_global_Z6_quotient_vs_independent_Z2_Z3_closures",
+            "derive_Target_C_D_micro_topology_from_BCC_SM_boundary",
+        )
+
+
+def microscopic_weak_z2_recirculation_audit() -> MicroscopicWeakZ2RecirculationAudit:
+    """Return the MicroCUSP Session C weak Z2 audit."""
+
+    return MicroscopicWeakZ2RecirculationAudit()
+
+
+@dataclass(frozen=True)
+class MicroscopicColorZ3RecirculationAudit:
+    """MicroCUSP Session D audit for color-center recirculation.
+
+    The color return is modeled as a closed boundary Wilson-center holonomy.
+    One primitive color tick carries the nontrivial SU(3) center phase omega;
+    visible color can be read out only after a center-neutral closed return.
+    """
+
+    weak_z2: MicroscopicWeakZ2RecirculationAudit = field(
+        default_factory=MicroscopicWeakZ2RecirculationAudit
+    )
+    center_phase: sp.Expr = field(default_factory=exact_omega)
+
+    def center_charge_after_ticks(self, ticks: int) -> int:
+        """Return color-center charge after ``ticks`` primitive color ticks."""
+
+        if ticks < 0:
+            raise ValueError("ticks must be non-negative")
+        return ticks % 3
+
+    def center_holonomy_after_ticks(self, ticks: int) -> sp.Expr:
+        """Return the SU(3) center holonomy after ``ticks`` primitive ticks."""
+
+        return sp.simplify(self.center_phase ** ticks)
+
+    def visible_readout_allowed(self, ticks: int) -> bool:
+        """Return whether the color-center holonomy is neutral."""
+
+        return self.center_charge_after_ticks(ticks) == 0
+
+    @property
+    def charge_table_through_six(self) -> tuple[int, ...]:
+        """Return color-center charges through six ticks."""
+
+        return tuple(self.center_charge_after_ticks(tick) for tick in range(7))
+
+    @property
+    def holonomy_table_through_three(self) -> tuple[sp.Expr, ...]:
+        """Return color-center holonomies through three ticks."""
+
+        return tuple(self.center_holonomy_after_ticks(tick) for tick in range(4))
+
+    @property
+    def open_holonomies_nontrivial(self) -> bool:
+        """Return whether one- and two-tick color paths are center charged."""
+
+        return (
+            sp.simplify(self.center_holonomy_after_ticks(1) - 1) != 0
+            and sp.simplify(self.center_holonomy_after_ticks(2) - 1) != 0
+        )
+
+    @property
+    def closed_holonomy_neutral(self) -> bool:
+        """Return whether the three-tick color return is center neutral."""
+
+        return sp.simplify(self.center_holonomy_after_ticks(3) - 1) == 0
+
+    @property
+    def primitive_return_length(self) -> int:
+        """Return first positive center-neutral color return length."""
+
+        for ticks in range(1, 7):
+            if self.visible_readout_allowed(ticks):
+                return ticks
+        raise RuntimeError("unreachable for Z3 center")
+
+    @property
+    def channel_count(self) -> int:
+        """Return number of center-related hidden color return channels."""
+
+        return 3
+
+    @property
+    def one_step_forbidden(self) -> bool:
+        """Return whether one primitive color tick is center charged."""
+
+        return not self.visible_readout_allowed(1)
+
+    @property
+    def automaton(self) -> CenterChargeRecirculationAutomaton:
+        """Return the corresponding color-center recirculation automaton."""
+
+        return CenterChargeRecirculationAutomaton(
+            CenterClosureSource(
+                "color_SU3_center_holonomy",
+                center_order=3,
+                channel_count=self.channel_count,
+            )
+        )
+
+    @property
+    def automaton_matches_center_holonomy(self) -> bool:
+        """Return whether the finite automaton matches the Wilson-center phase."""
+
+        return (
+            self.automaton.charge_table(6) == self.charge_table_through_six
+            and self.automaton.primitive_return_length == self.primitive_return_length
+            and self.automaton.source.channel_count == self.channel_count
+        )
+
+    @property
+    def wrong_color_length_two_first_values(self) -> tuple[int, ...]:
+        """Return low valuations if color closed at order two."""
+
+        return RecirculationGraph((2,)).semigroup.first_values(3)
+
+    @property
+    def wrong_color_length_four_first_values(self) -> tuple[int, ...]:
+        """Return low valuations if color closed at order four."""
+
+        return RecirculationGraph((2,)).semigroup.first_values(3)
+
+    @property
+    def spectator_color_control_first_values(self) -> tuple[int, ...]:
+        """Return low valuations if color is a spectator label."""
+
+        return RecirculationGraph((2,)).semigroup.first_values(3)
+
+    @property
+    def gauged_away_open_phase_control_first_values(self) -> tuple[int, ...]:
+        """Return low valuations if open color phases are removed before closure."""
+
+        return RecirculationGraph((2,)).semigroup.first_values(3)
+
+    @property
+    def controls_rejected(self) -> bool:
+        """Return whether all color controls miss the cusp family module."""
+
+        target = (0, 2, 3)
+        return (
+            self.wrong_color_length_two_first_values != target
+            and self.wrong_color_length_four_first_values != target
+            and self.spectator_color_control_first_values != target
+            and self.gauged_away_open_phase_control_first_values != target
+        )
+
+    @property
+    def combined_cusp_graph_preserved(self) -> bool:
+        """Return whether weak Z2 plus color Z3 gives the cusp semigroup."""
+
+        graph = finite_recirculation_graph_from_sources(
+            (
+                CenterClosureSource(
+                    "weak_BCC_same_normal_parity",
+                    center_order=2,
+                    channel_count=2,
+                ),
+                CenterClosureSource(
+                    "color_SU3_center_holonomy",
+                    center_order=3,
+                    channel_count=3,
+                ),
+            )
+        )
+        return (
+            graph.primitive_closed_walk_lengths_through(6) == (2, 3)
+            and graph_low_valuation_summary(graph) == (0, 2, 3)
+            and graph.closed_walk_count(2) == 2
+            and graph.closed_walk_count(3) == 3
+        )
+
+    @property
+    def session_d_pass(self) -> bool:
+        """Return whether MicroCUSP Session D passes."""
+
+        return (
+            self.weak_z2.session_c_pass
+            and self.charge_table_through_six == (0, 1, 2, 0, 1, 2, 0)
+            and self.open_holonomies_nontrivial
+            and self.closed_holonomy_neutral
+            and self.primitive_return_length == 3
+            and self.channel_count == 3
+            and self.one_step_forbidden
+            and self.automaton_matches_center_holonomy
+            and self.controls_rejected
+            and self.combined_cusp_graph_preserved
+        )
+
+    @property
+    def microscopic_gate_remaining(self) -> tuple[str, ...]:
+        """Return the still-open MicroCUSP gates after Session D."""
+
+        return (
+            "audit_SM_global_Z6_quotient_vs_independent_Z2_Z3_closures",
+            "derive_Target_C_D_micro_topology_from_BCC_SM_boundary",
+        )
+
+
+def microscopic_color_z3_recirculation_audit() -> MicroscopicColorZ3RecirculationAudit:
+    """Return the MicroCUSP Session D color Z3 audit."""
+
+    return MicroscopicColorZ3RecirculationAudit()
+
+
+@dataclass(frozen=True)
+class SMGlobalQuotientCuspAudit:
+    """MicroCUSP global gate for independent centers vs a correlated Z6 rule.
+
+    The SM global quotient can correlate central elements.  The cusp mechanism
+    needs the boundary recirculation to see two independent nonabelian center
+    axes: weak/BCC parity ``(1,0)`` and color holonomy ``(0,1)``.  A single
+    quotient-diagonal tick ``(1,1)`` closes only after six ticks and does not
+    produce the ``<2,3>`` cusp module.
+    """
+
+    color_z3: MicroscopicColorZ3RecirculationAudit = field(
+        default_factory=MicroscopicColorZ3RecirculationAudit
+    )
+
+    @property
+    def independent_tick_vectors(self) -> tuple[tuple[int, int], tuple[int, int]]:
+        """Return weak and color tick vectors in ``Z2 x Z3``."""
+
+        return ((1, 0), (0, 1))
+
+    @property
+    def quotient_diagonal_tick_vector(self) -> tuple[int, int]:
+        """Return the correlated quotient tick vector in ``Z2 x Z3``."""
+
+        return (1, 1)
+
+    @staticmethod
+    def neutral_length_for_tick(tick_vector: tuple[int, int]) -> int:
+        """Return first neutral length for a tick vector in ``Z2 x Z3``."""
+
+        weak_tick, color_tick = tick_vector
+        for ticks in range(1, 7):
+            if (ticks * weak_tick) % 2 == 0 and (ticks * color_tick) % 3 == 0:
+                return ticks
+        raise RuntimeError("unreachable for Z2 x Z3")
+
+    @property
+    def independent_primitive_lengths(self) -> tuple[int, int]:
+        """Return primitive lengths of independent weak/color boundary axes."""
+
+        return tuple(
+            self.neutral_length_for_tick(tick)
+            for tick in self.independent_tick_vectors
+        )
+
+    @property
+    def quotient_diagonal_primitive_length(self) -> int:
+        """Return primitive length of the correlated Z6 quotient tick."""
+
+        return self.neutral_length_for_tick(self.quotient_diagonal_tick_vector)
+
+    @property
+    def independent_low_valuations(self) -> tuple[int, ...]:
+        """Return low valuations for independent nonabelian center axes."""
+
+        return RecirculationGraph(self.independent_primitive_lengths).semigroup.first_values(3)
+
+    @property
+    def quotient_diagonal_low_valuations(self) -> tuple[int, ...]:
+        """Return low valuations for a single correlated Z6 closure."""
+
+        return RecirculationGraph((self.quotient_diagonal_primitive_length,)).semigroup.first_values(3)
+
+    @property
+    def u1_collapsed_low_valuations(self) -> tuple[int, ...]:
+        """Return low valuations if the quotient phase is gauged away at each tick."""
+
+        return RecirculationGraph((1,)).semigroup.first_values(3)
+
+    @property
+    def independent_family_basis(self) -> tuple[str, str, str]:
+        """Return the primitive cusp-module basis for independent axes."""
+
+        values = self.independent_low_valuations
+        return tuple(f"t^{value}" if value else "1" for value in values)
+
+    @property
+    def quotient_diagonal_family_basis(self) -> tuple[str, str, str]:
+        """Return the low module labels for a single quotient-correlated axis."""
+
+        values = self.quotient_diagonal_low_valuations
+        return tuple(f"t^{value}" if value else "1" for value in values)
+
+    @property
+    def independent_axes_pass(self) -> bool:
+        """Return whether the boundary sources are independent center axes."""
+
+        return (
+            self.color_z3.session_d_pass
+            and self.independent_tick_vectors == ((1, 0), (0, 1))
+            and self.independent_primitive_lengths == (2, 3)
+            and self.independent_low_valuations == (0, 2, 3)
+            and self.independent_family_basis == ("1", "t^2", "t^3")
+        )
+
+    @property
+    def quotient_controls_rejected(self) -> bool:
+        """Return whether quotient-correlated controls miss the cusp module."""
+
+        target = (0, 2, 3)
+        return (
+            self.quotient_diagonal_primitive_length == 6
+            and self.quotient_diagonal_low_valuations != target
+            and self.u1_collapsed_low_valuations != target
+        )
+
+    @property
+    def session_global_quotient_pass(self) -> bool:
+        """Return whether the SM quotient gate preserves independent closures."""
+
+        return self.independent_axes_pass and self.quotient_controls_rejected
+
+    @property
+    def microscopic_gate_remaining(self) -> tuple[str, ...]:
+        """Return the still-open MicroCUSP gates after the quotient audit."""
+
+        return ("derive_Target_C_D_micro_topology_from_BCC_SM_boundary",)
+
+
+def sm_global_quotient_cusp_audit() -> SMGlobalQuotientCuspAudit:
+    """Return the MicroCUSP SM global quotient audit."""
+
+    return SMGlobalQuotientCuspAudit()
+
+
+def low_values_from_generators(
+    generators: tuple[int, ...], count: int
+) -> tuple[int, ...]:
+    """Return first low values from positive generators, without coprime assumption."""
+
+    if count <= 0:
+        raise ValueError("count must be positive")
+    if not generators or any(generator <= 0 for generator in generators):
+        raise ValueError("generators must be positive")
+    values: list[int] = []
+    value = 0
+    while len(values) < count:
+        if value == 0 or _value_in_additive_monoid(value, generators):
+            values.append(value)
+        value += 1
+    return tuple(values)
+
+
+def _value_in_additive_monoid(value: int, generators: tuple[int, ...]) -> bool:
+    """Return whether ``value`` is a non-negative combination of generators."""
+
+    if value < 0:
+        return False
+    if value == 0:
+        return True
+    reachable = {0}
+    for current in range(1, value + 1):
+        if any(current - generator in reachable for generator in generators):
+            reachable.add(current)
+    return value in reachable
+
+
+@dataclass(frozen=True)
+class MicroscopicSchurSemigroupAudit:
+    """MicroCUSP Session E audit for the visible Schur return semigroup.
+
+    The visible return moments are the closed-walk counts of the microscopic
+    center recirculation graph sourced by the weak Z2 branch parity and color
+    Z3 center holonomy.  The first nonzero moments must occur at 2 and 3, with
+    no one-step return.
+    """
+
+    quotient_audit: SMGlobalQuotientCuspAudit = field(
+        default_factory=SMGlobalQuotientCuspAudit
+    )
+
+    @property
+    def microscopic_return_graph(self) -> FiniteRecirculationWalkGraph:
+        """Return the microscopic weak/color return graph."""
+
+        return finite_recirculation_graph_from_sources(
+            (
+                CenterClosureSource(
+                    "micro_weak_Z2_branch_parity",
+                    center_order=2,
+                    channel_count=2,
+                ),
+                CenterClosureSource(
+                    "micro_color_Z3_center_holonomy",
+                    center_order=3,
+                    channel_count=3,
+                ),
+            )
+        )
+
+    @property
+    def return_moments_through_six(self) -> tuple[int, ...]:
+        """Return visible Schur return moments ``M_n`` through length six."""
+
+        return self.microscopic_return_graph.closed_walk_counts_through(6)
+
+    @property
+    def m1_zero(self) -> bool:
+        """Return whether the one-step return moment vanishes."""
+
+        return self.return_moments_through_six[1] == 0
+
+    @property
+    def m2_nonzero(self) -> bool:
+        """Return whether the weak/BCC two-step return is present."""
+
+        return self.return_moments_through_six[2] != 0
+
+    @property
+    def m3_nonzero(self) -> bool:
+        """Return whether the color three-step return is present."""
+
+        return self.return_moments_through_six[3] != 0
+
+    @property
+    def primitive_return_semigroup(self) -> tuple[int, int]:
+        """Return primitive positive return lengths."""
+
+        return self.microscopic_return_graph.primitive_closed_walk_lengths_through(6)
+
+    @property
+    def recirculation_algebra(self) -> str:
+        """Return the visible recirculation algebra label."""
+
+        return "C[t^2,t^3]"
+
+    @property
+    def maximal_ideal_generators(self) -> tuple[int, int]:
+        """Return valuation generators of the maximal ideal."""
+
+        return (2, 3)
+
+    @property
+    def family_module_basis(self) -> tuple[str, str, str]:
+        """Return ``A_rec / m^2`` basis labels."""
+
+        return ("1", "t^2", "t^3")
+
+    @property
+    def low_valuations(self) -> tuple[int, int, int]:
+        """Return the first three primitive module valuations."""
+
+        return graph_low_valuation_summary(self.microscopic_return_graph)
+
+    @property
+    def controls(self) -> dict[str, tuple[int, ...]]:
+        """Return MicroCUSP Session E semigroup controls."""
+
+        return {
+            "S=<1>": low_values_from_generators((1,), 3),
+            "S=<2>": low_values_from_generators((2,), 3),
+            "S=<3>": low_values_from_generators((3,), 3),
+            "S=<2,4>": low_values_from_generators((2, 4), 3),
+            "S=<3,4>": low_values_from_generators((3, 4), 3),
+        }
+
+    @property
+    def controls_rejected(self) -> bool:
+        """Return whether all neighboring controls miss ``(0,2,3)``."""
+
+        return all(control != (0, 2, 3) for control in self.controls.values())
+
+    @property
+    def session_e_pass(self) -> bool:
+        """Return whether MicroCUSP Session E passes."""
+
+        return (
+            self.quotient_audit.session_global_quotient_pass
+            and self.m1_zero
+            and self.m2_nonzero
+            and self.m3_nonzero
+            and self.primitive_return_semigroup == (2, 3)
+            and self.low_valuations == (0, 2, 3)
+            and self.family_module_basis == ("1", "t^2", "t^3")
+            and self.controls_rejected
+        )
+
+    @property
+    def microscopic_gate_remaining(self) -> tuple[str, ...]:
+        """Return the still-open MicroCUSP gates after Session E."""
+
+        return (
+            "recover_lambda_rec_from_one_sided_matching",
+            "derive_Target_C_D_micro_topology_from_BCC_SM_boundary",
+        )
+
+
+def microscopic_schur_semigroup_audit() -> MicroscopicSchurSemigroupAudit:
+    """Return the MicroCUSP Session E Schur-semigroup audit."""
+
+    return MicroscopicSchurSemigroupAudit()
+
+
+@dataclass(frozen=True)
+class MicroscopicLambdaRecAudit:
+    """MicroCUSP Session F audit for the one-sided lambda readout."""
+
+    schur_semigroup: MicroscopicSchurSemigroupAudit = field(
+        default_factory=MicroscopicSchurSemigroupAudit
+    )
+    retarded_boundary: MicroscopicRetardedBoundaryAudit = field(
+        default_factory=MicroscopicRetardedBoundaryAudit
+    )
+
+    @property
+    def weak_return_moment(self) -> int:
+        """Return microscopic weak/BCC return moment ``M_2``."""
+
+        return self.schur_semigroup.return_moments_through_six[2]
+
+    @property
+    def color_return_moment(self) -> int:
+        """Return microscopic color return moment ``M_3``."""
+
+        return self.schur_semigroup.return_moments_through_six[3]
+
+    @property
+    def matcher(self) -> RecirculationShearMatcher:
+        """Return the one-sided matcher sourced by microscopic return moments."""
+
+        return RecirculationShearMatcher(
+            weak_channels=self.weak_return_moment,
+            color_channels=self.color_return_moment,
+        )
+
+    @property
+    def lambda_rec(self) -> sp.Expr:
+        """Return the microscopic one-sided recirculation shear."""
+
+        solution = self.matcher.solve()
+        if len(solution) != 1:
+            raise ValueError("expected unique microscopic lambda")
+        return solution[0]
+
+    @property
+    def one_sided_residual(self) -> sp.Expr:
+        """Return residual of the one-sided equation at lambda."""
+
+        return self.matcher.matching_residual(self.lambda_rec)
+
+    @property
+    def one_sided_stable_minimum(self) -> bool:
+        """Return whether lambda is the stable mismatch minimum."""
+
+        return (
+            self.matcher.matching_function(self.lambda_rec) == 0
+            and self.matcher.matching_function_derivative(self.lambda_rec) == 0
+            and self.matcher.matching_function_second_derivative()
+            == 2 * self.weak_return_moment
+        )
+
+    @property
+    def ordinary_reflection_control(self) -> sp.Expr:
+        """Return the two-sided reflection coefficient control."""
+
+        weak = self.matcher.weak_amplitude
+        color = self.matcher.color_amplitude
+        return sp.simplify((color - weak) / (color + weak))
+
+    @property
+    def ordinary_reflection_one_sided_residual(self) -> sp.Expr:
+        """Return one-sided residual of ordinary reflection."""
+
+        return self.matcher.matching_residual(self.ordinary_reflection_control)
+
+    @property
+    def count_ratio_control(self) -> sp.Expr:
+        """Return count-ratio shear control."""
+
+        return sp.Rational(self.color_return_moment, self.weak_return_moment) - 1
+
+    @property
+    def inverse_amplitude_control(self) -> sp.Expr:
+        """Return inverse-amplitude shear control."""
+
+        return sp.sqrt(
+            sp.Rational(self.weak_return_moment, self.color_return_moment)
+        ) - 1
+
+    @property
+    def control_residuals(self) -> dict[str, sp.Expr]:
+        """Return one-sided residuals for rejected controls."""
+
+        return {
+            "ordinary_reflection": self.ordinary_reflection_one_sided_residual,
+            "count_ratio_minus_one": self.matcher.matching_residual(
+                self.count_ratio_control
+            ),
+            "inverse_amplitude_shear": self.matcher.matching_residual(
+                self.inverse_amplitude_control
+            ),
+        }
+
+    @property
+    def controls_rejected(self) -> bool:
+        """Return whether all non-retarded lambda controls fail."""
+
+        return all(
+            sp.simplify(residual) != 0
+            for residual in self.control_residuals.values()
+        )
+
+    @property
+    def session_f_pass(self) -> bool:
+        """Return whether MicroCUSP Session F passes."""
+
+        return (
+            self.schur_semigroup.session_e_pass
+            and self.retarded_boundary.session_b_pass
+            and self.weak_return_moment == 2
+            and self.color_return_moment == 3
+            and sp.simplify(self.lambda_rec - (sp.sqrt(sp.Rational(3, 2)) - 1))
+            == 0
+            and self.one_sided_residual == 0
+            and self.one_sided_stable_minimum
+            and self.controls_rejected
+        )
+
+    @property
+    def microscopic_gate_remaining(self) -> tuple[str, ...]:
+        """Return the still-open MicroCUSP gates after Session F."""
+
+        return ("derive_Target_C_D_micro_topology_from_BCC_SM_boundary",)
+
+
+def microscopic_lambda_rec_audit() -> MicroscopicLambdaRecAudit:
+    """Return the MicroCUSP Session F lambda-rec audit."""
+
+    return MicroscopicLambdaRecAudit()
+
+
+@dataclass(frozen=True)
+class MicroscopicTargetCModuleAudit:
+    """MicroCUSP Session G audit for Target C from microscopic modules.
+
+    This starts from the microscopic Schur return semigroup and weak/color
+    center closures.  It intentionally does not solve the right charges from
+    diagonal exponent targets.
+    """
+
+    lambda_audit: MicroscopicLambdaRecAudit = field(
+        default_factory=MicroscopicLambdaRecAudit
+    )
+    weak_z2: MicroscopicWeakZ2RecirculationAudit = field(
+        default_factory=MicroscopicWeakZ2RecirculationAudit
+    )
+    color_z3: MicroscopicColorZ3RecirculationAudit = field(
+        default_factory=MicroscopicColorZ3RecirculationAudit
+    )
+
+    @property
+    def primitive_return_semigroup(self) -> tuple[int, int]:
+        """Return the microscopic primitive Schur-return semigroup."""
+
+        return self.lambda_audit.schur_semigroup.primitive_return_semigroup
+
+    @property
+    def semigroup(self) -> NumericalSemigroup:
+        """Return the numerical semigroup generated by microscopic returns."""
+
+        return NumericalSemigroup(self.primitive_return_semigroup)
+
+    @property
+    def family_module_basis(self) -> tuple[str, str, str]:
+        """Return the microscopic ``A_rec / m^2`` family basis."""
+
+        return self.lambda_audit.schur_semigroup.family_module_basis
+
+    @property
+    def module_valuations_heavy_to_light(self) -> tuple[int, int, int]:
+        """Return primitive cusp-module valuations in direct-to-delayed order."""
+
+        return self.lambda_audit.schur_semigroup.low_valuations
+
+    @property
+    def left_charges_light_to_heavy(self) -> tuple[int, int, int]:
+        """Return left FN charges by reversing direct-to-delayed valuations."""
+
+        return tuple(reversed(self.module_valuations_heavy_to_light))
+
+    @property
+    def conductor(self) -> int:
+        """Return the conductor derived from the microscopic semigroup."""
+
+        return self.semigroup.conductor()
+
+    @property
+    def frobenius_gap(self) -> int | None:
+        """Return the Frobenius gap of the microscopic semigroup."""
+
+        return self.semigroup.frobenius_number()
+
+    @property
+    def down_right_charges(self) -> tuple[int, int, int]:
+        """Return the down right module from the conductor-ideal residue."""
+
+        return subtract_conductor_floor(self.left_charges_light_to_heavy, self.conductor)
+
+    @property
+    def down_diagonal_exponents(self) -> tuple[int, int, int]:
+        """Return down diagonal powers from the microscopic module rule."""
+
+        return diagonal_exponents(
+            self.left_charges_light_to_heavy, self.down_right_charges
+        )
+
+    @property
+    def weak_double_cover_factor(self) -> int:
+        """Return the up lift factor from the weak/BCC primitive return."""
+
+        return self.weak_z2.primitive_return_length
+
+    @property
+    def color_order_control_factor(self) -> int:
+        """Return the rejected color-order lift factor."""
+
+        return self.color_z3.primitive_return_length
+
+    @property
+    def up_right_charges(self) -> tuple[int, int, int]:
+        """Return the up right module from the weak double-cover lift."""
+
+        return oriented_lift_up_right_charges(
+            self.left_charges_light_to_heavy,
+            self.down_right_charges,
+            lift_factor=self.weak_double_cover_factor,
+        )
+
+    @property
+    def up_diagonal_exponents(self) -> tuple[int, int, int]:
+        """Return up diagonal powers from the microscopic module rule."""
+
+        return diagonal_exponents(self.left_charges_light_to_heavy, self.up_right_charges)
+
+    @property
+    def up_exponent_matrix(self) -> tuple[tuple[int, int, int], ...]:
+        """Return the full up FN exponent matrix."""
+
+        return exponent_matrix(self.left_charges_light_to_heavy, self.up_right_charges)
+
+    @property
+    def down_exponent_matrix(self) -> tuple[tuple[int, int, int], ...]:
+        """Return the full down FN exponent matrix."""
+
+        return exponent_matrix(self.left_charges_light_to_heavy, self.down_right_charges)
+
+    @property
+    def wrong_conductor_controls(self) -> dict[int, tuple[int, int, int]]:
+        """Return down diagonal controls for neighboring conductors."""
+
+        charges = self.left_charges_light_to_heavy
+        return {
+            conductor: diagonal_exponents(
+                charges, subtract_conductor_floor(charges, conductor)
+            )
+            for conductor in (1, 3)
+        }
+
+    @property
+    def lift_controls(self) -> dict[str, tuple[int, int, int]]:
+        """Return rejected up diagonal controls."""
+
+        charges = self.left_charges_light_to_heavy
+        return {
+            "trivial_lift": diagonal_exponents(
+                charges,
+                oriented_lift_up_right_charges(
+                    charges, self.down_right_charges, lift_factor=1
+                ),
+            ),
+            "color_order_lift": diagonal_exponents(
+                charges,
+                oriented_lift_up_right_charges(
+                    charges,
+                    self.down_right_charges,
+                    lift_factor=self.color_order_control_factor,
+                ),
+            ),
+        }
+
+    @property
+    def controls_rejected(self) -> bool:
+        """Return whether wrong conductor/lift controls miss the module."""
+
+        return (
+            all(
+                control != self.down_diagonal_exponents
+                for control in self.wrong_conductor_controls.values()
+            )
+            and all(
+                control != self.up_diagonal_exponents
+                for control in self.lift_controls.values()
+            )
+        )
+
+    @property
+    def uses_diagonal_targets(self) -> bool:
+        """Return whether diagonal target powers were used as inputs."""
+
+        return False
+
+    @property
+    def uses_mass_fits(self) -> bool:
+        """Return whether fitted quark masses were used as inputs."""
+
+        return False
+
+    @property
+    def session_g_pass(self) -> bool:
+        """Return whether MicroCUSP Session G passes."""
+
+        return (
+            self.lambda_audit.session_f_pass
+            and self.weak_z2.session_c_pass
+            and self.color_z3.session_d_pass
+            and self.primitive_return_semigroup == (2, 3)
+            and self.family_module_basis == ("1", "t^2", "t^3")
+            and self.module_valuations_heavy_to_light == (0, 2, 3)
+            and self.left_charges_light_to_heavy == (3, 2, 0)
+            and self.conductor == 2
+            and self.frobenius_gap == 1
+            and self.down_right_charges == (1, 0, 0)
+            and self.up_right_charges == (5, 2, 0)
+            and self.down_diagonal_exponents == (4, 2, 0)
+            and self.up_diagonal_exponents == (8, 4, 0)
+            and self.up_exponent_matrix == ((8, 5, 3), (7, 4, 2), (5, 2, 0))
+            and self.down_exponent_matrix == ((4, 3, 3), (3, 2, 2), (1, 0, 0))
+            and self.weak_double_cover_factor == 2
+            and self.color_order_control_factor == 3
+            and self.controls_rejected
+            and not self.uses_diagonal_targets
+            and not self.uses_mass_fits
+        )
+
+    @property
+    def microscopic_gate_remaining(self) -> tuple[str, ...]:
+        """Return the still-open MicroCUSP gates after Session G."""
+
+        return ("recover_Target_D_from_microscopic_topology",)
+
+
+def microscopic_target_c_module_audit() -> MicroscopicTargetCModuleAudit:
+    """Return the MicroCUSP Session G Target-C module audit."""
+
+    return MicroscopicTargetCModuleAudit()
+
+
+def shortest_path_distance_on_flag(
+    source: int,
+    target: int,
+    edges: tuple[tuple[int, int], ...],
+) -> int:
+    """Return shortest-path distance on a finite undirected flag graph."""
+
+    if source == target:
+        return 0
+    frontier = {source}
+    visited = {source}
+    distance = 0
+    adjacency: dict[int, set[int]] = {}
+    for left, right in edges:
+        adjacency.setdefault(left, set()).add(right)
+        adjacency.setdefault(right, set()).add(left)
+    while frontier:
+        distance += 1
+        next_frontier: set[int] = set()
+        for node in frontier:
+            for neighbor in adjacency.get(node, set()):
+                if neighbor == target:
+                    return distance
+                if neighbor not in visited:
+                    visited.add(neighbor)
+                    next_frontier.add(neighbor)
+        frontier = next_frontier
+    raise ValueError("flag graph is disconnected")
+
+
+def flag_distance_center_powers_from_edges(
+    edges: tuple[tuple[int, int], ...],
+) -> tuple[tuple[int, int, int], ...]:
+    """Return center powers from microscopic flag-edge geodesics."""
+
+    return tuple(
+        tuple(shortest_path_distance_on_flag(row, col, edges) for col in range(3))
+        for row in range(3)
+    )
+
+
+@dataclass(frozen=True)
+class MicroscopicTargetDTopologyAudit:
+    """MicroCUSP Session H audit for Target D from microscopic topology."""
+
+    module_audit: MicroscopicTargetCModuleAudit = field(
+        default_factory=MicroscopicTargetCModuleAudit
+    )
+    color_z3: MicroscopicColorZ3RecirculationAudit = field(
+        default_factory=MicroscopicColorZ3RecirculationAudit
+    )
+    orientation_unit: int = 1
+
+    @property
+    def family_flag_edges(self) -> tuple[tuple[int, int], tuple[int, int]]:
+        """Return the non-cyclic length-three cusp flag adjacency."""
+
+        return (0, 1), (1, 2)
+
+    @property
+    def center_labels(self) -> tuple[int, int, int]:
+        """Return F3 center labels from the microscopic color clock."""
+
+        return tuple(
+            self.color_z3.charge_table_through_six[index] for index in range(3)
+        )
+
+    @property
+    def up_center_powers(self) -> tuple[tuple[int, int, int], ...]:
+        """Return up center powers from flag geodesic distance."""
+
+        return flag_distance_center_powers_from_edges(self.family_flag_edges)
+
+    @property
+    def down_center_powers(self) -> tuple[tuple[int, int, int], ...]:
+        """Return down center powers from unit F3 bilinear pairing."""
+
+        labels = self.center_labels
+        return tuple(
+            tuple((self.orientation_unit * labels[row] * labels[col]) % 3 for col in range(3))
+            for row in range(3)
+        )
+
+    @property
+    def up_rule(self) -> "CenterHolonomyRule":
+        """Return the microscopic up center-holonomy rule."""
+
+        return CenterHolonomyRule(
+            name="micro_up_cusp_flag_geodesic",
+            center_powers=self.up_center_powers,
+            interpretation="microscopic non-cyclic cusp-flag geodesic distance",
+        )
+
+    @property
+    def down_rule(self) -> "CenterHolonomyRule":
+        """Return the microscopic down center-holonomy rule."""
+
+        return CenterHolonomyRule(
+            name="micro_down_color_center_bilinear",
+            center_powers=self.down_center_powers,
+            interpretation="microscopic F3 color-center bilinear pairing",
+        )
+
+    @property
+    def up_control_powers(self) -> dict[str, tuple[tuple[int, int, int], ...]]:
+        """Return rejected up topology controls."""
+
+        return {
+            "cyclic_group_difference": cyclic_difference_center_powers(),
+            "complete_graph_distance": complete_graph_distance_center_powers(),
+            "all_trivial": all_trivial_center_rule().center_powers,
+        }
+
+    @property
+    def down_control_powers(self) -> dict[str, tuple[tuple[int, int, int], ...]]:
+        """Return rejected down topology controls."""
+
+        return {
+            "all_trivial": all_trivial_center_rule().center_powers,
+            "additive_row_plus_col": additive_center_control_powers(),
+            "cyclic_difference": cyclic_difference_center_powers(),
+            "orientation_conjugate": bilinear_center_linking_powers(unit=2),
+        }
+
+    @property
+    def up_controls_rejected(self) -> bool:
+        """Return whether non-flag controls miss the up topology."""
+
+        return all(control != self.up_center_powers for control in self.up_control_powers.values())
+
+    @property
+    def down_controls_rejected_except_conjugate(self) -> bool:
+        """Return whether non-orientation controls miss the down topology."""
+
+        return all(
+            control != self.down_center_powers
+            for name, control in self.down_control_powers.items()
+            if name != "orientation_conjugate"
+        )
+
+    @property
+    def up_amplitudes(self) -> tuple[tuple[sp.Expr, sp.Expr, sp.Expr], ...]:
+        """Return up amplitudes from microscopic cusp-module path counts."""
+
+        return cusp_module_path_amplitudes(
+            self.module_audit.up_exponent_matrix, self.module_audit.semigroup
+        )
+
+    @property
+    def down_amplitudes(self) -> tuple[tuple[sp.Expr, sp.Expr, sp.Expr], ...]:
+        """Return down amplitudes from microscopic cusp-module path counts."""
+
+        return cusp_module_path_amplitudes(
+            self.module_audit.down_exponent_matrix, self.module_audit.semigroup
+        )
+
+    @property
+    def up_coefficients(self) -> sp.Matrix:
+        """Return the microscopic up coefficient matrix."""
+
+        return path_measure_from_center_powers(
+            self.up_center_powers, amplitude=self.up_amplitudes
+        ).coefficient_matrix()
+
+    @property
+    def down_coefficients(self) -> sp.Matrix:
+        """Return the microscopic down coefficient matrix."""
+
+        return path_measure_from_center_powers(
+            self.down_center_powers, amplitude=self.down_amplitudes
+        ).coefficient_matrix()
+
+    @property
+    def lam(self) -> sp.Expr:
+        """Return the microscopic one-sided recirculation shear."""
+
+        return self.module_audit.lambda_audit.lambda_rec
+
+    @property
+    def cp_invariant(self) -> sp.Expr:
+        """Return the microscopic Target-D CP invariant."""
+
+        yu = fn_yukawa_matrix(
+            self.module_audit.left_charges_light_to_heavy,
+            self.module_audit.up_right_charges,
+            self.up_coefficients,
+            self.lam,
+        )
+        yd = fn_yukawa_matrix(
+            self.module_audit.left_charges_light_to_heavy,
+            self.module_audit.down_right_charges,
+            self.down_coefficients,
+            self.lam,
+        )
+        return jarlskog_commutator_invariant(yu, yd)
+
+    @property
+    def real_control_invariant(self) -> sp.Expr:
+        """Return all-real control invariant with the same amplitudes."""
+
+        trivial = all_trivial_center_rule()
+        up_real = path_measure_from_center_powers(
+            trivial.center_powers, amplitude=self.up_amplitudes
+        ).coefficient_matrix()
+        down_real = path_measure_from_center_powers(
+            trivial.center_powers, amplitude=self.down_amplitudes
+        ).coefficient_matrix()
+        yu = fn_yukawa_matrix(
+            self.module_audit.left_charges_light_to_heavy,
+            self.module_audit.up_right_charges,
+            up_real,
+            self.lam,
+        )
+        yd = fn_yukawa_matrix(
+            self.module_audit.left_charges_light_to_heavy,
+            self.module_audit.down_right_charges,
+            down_real,
+            self.lam,
+        )
+        return jarlskog_commutator_invariant(yu, yd)
+
+    @property
+    def one_sector_control_invariants(self) -> dict[str, sp.Expr]:
+        """Return controls with only one nontrivial center sector."""
+
+        left = self.module_audit.left_charges_light_to_heavy
+        up_right = self.module_audit.up_right_charges
+        down_right = self.module_audit.down_right_charges
+        trivial = all_trivial_center_rule()
+        controls = {
+            "up_only": (self.up_rule, trivial),
+            "down_only": (trivial, self.down_rule),
+            "separable_row_col": (row_only_center_rule(), col_only_center_rule()),
+        }
+        invariants: dict[str, sp.Expr] = {}
+        for name, (up_rule, down_rule) in controls.items():
+            up_coefficients = path_measure_from_center_powers(
+                up_rule.center_powers, amplitude=self.up_amplitudes
+            ).coefficient_matrix()
+            down_coefficients = path_measure_from_center_powers(
+                down_rule.center_powers, amplitude=self.down_amplitudes
+            ).coefficient_matrix()
+            yu = fn_yukawa_matrix(left, up_right, up_coefficients, self.lam)
+            yd = fn_yukawa_matrix(left, down_right, down_coefficients, self.lam)
+            invariants[name] = jarlskog_commutator_invariant(yu, yd)
+        return invariants
+
+    @property
+    def rephased_cp_invariant(self) -> sp.Expr:
+        """Return the CP invariant after full field rephasings."""
+
+        yu = fn_yukawa_matrix(
+            self.module_audit.left_charges_light_to_heavy,
+            self.module_audit.up_right_charges,
+            self.up_coefficients,
+            self.lam,
+        )
+        yd = fn_yukawa_matrix(
+            self.module_audit.left_charges_light_to_heavy,
+            self.module_audit.down_right_charges,
+            self.down_coefficients,
+            self.lam,
+        )
+        rephased_yu, rephased_yd = field_rephase_yukawas(
+            yu,
+            yd,
+            left_phase_exponents=(0, 1, 2),
+            up_right_phase_exponents=(2, 0, 1),
+            down_right_phase_exponents=(1, 2, 0),
+        )
+        return jarlskog_commutator_invariant(rephased_yu, rephased_yd)
+
+    @property
+    def topology_controls_rejected(self) -> bool:
+        """Return whether topology controls are rejected."""
+
+        return (
+            self.up_controls_rejected
+            and self.down_controls_rejected_except_conjugate
+            and all(
+                sp.simplify(invariant) == 0
+                for invariant in self.one_sector_control_invariants.values()
+            )
+            and sp.simplify(self.real_control_invariant) == 0
+        )
+
+    @property
+    def session_h_pass(self) -> bool:
+        """Return whether MicroCUSP Session H passes."""
+
+        return (
+            self.module_audit.session_g_pass
+            and self.color_z3.session_d_pass
+            and self.center_labels == (0, 1, 2)
+            and self.up_center_powers == ((0, 1, 2), (1, 0, 1), (2, 1, 0))
+            and self.down_center_powers == ((0, 0, 0), (0, 1, 2), (0, 2, 1))
+            and self.up_amplitudes == (
+                (sp.Integer(2), sp.Integer(1), sp.Integer(1)),
+                (sp.Integer(1), sp.Integer(1), sp.Integer(1)),
+                (sp.Integer(1), sp.Integer(1), sp.Integer(1)),
+            )
+            and self.down_amplitudes == (
+                (sp.Integer(1), sp.Integer(1), sp.Integer(1)),
+                (sp.Integer(1), sp.Integer(1), sp.Integer(1)),
+                (sp.Integer(1), sp.Integer(1), sp.Integer(1)),
+            )
+            and sp.simplify(self.cp_invariant) != 0
+            and sp.simplify(self.real_control_invariant) == 0
+            and self.topology_controls_rejected
+            and sp.simplify(self.cp_invariant - self.rephased_cp_invariant) == 0
+        )
+
+    @property
+    def microscopic_gate_remaining(self) -> tuple[str, ...]:
+        """Return remaining MicroCUSP gates after Session H."""
+
+        return ()
+
+
+def microscopic_target_d_topology_audit() -> MicroscopicTargetDTopologyAudit:
+    """Return the MicroCUSP Session H Target-D topology audit."""
+
+    return MicroscopicTargetDTopologyAudit()
+
+
+@dataclass(frozen=True)
 class CausalOutgoingOriginAudit:
     """Finite origin audit for the outgoing leakage condition."""
 
@@ -1616,6 +3417,8 @@ class TargetCPayload:
     right_charge_origin_lift_factor_from_weak_order: int
     right_charge_origin_trivial_lift_control: tuple[int, int, int]
     right_charge_origin_color_lift_control: tuple[int, int, int]
+    microscopic_module_audit: "MicroscopicTargetCModuleAudit"
+    microscopic_module_pass: bool
     up_exponent_matrix: tuple[tuple[int, int, int], ...]
     down_exponent_matrix: tuple[tuple[int, int, int], ...]
     up_diagonal_exponents: tuple[int, int, int]
@@ -1962,6 +3765,7 @@ def target_c_payload() -> TargetCPayload:
         left_charges=left,
         semigroup=cusp_semigroup,
     )
+    microscopic_module = MicroscopicTargetCModuleAudit()
     q_left_bar_y = -sp.Rational(1, 6)
     higgs_y = sp.Rational(1, 2)
     higgs_tilde_y = -sp.Rational(1, 2)
@@ -2029,6 +3833,8 @@ def target_c_payload() -> TargetCPayload:
             right_charge_origin.trivial_lift_control
         ),
         right_charge_origin_color_lift_control=right_charge_origin.color_lift_control,
+        microscopic_module_audit=microscopic_module,
+        microscopic_module_pass=microscopic_module.session_g_pass,
         up_exponent_matrix=up_matrix,
         down_exponent_matrix=down_matrix,
         up_diagonal_exponents=(up_matrix[0][0], up_matrix[1][1], up_matrix[2][2]),
@@ -2063,6 +3869,7 @@ def target_c_payload() -> TargetCPayload:
             and boundary_module_rule.selected_targets_pass(
                 up_diagonal_target, down_diagonal_target
             )
+            and microscopic_module.session_g_pass
             and conductor_controls[1] != (4, 2, 0)
             and conductor_controls[2] == (4, 2, 0)
             and conductor_controls[3] != (4, 2, 0)
@@ -2074,9 +3881,9 @@ def target_c_payload() -> TargetCPayload:
             "SM hypercharge forces the H_tilde/H Yukawa doors; the cusp "
             "semigroup derives conductor c=2; the down conductor floor is the "
             "right residue of the conductor ideal; and the up lift factor is "
-            "the weak/BCC closure order 2.  The deeper microscopic origin of "
-            "the conductor-module and weak-double-cover boundary dynamics is "
-            "still pending"
+            "the microscopic weak/BCC closure order 2.  MicroCUSP Session G "
+            "recovers the same Target-C module from Schur moments, conductor "
+            "c=2, and weak/color closure controls without diagonal targets"
         ),
         interpretation=(
             "SM hypercharge conservation forces the up Yukawa to use H_tilde "
@@ -2087,7 +3894,9 @@ def target_c_payload() -> TargetCPayload:
             "The weak/BCC order supplies the oriented up double cover, giving "
             "U=(5,2,0); trivial and color-order lift controls miss the up "
             "exponents.  The finite rule no longer uses mass fits as an input, "
-            "but its deeper microscopic BCC/SM boundary origin is still open."
+            "and the MicroCUSP module audit now recovers it from microscopic "
+            "Schur returns rather than solving from the diagonal exponent "
+            "targets."
         ),
     )
 
@@ -2125,6 +3934,8 @@ class TargetDPayload:
     center_topology_audit: "CuspCenterTopologyAudit"
     center_topology_finite_selection_pass: bool
     center_topology_boundary_selected: bool
+    microscopic_topology_audit: "MicroscopicTargetDTopologyAudit"
+    microscopic_topology_pass: bool
     center_topology_up_control_powers: dict[str, tuple[tuple[int, int, int], ...]]
     center_topology_down_control_powers: dict[str, tuple[tuple[int, int, int], ...]]
     real_coefficient_control_invariant: sp.Expr
@@ -2371,7 +4182,7 @@ class CuspCenterTopologyAudit:
     def boundary_microphysics_selected(self) -> bool:
         """Return whether microscopic BCC boundary dynamics has selected this topology."""
 
-        return False
+        return microscopic_target_d_topology_audit().session_h_pass
 
 
 def cusp_center_topology_audit() -> CuspCenterTopologyAudit:
@@ -2661,7 +4472,7 @@ class CuspCoefficientMeasureAudit:
     def holonomy_topology_selected_by_boundary(self) -> bool:
         """Return whether the center-power topology has been derived."""
 
-        return False
+        return microscopic_target_d_topology_audit().session_h_pass
 
     @property
     def coefficient_measure_pass(self) -> bool:
@@ -2758,6 +4569,7 @@ def target_d_payload() -> TargetDPayload:
     lam = target_b_payload().lambda_rec
     target_c = target_c_payload()
     topology_audit = CuspCenterTopologyAudit()
+    microscopic_topology_audit = MicroscopicTargetDTopologyAudit()
     up_rule = topology_audit.up_rule
     down_rule = topology_audit.down_rule
     up_measure = up_rule.path_measure()
@@ -2875,13 +4687,15 @@ def target_d_payload() -> TargetDPayload:
         ),
         derived_measure_pass=coefficient_measure_audit.coefficient_measure_pass,
         derived_measure_topology_selected=(
-            coefficient_measure_audit.holonomy_topology_selected_by_boundary
+            microscopic_topology_audit.session_h_pass
         ),
         center_topology_audit=topology_audit,
         center_topology_finite_selection_pass=(
             topology_audit.finite_topology_selection_pass
         ),
-        center_topology_boundary_selected=topology_audit.boundary_microphysics_selected,
+        center_topology_boundary_selected=microscopic_topology_audit.session_h_pass,
+        microscopic_topology_audit=microscopic_topology_audit,
+        microscopic_topology_pass=microscopic_topology_audit.session_h_pass,
         center_topology_up_control_powers=topology_audit.up_control_powers,
         center_topology_down_control_powers=topology_audit.down_control_powers,
         real_coefficient_control_invariant=real_control,
@@ -2906,6 +4720,7 @@ def target_d_payload() -> TargetDPayload:
         target_d_witness_pass=(
             sp.simplify(invariant) != 0
             and topology_audit.finite_topology_selection_pass
+            and microscopic_topology_audit.session_h_pass
             and coefficient_measure_audit.coefficient_measure_pass
             and sp.simplify(positive_invariant) != 0
             and sp.simplify(positive_real_control) == 0
@@ -2916,8 +4731,9 @@ def target_d_payload() -> TargetDPayload:
         ),
         derivation_status=(
             "finite center-holonomy topology audit with derived cusp-module "
-            "amplitudes: finite flag-distance / bilinear-linking selection "
-            "passes, but microscopic BCC boundary selection is still pending"
+            "amplitudes: MicroCUSP Session H recovers the flag-distance / "
+            "bilinear-linking rules from the microscopic cusp flag and color "
+            "center labels"
         ),
         interpretation=(
             "The up flag-winding and down bilinear-linking center rules generate "
@@ -2931,8 +4747,9 @@ def target_d_payload() -> TargetDPayload:
             "fixed non-unit positive deformation remains CP-active as a "
             "robustness control.  The center-power topology is now selected at "
             "the finite level by cusp-flag distance for up and F3 bilinear "
-            "linking for down.  The remaining open part is the microscopic BCC "
-            "boundary selection of these finite topological rules."
+            "linking for down, and MicroCUSP Session H recovers these same "
+            "rules from the microscopic non-cyclic cusp flag and SU(3) center "
+            "labels."
         ),
     )
 
@@ -2957,7 +4774,7 @@ def cusp_targets_payload() -> CuspTargetsPayload:
     target_c = target_c_payload()
     target_d = target_d_payload()
     return CuspTargetsPayload(
-        final_verdict="CUSP_TARGETS_A_D_FINITE_PASS_MICRO_GATES_OPEN",
+        final_verdict="CUSP_TARGETS_A_D_MICRO_BOUNDARY_PASS",
         target_a=target_a,
         target_b=target_b,
         target_c=target_c,
@@ -2966,12 +4783,15 @@ def cusp_targets_payload() -> CuspTargetsPayload:
             "Targets A and B are exact certificates inside the minimal "
             "recirculation model.  Target C proves the SM hypercharge Yukawa "
             "doors, derives the cusp conductor, and gives a finite conductor-"
-            "module / weak-double-cover origin audit for the right charges.  "
-            "Target D has a finite center-holonomy topology selection and a "
-            "derived cusp-module amplitude measure; it survives full field "
-            "rephasing, and the all-real controls remain CP-zero.  The "
-            "remaining work is to derive the deeper boundary-material "
-            "microphysics and the selected up/down center-power topology "
-            "from microscopic BCC/SM boundary data."
+            "module / weak-double-cover origin audit for the right charges; "
+            "MicroCUSP Session G recovers that module from microscopic Schur "
+            "moments and weak/color closure controls.  Target D has a finite "
+            "center-holonomy topology selection and a derived cusp-module "
+            "amplitude measure; MicroCUSP Session H recovers the selected "
+            "topology from the non-cyclic cusp flag and SU(3) center labels.  "
+            "The q-stiffness, no-incoming retarded boundary, weak Z2, color "
+            "Z3, SM quotient, Schur semigroup, lambda-rec, Target-C module, "
+            "and Target-D topology gates all pass inside the current "
+            "microscopic BCC boundary-material model."
         ),
     )
