@@ -300,10 +300,19 @@ from clifford_3plus2_d5.qca_smv0.sm_antiunitary_bridge import (
     sm_physical_right_generators,
     sm_physical_right_site_gauge_from_algebra,
 )
+from clifford_3plus2_d5.qca_smv0.sm_physical_right_transport import (
+    PhysicalRightTransportDiagnostics,
+    sm_family_physical_right_gauged_dirac_step,
+    sm_physical_right_link_unitarity_residual,
+    sm_physical_right_links_from_transport,
+    sm_physical_right_transport_diagnostics,
+    sm_transform_family_physical_right_state,
+    sm_transform_physical_right_links,
+)
 
 SIDECAR_NAME = "qca_smv0"
 SIDECAR_TITLE = "QCA_SMv0"
-SIDECAR_STATUS = "Stage 17 antiunitary bridge implemented"
+SIDECAR_STATUS = "Stage 18 physical-right transport implemented"
 
 __all__ = [
     "BCC_ANISOTROPY_DIRECTIONS",
@@ -357,6 +366,7 @@ __all__ = [
     "HiggsYukawaDiagnostics",
     "HiggsDynamicsDiagnostics",
     "HiggsDynamicsParameters",
+    "PhysicalRightTransportDiagnostics",
     "SourcedSMTickDiagnostics",
     "SMYukawaCouplings",
     "AntiunitaryBridgeDiagnostics",
@@ -458,6 +468,7 @@ __all__ = [
     "sm_family_production_higgs_force",
     "sm_family_production_sm_tick",
     "sm_family_production_tick_diagnostics",
+    "sm_family_physical_right_gauged_dirac_step",
     "sm_family_sourced_gauss_constraint",
     "sm_family_sourced_link_force",
     "sm_family_sourced_sm_tick",
@@ -533,7 +544,10 @@ __all__ = [
     "sm_physical_right_algebra_matrix_field",
     "sm_physical_right_gauge_unitarity_residual",
     "sm_physical_right_generators",
+    "sm_physical_right_link_unitarity_residual",
+    "sm_physical_right_links_from_transport",
     "sm_physical_right_site_gauge_from_algebra",
+    "sm_physical_right_transport_diagnostics",
     "sm_project_to_coordinates",
     "sm_pure_gauge_links_from_site_algebra",
     "sm_pure_gauge_higgs_links_from_site_algebra",
@@ -549,12 +563,14 @@ __all__ = [
     "sm_sourced_tick_diagnostics",
     "sm_streaming_fermion_charge_density",
     "sm_transform_family_gauge_state",
+    "sm_transform_family_physical_right_state",
     "sm_transform_family_state",
     "sm_transform_links",
     "sm_transform_higgs_field",
     "sm_transform_higgs_links",
     "sm_transform_higgs_link_momenta",
     "sm_transform_momenta",
+    "sm_transform_physical_right_links",
     "sm_transform_state",
     "sm_transport_electroweak_generators",
     "sm_weak_field_holonomy_residual",

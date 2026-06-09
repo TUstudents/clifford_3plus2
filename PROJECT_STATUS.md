@@ -78,7 +78,7 @@ physics policy.
 **Boundary**: BCC Weyl/Dirac kernels, BCC plaquettes, Wilson observables, and
 SO(2)/SU(2)/SU(3) force policy remain in `spacetime_qca`.
 
-## qca_smv0 — Stage 17 antiunitary singlet bridge
+## qca_smv0 — Stage 18 physical-right bridged transport
 
 **Goal**: focused simulator sidecar for the next Standard-Model QCA prototype,
 using the shared `sim` infrastructure and local `qca_smv0` kernels only.
@@ -279,13 +279,26 @@ using the shared `sim` infrastructure and local `qca_smv0` kernels only.
   unbridged transport-gauge non-invariance control.
 - JIT audits for the full bridge energy residuals.
 - Session 17 script and focused tests.
+- Physical-right finite BCC link bridge
+  `U_phys=P_L U_transport P_L + P_R conj(U_transport) P_R`.
+- Identity-link bridge control.
+- Finite bridged-link unitarity audit.
+- Bridged-link covariance under physical-right site gauges.
+- Family BCC transport through physical-right bridged links.
+- Identity-link reduction to the existing family transport.
+- Physical-right family transport covariance and norm-preservation audits.
+- Nontrivial transport-kernel difference from the unbridged Stage 13 transport
+  convention.
+- JIT audit for the physical-right transport kernel.
+- Session 18 script and focused tests.
 
 **Boundary**: no boundary condition, quantized scalar/gauge registers, full
 microscopic BCC derivation of the antiunitary bridge, rewrite of the production
-tick on a single bridged carrier, or derivation of the flavor/Higgs inputs is
-implemented yet. FN charges, `lambda`, order-one coefficients, center-power
-matrices, placeholder lepton matrices, and Higgs potential parameters are
-explicit simulator inputs rather than BCC-bulk derivations.
+tick on a single bridged carrier, bridged gauge current/sourced tick, or
+derivation of the flavor/Higgs inputs is implemented yet. FN charges, `lambda`,
+order-one coefficients, center-power matrices, placeholder lepton matrices, and
+Higgs potential parameters are explicit simulator inputs rather than BCC-bulk
+derivations.
 
 ## scalar_clebsch — V3 conditional pass, active
 

@@ -604,3 +604,32 @@ Verdict:
 ```text
 QCA_SMV0_STAGE17_ANTIUNITARY_BRIDGE_PASS
 ```
+
+## Stage 18 - Physical-Right Bridged Transport
+
+Pass only if:
+
+- the only upstream runtime imports are from `sim` and local `qca_smv0`
+  modules;
+- Stage 2 transport-convention finite BCC links can be bridged edgewise to
+  physical-right links by
+  `U_phys=P_L U_transport P_L + P_R conj(U_transport) P_R`;
+- identity links are unchanged by the bridge;
+- finite bridged links remain unitary to float32 precision;
+- gauge-transforming transport links and then bridging them agrees with
+  bridging first and transforming by the physical-right site gauge;
+- the family BCC Dirac transport through identity bridged links reduces to the
+  existing identity-link transport;
+- physical-right family transport is covariant under the bridged site gauge;
+- nontrivial physical-right transport differs from the unbridged Stage 13
+  transport convention, so the bridge is active;
+- physical-right transport preserves family-state norm to float32 precision;
+- the transport kernel is JIT-compatible;
+- no bridged current, sourced tick, production tick rewrite, boundary rule,
+  quantized register, or derivation of simulator inputs is introduced.
+
+Verdict:
+
+```text
+QCA_SMV0_STAGE18_PHYSICAL_RIGHT_TRANSPORT_PASS
+```

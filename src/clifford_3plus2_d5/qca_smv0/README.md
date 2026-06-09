@@ -22,14 +22,14 @@ It should not be used for:
 
 ## Current State
 
-Stage 17 implements the free BCC Weyl/Dirac bulk walk, static
+Stage 18 implements the free BCC Weyl/Dirac bulk walk, static
 Standard-Model gauge-background transport, pure dynamic SM gauge fields, and a
 site-local Higgs/Yukawa collision, finite-path FN recirculation, and
 center-holonomy CP coefficients, a three-family Higgs/Yukawa collision, and
 dynamic Higgs-field evolution with scalar gauge and local fermion/Higgs
 backreaction, plus BCC streaming fermion gauge currents, the merged
 family-production tick, the gauge-convention bridge audit, and the
-antiunitary singlet bridge:
+antiunitary singlet bridge, and physical-right bridged transport:
 
 ```text
 qca_smv0/
@@ -52,6 +52,7 @@ qca_smv0/
   sm_family_production_tick.py
   sm_gauge_convention_bridge.py
   sm_antiunitary_bridge.py
+  sm_physical_right_transport.py
   scripts/
     session_01_bare_bcc_walk.py
     session_02_static_sm_gauge_background.py
@@ -70,6 +71,7 @@ qca_smv0/
     session_15_family_production_tick.py
     session_16_gauge_convention_bridge.py
     session_17_antiunitary_bridge.py
+    session_18_physical_right_transport.py
   tests/
     test_bulk_bcc.py
     test_sm_gauge.py
@@ -86,6 +88,7 @@ qca_smv0/
     test_sm_family_production_tick.py
     test_sm_gauge_convention_bridge.py
     test_sm_antiunitary_bridge.py
+    test_sm_physical_right_transport.py
 ```
 
 The implemented Weyl kernel is a two-component periodic BCC bulk walk:
@@ -438,10 +441,28 @@ Stage 17 verdict:
 QCA_SMV0_STAGE17_ANTIUNITARY_BRIDGE_PASS
 ```
 
+Stage 18 applies the antiunitary bridge to finite BCC transport:
+
+- transport-convention BCC links bridged edgewise to physical-right links;
+- identity links unchanged by the bridge;
+- finite bridged links unitary to float32 precision;
+- link covariance under bridged physical-right site gauges;
+- family BCC transport through bridged links;
+- identity-link reduction to the existing family transport;
+- nontrivial difference from the unbridged transport convention;
+- family-state norm and JIT audits.
+
+Stage 18 verdict:
+
+```text
+QCA_SMV0_STAGE18_PHYSICAL_RIGHT_TRANSPORT_PASS
+```
+
 The charges, `lambda`, order-one coefficients, and center-power matrices are
 simulator inputs, not BCC-bulk derivations. Quantized scalar/gauge registers,
-boundary rules, microscopic derivation of the bridge, and rewriting the
-production tick on a single bridged carrier are not implemented yet.
+boundary rules, microscopic derivation of the bridge, bridged currents, and
+rewriting the sourced/production tick on the bridged carrier are not
+implemented yet.
 
 ## Reuse Boundary
 
@@ -479,5 +500,6 @@ uv run python -m clifford_3plus2_d5.qca_smv0.scripts.session_14_family_sourced_t
 uv run python -m clifford_3plus2_d5.qca_smv0.scripts.session_15_family_production_tick
 uv run python -m clifford_3plus2_d5.qca_smv0.scripts.session_16_gauge_convention_bridge
 uv run python -m clifford_3plus2_d5.qca_smv0.scripts.session_17_antiunitary_bridge
+uv run python -m clifford_3plus2_d5.qca_smv0.scripts.session_18_physical_right_transport
 uv run pytest src/clifford_3plus2_d5/qca_smv0/tests -q
 ```
