@@ -78,7 +78,7 @@ physics policy.
 **Boundary**: BCC Weyl/Dirac kernels, BCC plaquettes, Wilson observables, and
 SO(2)/SU(2)/SU(3) force policy remain in `spacetime_qca`.
 
-## qca_smv0 — Stage 18 physical-right bridged transport
+## qca_smv0 — Stage 19 physical-right bridged current
 
 **Goal**: focused simulator sidecar for the next Standard-Model QCA prototype,
 using the shared `sim` infrastructure and local `qca_smv0` kernels only.
@@ -291,13 +291,27 @@ using the shared `sim` infrastructure and local `qca_smv0` kernels only.
   convention.
 - JIT audit for the physical-right transport kernel.
 - Session 18 script and focused tests.
+- Physical-right streaming bilinear through bridged finite BCC links.
+- Left-trivialized physical-right current in the same 12 transport coordinates
+  used by the gauge links and momenta.
+- Zero-state and nonzero-current controls.
+- Nontrivial current difference from the unbridged Stage 13
+  transport-convention family current.
+- Physical-right charge density and Gauss diagnostic
+  `electric divergence - physical-right family charge`.
+- Covariance checks for physical-right streaming energy, current, charge, and
+  Gauss.
+- Reversible physical-right current momentum kick and
+  kick-then-physical-right-transport wrapper.
+- Link unitarity, spectator family-state norm, and JIT audits.
+- Session 19 script and focused tests.
 
 **Boundary**: no boundary condition, quantized scalar/gauge registers, full
 microscopic BCC derivation of the antiunitary bridge, rewrite of the production
-tick on a single bridged carrier, bridged gauge current/sourced tick, or
-derivation of the flavor/Higgs inputs is implemented yet. FN charges, `lambda`,
-order-one coefficients, center-power matrices, placeholder lepton matrices, and
-Higgs potential parameters are explicit simulator inputs rather than BCC-bulk
+tick on a single bridged carrier, bridged sourced tick, or derivation of the
+flavor/Higgs inputs is implemented yet. FN charges, `lambda`, order-one
+coefficients, center-power matrices, placeholder lepton matrices, and Higgs
+potential parameters are explicit simulator inputs rather than BCC-bulk
 derivations.
 
 ## scalar_clebsch — V3 conditional pass, active

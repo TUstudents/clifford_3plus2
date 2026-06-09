@@ -309,10 +309,25 @@ from clifford_3plus2_d5.qca_smv0.sm_physical_right_transport import (
     sm_transform_family_physical_right_state,
     sm_transform_physical_right_links,
 )
+from clifford_3plus2_d5.qca_smv0.sm_physical_right_current import (
+    PhysicalRightCurrentDiagnostics,
+    sm_apply_physical_right_fermion_gauge_momentum_kick,
+    sm_physical_right_current_diagnostics,
+    sm_physical_right_electric_divergence,
+    sm_physical_right_fermion_gauss_constraint,
+    sm_physical_right_fermion_gauge_kick_then_transport,
+    sm_physical_right_fermion_left_gauge_current,
+    sm_physical_right_generator_gram,
+    sm_physical_right_project_to_coordinates,
+    sm_physical_right_streaming_energy_density,
+    sm_physical_right_streaming_fermion_charge_density,
+    sm_physical_right_streaming_local_density,
+    sm_physical_right_transform_momenta,
+)
 
 SIDECAR_NAME = "qca_smv0"
 SIDECAR_TITLE = "QCA_SMv0"
-SIDECAR_STATUS = "Stage 18 physical-right transport implemented"
+SIDECAR_STATUS = "Stage 19 physical-right current implemented"
 
 __all__ = [
     "BCC_ANISOTROPY_DIRECTIONS",
@@ -366,6 +381,7 @@ __all__ = [
     "HiggsYukawaDiagnostics",
     "HiggsDynamicsDiagnostics",
     "HiggsDynamicsParameters",
+    "PhysicalRightCurrentDiagnostics",
     "PhysicalRightTransportDiagnostics",
     "SourcedSMTickDiagnostics",
     "SMYukawaCouplings",
@@ -429,6 +445,7 @@ __all__ = [
     "sm_apply_fermion_gauge_momentum_kick",
     "sm_apply_higgs_link_momentum_update",
     "sm_apply_momentum_update",
+    "sm_apply_physical_right_fermion_gauge_momentum_kick",
     "sm_apply_sourced_link_update",
     "sm_apply_sourced_sm_momentum_kick",
     "sm_apply_yukawa_collision",
@@ -542,12 +559,23 @@ __all__ = [
     "sm_no_backreaction_fermion_gauge_step",
     "sm_plaquette_holonomies",
     "sm_physical_right_algebra_matrix_field",
+    "sm_physical_right_current_diagnostics",
+    "sm_physical_right_electric_divergence",
+    "sm_physical_right_fermion_gauss_constraint",
+    "sm_physical_right_fermion_gauge_kick_then_transport",
+    "sm_physical_right_fermion_left_gauge_current",
     "sm_physical_right_gauge_unitarity_residual",
     "sm_physical_right_generators",
+    "sm_physical_right_generator_gram",
     "sm_physical_right_link_unitarity_residual",
     "sm_physical_right_links_from_transport",
+    "sm_physical_right_project_to_coordinates",
     "sm_physical_right_site_gauge_from_algebra",
+    "sm_physical_right_streaming_energy_density",
+    "sm_physical_right_streaming_fermion_charge_density",
+    "sm_physical_right_streaming_local_density",
     "sm_physical_right_transport_diagnostics",
+    "sm_physical_right_transform_momenta",
     "sm_project_to_coordinates",
     "sm_pure_gauge_links_from_site_algebra",
     "sm_pure_gauge_higgs_links_from_site_algebra",

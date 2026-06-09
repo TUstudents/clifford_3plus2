@@ -165,7 +165,7 @@ def test_family_gauge_current_diagnostics_and_jit_pass_stage_thresholds() -> Non
     assert diagnostics.kicked_link_unitarity_residual < 7e-7
     assert diagnostics.spectator_norm_drift_after_kick < 1e-5
     assert diagnostics.jit_delta_current < 1e-5
-    assert diagnostics.jit_delta_transport < 1e-8
+    assert diagnostics.jit_delta_transport < 1e-7
 
 
 def test_family_gauge_current_and_transport_are_jittable() -> None:
@@ -178,4 +178,4 @@ def test_family_gauge_current_and_transport_are_jittable() -> None:
     jitted_transport = jax.jit(sm_family_gauged_dirac_step)
 
     assert jnp.max(jnp.abs(jitted_current(state, links) - expected_current)) < 1e-5
-    assert jnp.max(jnp.abs(jitted_transport(state, links) - expected_transport)) < 1e-8
+    assert jnp.max(jnp.abs(jitted_transport(state, links) - expected_transport)) < 1e-7

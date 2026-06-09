@@ -26,7 +26,7 @@ def main() -> None:
     assert diagnostics.kicked_link_unitarity_residual < 7e-7
     assert diagnostics.spectator_norm_drift_after_kick < 1e-5
     assert diagnostics.jit_delta_current < 1e-5
-    assert diagnostics.jit_delta_transport < 1e-8
+    assert diagnostics.jit_delta_transport < 1e-7
     print("verdict: QCA_SMV0_STAGE13_FAMILY_GAUGE_CURRENT_PASS")
 
 

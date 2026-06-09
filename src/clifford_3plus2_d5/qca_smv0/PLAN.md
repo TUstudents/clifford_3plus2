@@ -633,3 +633,38 @@ Verdict:
 ```text
 QCA_SMV0_STAGE18_PHYSICAL_RIGHT_TRANSPORT_PASS
 ```
+
+## Stage 19 - Physical-Right Fermion Gauge Current
+
+Pass only if:
+
+- the only upstream runtime imports are from `sim` and local `qca_smv0`
+  modules;
+- the Stage 13 family streaming bilinear is lifted to the Stage 18
+  physical-right bridged transport carrier;
+- current coordinates remain the shared 12 transport-coordinate labels used by
+  the Stage 2 gauge links and Stage 3 link momenta;
+- the physical-right streaming energy is real to float32 precision;
+- the zero family state gives zero physical-right fermion current;
+- deterministic nonzero family/gauge fields give a nonzero physical-right
+  current;
+- the physical-right current differs nontrivially from the unbridged Stage 13
+  transport-convention family current;
+- streaming energy, current, charge density, and Gauss diagnostic are
+  covariant under the bridged physical-right site gauge;
+- the Gauss diagnostic is electric divergence minus physical-right
+  family-charge density;
+- the physical-right current momentum kick is reversible under
+  `step_size -> -step_size`;
+- the kick-then-transport wrapper updates transport links, preserves bridged
+  link unitarity, and preserves spectator family-state norm to float32
+  precision;
+- the current and physical-right transport kernels are JIT-compatible;
+- no sourced tick rewrite, production tick rewrite, boundary rule, quantized
+  register, or derivation of simulator inputs is introduced.
+
+Verdict:
+
+```text
+QCA_SMV0_STAGE19_PHYSICAL_RIGHT_CURRENT_PASS
+```

@@ -22,14 +22,15 @@ It should not be used for:
 
 ## Current State
 
-Stage 18 implements the free BCC Weyl/Dirac bulk walk, static
+Stage 19 implements the free BCC Weyl/Dirac bulk walk, static
 Standard-Model gauge-background transport, pure dynamic SM gauge fields, and a
 site-local Higgs/Yukawa collision, finite-path FN recirculation, and
 center-holonomy CP coefficients, a three-family Higgs/Yukawa collision, and
 dynamic Higgs-field evolution with scalar gauge and local fermion/Higgs
 backreaction, plus BCC streaming fermion gauge currents, the merged
 family-production tick, the gauge-convention bridge audit, and the
-antiunitary singlet bridge, and physical-right bridged transport:
+antiunitary singlet bridge, physical-right bridged transport, and the
+physical-right bridged fermion current:
 
 ```text
 qca_smv0/
@@ -53,6 +54,7 @@ qca_smv0/
   sm_gauge_convention_bridge.py
   sm_antiunitary_bridge.py
   sm_physical_right_transport.py
+  sm_physical_right_current.py
   scripts/
     session_01_bare_bcc_walk.py
     session_02_static_sm_gauge_background.py
@@ -72,6 +74,7 @@ qca_smv0/
     session_16_gauge_convention_bridge.py
     session_17_antiunitary_bridge.py
     session_18_physical_right_transport.py
+    session_19_physical_right_current.py
   tests/
     test_bulk_bcc.py
     test_sm_gauge.py
@@ -89,6 +92,7 @@ qca_smv0/
     test_sm_gauge_convention_bridge.py
     test_sm_antiunitary_bridge.py
     test_sm_physical_right_transport.py
+    test_sm_physical_right_current.py
 ```
 
 The implemented Weyl kernel is a two-component periodic BCC bulk walk:
@@ -458,11 +462,33 @@ Stage 18 verdict:
 QCA_SMV0_STAGE18_PHYSICAL_RIGHT_TRANSPORT_PASS
 ```
 
+Stage 19 lifts the BCC streaming fermion gauge current to the physical-right
+bridged carrier:
+
+- physical-right streaming bilinear through bridged finite BCC links;
+- left-trivialized finite-difference current in the same 12 transport
+  coordinates;
+- zero-state and nonzero-current controls;
+- nontrivial difference from the unbridged Stage 13 transport-convention
+  family current;
+- physical-right charge density and Gauss diagnostic
+  `electric divergence - physical-right family charge`;
+- covariance checks for streaming energy, current, charge density, and Gauss
+  under the bridged physical-right site gauge;
+- reversible physical-right current momentum kick;
+- kick-then-physical-right-transport wrapper;
+- link unitarity, spectator family-state norm, and JIT audits.
+
+Stage 19 verdict:
+
+```text
+QCA_SMV0_STAGE19_PHYSICAL_RIGHT_CURRENT_PASS
+```
+
 The charges, `lambda`, order-one coefficients, and center-power matrices are
 simulator inputs, not BCC-bulk derivations. Quantized scalar/gauge registers,
-boundary rules, microscopic derivation of the bridge, bridged currents, and
-rewriting the sourced/production tick on the bridged carrier are not
-implemented yet.
+boundary rules, microscopic derivation of the bridge, and rewriting the
+sourced/production tick on the bridged carrier are not implemented yet.
 
 ## Reuse Boundary
 
@@ -501,5 +527,6 @@ uv run python -m clifford_3plus2_d5.qca_smv0.scripts.session_15_family_productio
 uv run python -m clifford_3plus2_d5.qca_smv0.scripts.session_16_gauge_convention_bridge
 uv run python -m clifford_3plus2_d5.qca_smv0.scripts.session_17_antiunitary_bridge
 uv run python -m clifford_3plus2_d5.qca_smv0.scripts.session_18_physical_right_transport
+uv run python -m clifford_3plus2_d5.qca_smv0.scripts.session_19_physical_right_current
 uv run pytest src/clifford_3plus2_d5/qca_smv0/tests -q
 ```
