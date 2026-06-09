@@ -78,7 +78,7 @@ physics policy.
 **Boundary**: BCC Weyl/Dirac kernels, BCC plaquettes, Wilson observables, and
 SO(2)/SU(2)/SU(3) force policy remain in `spacetime_qca`.
 
-## qca_smv0 — Stage 3 pure dynamic SM gauge fields
+## qca_smv0 — Stage 4 local Higgs/Yukawa collision
 
 **Goal**: focused simulator sidecar for the next Standard-Model QCA prototype,
 using the shared `sim` infrastructure and local `qca_smv0` kernels only.
@@ -119,9 +119,19 @@ using the shared `sim` infrastructure and local `qca_smv0` kernels only.
   Yang-Mills-density matching.
 - No-backreaction fermion/gauge wrapper with spectator fermion transport.
 - Session 03 script and focused tests.
+- Local Higgs doublet fields with shape `(nx, ny, nz, 2)`.
+- Constant unitary-gauge Higgs helper `H=(0,v/sqrt(2))`.
+- Conjugate Higgs helper `H_tilde=i sigma_2 H^*`.
+- Hermitian one-generation Yukawa matrix on the 32-component SM carrier.
+- Unitary-gauge SM door audit: `H_tilde` opens up/neutrino couplings and `H`
+  opens down/electron couplings.
+- Exact site-local Higgs/Yukawa collision `exp(-i step_size beta Y(H))`.
+- Zero-step and zero-Higgs identity controls.
+- Chirality-flip and massive-dispersion diagnostics.
+- Session 04 script and focused tests.
 
-**Boundary**: no boundary condition, matter backreaction, Higgs/Yukawa
-collision, flavor recirculation, or center-holonomy CP is implemented yet.
+**Boundary**: no boundary condition, matter backreaction, dynamic Higgs-field
+evolution, flavor recirculation, or center-holonomy CP is implemented yet.
 
 ## scalar_clebsch — V3 conditional pass, active
 

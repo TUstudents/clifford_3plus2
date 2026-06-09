@@ -3,13 +3,14 @@
 ## Verdict
 
 ```text
-QCA_SMV0_STAGE3_DYNAMIC_SM_GAUGE_PASS
+QCA_SMV0_STAGE4_HIGGS_YUKAWA_PASS
 ```
 
 ## Current State
 
-Stage 3 pure dynamic Standard-Model gauge fields implemented on top of the
-Stage 1 free BCC Weyl/Dirac walk and Stage 2 static gauge transport.
+Stage 4 local Higgs/Yukawa collision implemented on top of the Stage 1 free
+BCC Weyl/Dirac walk, Stage 2 static gauge transport, and Stage 3 pure dynamic
+gauge fields.
 
 Implemented:
 
@@ -47,19 +48,30 @@ Implemented:
 - weak-field Wilson-action / Yang-Mills-density matching;
 - no-backreaction fermion/gauge wrapper with spectator fermion transport;
 - Session 03 script;
+- local Higgs doublet fields with shape `(nx, ny, nz, 2)`;
+- constant unitary-gauge Higgs helper `H=(0,v/sqrt(2))`;
+- conjugate Higgs helper `H_tilde=i sigma_2 H^*`;
+- Hermitian one-generation Yukawa matrix on the 32-component SM carrier;
+- unitary-gauge SM door audit: `H_tilde` opens up/neutrino couplings and `H`
+  opens down/electron couplings;
+- exact site-local unitary collision `exp(-i step_size beta Y(H))`;
+- zero-step and zero-Higgs identity controls;
+- chirality-flip and massive-dispersion diagnostics;
+- Session 04 script;
 - focused tests for algebra, norm preservation, local gauge covariance, Wilson
   response, weak-link scaling, pure-gauge dynamics, Gauss covariance and
-  preservation, weak-field Yang-Mills behavior, JIT compatibility, and
-  small-momentum Weyl/Dirac behavior.
+  preservation, weak-field Yang-Mills behavior, Higgs/Yukawa door structure,
+  chirality flip, massive dispersion, JIT compatibility, and small-momentum
+  Weyl/Dirac behavior.
 
 Not implemented:
 
 - boundary rules;
 - matter backreaction into gauge momenta;
-- Higgs/Yukawa collision;
+- dynamic Higgs-field evolution / Higgs potential;
 - flavor or FN recirculation;
 - center-holonomy CP;
-- performance profiles beyond the small Session 01/02/03 diagnostics.
+- performance profiles beyond the small Session 01/02/03/04 diagnostics.
 
 ## Working Boundary
 

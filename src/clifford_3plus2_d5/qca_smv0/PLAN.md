@@ -122,13 +122,43 @@ Verdict:
 QCA_SMV0_STAGE3_DYNAMIC_SM_GAUGE_PASS
 ```
 
+## Stage 4 - Local Higgs/Yukawa Collision
+
+Pass only if:
+
+- the only upstream runtime imports are from `sim` and local `qca_smv0`
+  modules;
+- the Higgs field has shape `(nx, ny, nz, 2)`;
+- a constant unitary-gauge helper returns `H=(0,v/sqrt(2))`;
+- the conjugate doublet `H_tilde=i sigma_2 H^*` is implemented;
+- the local one-generation Yukawa matrix is Hermitian;
+- in unitary gauge, `H_tilde` opens the up/neutrino doors and `H` opens the
+  down/electron doors, while the wrong weak components vanish;
+- the local collision is the exact finite rotation
+  `exp(-i step_size beta Y(H))`;
+- zero step and zero Higgs are identity controls;
+- the local collision preserves fermion norm to numerical precision;
+- the collision creates a chirality-flipped component from a left seed;
+- a constant Higgs background gives the expected small-momentum massive
+  dispersion `E(k) ~= sqrt(|k|^2 + m^2)`;
+- the collision is JIT-compatible;
+- no dynamic Higgs potential, matter backreaction, flavor/FN recirculation,
+  boundary rule, or CP rule is introduced.
+
+Verdict:
+
+```text
+QCA_SMV0_STAGE4_HIGGS_YUKAWA_PASS
+```
+
 ## Next Session Placeholder
 
-The next session should specify whether Stage 4 is:
+The next session should specify whether Stage 5 is:
 
-- Higgs/Yukawa collision on static gauge backgrounds;
 - matter backreaction and Gauss-law source diagnostics;
+- FN recirculation paths;
+- center-holonomy CP;
 - or performance/layout work before adding new physics.
 
-Until that is specified, this sidecar should remain at the pure-gauge dynamic
-layer.
+Until that is specified, this sidecar should remain at the local
+Higgs/Yukawa-collision layer.

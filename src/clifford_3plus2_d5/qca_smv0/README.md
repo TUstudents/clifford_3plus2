@@ -22,8 +22,9 @@ It should not be used for:
 
 ## Current State
 
-Stage 3 implements the free BCC Weyl/Dirac bulk walk, static
-Standard-Model gauge-background transport, and pure dynamic SM gauge fields:
+Stage 4 implements the free BCC Weyl/Dirac bulk walk, static
+Standard-Model gauge-background transport, pure dynamic SM gauge fields, and a
+site-local Higgs/Yukawa collision:
 
 ```text
 qca_smv0/
@@ -34,14 +35,17 @@ qca_smv0/
   bulk_bcc.py
   sm_gauge.py
   sm_dynamics.py
+  sm_higgs.py
   scripts/
     session_01_bare_bcc_walk.py
     session_02_static_sm_gauge_background.py
     session_03_dynamic_sm_gauge.py
+    session_04_higgs_yukawa_collision.py
   tests/
     test_bulk_bcc.py
     test_sm_gauge.py
     test_sm_dynamics.py
+    test_sm_higgs.py
 ```
 
 The implemented Weyl kernel is a two-component periodic BCC bulk walk:
@@ -119,8 +123,26 @@ Stage 3 verdict:
 QCA_SMV0_STAGE3_DYNAMIC_SM_GAUGE_PASS
 ```
 
-Matter backreaction, Higgs/Yukawa collision, boundary rules, flavor register,
-FN recirculation, and center-holonomy CP are not implemented yet.
+Stage 4 adds a local Higgs/Yukawa collision:
+
+- local Higgs doublet fields with shape `(nx, ny, nz, 2)`;
+- the constant unitary-gauge Higgs helper `H=(0,v/sqrt(2))`;
+- `H_tilde=i sigma_2 H^*`;
+- a Hermitian one-generation Yukawa matrix on the local SM carrier;
+- unitary-gauge doors: `H_tilde` opens up/neutrino couplings while `H` opens
+  down/electron couplings;
+- exact site-local rotation `exp(-i step_size beta Y(H))`;
+- zero-step and zero-Higgs identity controls;
+- norm preservation, chirality-flip, massive-dispersion, and JIT audits.
+
+Stage 4 verdict:
+
+```text
+QCA_SMV0_STAGE4_HIGGS_YUKAWA_PASS
+```
+
+Matter backreaction, dynamic Higgs-field evolution, boundary rules, flavor
+registers, FN recirculation, and center-holonomy CP are not implemented yet.
 
 ## Reuse Boundary
 
@@ -144,5 +166,6 @@ current session.
 uv run python -m clifford_3plus2_d5.qca_smv0.scripts.session_01_bare_bcc_walk
 uv run python -m clifford_3plus2_d5.qca_smv0.scripts.session_02_static_sm_gauge_background
 uv run python -m clifford_3plus2_d5.qca_smv0.scripts.session_03_dynamic_sm_gauge
+uv run python -m clifford_3plus2_d5.qca_smv0.scripts.session_04_higgs_yukawa_collision
 uv run pytest src/clifford_3plus2_d5/qca_smv0/tests -q
 ```
