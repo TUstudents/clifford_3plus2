@@ -539,3 +539,35 @@ Verdict:
 ```text
 QCA_SMV0_STAGE15_FAMILY_PRODUCTION_TICK_PASS
 ```
+
+## Stage 16 - Gauge-Convention Bridge Audit
+
+Pass only if:
+
+- the only upstream runtime imports are from `sim` and local `qca_smv0`
+  modules;
+- the Stage 2 transport electroweak generators and Stage 10 physical
+  Yukawa-door electroweak generators are both explicit;
+- exponentiating the Stage 16 Yukawa-door generators reproduces the Stage 10
+  finite Yukawa-door gauge helper;
+- the transport and Yukawa-door generators agree exactly on duplicated left
+  doublet labels `Q,L`;
+- both conventions have zero `SU(2)_L` action on singlet labels;
+- on duplicated right-singlet labels, the transport and Yukawa-door
+  hypercharges are charge-conjugate: `Y_transport + Y_yukawa = 0`;
+- the full electroweak generator sets differ nontrivially;
+- the sorted hypercharge spectra differ, proving no unitary similarity on the
+  fixed 32-component internal carrier can identify the two conventions;
+- the local Yukawa energy is gauge-covariant in the physical Yukawa-door
+  convention;
+- the same local Yukawa energy is not gauge-invariant if transformed with the
+  Stage 2 transport electroweak convention;
+- the energy-residual audit is JIT-compatible;
+- the stage does not claim to unify the conventions, introduce boundary rules,
+  quantized registers, or derive simulator inputs.
+
+Verdict:
+
+```text
+QCA_SMV0_STAGE16_GAUGE_CONVENTION_BRIDGE_PASS
+```

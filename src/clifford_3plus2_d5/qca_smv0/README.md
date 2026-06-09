@@ -22,13 +22,13 @@ It should not be used for:
 
 ## Current State
 
-Stage 15 implements the free BCC Weyl/Dirac bulk walk, static
+Stage 16 implements the free BCC Weyl/Dirac bulk walk, static
 Standard-Model gauge-background transport, pure dynamic SM gauge fields, and a
 site-local Higgs/Yukawa collision, finite-path FN recirculation, and
 center-holonomy CP coefficients, a three-family Higgs/Yukawa collision, and
 dynamic Higgs-field evolution with scalar gauge and local fermion/Higgs
-backreaction, plus BCC streaming fermion gauge currents and the merged
-family-production tick:
+backreaction, plus BCC streaming fermion gauge currents, the merged
+family-production tick, and the gauge-convention bridge audit:
 
 ```text
 qca_smv0/
@@ -49,6 +49,7 @@ qca_smv0/
   sm_fermion_gauge.py
   sm_family_sourced_tick.py
   sm_family_production_tick.py
+  sm_gauge_convention_bridge.py
   scripts/
     session_01_bare_bcc_walk.py
     session_02_static_sm_gauge_background.py
@@ -65,6 +66,7 @@ qca_smv0/
     session_13_family_gauge_current.py
     session_14_family_sourced_tick.py
     session_15_family_production_tick.py
+    session_16_gauge_convention_bridge.py
   tests/
     test_bulk_bcc.py
     test_sm_gauge.py
@@ -79,6 +81,7 @@ qca_smv0/
     test_sm_fermion_gauge.py
     test_sm_family_sourced_tick.py
     test_sm_family_production_tick.py
+    test_sm_gauge_convention_bridge.py
 ```
 
 The implemented Weyl kernel is a two-component periodic BCC bulk walk:
@@ -390,10 +393,31 @@ Stage 15 verdict:
 QCA_SMV0_STAGE15_FAMILY_PRODUCTION_TICK_PASS
 ```
 
+Stage 16 audits the transport-vs-Yukawa gauge convention boundary:
+
+- explicit Stage 2 transport electroweak generators and Stage 10 physical
+  Yukawa-door electroweak generators;
+- finite generator exponentiation reproduces the Stage 10 Yukawa-door helper;
+- exact agreement on duplicated left doublet labels `Q,L`;
+- zero `SU(2)_L` action on singlet labels in both conventions;
+- right-singlet hypercharges are charge-conjugate across the two conventions;
+- the full generator sets and sorted hypercharge spectra differ, proving no
+  unitary similarity on the fixed 32-component carrier identifies them;
+- Yukawa energy is covariant in the physical Yukawa-door convention and
+  deliberately non-invariant under the transport convention;
+- JIT audits for the energy residuals.
+
+Stage 16 verdict:
+
+```text
+QCA_SMV0_STAGE16_GAUGE_CONVENTION_BRIDGE_PASS
+```
+
 The charges, `lambda`, order-one coefficients, and center-power matrices are
 simulator inputs, not BCC-bulk derivations. Quantized scalar/gauge registers,
-boundary rules, and a microscopic unification of the transport and local
-Yukawa-door gauge conventions are not implemented yet.
+boundary rules, and a microscopic carrier replacement or antiunitary bridge
+that unifies transport and local Yukawa-door gauge conventions are not
+implemented yet.
 
 ## Reuse Boundary
 
@@ -429,5 +453,6 @@ uv run python -m clifford_3plus2_d5.qca_smv0.scripts.session_12_sourced_tick
 uv run python -m clifford_3plus2_d5.qca_smv0.scripts.session_13_family_gauge_current
 uv run python -m clifford_3plus2_d5.qca_smv0.scripts.session_14_family_sourced_tick
 uv run python -m clifford_3plus2_d5.qca_smv0.scripts.session_15_family_production_tick
+uv run python -m clifford_3plus2_d5.qca_smv0.scripts.session_16_gauge_convention_bridge
 uv run pytest src/clifford_3plus2_d5/qca_smv0/tests -q
 ```

@@ -3,12 +3,12 @@
 ## Verdict
 
 ```text
-QCA_SMV0_STAGE15_FAMILY_PRODUCTION_TICK_PASS
+QCA_SMV0_STAGE16_GAUGE_CONVENTION_BRIDGE_PASS
 ```
 
 ## Current State
 
-Stage 15 full family production tick implemented on top of the Stage 1
+Stage 16 gauge-convention bridge audit implemented on top of the Stage 1
 free BCC Weyl/Dirac walk, Stage 2 static gauge transport, Stage 3 pure dynamic
 gauge fields, Stage 4 local Higgs/Yukawa collision, Stage 5 FN recirculation,
 Stage 6 center-holonomy CP, Stage 7 three-family Higgs/Yukawa collision, and
@@ -16,7 +16,7 @@ Stage 8 dynamic Higgs-field evolution, Stage 9 gauge-Higgs backreaction, and
 Stage 10 local fermion/Higgs backreaction, and Stage 11 BCC streaming fermion
 gauge current, Stage 12 coupled sourced SM gauge tick, and Stage 13
 family-summed BCC fermion gauge current, and Stage 14 family-sourced SM gauge
-tick.
+tick, and Stage 15 full family production tick.
 
 Implemented:
 
@@ -207,6 +207,20 @@ Implemented:
   physical local Higgs-door gauge convention and the Stage 14 transport/current
   gauge convention;
 - Session 15 script;
+- explicit Stage 2 transport electroweak generators and Stage 10 physical
+  Yukawa-door electroweak generators;
+- finite exponentiation from the Stage 16 Yukawa-door generators reproduces the
+  Stage 10 Yukawa-door helper;
+- exact generator agreement on duplicated left doublet labels;
+- exact zero `SU(2)_L` action on right singlet labels in both conventions;
+- exact charge-conjugation relation for right-singlet hypercharge;
+- nonzero full generator difference and nonzero sorted-hypercharge spectral
+  mismatch proving there is no unitary similarity on the fixed 32-component
+  carrier;
+- physical Yukawa-door energy covariance and transport-convention
+  non-invariance controls;
+- JIT audits for the gauge-convention energy residuals;
+- Session 16 script;
 - focused tests for algebra, norm preservation, local gauge covariance, Wilson
   response, weak-link scaling, pure-gauge dynamics, Gauss covariance and
   preservation, weak-field Yang-Mills behavior, Higgs/Yukawa door structure,
@@ -215,20 +229,21 @@ Implemented:
   dynamic Higgs evolution, gauge-Higgs backreaction, local fermion/Higgs
   backreaction, BCC streaming fermion gauge current, coupled sourced SM gauge
   tick, family-summed BCC fermion gauge current, family-sourced SM gauge tick,
-  full family production tick, JIT compatibility, and small-momentum Weyl/Dirac
-  behavior.
+  full family production tick, gauge-convention bridge audit, JIT
+  compatibility, and small-momentum Weyl/Dirac behavior.
 
 Not implemented:
 
 - boundary rules;
 - quantized scalar registers;
-- microscopic unification of the transport/current gauge convention with the
-  physical local Higgs-door gauge convention used by the Yukawa source;
+- microscopic carrier replacement or antiunitary bridge that unifies the
+  transport/current gauge convention with the physical local Higgs-door gauge
+  convention used by the Yukawa source;
 - derivation of the FN charges, `lambda`, order-one coefficients, or
   center-power matrices from BCC bulk dynamics;
 - derivation of Higgs potential parameters from BCC bulk dynamics;
 - performance profiles beyond the small
-  Session 01/02/03/04/05/06/07/08/09/10/11/12/13/14/15 diagnostics.
+  Session 01/02/03/04/05/06/07/08/09/10/11/12/13/14/15/16 diagnostics.
 
 ## Working Boundary
 

@@ -273,10 +273,26 @@ from clifford_3plus2_d5.qca_smv0.sm_family_production_tick import (
     sm_zero_family_lepton_yukawas,
     sm_zero_quark_yukawas,
 )
+from clifford_3plus2_d5.qca_smv0.sm_gauge_convention_bridge import (
+    SM_ELECTROWEAK_GENERATOR_COUNT,
+    GaugeConventionBridgeDiagnostics,
+    sm_gauge_convention_bridge_diagnostics,
+    sm_gauge_convention_generator_residuals,
+    sm_hypercharge_spectral_mismatch,
+    sm_left_doublet_indices,
+    sm_left_doublet_projector,
+    sm_right_singlet_indices,
+    sm_right_singlet_projector,
+    sm_transport_electroweak_generators,
+    sm_yukawa_door_algebra_matrix_field,
+    sm_yukawa_door_electroweak_generators,
+    sm_yukawa_door_site_gauge_from_generators,
+    sm_yukawa_gauge_convention_energy_residuals,
+)
 
 SIDECAR_NAME = "qca_smv0"
 SIDECAR_TITLE = "QCA_SMv0"
-SIDECAR_STATUS = "Stage 15 family production tick implemented"
+SIDECAR_STATUS = "Stage 16 gauge convention bridge audit implemented"
 
 __all__ = [
     "BCC_ANISOTROPY_DIRECTIONS",
@@ -302,6 +318,7 @@ __all__ = [
     "SM_CHIRAL16_DIM",
     "SM_COLOR_CENTER_OMEGA",
     "SM_COLOR_CENTER_ORDER",
+    "SM_ELECTROWEAK_GENERATOR_COUNT",
     "SM_FAMILY_DIM",
     "SM_FAMILY_INTERNAL_DIM",
     "SM_GENERATOR_COUNT",
@@ -324,6 +341,7 @@ __all__ = [
     "FamilySourcedSMTickDiagnostics",
     "FermionGaugeCurrentDiagnostics",
     "FermionHiggsBackreactionDiagnostics",
+    "GaugeConventionBridgeDiagnostics",
     "GaugeHiggsBackreactionDiagnostics",
     "HiggsYukawaDiagnostics",
     "HiggsDynamicsDiagnostics",
@@ -440,6 +458,8 @@ __all__ = [
     "sm_fermion_higgs_backreaction_diagnostics",
     "sm_fermion_left_gauge_current",
     "sm_free_dirac_internal_step",
+    "sm_gauge_convention_bridge_diagnostics",
+    "sm_gauge_convention_generator_residuals",
     "sm_coupled_higgs_gauge_hamiltonian_density",
     "sm_coupled_higgs_gauge_leapfrog_step",
     "sm_embed_higgs_to_sm_momenta",
@@ -456,6 +476,7 @@ __all__ = [
     "sm_identity_higgs_links",
     "sm_leapfrog_step",
     "sm_higgs_tilde",
+    "sm_hypercharge_spectral_mismatch",
     "sm_higgs_algebra_matrix_field",
     "sm_higgs_covariant_differences",
     "sm_higgs_dynamics_diagnostics",
@@ -479,6 +500,8 @@ __all__ = [
     "sm_higgs_project_to_coordinates",
     "sm_higgs_site_gauge_from_algebra",
     "sm_left_wilson_force",
+    "sm_left_doublet_indices",
+    "sm_left_doublet_projector",
     "sm_linearized_plaquette_field_strength",
     "sm_linearized_yang_mills_action_density",
     "sm_link_field_from_algebra",
@@ -495,6 +518,8 @@ __all__ = [
     "sm_pure_gauge_links_from_site_algebra",
     "sm_pure_gauge_higgs_links_from_site_algebra",
     "sm_quark_antiquark_mass_residual",
+    "sm_right_singlet_indices",
+    "sm_right_singlet_projector",
     "sm_site_gauge_from_algebra",
     "sm_site_theta_from_higgs_site_theta",
     "sm_single_family_state",
@@ -511,6 +536,7 @@ __all__ = [
     "sm_transform_higgs_link_momenta",
     "sm_transform_momenta",
     "sm_transform_state",
+    "sm_transport_electroweak_generators",
     "sm_weak_field_holonomy_residual",
     "sm_weak_field_yang_mills_action_ratio",
     "sm_yukawa_hermitian_residual",
@@ -519,6 +545,10 @@ __all__ = [
     "sm_yukawa_energy_density",
     "sm_yukawa_energy_local_density",
     "sm_yukawa_higgs_force",
+    "sm_yukawa_door_algebra_matrix_field",
+    "sm_yukawa_door_electroweak_generators",
+    "sm_yukawa_door_site_gauge_from_generators",
+    "sm_yukawa_gauge_convention_energy_residuals",
     "sm_yukawa_site_gauge_from_higgs_site_theta",
     "sm_zero_family_lepton_yukawas",
     "sm_zero_quark_yukawas",
