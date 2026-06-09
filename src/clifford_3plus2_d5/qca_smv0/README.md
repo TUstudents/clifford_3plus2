@@ -22,7 +22,7 @@ It should not be used for:
 
 ## Current State
 
-Stage 22 implements the free BCC Weyl/Dirac bulk walk, static
+Stage 23 implements the free BCC Weyl/Dirac bulk walk, static
 Standard-Model gauge-background transport, pure dynamic SM gauge fields, and a
 site-local Higgs/Yukawa collision, finite-path FN recirculation, and
 center-holonomy CP coefficients, a three-family Higgs/Yukawa collision, and
@@ -31,7 +31,8 @@ backreaction, plus BCC streaming fermion gauge currents, the merged
 family-production tick, the gauge-convention bridge audit, and the
 antiunitary singlet bridge, physical-right bridged transport, and the
 physical-right bridged fermion current, sourced gauge tick, and production
-tick, plus sparse recorded rollout of that production tick:
+tick, sparse recorded rollout of that production tick, and a physical-right
+Gauss monitor on the production rollout:
 
 ```text
 qca_smv0/
@@ -59,6 +60,7 @@ qca_smv0/
   sm_physical_right_sourced_tick.py
   sm_physical_right_production_tick.py
   sm_physical_right_production_rollout.py
+  sm_physical_right_production_gauss.py
   scripts/
     session_01_bare_bcc_walk.py
     session_02_static_sm_gauge_background.py
@@ -82,6 +84,7 @@ qca_smv0/
     session_20_physical_right_sourced_tick.py
     session_21_physical_right_production_tick.py
     session_22_physical_right_production_rollout.py
+    session_23_physical_right_production_gauss.py
   tests/
     test_bulk_bcc.py
     test_sm_gauge.py
@@ -103,6 +106,7 @@ qca_smv0/
     test_sm_physical_right_sourced_tick.py
     test_sm_physical_right_production_tick.py
     test_sm_physical_right_production_rollout.py
+    test_sm_physical_right_production_gauss.py
 ```
 
 The implemented Weyl kernel is a two-component periodic BCC bulk walk:
@@ -557,6 +561,26 @@ Stage 22 verdict:
 QCA_SMV0_STAGE22_PHYSICAL_RIGHT_PRODUCTION_ROLLOUT_PASS
 ```
 
+Stage 23 adds a physical-right sourced Gauss monitor on top of the production
+rollout:
+
+- reads the existing Stage 20 Gauss diagnostic
+  `electric divergence - physical-right family charge - embedded Higgs charge`
+  on Stage 21/22 production states;
+- provides an exact zero-source vacuum control whose Gauss norm remains zero
+  under rollout;
+- records deterministic nonzero Gauss history for the production rollout;
+- checks that the default production rollout is distinguishable from a
+  zero-Yukawa rollout at the Gauss observable level;
+- keeps family norm and SM/Higgs link unitarity controlled during the monitored
+  rollout.
+
+Stage 23 verdict:
+
+```text
+QCA_SMV0_STAGE23_PHYSICAL_RIGHT_PRODUCTION_GAUSS_PASS
+```
+
 The charges, `lambda`, order-one coefficients, and center-power matrices are
 simulator inputs, not BCC-bulk derivations. Quantized scalar/gauge registers,
 boundary rules, microscopic derivation of the bridge, and derivation of the
@@ -603,5 +627,6 @@ uv run python -m clifford_3plus2_d5.qca_smv0.scripts.session_19_physical_right_c
 uv run python -m clifford_3plus2_d5.qca_smv0.scripts.session_20_physical_right_sourced_tick
 uv run python -m clifford_3plus2_d5.qca_smv0.scripts.session_21_physical_right_production_tick
 uv run python -m clifford_3plus2_d5.qca_smv0.scripts.session_22_physical_right_production_rollout
+uv run python -m clifford_3plus2_d5.qca_smv0.scripts.session_23_physical_right_production_gauss
 uv run pytest src/clifford_3plus2_d5/qca_smv0/tests -q
 ```

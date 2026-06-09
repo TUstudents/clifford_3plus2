@@ -3,12 +3,12 @@
 ## Verdict
 
 ```text
-QCA_SMV0_STAGE22_PHYSICAL_RIGHT_PRODUCTION_ROLLOUT_PASS
+QCA_SMV0_STAGE23_PHYSICAL_RIGHT_PRODUCTION_GAUSS_PASS
 ```
 
 ## Current State
 
-Stage 22 physical-right production rollout implemented on top of the Stage 1
+Stage 23 physical-right production Gauss monitor implemented on top of the Stage 1
 free BCC Weyl/Dirac walk, Stage 2 static gauge transport, Stage 3 pure dynamic
 gauge fields, Stage 4 local Higgs/Yukawa collision, Stage 5 FN recirculation,
 Stage 6 center-holonomy CP, Stage 7 three-family Higgs/Yukawa collision, and
@@ -20,7 +20,8 @@ tick, Stage 15 full family production tick, and Stage 16 gauge-convention
 bridge audit, Stage 17 antiunitary singlet bridge, and Stage 18
 physical-right bridged transport, and Stage 19 physical-right bridged fermion
 current, Stage 20 physical-right sourced gauge tick, and Stage 21
-physical-right production tick.
+physical-right production tick, and Stage 22 physical-right production
+rollout.
 
 Implemented:
 
@@ -301,6 +302,13 @@ Implemented:
 - zero-Yukawa rollout difference control proving production remains active
   under iteration;
 - Session 22 script;
+- physical-right production Gauss monitor reading the existing Stage 20
+  physical-right sourced Gauss diagnostic on Stage 21/22 production states;
+- zero-source vacuum rollout control with zero Gauss norm throughout;
+- deterministic production Gauss history with finite nonzero Gauss signal;
+- final-Gauss contrast between default production and zero-Yukawa rollout;
+- monitored rollout family-norm and SM/Higgs link-unitarity controls;
+- Session 23 script;
 - focused tests for algebra, norm preservation, local gauge covariance, Wilson
   response, weak-link scaling, pure-gauge dynamics, Gauss covariance and
   preservation, weak-field Yang-Mills behavior, Higgs/Yukawa door structure,
@@ -312,7 +320,8 @@ Implemented:
   full family production tick, gauge-convention bridge audit, antiunitary
   singlet bridge, physical-right bridged transport, physical-right bridged
   fermion current, physical-right sourced gauge tick, physical-right production
-  tick, physical-right production rollout, JIT compatibility, and
+  tick, physical-right production rollout, physical-right production Gauss
+  monitor, JIT compatibility, and
   small-momentum Weyl/Dirac behavior.
 
 Not implemented:
@@ -323,8 +332,9 @@ Not implemented:
 - derivation of the FN charges, `lambda`, order-one coefficients, or
   center-power matrices from BCC bulk dynamics;
 - derivation of Higgs potential parameters from BCC bulk dynamics;
+- Gauss projection / constraint-solving dynamics;
 - performance profiles beyond the small
-  Session 01/02/03/04/05/06/07/08/09/10/11/12/13/14/15/16/17/18/19/20/21/22 diagnostics.
+  Session 01/02/03/04/05/06/07/08/09/10/11/12/13/14/15/16/17/18/19/20/21/22/23 diagnostics.
 
 ## Working Boundary
 

@@ -777,3 +777,31 @@ Verdict:
 ```text
 QCA_SMV0_STAGE22_PHYSICAL_RIGHT_PRODUCTION_ROLLOUT_PASS
 ```
+
+## Stage 23 - Physical-Right Production Gauss Monitor
+
+Pass only if:
+
+- the only upstream runtime imports are from `sim` and local `qca_smv0`
+  modules;
+- the monitor reads the existing physical-right sourced Gauss diagnostic
+  `electric divergence - physical-right family charge - embedded Higgs charge`
+  on Stage 21/22 production rollout states;
+- the zero family state, unitary-gauge Higgs vacuum, zero momenta, identity SM
+  links, and identity Higgs links have zero initial Gauss norm;
+- that zero-source vacuum control remains zero-Gauss under a short production
+  rollout;
+- deterministic nonzero production fields give a finite, nonzero Gauss history;
+- the monitored rollout keeps family norm and SM/Higgs link unitarity
+  controlled;
+- the default production rollout is distinguishable from a zero-Yukawa rollout
+  in the final Gauss observable;
+- all recorded Gauss-monitor observables are finite;
+- no Gauss projection, boundary rule, quantized register, performance
+  benchmark, or derivation of simulator inputs is introduced.
+
+Verdict:
+
+```text
+QCA_SMV0_STAGE23_PHYSICAL_RIGHT_PRODUCTION_GAUSS_PASS
+```
