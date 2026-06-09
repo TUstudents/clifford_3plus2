@@ -709,3 +709,42 @@ Verdict:
 ```text
 QCA_SMV0_STAGE20_PHYSICAL_RIGHT_SOURCED_TICK_PASS
 ```
+
+## Stage 21 - Physical-Right Production Tick
+
+Pass only if:
+
+- the only upstream runtime imports are from `sim` and local `qca_smv0`
+  modules;
+- the Stage 15 production tick ordering is lifted onto the Stage 20
+  physical-right sourced gauge tick;
+- the local Yukawa/Higgs source remains the explicit simulator input from
+  Stages 7/10/15;
+- setting all quark and lepton Yukawa matrices to zero reduces the
+  physical-right production tick to the Stage 20 physical-right sourced tick
+  to float32 precision;
+- the production Higgs force is the sum of the Stage 8 Higgs force and the
+  Stage 10 local Yukawa Higgs source;
+- deterministic nonzero family/Higgs fields give a nonzero Yukawa source;
+- zero family state and vacuum Higgs give zero Yukawa source;
+- the Higgs momentum source kick is reversible for frozen fields under
+  `step_size -> -step_size`;
+- the production tick uses symmetric local half-collision,
+  physical-right BCC family transport, and a second local half-collision;
+- the default physical-right production tick differs from the Stage 20
+  physical-right sourced tick in both the local family state and Higgs
+  momenta, so the Yukawa merge is active;
+- the default physical-right production tick differs nontrivially from the
+  Stage 15 transport-convention production tick, so the carrier rewrite is
+  active;
+- the production tick preserves family-state norm to float32 precision and
+  keeps SM and Higgs-representation links unitary;
+- the production tick is JIT-compatible;
+- no boundary rule, quantized register, or derivation of simulator inputs is
+  introduced.
+
+Verdict:
+
+```text
+QCA_SMV0_STAGE21_PHYSICAL_RIGHT_PRODUCTION_TICK_PASS
+```

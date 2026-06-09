@@ -78,7 +78,7 @@ physics policy.
 **Boundary**: BCC Weyl/Dirac kernels, BCC plaquettes, Wilson observables, and
 SO(2)/SU(2)/SU(3) force policy remain in `spacetime_qca`.
 
-## qca_smv0 — Stage 20 physical-right sourced gauge tick
+## qca_smv0 — Stage 21 physical-right production tick
 
 **Goal**: focused simulator sidecar for the next Standard-Model QCA prototype,
 using the shared `sim` infrastructure and local `qca_smv0` kernels only.
@@ -320,11 +320,24 @@ using the shared `sim` infrastructure and local `qca_smv0` kernels only.
 - Nontrivial state difference from the Stage 14 transport-convention sourced
   tick.
 - Session 20 script and focused tests.
+- Physical-right production tick merging the Stage 10 local Yukawa/Higgs source
+  and exact Stage 7 family Yukawa collision into the Stage 20 physical-right
+  sourced tick.
+- Zero-Yukawa reduction controls against the Stage 20 physical-right sourced
+  tick.
+- Production Higgs force as Higgs dynamics plus local Yukawa Higgs source.
+- Nonzero deterministic Yukawa-source and zero-state/vacuum-source controls.
+- Reversible production Higgs momentum kick for frozen fields.
+- Production tick with symmetric local half-collision, physical-right BCC
+  family transport, Higgs-field advance, SM/Higgs link unitarity, family-state
+  norm, and JIT audits.
+- Nontrivial state difference from the Stage 15 transport-convention production
+  tick.
+- Session 21 script and focused tests.
 
 **Boundary**: no boundary condition, quantized scalar/gauge registers, full
-microscopic BCC derivation of the antiunitary bridge, rewrite of the production
-tick on a single bridged carrier, or derivation of the flavor/Higgs inputs is
-implemented yet. FN charges, `lambda`, order-one
+microscopic BCC derivation of the antiunitary bridge, or derivation of the
+flavor/Higgs inputs is implemented yet. FN charges, `lambda`, order-one
 coefficients, center-power matrices, placeholder lepton matrices, and Higgs
 potential parameters are explicit simulator inputs rather than BCC-bulk
 derivations.

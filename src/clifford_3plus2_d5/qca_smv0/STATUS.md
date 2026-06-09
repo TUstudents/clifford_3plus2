@@ -3,12 +3,12 @@
 ## Verdict
 
 ```text
-QCA_SMV0_STAGE20_PHYSICAL_RIGHT_SOURCED_TICK_PASS
+QCA_SMV0_STAGE21_PHYSICAL_RIGHT_PRODUCTION_TICK_PASS
 ```
 
 ## Current State
 
-Stage 20 physical-right sourced gauge tick implemented on top of the Stage 1
+Stage 21 physical-right production tick implemented on top of the Stage 1
 free BCC Weyl/Dirac walk, Stage 2 static gauge transport, Stage 3 pure dynamic
 gauge fields, Stage 4 local Higgs/Yukawa collision, Stage 5 FN recirculation,
 Stage 6 center-holonomy CP, Stage 7 three-family Higgs/Yukawa collision, and
@@ -19,7 +19,7 @@ family-summed BCC fermion gauge current, and Stage 14 family-sourced SM gauge
 tick, Stage 15 full family production tick, and Stage 16 gauge-convention
 bridge audit, Stage 17 antiunitary singlet bridge, and Stage 18
 physical-right bridged transport, and Stage 19 physical-right bridged fermion
-current.
+current, and Stage 20 physical-right sourced gauge tick.
 
 Implemented:
 
@@ -276,6 +276,19 @@ Implemented:
 - nontrivial state difference from the Stage 14 transport-convention sourced
   tick;
 - Session 20 script;
+- physical-right production tick merging the Stage 10 local Yukawa/Higgs source
+  and exact Stage 7 family Yukawa collision into the Stage 20 physical-right
+  sourced tick;
+- zero-Yukawa reduction controls against the Stage 20 physical-right sourced
+  tick;
+- production Higgs force as Higgs dynamics plus local Yukawa Higgs source;
+- nonzero deterministic Yukawa-source and zero-state/vacuum-source controls;
+- reversible production Higgs momentum kick for frozen fields;
+- production tick with symmetric local half-collision, physical-right BCC
+  family transport, Higgs-field advance, SM/Higgs link unitarity, family-state
+  norm, and JIT audits;
+- nontrivial difference from the Stage 15 transport-convention production tick;
+- Session 21 script;
 - focused tests for algebra, norm preservation, local gauge covariance, Wilson
   response, weak-link scaling, pure-gauge dynamics, Gauss covariance and
   preservation, weak-field Yang-Mills behavior, Higgs/Yukawa door structure,
@@ -286,20 +299,19 @@ Implemented:
   tick, family-summed BCC fermion gauge current, family-sourced SM gauge tick,
   full family production tick, gauge-convention bridge audit, antiunitary
   singlet bridge, physical-right bridged transport, physical-right bridged
-  fermion current, physical-right sourced gauge tick, JIT compatibility, and
-  small-momentum Weyl/Dirac behavior.
+  fermion current, physical-right sourced gauge tick, physical-right production
+  tick, JIT compatibility, and small-momentum Weyl/Dirac behavior.
 
 Not implemented:
 
 - boundary rules;
 - quantized scalar registers;
 - microscopic BCC derivation of the antiunitary bridge;
-- rewrite of the production tick on the bridged carrier;
 - derivation of the FN charges, `lambda`, order-one coefficients, or
   center-power matrices from BCC bulk dynamics;
 - derivation of Higgs potential parameters from BCC bulk dynamics;
 - performance profiles beyond the small
-  Session 01/02/03/04/05/06/07/08/09/10/11/12/13/14/15/16/17/18/19/20 diagnostics.
+  Session 01/02/03/04/05/06/07/08/09/10/11/12/13/14/15/16/17/18/19/20/21 diagnostics.
 
 ## Working Boundary
 

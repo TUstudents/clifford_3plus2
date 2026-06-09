@@ -332,10 +332,17 @@ from clifford_3plus2_d5.qca_smv0.sm_physical_right_sourced_tick import (
     sm_physical_right_sourced_sm_tick,
     sm_physical_right_sourced_tick_diagnostics,
 )
+from clifford_3plus2_d5.qca_smv0.sm_physical_right_production_tick import (
+    PhysicalRightProductionSMTickDiagnostics,
+    sm_apply_physical_right_production_higgs_momentum_kick,
+    sm_physical_right_production_higgs_force,
+    sm_physical_right_production_sm_tick,
+    sm_physical_right_production_tick_diagnostics,
+)
 
 SIDECAR_NAME = "qca_smv0"
 SIDECAR_TITLE = "QCA_SMv0"
-SIDECAR_STATUS = "Stage 20 physical-right sourced tick implemented"
+SIDECAR_STATUS = "Stage 21 physical-right production tick implemented"
 
 __all__ = [
     "BCC_ANISOTROPY_DIRECTIONS",
@@ -390,6 +397,7 @@ __all__ = [
     "HiggsDynamicsDiagnostics",
     "HiggsDynamicsParameters",
     "PhysicalRightCurrentDiagnostics",
+    "PhysicalRightProductionSMTickDiagnostics",
     "PhysicalRightSourcedSMTickDiagnostics",
     "PhysicalRightTransportDiagnostics",
     "SourcedSMTickDiagnostics",
@@ -455,6 +463,7 @@ __all__ = [
     "sm_apply_higgs_link_momentum_update",
     "sm_apply_momentum_update",
     "sm_apply_physical_right_fermion_gauge_momentum_kick",
+    "sm_apply_physical_right_production_higgs_momentum_kick",
     "sm_apply_physical_right_sourced_sm_momentum_kick",
     "sm_apply_sourced_link_update",
     "sm_apply_sourced_sm_momentum_kick",
@@ -580,6 +589,9 @@ __all__ = [
     "sm_physical_right_link_unitarity_residual",
     "sm_physical_right_links_from_transport",
     "sm_physical_right_project_to_coordinates",
+    "sm_physical_right_production_higgs_force",
+    "sm_physical_right_production_sm_tick",
+    "sm_physical_right_production_tick_diagnostics",
     "sm_physical_right_site_gauge_from_algebra",
     "sm_physical_right_sourced_gauss_constraint",
     "sm_physical_right_sourced_link_force",
