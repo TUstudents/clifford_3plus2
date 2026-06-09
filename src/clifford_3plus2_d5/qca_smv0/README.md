@@ -22,8 +22,8 @@ It should not be used for:
 
 ## Current State
 
-Stage 2 implements the free BCC Weyl/Dirac bulk walk plus static
-Standard-Model gauge-background transport:
+Stage 3 implements the free BCC Weyl/Dirac bulk walk, static
+Standard-Model gauge-background transport, and pure dynamic SM gauge fields:
 
 ```text
 qca_smv0/
@@ -33,12 +33,15 @@ qca_smv0/
   __init__.py
   bulk_bcc.py
   sm_gauge.py
+  sm_dynamics.py
   scripts/
     session_01_bare_bcc_walk.py
     session_02_static_sm_gauge_background.py
+    session_03_dynamic_sm_gauge.py
   tests/
     test_bulk_bcc.py
     test_sm_gauge.py
+    test_sm_dynamics.py
 ```
 
 The implemented Weyl kernel is a two-component periodic BCC bulk walk:
@@ -94,7 +97,29 @@ Stage 2 verdict:
 QCA_SMV0_STAGE2_STATIC_SM_GAUGE_PASS
 ```
 
-Dynamic gauge fields, Higgs/Yukawa collision, boundary rules, flavor register,
+Stage 3 adds a pure dynamic gauge layer:
+
+- real link momenta with shape `(nx, ny, nz, 8, 12)` in the SM generator basis;
+- projection between algebra matrices and SM generator coordinates;
+- target-site adjoint momentum gauge transforms;
+- Wilson-force finite differences under left link perturbations;
+- Hamiltonian density `K(P) + beta S_W(U)`;
+- reversible pure-gauge leapfrog update;
+- electric divergence / Gauss diagnostic for the pure gauge field;
+- pure-gauge zero-momentum Gauss-preservation audit;
+- weak-field plaquette field-strength linearization;
+- Wilson action matching to the weak-field Yang-Mills density;
+- no-backreaction fermion/gauge wrapper: evolve links and momenta, then
+  transport spectator fermions through the updated links;
+- JIT compatibility for the leapfrog update.
+
+Stage 3 verdict:
+
+```text
+QCA_SMV0_STAGE3_DYNAMIC_SM_GAUGE_PASS
+```
+
+Matter backreaction, Higgs/Yukawa collision, boundary rules, flavor register,
 FN recirculation, and center-holonomy CP are not implemented yet.
 
 ## Reuse Boundary
@@ -118,5 +143,6 @@ current session.
 ```bash
 uv run python -m clifford_3plus2_d5.qca_smv0.scripts.session_01_bare_bcc_walk
 uv run python -m clifford_3plus2_d5.qca_smv0.scripts.session_02_static_sm_gauge_background
+uv run python -m clifford_3plus2_d5.qca_smv0.scripts.session_03_dynamic_sm_gauge
 uv run pytest src/clifford_3plus2_d5/qca_smv0/tests -q
 ```

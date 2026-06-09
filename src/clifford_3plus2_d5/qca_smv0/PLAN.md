@@ -88,13 +88,47 @@ Verdict:
 QCA_SMV0_STAGE2_STATIC_SM_GAUGE_PASS
 ```
 
+## Stage 3 - Pure Dynamic SM Gauge Fields
+
+Pass only if:
+
+- the only upstream runtime imports are from `sim` and local `qca_smv0`
+  modules;
+- link momenta have shape `(nx, ny, nz, 8, 12)` in the same SM generator basis
+  as the Stage 2 links;
+- projection from algebra matrices to SM coordinates round-trips momenta;
+- momenta transform by target-site adjoint gauge action;
+- identity and pure-gauge links have zero Wilson force;
+- deterministic non-flat links have nonzero Wilson force;
+- momentum updates keep links unitary;
+- the pure-gauge leapfrog step approximately conserves
+  `K(P) + beta S_W(U)` at small step size;
+- leapfrog reversibility holds under momentum flip;
+- electric divergence is zero for zero momenta and transforms covariantly;
+- zero-momentum pure-gauge configurations preserve the Gauss constraint under
+  one leapfrog step;
+- weak-field BCC plaquette holonomies linearize as `W = I + epsilon F` with
+  quadratic residual scaling;
+- Wilson action matches the weak-field Yang-Mills density
+  `epsilon^2 * mean(0.5 Tr(F^dag F)/32)`;
+- the no-backreaction fermion/gauge wrapper preserves spectator fermion norm;
+- the leapfrog update is JIT-compatible;
+- no matter backreaction, Higgs, Yukawa, flavor, boundary, or recirculation
+  rule is introduced.
+
+Verdict:
+
+```text
+QCA_SMV0_STAGE3_DYNAMIC_SM_GAUGE_PASS
+```
+
 ## Next Session Placeholder
 
-The next session should specify whether Stage 3 is:
+The next session should specify whether Stage 4 is:
 
-- dynamic gauge-field evolution and Gauss-law diagnostics;
 - Higgs/Yukawa collision on static gauge backgrounds;
+- matter backreaction and Gauss-law source diagnostics;
 - or performance/layout work before adding new physics.
 
-Until that is specified, this sidecar should remain at the static-background
-transport layer.
+Until that is specified, this sidecar should remain at the pure-gauge dynamic
+layer.

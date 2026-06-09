@@ -78,7 +78,7 @@ physics policy.
 **Boundary**: BCC Weyl/Dirac kernels, BCC plaquettes, Wilson observables, and
 SO(2)/SU(2)/SU(3) force policy remain in `spacetime_qca`.
 
-## qca_smv0 — Stage 2 static SM gauge background
+## qca_smv0 — Stage 3 pure dynamic SM gauge fields
 
 **Goal**: focused simulator sidecar for the next Standard-Model QCA prototype,
 using the shared `sim` infrastructure and local `qca_smv0` kernels only.
@@ -108,8 +108,19 @@ using the shared `sim` infrastructure and local `qca_smv0` kernels only.
 - Wilson plaquette traces over selected BCC parallelograms.
 - Weak-link linearization check for continuum covariant derivative scaling.
 - Session 02 script and focused tests.
+- Real SM link momenta with shape `(nx, ny, nz, 8, 12)`.
+- Algebra-coordinate projection and target-site adjoint momentum gauge
+  transforms.
+- Finite-difference left Wilson force.
+- Pure-gauge Hamiltonian density and reversible leapfrog update.
+- Electric-divergence / Gauss covariance diagnostics.
+- Pure-gauge zero-momentum Gauss-preservation audit.
+- Weak-field plaquette field-strength linearization and Wilson-action /
+  Yang-Mills-density matching.
+- No-backreaction fermion/gauge wrapper with spectator fermion transport.
+- Session 03 script and focused tests.
 
-**Boundary**: no boundary condition, dynamic gauge fields, Higgs/Yukawa
+**Boundary**: no boundary condition, matter backreaction, Higgs/Yukawa
 collision, flavor recirculation, or center-holonomy CP is implemented yet.
 
 ## scalar_clebsch — V3 conditional pass, active

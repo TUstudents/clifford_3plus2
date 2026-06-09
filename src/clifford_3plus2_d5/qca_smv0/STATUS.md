@@ -3,13 +3,13 @@
 ## Verdict
 
 ```text
-QCA_SMV0_STAGE2_STATIC_SM_GAUGE_PASS
+QCA_SMV0_STAGE3_DYNAMIC_SM_GAUGE_PASS
 ```
 
 ## Current State
 
-Stage 2 static Standard-Model gauge-background transport implemented on top of
-the Stage 1 free BCC Weyl/Dirac walk.
+Stage 3 pure dynamic Standard-Model gauge fields implemented on top of the
+Stage 1 free BCC Weyl/Dirac walk and Stage 2 static gauge transport.
 
 Implemented:
 
@@ -36,18 +36,30 @@ Implemented:
 - Wilson plaquette traces over selected BCC parallelograms;
 - weak-link linearization check for the continuum covariant derivative;
 - Session 02 script;
+- real SM link momenta with shape `(nx, ny, nz, 8, 12)`;
+- algebra-coordinate projection and momentum gauge transforms;
+- finite-difference left Wilson force;
+- pure-gauge Hamiltonian density;
+- compact momentum update and reversible leapfrog step;
+- electric-divergence / Gauss diagnostic;
+- pure-gauge zero-momentum Gauss-preservation audit;
+- weak-field plaquette field-strength linearization;
+- weak-field Wilson-action / Yang-Mills-density matching;
+- no-backreaction fermion/gauge wrapper with spectator fermion transport;
+- Session 03 script;
 - focused tests for algebra, norm preservation, local gauge covariance, Wilson
-  response, weak-link scaling, JIT compatibility, and small-momentum
-  Weyl/Dirac behavior.
+  response, weak-link scaling, pure-gauge dynamics, Gauss covariance and
+  preservation, weak-field Yang-Mills behavior, JIT compatibility, and
+  small-momentum Weyl/Dirac behavior.
 
 Not implemented:
 
 - boundary rules;
-- dynamic gauge fields;
+- matter backreaction into gauge momenta;
 - Higgs/Yukawa collision;
 - flavor or FN recirculation;
 - center-holonomy CP;
-- performance profiles beyond the small Session 01/02 diagnostics.
+- performance profiles beyond the small Session 01/02/03 diagnostics.
 
 ## Working Boundary
 
