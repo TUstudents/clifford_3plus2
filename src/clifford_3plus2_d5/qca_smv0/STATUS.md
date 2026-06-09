@@ -3,17 +3,18 @@
 ## Verdict
 
 ```text
-QCA_SMV0_STAGE11_FERMION_GAUGE_CURRENT_PASS
+QCA_SMV0_STAGE12_SOURCED_SM_TICK_PASS
 ```
 
 ## Current State
 
-Stage 11 BCC streaming fermion gauge current implemented on top of the Stage 1
+Stage 12 coupled sourced SM gauge tick implemented on top of the Stage 1
 free BCC Weyl/Dirac walk, Stage 2 static gauge transport, Stage 3 pure dynamic
 gauge fields, Stage 4 local Higgs/Yukawa collision, Stage 5 FN recirculation,
 Stage 6 center-holonomy CP, Stage 7 three-family Higgs/Yukawa collision, and
 Stage 8 dynamic Higgs-field evolution, Stage 9 gauge-Higgs backreaction, and
-Stage 10 local fermion/Higgs backreaction.
+Stage 10 local fermion/Higgs backreaction, and Stage 11 BCC streaming fermion
+gauge current.
 
 Implemented:
 
@@ -151,21 +152,36 @@ Implemented:
 - kick-then-transport wrapper;
 - kicked-link unitarity, spectator fermion norm, and JIT audits;
 - Session 11 script;
+- coupled sourced SM link force as the sum of Wilson force, embedded Higgs
+  gauge force, and BCC streaming fermion current;
+- side-by-side SM transport links and Higgs electroweak links updated from one
+  12-coordinate SM momentum field;
+- Higgs electroweak site-coordinate embedding into full SM coordinates on
+  `8..11`;
+- zero-source and nonzero-source controls for the sourced link force;
+- shared electroweak covariance checks for the sourced force and sourced Gauss
+  diagnostic;
+- sourced Gauss diagnostic as electric divergence minus fermion charge minus
+  embedded Higgs charge;
+- zero-state/vacuum/zero-momentum Gauss control;
+- reversible sourced SM momentum kick;
+- coupled tick with fermion transport, Higgs-field advance, SM/Higgs link
+  unitarity, fermion norm, and JIT audits;
+- Session 12 script;
 - focused tests for algebra, norm preservation, local gauge covariance, Wilson
   response, weak-link scaling, pure-gauge dynamics, Gauss covariance and
   preservation, weak-field Yang-Mills behavior, Higgs/Yukawa door structure,
   chirality flip, massive dispersion, FN recirculation powers, generated
   Yukawa matrices, center-holonomy CP, three-family Higgs/Yukawa embedding,
   dynamic Higgs evolution, gauge-Higgs backreaction, local fermion/Higgs
-  backreaction, BCC streaming fermion gauge current, JIT compatibility, and
-  small-momentum Weyl/Dirac behavior.
+  backreaction, BCC streaming fermion gauge current, coupled sourced SM gauge
+  tick, JIT compatibility, and small-momentum Weyl/Dirac behavior.
 
 Not implemented:
 
 - boundary rules;
-- full dynamic SM gauge update sourced by both Higgs and fermion currents in
-  the 12-generator carrier;
 - family-summed BCC streaming fermion current on gauge links;
+- full merge of three-family Yukawa/Higgs source with the sourced gauge tick;
 - quantized scalar registers;
 - derivation of the FN charges, `lambda`, order-one coefficients, or
   center-power matrices from BCC bulk dynamics;

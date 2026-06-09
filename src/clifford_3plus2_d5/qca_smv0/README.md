@@ -22,7 +22,7 @@ It should not be used for:
 
 ## Current State
 
-Stage 11 implements the free BCC Weyl/Dirac bulk walk, static
+Stage 12 implements the free BCC Weyl/Dirac bulk walk, static
 Standard-Model gauge-background transport, pure dynamic SM gauge fields, and a
 site-local Higgs/Yukawa collision, finite-path FN recirculation, and
 center-holonomy CP coefficients, a three-family Higgs/Yukawa collision, and
@@ -303,10 +303,31 @@ Stage 11 verdict:
 QCA_SMV0_STAGE11_FERMION_GAUGE_CURRENT_PASS
 ```
 
+Stage 12 adds the coupled sourced SM gauge tick:
+
+- SM transport links and Higgs electroweak links are carried as two
+  representations of one 12-coordinate link-momentum field;
+- the sourced link force is
+  `Wilson + embedded Higgs gauge force + BCC streaming fermion current`;
+- zero-source and deterministic nonzero-source controls;
+- sourced force and sourced Gauss covariance under a shared electroweak gauge;
+- full Gauss diagnostic
+  `electric divergence - fermion charge - embedded Higgs charge`;
+- reversible sourced momentum kick;
+- SM/Higgs link update from the same momentum field;
+- coupled tick with fermion transport, Higgs-field advance, link unitarity,
+  fermion norm, and JIT audits.
+
+Stage 12 verdict:
+
+```text
+QCA_SMV0_STAGE12_SOURCED_SM_TICK_PASS
+```
+
 The charges, `lambda`, order-one coefficients, and center-power matrices are
 simulator inputs, not BCC-bulk derivations. Family-summed streaming currents,
-full dynamical SM gauge updates with combined Higgs and fermion sources,
-quantized scalar/gauge registers, and boundary rules are not implemented yet.
+full Yukawa/Higgs source merging, quantized scalar/gauge registers, and
+boundary rules are not implemented yet.
 
 ## Reuse Boundary
 
@@ -338,5 +359,6 @@ uv run python -m clifford_3plus2_d5.qca_smv0.scripts.session_08_higgs_dynamics
 uv run python -m clifford_3plus2_d5.qca_smv0.scripts.session_09_gauge_higgs_backreaction
 uv run python -m clifford_3plus2_d5.qca_smv0.scripts.session_10_fermion_higgs_backreaction
 uv run python -m clifford_3plus2_d5.qca_smv0.scripts.session_11_fermion_gauge_current
+uv run python -m clifford_3plus2_d5.qca_smv0.scripts.session_12_sourced_tick
 uv run pytest src/clifford_3plus2_d5/qca_smv0/tests -q
 ```

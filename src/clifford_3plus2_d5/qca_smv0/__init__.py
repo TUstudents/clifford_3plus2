@@ -232,10 +232,20 @@ from clifford_3plus2_d5.qca_smv0.sm_fermion_gauge import (
     sm_fermion_left_gauge_current,
     sm_streaming_fermion_charge_density,
 )
+from clifford_3plus2_d5.qca_smv0.sm_sourced_tick import (
+    SourcedSMTickDiagnostics,
+    sm_apply_sourced_link_update,
+    sm_apply_sourced_sm_momentum_kick,
+    sm_embed_higgs_site_to_sm_coordinates,
+    sm_sourced_gauss_constraint,
+    sm_sourced_link_force,
+    sm_sourced_sm_tick,
+    sm_sourced_tick_diagnostics,
+)
 
 SIDECAR_NAME = "qca_smv0"
 SIDECAR_TITLE = "QCA_SMv0"
-SIDECAR_STATUS = "Stage 11 fermion gauge current implemented"
+SIDECAR_STATUS = "Stage 12 sourced SM tick implemented"
 
 __all__ = [
     "BCC_ANISOTROPY_DIRECTIONS",
@@ -284,6 +294,7 @@ __all__ = [
     "HiggsYukawaDiagnostics",
     "HiggsDynamicsDiagnostics",
     "HiggsDynamicsParameters",
+    "SourcedSMTickDiagnostics",
     "SMYukawaCouplings",
     "StaticSMGaugeDiagnostics",
     "bare_bcc_walk_diagnostics",
@@ -341,6 +352,8 @@ __all__ = [
     "sm_apply_fermion_gauge_momentum_kick",
     "sm_apply_higgs_link_momentum_update",
     "sm_apply_momentum_update",
+    "sm_apply_sourced_link_update",
+    "sm_apply_sourced_sm_momentum_kick",
     "sm_apply_yukawa_collision",
     "sm_apply_yukawa_higgs_momentum_kick",
     "sm_algebra_matrix_field",
@@ -378,6 +391,7 @@ __all__ = [
     "sm_coupled_higgs_gauge_hamiltonian_density",
     "sm_coupled_higgs_gauge_leapfrog_step",
     "sm_embed_higgs_to_sm_momenta",
+    "sm_embed_higgs_site_to_sm_coordinates",
     "sm_extract_higgs_from_sm_momenta",
     "sm_gauge_higgs_backreaction_diagnostics",
     "sm_gauge_hamiltonian_density",
@@ -431,6 +445,10 @@ __all__ = [
     "sm_quark_antiquark_mass_residual",
     "sm_site_gauge_from_algebra",
     "sm_site_theta_from_higgs_site_theta",
+    "sm_sourced_gauss_constraint",
+    "sm_sourced_link_force",
+    "sm_sourced_sm_tick",
+    "sm_sourced_tick_diagnostics",
     "sm_streaming_fermion_charge_density",
     "sm_transform_family_state",
     "sm_transform_links",

@@ -385,3 +385,41 @@ Verdict:
 ```text
 QCA_SMV0_STAGE11_FERMION_GAUGE_CURRENT_PASS
 ```
+
+## Stage 12 - Coupled Sourced SM Gauge Tick
+
+Pass only if:
+
+- the only upstream runtime imports are from `sim` and local `qca_smv0`
+  modules;
+- SM transport links and Higgs electroweak links are carried side by side as
+  two representations of one 12-coordinate gauge-momentum field;
+- Higgs electroweak site/link coordinates embed into the full SM generator
+  layout only on components `8..11`;
+- the sourced SM link force is the sum of the Stage 3 Wilson force, the Stage 9
+  embedded Higgs gauge force, and the Stage 11 BCC streaming fermion current;
+- zero fermion state, vacuum Higgs field, identity SM links, and identity Higgs
+  links give zero sourced link force to float32 precision;
+- deterministic nonzero fields give a nonzero sourced link force;
+- the sourced link force transforms by target-site adjoint action under a
+  shared electroweak gauge transformation;
+- the full sourced Gauss diagnostic is electric divergence minus fermion charge
+  minus embedded Higgs charge and transforms covariantly;
+- zero fermion state, zero gauge momenta, vacuum Higgs field, and zero Higgs
+  momenta have zero sourced Gauss residual;
+- the sourced momentum kick is reversible under `step_size -> -step_size`;
+- updating SM and Higgs-representation links from the same momentum field keeps
+  both link fields unitary;
+- the coupled tick transports the fermion through the sourced SM links,
+  advances the Higgs field with the Higgs force, and preserves fermion norm to
+  float32 precision;
+- the coupled tick is JIT-compatible;
+- no family-summed BCC streaming current, full Yukawa/Higgs source merge,
+  quantized gauge/scalar register, boundary rule, or derivation of simulator
+  inputs is introduced.
+
+Verdict:
+
+```text
+QCA_SMV0_STAGE12_SOURCED_SM_TICK_PASS
+```

@@ -78,7 +78,7 @@ physics policy.
 **Boundary**: BCC Weyl/Dirac kernels, BCC plaquettes, Wilson observables, and
 SO(2)/SU(2)/SU(3) force policy remain in `spacetime_qca`.
 
-## qca_smv0 — Stage 11 BCC streaming fermion gauge current
+## qca_smv0 — Stage 12 coupled sourced SM gauge tick
 
 **Goal**: focused simulator sidecar for the next Standard-Model QCA prototype,
 using the shared `sim` infrastructure and local `qca_smv0` kernels only.
@@ -210,14 +210,23 @@ using the shared `sim` infrastructure and local `qca_smv0` kernels only.
 - Reversible fermion-current momentum kick and kick-then-transport wrapper.
 - Kicked-link unitarity, spectator fermion norm, and JIT audits.
 - Session 11 script and focused tests.
+- Coupled sourced SM link force as
+  `Wilson + embedded Higgs gauge force + BCC streaming fermion current`.
+- Side-by-side SM transport links and Higgs electroweak links updated from one
+  12-coordinate SM momentum field.
+- Sourced Gauss diagnostic
+  `electric divergence - fermion charge - embedded Higgs charge`.
+- Shared electroweak covariance checks for sourced force and sourced Gauss.
+- Coupled tick with fermion transport, Higgs-field advance, SM/Higgs link
+  unitarity, fermion norm, and JIT audits.
+- Session 12 script and focused tests.
 
 **Boundary**: no boundary condition, family-summed BCC streaming current,
-quantized scalar/gauge registers, full dynamic SM gauge update sourced by both
-Higgs and fermion currents in the 12-generator carrier, or derivation of the
-flavor/Higgs inputs is implemented yet. FN charges, `lambda`, order-one
-coefficients, center-power matrices, placeholder lepton matrices, and Higgs
-potential parameters are explicit simulator inputs rather than BCC-bulk
-derivations.
+quantized scalar/gauge registers, full three-family Yukawa-source merge into
+the sourced gauge tick, or derivation of the flavor/Higgs inputs is implemented
+yet. FN charges, `lambda`, order-one coefficients, center-power matrices,
+placeholder lepton matrices, and Higgs potential parameters are explicit
+simulator inputs rather than BCC-bulk derivations.
 
 ## scalar_clebsch — V3 conditional pass, active
 
