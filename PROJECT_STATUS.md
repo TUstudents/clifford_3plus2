@@ -78,7 +78,7 @@ physics policy.
 **Boundary**: BCC Weyl/Dirac kernels, BCC plaquettes, Wilson observables, and
 SO(2)/SU(2)/SU(3) force policy remain in `spacetime_qca`.
 
-## qca_smv0 — Stage 23 physical-right production Gauss monitor
+## qca_smv0 — Stage 24 physical-right production energy monitor
 
 **Goal**: focused simulator sidecar for the next Standard-Model QCA prototype,
 using the shared `sim` infrastructure and local `qca_smv0` kernels only.
@@ -352,13 +352,20 @@ using the shared `sim` infrastructure and local `qca_smv0` kernels only.
   between default and zero-Yukawa rollouts.
 - Monitored rollout family-norm and link-unitarity controls.
 - Session 23 script and focused tests.
+- Physical-right production energy monitor recording pure SM gauge
+  Hamiltonian, Higgs Hamiltonian, physical-right streaming bilinear, and local
+  three-family Yukawa energy.
+- Exact vacuum-zero monitored-total-energy control.
+- Deterministic component-energy history and default-vs-zero-Yukawa
+  monitored-total-energy contrast.
+- Session 24 script and focused tests.
 
 **Boundary**: no boundary condition, quantized scalar/gauge registers, full
-microscopic BCC derivation of the antiunitary bridge, Gauss projection, or
-derivation of the flavor/Higgs inputs is implemented yet. FN charges, `lambda`,
-order-one coefficients, center-power matrices, placeholder lepton matrices,
-and Higgs potential parameters are explicit simulator inputs rather than
-BCC-bulk derivations.
+microscopic BCC derivation of the antiunitary bridge, Gauss projection, exact
+full-energy conservation claim, or derivation of the flavor/Higgs inputs is
+implemented yet. FN charges, `lambda`, order-one coefficients, center-power
+matrices, placeholder lepton matrices, and Higgs potential parameters are
+explicit simulator inputs rather than BCC-bulk derivations.
 
 ## scalar_clebsch — V3 conditional pass, active
 

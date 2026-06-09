@@ -22,7 +22,7 @@ It should not be used for:
 
 ## Current State
 
-Stage 23 implements the free BCC Weyl/Dirac bulk walk, static
+Stage 24 implements the free BCC Weyl/Dirac bulk walk, static
 Standard-Model gauge-background transport, pure dynamic SM gauge fields, and a
 site-local Higgs/Yukawa collision, finite-path FN recirculation, and
 center-holonomy CP coefficients, a three-family Higgs/Yukawa collision, and
@@ -31,8 +31,8 @@ backreaction, plus BCC streaming fermion gauge currents, the merged
 family-production tick, the gauge-convention bridge audit, and the
 antiunitary singlet bridge, physical-right bridged transport, and the
 physical-right bridged fermion current, sourced gauge tick, and production
-tick, sparse recorded rollout of that production tick, and a physical-right
-Gauss monitor on the production rollout:
+tick, sparse recorded rollout of that production tick, a physical-right Gauss
+monitor on the production rollout, and an energy-component monitor:
 
 ```text
 qca_smv0/
@@ -61,6 +61,7 @@ qca_smv0/
   sm_physical_right_production_tick.py
   sm_physical_right_production_rollout.py
   sm_physical_right_production_gauss.py
+  sm_physical_right_production_energy.py
   scripts/
     session_01_bare_bcc_walk.py
     session_02_static_sm_gauge_background.py
@@ -85,6 +86,7 @@ qca_smv0/
     session_21_physical_right_production_tick.py
     session_22_physical_right_production_rollout.py
     session_23_physical_right_production_gauss.py
+    session_24_physical_right_production_energy.py
   tests/
     test_bulk_bcc.py
     test_sm_gauge.py
@@ -107,6 +109,7 @@ qca_smv0/
     test_sm_physical_right_production_tick.py
     test_sm_physical_right_production_rollout.py
     test_sm_physical_right_production_gauss.py
+    test_sm_physical_right_production_energy.py
 ```
 
 The implemented Weyl kernel is a two-component periodic BCC bulk walk:
@@ -581,6 +584,23 @@ Stage 23 verdict:
 QCA_SMV0_STAGE23_PHYSICAL_RIGHT_PRODUCTION_GAUSS_PASS
 ```
 
+Stage 24 adds an energy-component monitor on top of the physical-right
+production rollout:
+
+- records pure SM gauge Hamiltonian density;
+- records Higgs Hamiltonian density;
+- records the physical-right BCC streaming bilinear;
+- records local three-family Yukawa energy;
+- records the sum as a monitored total energy without claiming exact
+  conservation of the full hybrid tick;
+- keeps an exact vacuum-zero control and a default-vs-zero-Yukawa contrast.
+
+Stage 24 verdict:
+
+```text
+QCA_SMV0_STAGE24_PHYSICAL_RIGHT_PRODUCTION_ENERGY_PASS
+```
+
 The charges, `lambda`, order-one coefficients, and center-power matrices are
 simulator inputs, not BCC-bulk derivations. Quantized scalar/gauge registers,
 boundary rules, microscopic derivation of the bridge, and derivation of the
@@ -628,5 +648,6 @@ uv run python -m clifford_3plus2_d5.qca_smv0.scripts.session_20_physical_right_s
 uv run python -m clifford_3plus2_d5.qca_smv0.scripts.session_21_physical_right_production_tick
 uv run python -m clifford_3plus2_d5.qca_smv0.scripts.session_22_physical_right_production_rollout
 uv run python -m clifford_3plus2_d5.qca_smv0.scripts.session_23_physical_right_production_gauss
+uv run python -m clifford_3plus2_d5.qca_smv0.scripts.session_24_physical_right_production_energy
 uv run pytest src/clifford_3plus2_d5/qca_smv0/tests -q
 ```

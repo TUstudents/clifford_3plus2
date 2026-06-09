@@ -805,3 +805,34 @@ Verdict:
 ```text
 QCA_SMV0_STAGE23_PHYSICAL_RIGHT_PRODUCTION_GAUSS_PASS
 ```
+
+## Stage 24 - Physical-Right Production Energy Monitor
+
+Pass only if:
+
+- the only upstream runtime imports are from `sim` and local `qca_smv0`
+  modules;
+- the monitor reads only energy functions already introduced in earlier stages:
+  pure SM gauge Hamiltonian, Higgs Hamiltonian, physical-right streaming
+  bilinear, and local three-family Yukawa energy;
+- the monitored total energy is the explicit sum of those four components;
+- the zero family state, unitary-gauge Higgs vacuum, zero momenta, identity SM
+  links, and identity Higgs links have zero monitored total energy to
+  numerical precision;
+- deterministic nonzero production fields give finite nonzero component
+  energies;
+- the short production rollout has controlled monitored-total drift on the
+  deterministic certificate state;
+- the default production rollout is distinguishable from a zero-Yukawa rollout
+  at the monitored total-energy level;
+- family norm remains controlled during the monitored rollout;
+- all recorded energy-monitor observables are finite;
+- no new dynamics, conservation claim, boundary rule, quantized register,
+  performance benchmark, Gauss projection, or derivation of simulator inputs is
+  introduced.
+
+Verdict:
+
+```text
+QCA_SMV0_STAGE24_PHYSICAL_RIGHT_PRODUCTION_ENERGY_PASS
+```

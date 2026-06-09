@@ -357,10 +357,16 @@ from clifford_3plus2_d5.qca_smv0.sm_physical_right_production_gauss import (
     sm_physical_right_production_gauss_observables,
     sm_physical_right_production_vacuum_state,
 )
+from clifford_3plus2_d5.qca_smv0.sm_physical_right_production_energy import (
+    PhysicalRightProductionEnergyDiagnostics,
+    sm_physical_right_production_energy_diagnostics,
+    sm_physical_right_production_energy_history,
+    sm_physical_right_production_energy_observables,
+)
 
 SIDECAR_NAME = "qca_smv0"
 SIDECAR_TITLE = "QCA_SMv0"
-SIDECAR_STATUS = "Stage 23 physical-right production Gauss monitor implemented"
+SIDECAR_STATUS = "Stage 24 physical-right production energy monitor implemented"
 
 __all__ = [
     "BCC_ANISOTROPY_DIRECTIONS",
@@ -415,6 +421,7 @@ __all__ = [
     "HiggsDynamicsDiagnostics",
     "HiggsDynamicsParameters",
     "PhysicalRightCurrentDiagnostics",
+    "PhysicalRightProductionEnergyDiagnostics",
     "PhysicalRightProductionGaussDiagnostics",
     "PhysicalRightProductionRolloutDiagnostics",
     "PhysicalRightProductionRolloutState",
@@ -610,6 +617,9 @@ __all__ = [
     "sm_physical_right_link_unitarity_residual",
     "sm_physical_right_links_from_transport",
     "sm_physical_right_project_to_coordinates",
+    "sm_physical_right_production_energy_diagnostics",
+    "sm_physical_right_production_energy_history",
+    "sm_physical_right_production_energy_observables",
     "sm_physical_right_production_gauss",
     "sm_physical_right_production_gauss_diagnostics",
     "sm_physical_right_production_gauss_history",
