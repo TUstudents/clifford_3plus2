@@ -3,15 +3,16 @@
 ## Verdict
 
 ```text
-QCA_SMV0_STAGE8_HIGGS_DYNAMICS_PASS
+QCA_SMV0_STAGE9_GAUGE_HIGGS_BACKREACTION_PASS
 ```
 
 ## Current State
 
-Stage 8 dynamic Higgs-field evolution implemented on top of the Stage 1
+Stage 9 gauge-Higgs backreaction implemented on top of the Stage 1
 free BCC Weyl/Dirac walk, Stage 2 static gauge transport, Stage 3 pure dynamic
 gauge fields, Stage 4 local Higgs/Yukawa collision, Stage 5 FN recirculation,
-Stage 6 center-holonomy CP, and Stage 7 three-family Higgs/Yukawa collision.
+Stage 6 center-holonomy CP, Stage 7 three-family Higgs/Yukawa collision, and
+Stage 8 dynamic Higgs-field evolution.
 
 Implemented:
 
@@ -104,24 +105,45 @@ Implemented:
 - reversible no-fermion Higgs leapfrog update;
 - small-step Hamiltonian drift and JIT audits;
 - Session 08 script;
+- Higgs electroweak link momenta with shape `(nx, ny, nz, 8, 4)`;
+- projection between Higgs algebra matrices and electroweak coordinates;
+- target-site adjoint transforms for Higgs link momenta;
+- Higgs link-momentum kinetic density;
+- left-trivialized Higgs gauge force from the covariant-gradient energy;
+- zero-force covariantly constant vacuum control;
+- nonzero scalar gauge-current control for deterministic non-vacuum/nonflat
+  fields;
+- local Higgs charge density;
+- Higgs Gauss diagnostic as electric divergence minus Higgs charge;
+- covariance checks for the Higgs gauge force, charge density, and Gauss
+  diagnostic;
+- embedding of Higgs electroweak momenta into the full SM 12-generator momentum
+  layout with zeros on color and components on `8..11`;
+- coupled no-fermion Higgs/gauge leapfrog update;
+- coupled link-unitarity, reversibility, small Hamiltonian-drift, and JIT
+  audits;
+- Session 09 script;
 - focused tests for algebra, norm preservation, local gauge covariance, Wilson
   response, weak-link scaling, pure-gauge dynamics, Gauss covariance and
   preservation, weak-field Yang-Mills behavior, Higgs/Yukawa door structure,
   chirality flip, massive dispersion, FN recirculation powers, generated
   Yukawa matrices, center-holonomy CP, three-family Higgs/Yukawa embedding,
-  dynamic Higgs evolution, JIT compatibility, and small-momentum Weyl/Dirac
-  behavior.
+  dynamic Higgs evolution, gauge-Higgs backreaction, JIT compatibility, and
+  small-momentum Weyl/Dirac behavior.
 
 Not implemented:
 
 - boundary rules;
-- matter backreaction into gauge momenta;
 - fermion backreaction into Higgs momenta;
+- fermion backreaction into gauge momenta;
+- full dynamic SM gauge update sourced by both Higgs and fermion currents in
+  the 12-generator carrier;
 - quantized scalar registers;
 - derivation of the FN charges, `lambda`, order-one coefficients, or
   center-power matrices from BCC bulk dynamics;
 - derivation of Higgs potential parameters from BCC bulk dynamics;
-- performance profiles beyond the small Session 01/02/03/04/05/06/07/08 diagnostics.
+- performance profiles beyond the small Session 01/02/03/04/05/06/07/08/09
+  diagnostics.
 
 ## Working Boundary
 

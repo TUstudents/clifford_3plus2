@@ -283,13 +283,38 @@ Verdict:
 QCA_SMV0_STAGE8_HIGGS_DYNAMICS_PASS
 ```
 
-## Next Session Placeholder
+## Stage 9 - Gauge-Higgs Backreaction
 
-The next session should specify whether Stage 9 is:
+Pass only if:
 
-- matter backreaction and Gauss-law source diagnostics;
-- integrating Higgs dynamics with the fermion/gauge wrapper;
-- or performance/layout work before adding new physics.
+- the only upstream runtime imports are from `sim` and local `qca_smv0`
+  modules;
+- Higgs electroweak link momenta have shape `(nx, ny, nz, 8, 4)`;
+- projection from Higgs algebra matrices to electroweak coordinates
+  round-trips momenta;
+- Higgs link momenta transform by target-site adjoint gauge action;
+- the Higgs gauge current is computed as the left-trivialized derivative of
+  the gauge-covariant Higgs gradient energy with respect to each BCC link;
+- the Higgs link force vanishes for a covariantly constant vacuum and is
+  nonzero for a deterministic non-vacuum/nonflat field;
+- the Higgs link force transforms covariantly under site-local electroweak
+  gauges;
+- the local Higgs charge density is implemented and transforms covariantly;
+- the Higgs Gauss diagnostic is electric divergence minus Higgs charge and
+  transforms covariantly;
+- the vacuum with zero field and link momenta has zero Higgs Gauss residual;
+- Higgs electroweak momenta embed into the full SM 12-coordinate momentum
+  layout with zeros on color and components on generators `8..11`;
+- the coupled no-fermion Higgs/gauge leapfrog keeps links unitary;
+- the coupled leapfrog is reversible under simultaneous momentum flips;
+- the coupled Hamiltonian density has small drift at small step size;
+- the coupled leapfrog is JIT-compatible;
+- no fermion backreaction, boundary rule, quantized scalar register, dynamic
+  full-SM gauge update sourced by fermions, or derivation of Higgs potential
+  parameters is introduced.
 
-Until that is specified, this sidecar should remain at the no-fermion dynamic
-Higgs-field layer.
+Verdict:
+
+```text
+QCA_SMV0_STAGE9_GAUGE_HIGGS_BACKREACTION_PASS
+```

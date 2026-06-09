@@ -22,11 +22,11 @@ It should not be used for:
 
 ## Current State
 
-Stage 8 implements the free BCC Weyl/Dirac bulk walk, static
+Stage 9 implements the free BCC Weyl/Dirac bulk walk, static
 Standard-Model gauge-background transport, pure dynamic SM gauge fields, and a
 site-local Higgs/Yukawa collision, finite-path FN recirculation, and
 center-holonomy CP coefficients, a three-family Higgs/Yukawa collision, and
-dynamic Higgs-field evolution:
+dynamic Higgs-field evolution with scalar gauge backreaction:
 
 ```text
 qca_smv0/
@@ -42,6 +42,7 @@ qca_smv0/
   sm_cp.py
   sm_family_higgs.py
   sm_higgs_dynamics.py
+  sm_gauge_higgs.py
   scripts/
     session_01_bare_bcc_walk.py
     session_02_static_sm_gauge_background.py
@@ -51,6 +52,7 @@ qca_smv0/
     session_06_center_holonomy_cp.py
     session_07_family_higgs_yukawa.py
     session_08_higgs_dynamics.py
+    session_09_gauge_higgs_backreaction.py
   tests/
     test_bulk_bcc.py
     test_sm_gauge.py
@@ -60,6 +62,7 @@ qca_smv0/
     test_sm_cp.py
     test_sm_family_higgs.py
     test_sm_higgs_dynamics.py
+    test_sm_gauge_higgs.py
 ```
 
 The implemented Weyl kernel is a two-component periodic BCC bulk walk:
@@ -232,10 +235,30 @@ Stage 8 verdict:
 QCA_SMV0_STAGE8_HIGGS_DYNAMICS_PASS
 ```
 
+Stage 9 adds gauge-Higgs backreaction:
+
+- Higgs electroweak link momenta with shape `(nx, ny, nz, 8, 4)`;
+- projection between Higgs algebra matrices and electroweak coordinates;
+- target-site adjoint transforms for Higgs link momenta;
+- left-trivialized Higgs gauge force from the covariant-gradient energy;
+- zero force for covariantly constant vacuum controls;
+- nonzero force for deterministic non-vacuum/nonflat fields;
+- covariant Higgs charge density and Gauss diagnostic
+  `electric divergence - Higgs charge`;
+- embedding of Higgs electroweak momenta into the full SM 12-generator layout;
+- coupled no-fermion Higgs/gauge leapfrog update;
+- link unitarity, reversibility, small Hamiltonian drift, and JIT checks.
+
+Stage 9 verdict:
+
+```text
+QCA_SMV0_STAGE9_GAUGE_HIGGS_BACKREACTION_PASS
+```
+
 The charges, `lambda`, order-one coefficients, and center-power matrices are
-simulator inputs, not BCC-bulk derivations. Matter backreaction, dynamic
-fermion backreaction, quantized scalar registers, and boundary rules are not
-implemented yet.
+simulator inputs, not BCC-bulk derivations. Fermion backreaction, quantized
+scalar registers, full dynamical SM gauge updates with fermion sources, and
+boundary rules are not implemented yet.
 
 ## Reuse Boundary
 
@@ -264,5 +287,6 @@ uv run python -m clifford_3plus2_d5.qca_smv0.scripts.session_05_fn_recirculation
 uv run python -m clifford_3plus2_d5.qca_smv0.scripts.session_06_center_holonomy_cp
 uv run python -m clifford_3plus2_d5.qca_smv0.scripts.session_07_family_higgs_yukawa
 uv run python -m clifford_3plus2_d5.qca_smv0.scripts.session_08_higgs_dynamics
+uv run python -m clifford_3plus2_d5.qca_smv0.scripts.session_09_gauge_higgs_backreaction
 uv run pytest src/clifford_3plus2_d5/qca_smv0/tests -q
 ```

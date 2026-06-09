@@ -78,7 +78,7 @@ physics policy.
 **Boundary**: BCC Weyl/Dirac kernels, BCC plaquettes, Wilson observables, and
 SO(2)/SU(2)/SU(3) force policy remain in `spacetime_qca`.
 
-## qca_smv0 — Stage 8 dynamic Higgs-field evolution
+## qca_smv0 — Stage 9 gauge-Higgs backreaction
 
 **Goal**: focused simulator sidecar for the next Standard-Model QCA prototype,
 using the shared `sim` infrastructure and local `qca_smv0` kernels only.
@@ -174,13 +174,27 @@ using the shared `sim` infrastructure and local `qca_smv0` kernels only.
 - Reversible no-fermion Higgs leapfrog update.
 - Small-step Hamiltonian drift and JIT audits.
 - Session 08 script and focused tests.
+- Higgs electroweak link momenta with shape `(nx, ny, nz, 8, 4)`.
+- Projection between Higgs algebra matrices and electroweak coordinates.
+- Target-site adjoint transforms for Higgs link momenta.
+- Left-trivialized Higgs gauge force from the covariant-gradient energy.
+- Zero-force covariantly constant vacuum control and nonzero current control.
+- Local Higgs charge density and Higgs Gauss diagnostic
+  `electric divergence - Higgs charge`.
+- Covariance checks for Higgs gauge force, charge, and Gauss diagnostic.
+- Higgs electroweak momentum embedding into the full SM 12-generator momentum
+  layout with zeros on color and components on `8..11`.
+- Coupled no-fermion Higgs/gauge leapfrog with link-unitarity, reversibility,
+  small Hamiltonian-drift, and JIT audits.
+- Session 09 script and focused tests.
 
-**Boundary**: no boundary condition, matter backreaction into gauge momenta,
-fermion backreaction into Higgs momenta, quantized scalar registers, or
-derivation of the flavor/Higgs inputs is implemented yet. FN charges, `lambda`,
-order-one coefficients, center-power matrices, placeholder lepton matrices,
-and Higgs potential parameters are explicit simulator inputs rather than
-BCC-bulk derivations.
+**Boundary**: no boundary condition, fermion backreaction into gauge/Higgs
+momenta, quantized scalar registers, full dynamic SM gauge update sourced by
+both Higgs and fermion currents in the 12-generator carrier, or derivation of
+the flavor/Higgs inputs is implemented yet. FN charges, `lambda`, order-one
+coefficients, center-power matrices, placeholder lepton matrices, and Higgs
+potential parameters are explicit simulator inputs rather than BCC-bulk
+derivations.
 
 ## scalar_clebsch — V3 conditional pass, active
 
