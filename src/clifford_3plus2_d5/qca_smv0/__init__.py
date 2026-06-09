@@ -256,10 +256,18 @@ from clifford_3plus2_d5.qca_smv0.sm_sourced_tick import (
     sm_sourced_sm_tick,
     sm_sourced_tick_diagnostics,
 )
+from clifford_3plus2_d5.qca_smv0.sm_family_sourced_tick import (
+    FamilySourcedSMTickDiagnostics,
+    sm_apply_family_sourced_sm_momentum_kick,
+    sm_family_sourced_gauss_constraint,
+    sm_family_sourced_link_force,
+    sm_family_sourced_sm_tick,
+    sm_family_sourced_tick_diagnostics,
+)
 
 SIDECAR_NAME = "qca_smv0"
 SIDECAR_TITLE = "QCA_SMv0"
-SIDECAR_STATUS = "Stage 13 family gauge current implemented"
+SIDECAR_STATUS = "Stage 14 family sourced tick implemented"
 
 __all__ = [
     "BCC_ANISOTROPY_DIRECTIONS",
@@ -303,6 +311,7 @@ __all__ = [
     "FamilyFermionGaugeCurrentDiagnostics",
     "FamilyHiggsYukawaDiagnostics",
     "FamilyLeptonYukawas",
+    "FamilySourcedSMTickDiagnostics",
     "FermionGaugeCurrentDiagnostics",
     "FermionHiggsBackreactionDiagnostics",
     "GaugeHiggsBackreactionDiagnostics",
@@ -364,6 +373,7 @@ __all__ = [
     "fn_wolfenstein_scaling",
     "higgs_yukawa_diagnostics",
     "sm_apply_family_fermion_gauge_momentum_kick",
+    "sm_apply_family_sourced_sm_momentum_kick",
     "sm_apply_family_yukawa_collision",
     "sm_apply_fermion_gauge_momentum_kick",
     "sm_apply_higgs_link_momentum_update",
@@ -401,6 +411,10 @@ __all__ = [
     "sm_family_fermion_left_gauge_current",
     "sm_family_gauged_dirac_step",
     "sm_family_higgs_yukawa_diagnostics",
+    "sm_family_sourced_gauss_constraint",
+    "sm_family_sourced_link_force",
+    "sm_family_sourced_sm_tick",
+    "sm_family_sourced_tick_diagnostics",
     "sm_family_state_from_single",
     "sm_family_streaming_energy_density",
     "sm_family_streaming_fermion_charge_density",

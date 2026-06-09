@@ -22,7 +22,7 @@ It should not be used for:
 
 ## Current State
 
-Stage 13 implements the free BCC Weyl/Dirac bulk walk, static
+Stage 14 implements the free BCC Weyl/Dirac bulk walk, static
 Standard-Model gauge-background transport, pure dynamic SM gauge fields, and a
 site-local Higgs/Yukawa collision, finite-path FN recirculation, and
 center-holonomy CP coefficients, a three-family Higgs/Yukawa collision, and
@@ -342,10 +342,26 @@ Stage 13 verdict:
 QCA_SMV0_STAGE13_FAMILY_GAUGE_CURRENT_PASS
 ```
 
+Stage 14 lifts the sourced gauge tick to the family carrier:
+
+- family state layout `(nx, ny, nz, 4, 32, 3)`;
+- family-sourced link force
+  `Wilson + embedded Higgs gauge force + family-summed BCC current`;
+- one-family reduction to the Stage 12 sourced tick;
+- family-sourced Gauss diagnostic
+  `electric divergence - family charge - embedded Higgs charge`;
+- gauge covariance, reversible momentum kick, SM/Higgs link unitarity,
+  family-state norm, Higgs-field advance, and JIT audits.
+
+Stage 14 verdict:
+
+```text
+QCA_SMV0_STAGE14_FAMILY_SOURCED_TICK_PASS
+```
+
 The charges, `lambda`, order-one coefficients, and center-power matrices are
-simulator inputs, not BCC-bulk derivations. Full family-sourced Higgs/gauge
-production ticks, full Yukawa/Higgs source merging, quantized scalar/gauge
-registers, and boundary rules are not implemented yet.
+simulator inputs, not BCC-bulk derivations. Full Yukawa/Higgs source merging,
+quantized scalar/gauge registers, and boundary rules are not implemented yet.
 
 ## Reuse Boundary
 
@@ -379,5 +395,6 @@ uv run python -m clifford_3plus2_d5.qca_smv0.scripts.session_10_fermion_higgs_ba
 uv run python -m clifford_3plus2_d5.qca_smv0.scripts.session_11_fermion_gauge_current
 uv run python -m clifford_3plus2_d5.qca_smv0.scripts.session_12_sourced_tick
 uv run python -m clifford_3plus2_d5.qca_smv0.scripts.session_13_family_gauge_current
+uv run python -m clifford_3plus2_d5.qca_smv0.scripts.session_14_family_sourced_tick
 uv run pytest src/clifford_3plus2_d5/qca_smv0/tests -q
 ```

@@ -460,3 +460,46 @@ Verdict:
 ```text
 QCA_SMV0_STAGE13_FAMILY_GAUGE_CURRENT_PASS
 ```
+
+## Stage 14 - Family-Sourced SM Gauge Tick
+
+Pass only if:
+
+- the only upstream runtime imports are from `sim` and local `qca_smv0`
+  modules;
+- the state layout is the Stage 7 family layout `(nx, ny, nz, 4, 32, 3)`;
+- SM transport links and Higgs electroweak links are still carried as two
+  representations of one 12-coordinate SM momentum field;
+- the family-sourced link force is the sum of the Stage 3 Wilson force, the
+  Stage 9 embedded Higgs gauge force, and the Stage 13 family-summed BCC
+  fermion current;
+- one occupied family reduces the family-sourced force, sourced Gauss
+  diagnostic, and tick to the Stage 12 one-carrier sourced tick to float32
+  precision;
+- zero family state, vacuum Higgs field, identity SM links, and identity Higgs
+  links give zero sourced link force to float32 precision;
+- deterministic nonzero family/Higgs/gauge fields give a nonzero sourced link
+  force;
+- the family-sourced link force transforms by target-site adjoint action under
+  a shared electroweak gauge transformation;
+- the full family-sourced Gauss diagnostic is electric divergence minus
+  family-summed fermion charge minus embedded Higgs charge and transforms
+  covariantly;
+- zero family state, zero gauge momenta, vacuum Higgs field, and zero Higgs
+  momenta have zero sourced Gauss residual;
+- the family-sourced momentum kick is reversible under
+  `step_size -> -step_size`;
+- updating SM and Higgs-representation links from the same momentum field keeps
+  both link fields unitary;
+- the coupled tick transports the family state through the sourced SM links,
+  advances the Higgs field with the Higgs force, and preserves family-state
+  norm to float32 precision;
+- the family-sourced tick is JIT-compatible;
+- no local Yukawa/Higgs source merge, boundary rule, quantized register, or
+  derivation of simulator inputs is introduced.
+
+Verdict:
+
+```text
+QCA_SMV0_STAGE14_FAMILY_SOURCED_TICK_PASS
+```
