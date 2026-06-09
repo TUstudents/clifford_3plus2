@@ -253,13 +253,43 @@ Verdict:
 QCA_SMV0_STAGE7_FAMILY_HIGGS_YUKAWA_PASS
 ```
 
+## Stage 8 - Dynamic Higgs-Field Evolution
+
+Pass only if:
+
+- the only upstream runtime imports are from `sim` and local `qca_smv0`
+  modules;
+- Higgs electroweak generators act on the Higgs doublet with
+  `SU(2)_L x U(1)_Y` anti-Hermitian generators;
+- finite Higgs electroweak BCC links have shape `(nx, ny, nz, 8, 2, 2)`;
+- finite Higgs links are unitary;
+- Higgs fields and momenta have shape `(nx, ny, nz, 2)`;
+- the Higgs Hamiltonian includes momentum kinetic energy, a gauge-covariant BCC
+  gradient density, and a local quartic potential;
+- the unitary-gauge vacuum has zero force with identity links;
+- pure-gauge transformed vacuum fields have zero covariant-gradient energy;
+- the Higgs force transforms covariantly under site-local electroweak gauges;
+- the Higgs Hamiltonian density is gauge-invariant under simultaneous field,
+  momentum, and link transforms;
+- the no-fermion Higgs leapfrog step is reversible under momentum flip;
+- the leapfrog step has small Hamiltonian drift at small step size;
+- the leapfrog step is JIT-compatible;
+- no fermion backreaction, boundary rule, quantized scalar register, or
+  derivation of Higgs potential parameters is introduced.
+
+Verdict:
+
+```text
+QCA_SMV0_STAGE8_HIGGS_DYNAMICS_PASS
+```
+
 ## Next Session Placeholder
 
-The next session should specify whether Stage 8 is:
+The next session should specify whether Stage 9 is:
 
 - matter backreaction and Gauss-law source diagnostics;
-- dynamic Higgs-field evolution;
+- integrating Higgs dynamics with the fermion/gauge wrapper;
 - or performance/layout work before adding new physics.
 
-Until that is specified, this sidecar should remain at the three-family local
-Higgs/Yukawa-collision layer.
+Until that is specified, this sidecar should remain at the no-fermion dynamic
+Higgs-field layer.

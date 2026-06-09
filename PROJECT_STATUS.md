@@ -78,7 +78,7 @@ physics policy.
 **Boundary**: BCC Weyl/Dirac kernels, BCC plaquettes, Wilson observables, and
 SO(2)/SU(2)/SU(3) force policy remain in `spacetime_qca`.
 
-## qca_smv0 — Stage 7 three-family Higgs/Yukawa collision
+## qca_smv0 — Stage 8 dynamic Higgs-field evolution
 
 **Goal**: focused simulator sidecar for the next Standard-Model QCA prototype,
 using the shared `sim` infrastructure and local `qca_smv0` kernels only.
@@ -163,11 +163,24 @@ using the shared `sim` infrastructure and local `qca_smv0` kernels only.
 - Exact local three-family collision `exp(-i step_size beta Y_family(H))`.
 - Zero-step, zero-Higgs, norm, chirality-flip, and JIT audits.
 - Session 07 script and focused tests.
+- Higgs electroweak `SU(2)_L x U(1)_Y` generator basis on the doublet.
+- Finite Higgs BCC links with shape `(nx, ny, nz, 8, 2, 2)`.
+- Higgs field and momentum layout `(nx, ny, nz, 2)`.
+- Kinetic, gauge-covariant gradient, and quartic-potential energy densities.
+- Covariant Higgs force.
+- Unitary-gauge vacuum force audit.
+- Pure-gauge vacuum gradient-energy audit.
+- Force covariance and Hamiltonian gauge-invariance checks.
+- Reversible no-fermion Higgs leapfrog update.
+- Small-step Hamiltonian drift and JIT audits.
+- Session 08 script and focused tests.
 
-**Boundary**: no boundary condition, matter backreaction, dynamic Higgs-field
-evolution, or derivation of the flavor inputs is implemented yet. FN charges,
-`lambda`, order-one coefficients, center-power matrices, and placeholder
-lepton matrices are explicit simulator inputs rather than BCC-bulk derivations.
+**Boundary**: no boundary condition, matter backreaction into gauge momenta,
+fermion backreaction into Higgs momenta, quantized scalar registers, or
+derivation of the flavor/Higgs inputs is implemented yet. FN charges, `lambda`,
+order-one coefficients, center-power matrices, placeholder lepton matrices,
+and Higgs potential parameters are explicit simulator inputs rather than
+BCC-bulk derivations.
 
 ## scalar_clebsch — V3 conditional pass, active
 
