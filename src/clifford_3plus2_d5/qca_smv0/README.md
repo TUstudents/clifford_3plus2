@@ -22,12 +22,13 @@ It should not be used for:
 
 ## Current State
 
-Stage 14 implements the free BCC Weyl/Dirac bulk walk, static
+Stage 15 implements the free BCC Weyl/Dirac bulk walk, static
 Standard-Model gauge-background transport, pure dynamic SM gauge fields, and a
 site-local Higgs/Yukawa collision, finite-path FN recirculation, and
 center-holonomy CP coefficients, a three-family Higgs/Yukawa collision, and
 dynamic Higgs-field evolution with scalar gauge and local fermion/Higgs
-backreaction, plus the BCC streaming fermion gauge current:
+backreaction, plus BCC streaming fermion gauge currents and the merged
+family-production tick:
 
 ```text
 qca_smv0/
@@ -46,6 +47,8 @@ qca_smv0/
   sm_gauge_higgs.py
   sm_fermion_higgs.py
   sm_fermion_gauge.py
+  sm_family_sourced_tick.py
+  sm_family_production_tick.py
   scripts/
     session_01_bare_bcc_walk.py
     session_02_static_sm_gauge_background.py
@@ -58,6 +61,10 @@ qca_smv0/
     session_09_gauge_higgs_backreaction.py
     session_10_fermion_higgs_backreaction.py
     session_11_fermion_gauge_current.py
+    session_12_sourced_tick.py
+    session_13_family_gauge_current.py
+    session_14_family_sourced_tick.py
+    session_15_family_production_tick.py
   tests/
     test_bulk_bcc.py
     test_sm_gauge.py
@@ -70,6 +77,8 @@ qca_smv0/
     test_sm_gauge_higgs.py
     test_sm_fermion_higgs.py
     test_sm_fermion_gauge.py
+    test_sm_family_sourced_tick.py
+    test_sm_family_production_tick.py
 ```
 
 The implemented Weyl kernel is a two-component periodic BCC bulk walk:
@@ -359,9 +368,32 @@ Stage 14 verdict:
 QCA_SMV0_STAGE14_FAMILY_SOURCED_TICK_PASS
 ```
 
+Stage 15 merges the local three-family Yukawa/Higgs source into the
+family-sourced gauge tick:
+
+- full family production tick with Stage 14 gauge/Higgs/fermion-current
+  sources plus the Stage 10 local Yukawa Higgs source;
+- exact local Stage 7 family Yukawa collision inserted in a symmetric
+  half-collision / transport / half-collision order;
+- zero-Yukawa reduction to the Stage 14 family-sourced tick;
+- Higgs momentum force
+  `Higgs force + local Yukawa Higgs source`;
+- deterministic nonzero Yukawa-source and zero-state/vacuum-source controls;
+- reversible Higgs momentum source kick for frozen fields;
+- family-state norm, SM/Higgs link unitarity, and JIT audits;
+- explicit boundary that the Stage 10 local Higgs-door gauge convention is
+  still separate from the Stage 14 transport/current gauge convention.
+
+Stage 15 verdict:
+
+```text
+QCA_SMV0_STAGE15_FAMILY_PRODUCTION_TICK_PASS
+```
+
 The charges, `lambda`, order-one coefficients, and center-power matrices are
-simulator inputs, not BCC-bulk derivations. Full Yukawa/Higgs source merging,
-quantized scalar/gauge registers, and boundary rules are not implemented yet.
+simulator inputs, not BCC-bulk derivations. Quantized scalar/gauge registers,
+boundary rules, and a microscopic unification of the transport and local
+Yukawa-door gauge conventions are not implemented yet.
 
 ## Reuse Boundary
 
@@ -396,5 +428,6 @@ uv run python -m clifford_3plus2_d5.qca_smv0.scripts.session_11_fermion_gauge_cu
 uv run python -m clifford_3plus2_d5.qca_smv0.scripts.session_12_sourced_tick
 uv run python -m clifford_3plus2_d5.qca_smv0.scripts.session_13_family_gauge_current
 uv run python -m clifford_3plus2_d5.qca_smv0.scripts.session_14_family_sourced_tick
+uv run python -m clifford_3plus2_d5.qca_smv0.scripts.session_15_family_production_tick
 uv run pytest src/clifford_3plus2_d5/qca_smv0/tests -q
 ```

@@ -264,10 +264,19 @@ from clifford_3plus2_d5.qca_smv0.sm_family_sourced_tick import (
     sm_family_sourced_sm_tick,
     sm_family_sourced_tick_diagnostics,
 )
+from clifford_3plus2_d5.qca_smv0.sm_family_production_tick import (
+    FamilyProductionSMTickDiagnostics,
+    sm_apply_family_production_higgs_momentum_kick,
+    sm_family_production_higgs_force,
+    sm_family_production_sm_tick,
+    sm_family_production_tick_diagnostics,
+    sm_zero_family_lepton_yukawas,
+    sm_zero_quark_yukawas,
+)
 
 SIDECAR_NAME = "qca_smv0"
 SIDECAR_TITLE = "QCA_SMv0"
-SIDECAR_STATUS = "Stage 14 family sourced tick implemented"
+SIDECAR_STATUS = "Stage 15 family production tick implemented"
 
 __all__ = [
     "BCC_ANISOTROPY_DIRECTIONS",
@@ -311,6 +320,7 @@ __all__ = [
     "FamilyFermionGaugeCurrentDiagnostics",
     "FamilyHiggsYukawaDiagnostics",
     "FamilyLeptonYukawas",
+    "FamilyProductionSMTickDiagnostics",
     "FamilySourcedSMTickDiagnostics",
     "FermionGaugeCurrentDiagnostics",
     "FermionHiggsBackreactionDiagnostics",
@@ -373,6 +383,7 @@ __all__ = [
     "fn_wolfenstein_scaling",
     "higgs_yukawa_diagnostics",
     "sm_apply_family_fermion_gauge_momentum_kick",
+    "sm_apply_family_production_higgs_momentum_kick",
     "sm_apply_family_sourced_sm_momentum_kick",
     "sm_apply_family_yukawa_collision",
     "sm_apply_fermion_gauge_momentum_kick",
@@ -411,6 +422,9 @@ __all__ = [
     "sm_family_fermion_left_gauge_current",
     "sm_family_gauged_dirac_step",
     "sm_family_higgs_yukawa_diagnostics",
+    "sm_family_production_higgs_force",
+    "sm_family_production_sm_tick",
+    "sm_family_production_tick_diagnostics",
     "sm_family_sourced_gauss_constraint",
     "sm_family_sourced_link_force",
     "sm_family_sourced_sm_tick",
@@ -506,6 +520,8 @@ __all__ = [
     "sm_yukawa_energy_local_density",
     "sm_yukawa_higgs_force",
     "sm_yukawa_site_gauge_from_higgs_site_theta",
+    "sm_zero_family_lepton_yukawas",
+    "sm_zero_quark_yukawas",
     "static_sm_gauge_diagnostics",
     "small_k_dirac_speed_error",
     "small_k_weyl_speed_error",

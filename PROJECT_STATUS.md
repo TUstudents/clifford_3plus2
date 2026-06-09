@@ -78,7 +78,7 @@ physics policy.
 **Boundary**: BCC Weyl/Dirac kernels, BCC plaquettes, Wilson observables, and
 SO(2)/SU(2)/SU(3) force policy remain in `spacetime_qca`.
 
-## qca_smv0 — Stage 14 family-sourced SM gauge tick
+## qca_smv0 — Stage 15 full family production tick
 
 **Goal**: focused simulator sidecar for the next Standard-Model QCA prototype,
 using the shared `sim` infrastructure and local `qca_smv0` kernels only.
@@ -240,13 +240,27 @@ using the shared `sim` infrastructure and local `qca_smv0` kernels only.
 - Reversible family-sourced momentum kick.
 - Family-sourced tick with family transport, Higgs-field advance, SM/Higgs
   link unitarity, family-state norm, JIT audits, and Session 14 focused tests.
+- Full family production tick merging the Stage 10 local Yukawa/Higgs source
+  and exact Stage 7 family Yukawa collision into the Stage 14 family-sourced
+  tick.
+- Zero-Yukawa reduction controls against the Stage 14 family-sourced tick.
+- Production Higgs force as Higgs dynamics plus local Yukawa Higgs source.
+- Nonzero deterministic Yukawa-source and zero-state/vacuum-source controls.
+- Reversible production Higgs momentum kick for frozen fields.
+- Production tick with symmetric local half-collision, BCC family transport,
+  Higgs-field advance, SM/Higgs link unitarity, family-state norm, and JIT
+  audits.
+- Explicit status boundary preserving the separation between the Stage 10
+  physical local Higgs-door gauge convention and the Stage 14 transport/current
+  gauge convention.
+- Session 15 script and focused tests.
 
 **Boundary**: no boundary condition, quantized scalar/gauge registers, full
-three-family Yukawa-source merge into the family-sourced tick, or derivation of
-the flavor/Higgs inputs is implemented yet. FN charges, `lambda`, order-one
-coefficients, center-power matrices, placeholder lepton matrices, and Higgs
-potential parameters are explicit simulator inputs rather than BCC-bulk
-derivations.
+microscopic unification of the transport/current gauge convention with the
+physical local Higgs-door gauge convention, or derivation of the flavor/Higgs
+inputs is implemented yet. FN charges, `lambda`, order-one coefficients,
+center-power matrices, placeholder lepton matrices, and Higgs potential
+parameters are explicit simulator inputs rather than BCC-bulk derivations.
 
 ## scalar_clebsch — V3 conditional pass, active
 

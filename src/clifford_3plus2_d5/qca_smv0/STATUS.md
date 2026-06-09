@@ -3,19 +3,20 @@
 ## Verdict
 
 ```text
-QCA_SMV0_STAGE14_FAMILY_SOURCED_TICK_PASS
+QCA_SMV0_STAGE15_FAMILY_PRODUCTION_TICK_PASS
 ```
 
 ## Current State
 
-Stage 14 family-sourced SM gauge tick implemented on top of the Stage 1
+Stage 15 full family production tick implemented on top of the Stage 1
 free BCC Weyl/Dirac walk, Stage 2 static gauge transport, Stage 3 pure dynamic
 gauge fields, Stage 4 local Higgs/Yukawa collision, Stage 5 FN recirculation,
 Stage 6 center-holonomy CP, Stage 7 three-family Higgs/Yukawa collision, and
 Stage 8 dynamic Higgs-field evolution, Stage 9 gauge-Higgs backreaction, and
 Stage 10 local fermion/Higgs backreaction, and Stage 11 BCC streaming fermion
 gauge current, Stage 12 coupled sourced SM gauge tick, and Stage 13
-family-summed BCC fermion gauge current.
+family-summed BCC fermion gauge current, and Stage 14 family-sourced SM gauge
+tick.
 
 Implemented:
 
@@ -192,6 +193,20 @@ Implemented:
 - family-sourced tick with family transport, Higgs-field advance, SM/Higgs link
   unitarity, family-state norm, and JIT audits;
 - Session 14 script;
+- full family production tick merging the Stage 10 local Yukawa/Higgs source
+  and exact Stage 7 family Yukawa collision into the Stage 14 family-sourced
+  tick;
+- zero-Yukawa reduction controls against the Stage 14 family-sourced tick;
+- production Higgs force as Higgs dynamics plus local Yukawa Higgs source;
+- nonzero deterministic Yukawa-source and zero-state/vacuum-source controls;
+- reversible production Higgs momentum kick for frozen fields;
+- production tick with symmetric local half-collision, BCC family transport,
+  Higgs-field advance, SM/Higgs link unitarity, family-state norm, and JIT
+  audits;
+- explicit status boundary preserving the separation between the Stage 10
+  physical local Higgs-door gauge convention and the Stage 14 transport/current
+  gauge convention;
+- Session 15 script;
 - focused tests for algebra, norm preservation, local gauge covariance, Wilson
   response, weak-link scaling, pure-gauge dynamics, Gauss covariance and
   preservation, weak-field Yang-Mills behavior, Higgs/Yukawa door structure,
@@ -200,19 +215,20 @@ Implemented:
   dynamic Higgs evolution, gauge-Higgs backreaction, local fermion/Higgs
   backreaction, BCC streaming fermion gauge current, coupled sourced SM gauge
   tick, family-summed BCC fermion gauge current, family-sourced SM gauge tick,
-  JIT compatibility, and small-momentum Weyl/Dirac behavior.
+  full family production tick, JIT compatibility, and small-momentum Weyl/Dirac
+  behavior.
 
 Not implemented:
 
 - boundary rules;
-- full merge of three-family Yukawa/Higgs source with the family-sourced gauge
-  tick;
 - quantized scalar registers;
+- microscopic unification of the transport/current gauge convention with the
+  physical local Higgs-door gauge convention used by the Yukawa source;
 - derivation of the FN charges, `lambda`, order-one coefficients, or
   center-power matrices from BCC bulk dynamics;
 - derivation of Higgs potential parameters from BCC bulk dynamics;
 - performance profiles beyond the small
-  Session 01/02/03/04/05/06/07/08/09/10/11/12/13/14 diagnostics.
+  Session 01/02/03/04/05/06/07/08/09/10/11/12/13/14/15 diagnostics.
 
 ## Working Boundary
 

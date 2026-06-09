@@ -503,3 +503,39 @@ Verdict:
 ```text
 QCA_SMV0_STAGE14_FAMILY_SOURCED_TICK_PASS
 ```
+
+## Stage 15 - Full Family Production Tick
+
+Pass only if:
+
+- the only upstream runtime imports are from `sim` and local `qca_smv0`
+  modules;
+- the state layout remains the Stage 7 family layout
+  `(nx, ny, nz, 4, 32, 3)`;
+- the tick composes the Stage 14 family-sourced gauge tick with the Stage 10
+  local three-family Yukawa/Higgs source and the exact Stage 7 family Yukawa
+  collision;
+- setting all quark and lepton Yukawa matrices to zero reduces the full
+  production tick to the Stage 14 family-sourced gauge tick to float32
+  precision;
+- the Higgs momentum force is the sum of the Stage 8 Higgs force and the
+  Stage 10 local Yukawa Higgs source;
+- deterministic nonzero family/Higgs fields give a nonzero Yukawa source;
+- zero family state and vacuum Higgs give zero Yukawa source;
+- the Higgs momentum source kick is reversible for frozen fields under
+  `step_size -> -step_size`;
+- the production tick preserves family-state norm to float32 precision and
+  keeps SM and Higgs-representation links unitary;
+- the default production tick differs from the Stage 14 tick in both the
+  local family state and Higgs momenta, so the Yukawa merge is active;
+- the production tick is JIT-compatible;
+- the Stage 10 local Higgs-door gauge convention remains explicitly separate
+  from the Stage 14 transport/current gauge convention;
+- no boundary rule, quantized register, or derivation of simulator inputs is
+  introduced.
+
+Verdict:
+
+```text
+QCA_SMV0_STAGE15_FAMILY_PRODUCTION_TICK_PASS
+```
