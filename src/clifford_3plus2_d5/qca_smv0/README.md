@@ -22,7 +22,7 @@ It should not be used for:
 
 ## Current State
 
-Stage 12 implements the free BCC Weyl/Dirac bulk walk, static
+Stage 13 implements the free BCC Weyl/Dirac bulk walk, static
 Standard-Model gauge-background transport, pure dynamic SM gauge fields, and a
 site-local Higgs/Yukawa collision, finite-path FN recirculation, and
 center-holonomy CP coefficients, a three-family Higgs/Yukawa collision, and
@@ -324,10 +324,28 @@ Stage 12 verdict:
 QCA_SMV0_STAGE12_SOURCED_SM_TICK_PASS
 ```
 
+Stage 13 lifts the BCC streaming fermion gauge current to the family carrier:
+
+- family state layout `(nx, ny, nz, 4, 32, 3)`;
+- family-blind SM gauge links;
+- single-family embedding/extraction controls;
+- one-family reduction to the Stage 11 streaming energy, current, charge, and
+  transport;
+- family-summed streaming bilinear and left-trivialized current;
+- family-summed charge and fermion Gauss diagnostic;
+- gauge covariance, reversible momentum kick, link unitarity, family-state
+  norm, and JIT audits.
+
+Stage 13 verdict:
+
+```text
+QCA_SMV0_STAGE13_FAMILY_GAUGE_CURRENT_PASS
+```
+
 The charges, `lambda`, order-one coefficients, and center-power matrices are
-simulator inputs, not BCC-bulk derivations. Family-summed streaming currents,
-full Yukawa/Higgs source merging, quantized scalar/gauge registers, and
-boundary rules are not implemented yet.
+simulator inputs, not BCC-bulk derivations. Full family-sourced Higgs/gauge
+production ticks, full Yukawa/Higgs source merging, quantized scalar/gauge
+registers, and boundary rules are not implemented yet.
 
 ## Reuse Boundary
 
@@ -360,5 +378,6 @@ uv run python -m clifford_3plus2_d5.qca_smv0.scripts.session_09_gauge_higgs_back
 uv run python -m clifford_3plus2_d5.qca_smv0.scripts.session_10_fermion_higgs_backreaction
 uv run python -m clifford_3plus2_d5.qca_smv0.scripts.session_11_fermion_gauge_current
 uv run python -m clifford_3plus2_d5.qca_smv0.scripts.session_12_sourced_tick
+uv run python -m clifford_3plus2_d5.qca_smv0.scripts.session_13_family_gauge_current
 uv run pytest src/clifford_3plus2_d5/qca_smv0/tests -q
 ```

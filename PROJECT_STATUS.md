@@ -78,7 +78,7 @@ physics policy.
 **Boundary**: BCC Weyl/Dirac kernels, BCC plaquettes, Wilson observables, and
 SO(2)/SU(2)/SU(3) force policy remain in `spacetime_qca`.
 
-## qca_smv0 — Stage 12 coupled sourced SM gauge tick
+## qca_smv0 — Stage 13 family-summed BCC fermion gauge current
 
 **Goal**: focused simulator sidecar for the next Standard-Model QCA prototype,
 using the shared `sim` infrastructure and local `qca_smv0` kernels only.
@@ -220,13 +220,22 @@ using the shared `sim` infrastructure and local `qca_smv0` kernels only.
 - Coupled tick with fermion transport, Higgs-field advance, SM/Higgs link
   unitarity, fermion norm, and JIT audits.
 - Session 12 script and focused tests.
+- Family-summed BCC streaming current on the Stage 7 family carrier
+  `(nx, ny, nz, 4, 32, 3)`.
+- Single-family embedding/extraction and one-family reduction controls against
+  Stage 11 energy, current, charge, and transport.
+- Family-summed local fermion charge and Gauss diagnostic
+  `electric divergence - family charge`.
+- Family-current covariance, reversible momentum kick, kick-then-transport,
+  link unitarity, family-state norm, and JIT audits.
+- Session 13 script and focused tests.
 
-**Boundary**: no boundary condition, family-summed BCC streaming current,
-quantized scalar/gauge registers, full three-family Yukawa-source merge into
-the sourced gauge tick, or derivation of the flavor/Higgs inputs is implemented
-yet. FN charges, `lambda`, order-one coefficients, center-power matrices,
-placeholder lepton matrices, and Higgs potential parameters are explicit
-simulator inputs rather than BCC-bulk derivations.
+**Boundary**: no boundary condition, quantized scalar/gauge registers, full
+family-sourced Higgs/gauge production tick, full three-family Yukawa-source
+merge into the sourced gauge tick, or derivation of the flavor/Higgs inputs is
+implemented yet. FN charges, `lambda`, order-one coefficients, center-power
+matrices, placeholder lepton matrices, and Higgs potential parameters are
+explicit simulator inputs rather than BCC-bulk derivations.
 
 ## scalar_clebsch — V3 conditional pass, active
 

@@ -144,6 +144,20 @@ from clifford_3plus2_d5.qca_smv0.sm_family_higgs import (
     sm_family_higgs_yukawa_diagnostics,
     sm_family_yukawa_internal_matrix,
 )
+from clifford_3plus2_d5.qca_smv0.sm_family_gauge import (
+    FamilyFermionGaugeCurrentDiagnostics,
+    sm_apply_family_fermion_gauge_momentum_kick,
+    sm_family_fermion_gauss_constraint,
+    sm_family_fermion_gauge_current_diagnostics,
+    sm_family_fermion_gauge_kick_then_transport,
+    sm_family_fermion_left_gauge_current,
+    sm_family_gauged_dirac_step,
+    sm_family_state_from_single,
+    sm_family_streaming_energy_density,
+    sm_family_streaming_fermion_charge_density,
+    sm_single_family_state,
+    sm_transform_family_gauge_state,
+)
 from clifford_3plus2_d5.qca_smv0.sm_higgs import (
     DEFAULT_YUKAWA_COUPLINGS,
     SM_HIGGS_DIM,
@@ -245,7 +259,7 @@ from clifford_3plus2_d5.qca_smv0.sm_sourced_tick import (
 
 SIDECAR_NAME = "qca_smv0"
 SIDECAR_TITLE = "QCA_SMv0"
-SIDECAR_STATUS = "Stage 12 sourced SM tick implemented"
+SIDECAR_STATUS = "Stage 13 family gauge current implemented"
 
 __all__ = [
     "BCC_ANISOTROPY_DIRECTIONS",
@@ -286,6 +300,7 @@ __all__ = [
     "FNQuarkCharges",
     "FNQuarkYukawas",
     "FNRecirculationDiagnostics",
+    "FamilyFermionGaugeCurrentDiagnostics",
     "FamilyHiggsYukawaDiagnostics",
     "FamilyLeptonYukawas",
     "FermionGaugeCurrentDiagnostics",
@@ -348,6 +363,7 @@ __all__ = [
     "fn_unitarity_residual",
     "fn_wolfenstein_scaling",
     "higgs_yukawa_diagnostics",
+    "sm_apply_family_fermion_gauge_momentum_kick",
     "sm_apply_family_yukawa_collision",
     "sm_apply_fermion_gauge_momentum_kick",
     "sm_apply_higgs_link_momentum_update",
@@ -379,7 +395,15 @@ __all__ = [
     "sm_family_chirality_norms",
     "sm_family_embedding_residuals",
     "sm_family_extract_block",
+    "sm_family_fermion_gauss_constraint",
+    "sm_family_fermion_gauge_current_diagnostics",
+    "sm_family_fermion_gauge_kick_then_transport",
+    "sm_family_fermion_left_gauge_current",
+    "sm_family_gauged_dirac_step",
     "sm_family_higgs_yukawa_diagnostics",
+    "sm_family_state_from_single",
+    "sm_family_streaming_energy_density",
+    "sm_family_streaming_fermion_charge_density",
     "sm_family_yukawa_internal_matrix",
     "sm_family_yukawa_collision_with_higgs_kick",
     "sm_fermion_gauge_current_diagnostics",
@@ -445,11 +469,13 @@ __all__ = [
     "sm_quark_antiquark_mass_residual",
     "sm_site_gauge_from_algebra",
     "sm_site_theta_from_higgs_site_theta",
+    "sm_single_family_state",
     "sm_sourced_gauss_constraint",
     "sm_sourced_link_force",
     "sm_sourced_sm_tick",
     "sm_sourced_tick_diagnostics",
     "sm_streaming_fermion_charge_density",
+    "sm_transform_family_gauge_state",
     "sm_transform_family_state",
     "sm_transform_links",
     "sm_transform_higgs_field",

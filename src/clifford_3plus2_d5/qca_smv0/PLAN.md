@@ -423,3 +423,40 @@ Verdict:
 ```text
 QCA_SMV0_STAGE12_SOURCED_SM_TICK_PASS
 ```
+
+## Stage 13 - Family-Summed BCC Fermion Gauge Current
+
+Pass only if:
+
+- the only upstream runtime imports are from `sim` and local `qca_smv0`
+  modules;
+- the family state layout is the Stage 7 layout `(nx, ny, nz, 4, 32, 3)`;
+- SM gauge links remain family-blind and have the same shape as Stage 2;
+- embedding one Stage 11 state into one family and extracting it round-trips;
+- with only one occupied family, the family streaming energy, current, charge,
+  and transport reduce to the Stage 11 one-carrier results to float32
+  precision;
+- the family streaming bilinear is
+  `E_stream=Re sum_x,h,f psi_f[x]^dag D_h U_h[x] psi_f[x+h]`;
+- the family-summed current is the left-trivialized derivative of that
+  bilinear with respect to each BCC link;
+- zero family state gives zero current;
+- deterministic family state gives nonzero current;
+- family streaming energy is invariant under site-local SM gauge transforms;
+- family current transforms by target-site adjoint action;
+- family-summed local fermion charge transforms covariantly;
+- the family fermion Gauss diagnostic is electric divergence minus
+  family-summed fermion charge and transforms covariantly;
+- the family-current momentum kick is reversible under
+  `step_size -> -step_size`;
+- kick-then-transport keeps links unitary and preserves family-state spectator
+  norm to float32 precision;
+- the family current and transport are JIT-compatible;
+- no family-sourced Higgs/gauge production tick, Yukawa-source merge, boundary
+  rule, quantized register, or derivation of simulator inputs is introduced.
+
+Verdict:
+
+```text
+QCA_SMV0_STAGE13_FAMILY_GAUGE_CURRENT_PASS
+```
