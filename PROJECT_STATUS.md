@@ -78,7 +78,7 @@ physics policy.
 **Boundary**: BCC Weyl/Dirac kernels, BCC plaquettes, Wilson observables, and
 SO(2)/SU(2)/SU(3) force policy remain in `spacetime_qca`.
 
-## qca_smv0 — Stage 6 center-holonomy CP
+## qca_smv0 — Stage 7 three-family Higgs/Yukawa collision
 
 **Goal**: focused simulator sidecar for the next Standard-Model QCA prototype,
 using the shared `sim` infrastructure and local `qca_smv0` kernels only.
@@ -152,11 +152,22 @@ using the shared `sim` infrastructure and local `qca_smv0` kernels only.
   coefficients.
 - All-real coefficient zero-Jarlskog control.
 - Session 06 script and focused tests.
+- Family-extended fermion state layout `(nx, ny, nz, 4, 32, 3)`.
+- Local internal/family dimension `96`.
+- Stage 5/6 generated quark Yukawa matrices embedded into the local Higgs
+  doors.
+- Explicit diagonal placeholder lepton matrices as simulator inputs.
+- Hermitian three-family local Yukawa matrix.
+- Unitary-gauge quark block extraction and wrong-door controls.
+- CKM-like left-frame mismatch consistency from embedded blocks.
+- Exact local three-family collision `exp(-i step_size beta Y_family(H))`.
+- Zero-step, zero-Higgs, norm, chirality-flip, and JIT audits.
+- Session 07 script and focused tests.
 
 **Boundary**: no boundary condition, matter backreaction, dynamic Higgs-field
-evolution, or full three-family Higgs/Yukawa collision is implemented yet. FN
-charges, `lambda`, order-one coefficients, and center-power matrices are
-explicit simulator inputs rather than BCC-bulk derivations.
+evolution, or derivation of the flavor inputs is implemented yet. FN charges,
+`lambda`, order-one coefficients, center-power matrices, and placeholder
+lepton matrices are explicit simulator inputs rather than BCC-bulk derivations.
 
 ## scalar_clebsch — V3 conditional pass, active
 

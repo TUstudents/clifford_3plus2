@@ -3,14 +3,15 @@
 ## Verdict
 
 ```text
-QCA_SMV0_STAGE6_CENTER_HOLONOMY_CP_PASS
+QCA_SMV0_STAGE7_FAMILY_HIGGS_YUKAWA_PASS
 ```
 
 ## Current State
 
-Stage 6 center-holonomy CP implemented on top of the Stage 1 free BCC
-Weyl/Dirac walk, Stage 2 static gauge transport, Stage 3 pure dynamic gauge
-fields, Stage 4 local Higgs/Yukawa collision, and Stage 5 FN recirculation.
+Stage 7 three-family Higgs/Yukawa collision implemented on top of the Stage 1
+free BCC Weyl/Dirac walk, Stage 2 static gauge transport, Stage 3 pure dynamic
+gauge fields, Stage 4 local Higgs/Yukawa collision, Stage 5 FN recirculation,
+and Stage 6 center-holonomy CP.
 
 Implemented:
 
@@ -82,22 +83,31 @@ Implemented:
 - all-real coefficient control with zero Jarlskog;
 - nonzero CP-odd commutator trace for center-decorated Yukawas;
 - Session 06 script;
+- family-extended fermion state layout `(nx, ny, nz, 4, 32, 3)`;
+- local internal/family dimension `96`;
+- exact embedding of generated quark Yukawa matrices into local Higgs doors;
+- explicit diagonal placeholder lepton matrices as simulator inputs;
+- Hermitian three-family local Yukawa matrix;
+- unitary-gauge quark block extraction and wrong-door controls;
+- CKM-like left-frame mismatch consistency from embedded blocks;
+- exact local three-family collision `exp(-i step_size beta Y_family(H))`;
+- zero-step, zero-Higgs, norm, chirality-flip, and JIT audits;
+- Session 07 script;
 - focused tests for algebra, norm preservation, local gauge covariance, Wilson
   response, weak-link scaling, pure-gauge dynamics, Gauss covariance and
   preservation, weak-field Yang-Mills behavior, Higgs/Yukawa door structure,
   chirality flip, massive dispersion, FN recirculation powers, generated
-  Yukawa matrices, center-holonomy CP, JIT compatibility, and small-momentum
-  Weyl/Dirac behavior.
+  Yukawa matrices, center-holonomy CP, three-family Higgs/Yukawa embedding,
+  JIT compatibility, and small-momentum Weyl/Dirac behavior.
 
 Not implemented:
 
 - boundary rules;
 - matter backreaction into gauge momenta;
 - dynamic Higgs-field evolution / Higgs potential;
-- full three-family Higgs/Yukawa collision using the FN matrices;
 - derivation of the FN charges, `lambda`, order-one coefficients, or
   center-power matrices from BCC bulk dynamics;
-- performance profiles beyond the small Session 01/02/03/04/05/06 diagnostics.
+- performance profiles beyond the small Session 01/02/03/04/05/06/07 diagnostics.
 
 ## Working Boundary
 

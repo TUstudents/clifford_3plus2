@@ -131,6 +131,19 @@ from clifford_3plus2_d5.qca_smv0.sm_fn import (
     fn_unitarity_residual,
     fn_wolfenstein_scaling,
 )
+from clifford_3plus2_d5.qca_smv0.sm_family_higgs import (
+    SM_FAMILY_INTERNAL_DIM,
+    FamilyHiggsYukawaDiagnostics,
+    FamilyLeptonYukawas,
+    deterministic_sm_family_state,
+    sm_apply_family_yukawa_collision,
+    sm_default_family_lepton_yukawas,
+    sm_family_chirality_norms,
+    sm_family_embedding_residuals,
+    sm_family_extract_block,
+    sm_family_higgs_yukawa_diagnostics,
+    sm_family_yukawa_internal_matrix,
+)
 from clifford_3plus2_d5.qca_smv0.sm_higgs import (
     DEFAULT_YUKAWA_COUPLINGS,
     SM_HIGGS_DIM,
@@ -151,7 +164,7 @@ from clifford_3plus2_d5.qca_smv0.sm_higgs import (
 
 SIDECAR_NAME = "qca_smv0"
 SIDECAR_TITLE = "QCA_SMv0"
-SIDECAR_STATUS = "Stage 6 center-holonomy CP implemented"
+SIDECAR_STATUS = "Stage 7 three-family Higgs/Yukawa collision implemented"
 
 __all__ = [
     "BCC_ANISOTROPY_DIRECTIONS",
@@ -177,6 +190,7 @@ __all__ = [
     "SM_COLOR_CENTER_OMEGA",
     "SM_COLOR_CENTER_ORDER",
     "SM_FAMILY_DIM",
+    "SM_FAMILY_INTERNAL_DIM",
     "SM_GENERATOR_COUNT",
     "SM_HIGGS_DIM",
     "SM_INTERNAL_DIM",
@@ -189,6 +203,8 @@ __all__ = [
     "FNQuarkCharges",
     "FNQuarkYukawas",
     "FNRecirculationDiagnostics",
+    "FamilyHiggsYukawaDiagnostics",
+    "FamilyLeptonYukawas",
     "HiggsYukawaDiagnostics",
     "SMYukawaCouplings",
     "StaticSMGaugeDiagnostics",
@@ -215,6 +231,7 @@ __all__ = [
     "jitted_bcc_weyl_step",
     "pauli_matrices",
     "deterministic_sm_curved_link_theta",
+    "deterministic_sm_family_state",
     "deterministic_sm_link_theta",
     "deterministic_sm_momenta",
     "deterministic_sm_site_theta",
@@ -236,6 +253,7 @@ __all__ = [
     "fn_unitarity_residual",
     "fn_wolfenstein_scaling",
     "higgs_yukawa_diagnostics",
+    "sm_apply_family_yukawa_collision",
     "sm_apply_momentum_update",
     "sm_apply_yukawa_collision",
     "sm_algebra_matrix_field",
@@ -253,8 +271,14 @@ __all__ = [
     "sm_ckm_jarlskog",
     "sm_continuum_linearization_residual",
     "sm_constant_higgs",
+    "sm_default_family_lepton_yukawas",
     "sm_dirac_beta",
     "sm_electric_divergence",
+    "sm_family_chirality_norms",
+    "sm_family_embedding_residuals",
+    "sm_family_extract_block",
+    "sm_family_higgs_yukawa_diagnostics",
+    "sm_family_yukawa_internal_matrix",
     "sm_free_dirac_internal_step",
     "sm_gauge_hamiltonian_density",
     "sm_gauged_dirac_step",

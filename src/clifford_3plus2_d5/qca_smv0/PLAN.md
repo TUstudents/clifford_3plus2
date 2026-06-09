@@ -220,13 +220,46 @@ Verdict:
 QCA_SMV0_STAGE6_CENTER_HOLONOMY_CP_PASS
 ```
 
+## Stage 7 - Three-Family Higgs/Yukawa Collision
+
+Pass only if:
+
+- the only upstream runtime imports are from `sim` and local `qca_smv0`
+  modules;
+- the family-extended fermion state has shape `(nx, ny, nz, 4, 32, 3)`;
+- the local internal/family register has dimension `32 x 3 = 96`;
+- the Stage 5/6 generated quark Yukawa matrices are embedded into the local
+  Higgs/Yukawa matrix, not re-entered as scalars;
+- the local three-family Yukawa matrix is Hermitian;
+- in unitary gauge, the up block extracted from the local matrix reproduces
+  the generated up Yukawa matrix and the down block reproduces the generated
+  down Yukawa matrix;
+- wrong weak-component doors vanish as in Stage 4;
+- the CKM-like left-frame mismatch computed from the embedded blocks agrees
+  with the mismatch computed from the generated matrices, up to singular-vector
+  phase conventions;
+- the collision is the exact local unitary
+  `exp(-i step_size beta Y_family(H))`;
+- zero step and zero Higgs are identity controls;
+- the collision preserves norm to numerical precision;
+- the collision creates a chirality-flipped component from a left family seed;
+- the family collision is JIT-compatible;
+- no dynamic Higgs potential, matter backreaction, boundary rule, or derivation
+  of charges/phases is introduced.
+
+Verdict:
+
+```text
+QCA_SMV0_STAGE7_FAMILY_HIGGS_YUKAWA_PASS
+```
+
 ## Next Session Placeholder
 
-The next session should specify whether Stage 7 is:
+The next session should specify whether Stage 8 is:
 
 - matter backreaction and Gauss-law source diagnostics;
-- integrating FN matrices into a three-family Higgs collision;
+- dynamic Higgs-field evolution;
 - or performance/layout work before adding new physics.
 
-Until that is specified, this sidecar should remain at the center-holonomy CP
-coefficient layer.
+Until that is specified, this sidecar should remain at the three-family local
+Higgs/Yukawa-collision layer.
