@@ -3,16 +3,17 @@
 ## Verdict
 
 ```text
-QCA_SMV0_STAGE10_FERMION_HIGGS_BACKREACTION_PASS
+QCA_SMV0_STAGE11_FERMION_GAUGE_CURRENT_PASS
 ```
 
 ## Current State
 
-Stage 10 local fermion/Higgs backreaction implemented on top of the Stage 1
+Stage 11 BCC streaming fermion gauge current implemented on top of the Stage 1
 free BCC Weyl/Dirac walk, Stage 2 static gauge transport, Stage 3 pure dynamic
 gauge fields, Stage 4 local Higgs/Yukawa collision, Stage 5 FN recirculation,
 Stage 6 center-holonomy CP, Stage 7 three-family Higgs/Yukawa collision, and
-Stage 8 dynamic Higgs-field evolution, and Stage 9 gauge-Higgs backreaction.
+Stage 8 dynamic Higgs-field evolution, Stage 9 gauge-Higgs backreaction, and
+Stage 10 local fermion/Higgs backreaction.
 
 Implemented:
 
@@ -137,27 +138,40 @@ Implemented:
 - local collision-plus-kick wrapper;
 - fermion norm, source-after-collision, and JIT audits;
 - Session 10 script;
+- BCC streaming bilinear `E_stream=Re sum_x,h psi[x]^dag D_h U_h[x]
+  psi[x+h]`;
+- left-trivialized fermion gauge current from the streaming bilinear;
+- zero-state and nonzero-current controls;
+- streaming-energy gauge-invariance audit;
+- target-site adjoint covariance for the fermion current;
+- local streaming fermion charge density;
+- fermion Gauss diagnostic as electric divergence minus fermion charge;
+- zero-state / zero-momentum Gauss control;
+- reversible fermion-current momentum kick;
+- kick-then-transport wrapper;
+- kicked-link unitarity, spectator fermion norm, and JIT audits;
+- Session 11 script;
 - focused tests for algebra, norm preservation, local gauge covariance, Wilson
   response, weak-link scaling, pure-gauge dynamics, Gauss covariance and
   preservation, weak-field Yang-Mills behavior, Higgs/Yukawa door structure,
   chirality flip, massive dispersion, FN recirculation powers, generated
   Yukawa matrices, center-holonomy CP, three-family Higgs/Yukawa embedding,
   dynamic Higgs evolution, gauge-Higgs backreaction, local fermion/Higgs
-  backreaction, JIT compatibility, and small-momentum Weyl/Dirac behavior.
+  backreaction, BCC streaming fermion gauge current, JIT compatibility, and
+  small-momentum Weyl/Dirac behavior.
 
 Not implemented:
 
 - boundary rules;
-- fermion backreaction into gauge momenta;
 - full dynamic SM gauge update sourced by both Higgs and fermion currents in
   the 12-generator carrier;
-- BCC streaming fermion current on gauge links;
+- family-summed BCC streaming fermion current on gauge links;
 - quantized scalar registers;
 - derivation of the FN charges, `lambda`, order-one coefficients, or
   center-power matrices from BCC bulk dynamics;
 - derivation of Higgs potential parameters from BCC bulk dynamics;
-- performance profiles beyond the small Session 01/02/03/04/05/06/07/08/09/10
-  diagnostics.
+- performance profiles beyond the small
+  Session 01/02/03/04/05/06/07/08/09/10/11 diagnostics.
 
 ## Working Boundary
 

@@ -350,3 +350,38 @@ Verdict:
 ```text
 QCA_SMV0_STAGE10_FERMION_HIGGS_BACKREACTION_PASS
 ```
+
+## Stage 11 - BCC Streaming Fermion Gauge Current
+
+Pass only if:
+
+- the only upstream runtime imports are from `sim` and local `qca_smv0`
+  modules;
+- the current uses the same BCC pull-convention gauged Dirac transport as
+  Stage 2;
+- the local streaming bilinear is
+  `E_stream=Re sum_x,h psi[x]^dag D_h U_h[x] psi[x+h]`;
+- the fermion gauge current is the left-trivialized derivative of
+  `E_stream` with respect to each BCC link;
+- zero fermion state gives zero current;
+- a deterministic fermion state gives nonzero current;
+- `E_stream` is invariant under site-local SM gauge transforms;
+- the current transforms by target-site adjoint action;
+- local fermion charge density is implemented and transforms covariantly;
+- the fermion Gauss diagnostic is electric divergence minus fermion charge and
+  transforms covariantly;
+- zero state with zero momenta has zero fermion Gauss residual;
+- the fermion-current momentum kick is reversible under
+  `step_size -> -step_size`;
+- kick-then-transport keeps links unitary and preserves spectator fermion norm
+  to float32 precision;
+- the current and kick are JIT-compatible;
+- no family-summed current, full Higgs+fermion sourced SM integrator,
+  quantized gauge/scalar registers, boundary rule, or derivation of simulator
+  inputs is introduced.
+
+Verdict:
+
+```text
+QCA_SMV0_STAGE11_FERMION_GAUGE_CURRENT_PASS
+```

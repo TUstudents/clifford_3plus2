@@ -22,12 +22,12 @@ It should not be used for:
 
 ## Current State
 
-Stage 10 implements the free BCC Weyl/Dirac bulk walk, static
+Stage 11 implements the free BCC Weyl/Dirac bulk walk, static
 Standard-Model gauge-background transport, pure dynamic SM gauge fields, and a
 site-local Higgs/Yukawa collision, finite-path FN recirculation, and
 center-holonomy CP coefficients, a three-family Higgs/Yukawa collision, and
 dynamic Higgs-field evolution with scalar gauge and local fermion/Higgs
-backreaction:
+backreaction, plus the BCC streaming fermion gauge current:
 
 ```text
 qca_smv0/
@@ -45,6 +45,7 @@ qca_smv0/
   sm_higgs_dynamics.py
   sm_gauge_higgs.py
   sm_fermion_higgs.py
+  sm_fermion_gauge.py
   scripts/
     session_01_bare_bcc_walk.py
     session_02_static_sm_gauge_background.py
@@ -56,6 +57,7 @@ qca_smv0/
     session_08_higgs_dynamics.py
     session_09_gauge_higgs_backreaction.py
     session_10_fermion_higgs_backreaction.py
+    session_11_fermion_gauge_current.py
   tests/
     test_bulk_bcc.py
     test_sm_gauge.py
@@ -67,6 +69,7 @@ qca_smv0/
     test_sm_higgs_dynamics.py
     test_sm_gauge_higgs.py
     test_sm_fermion_higgs.py
+    test_sm_fermion_gauge.py
 ```
 
 The implemented Weyl kernel is a two-component periodic BCC bulk walk:
@@ -279,10 +282,31 @@ Stage 10 verdict:
 QCA_SMV0_STAGE10_FERMION_HIGGS_BACKREACTION_PASS
 ```
 
+Stage 11 adds the BCC streaming fermion gauge current:
+
+- local streaming bilinear
+  `E_stream=Re sum_x,h psi[x]^dag D_h U_h[x] psi[x+h]`;
+- fermion current as the left-trivialized derivative of `E_stream` with
+  respect to each SM BCC link;
+- zero-state and nonzero-current controls;
+- streaming-energy gauge-invariance audit;
+- target-site adjoint covariance for the current;
+- local fermion charge density and Gauss diagnostic
+  `electric divergence - fermion charge`;
+- reversible fermion-current momentum kick;
+- kick-then-transport wrapper;
+- link unitarity, spectator norm, and JIT audits.
+
+Stage 11 verdict:
+
+```text
+QCA_SMV0_STAGE11_FERMION_GAUGE_CURRENT_PASS
+```
+
 The charges, `lambda`, order-one coefficients, and center-power matrices are
-simulator inputs, not BCC-bulk derivations. BCC streaming fermion currents,
-full dynamical SM gauge updates with fermion sources, quantized scalar
-registers, and boundary rules are not implemented yet.
+simulator inputs, not BCC-bulk derivations. Family-summed streaming currents,
+full dynamical SM gauge updates with combined Higgs and fermion sources,
+quantized scalar/gauge registers, and boundary rules are not implemented yet.
 
 ## Reuse Boundary
 
@@ -313,5 +337,6 @@ uv run python -m clifford_3plus2_d5.qca_smv0.scripts.session_07_family_higgs_yuk
 uv run python -m clifford_3plus2_d5.qca_smv0.scripts.session_08_higgs_dynamics
 uv run python -m clifford_3plus2_d5.qca_smv0.scripts.session_09_gauge_higgs_backreaction
 uv run python -m clifford_3plus2_d5.qca_smv0.scripts.session_10_fermion_higgs_backreaction
+uv run python -m clifford_3plus2_d5.qca_smv0.scripts.session_11_fermion_gauge_current
 uv run pytest src/clifford_3plus2_d5/qca_smv0/tests -q
 ```

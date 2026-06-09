@@ -221,10 +221,21 @@ from clifford_3plus2_d5.qca_smv0.sm_fermion_higgs import (
     sm_yukawa_higgs_force,
     sm_yukawa_site_gauge_from_higgs_site_theta,
 )
+from clifford_3plus2_d5.qca_smv0.sm_fermion_gauge import (
+    FermionGaugeCurrentDiagnostics,
+    sm_apply_fermion_gauge_momentum_kick,
+    sm_dirac_streaming_energy_density,
+    sm_dirac_streaming_local_density,
+    sm_fermion_gauge_current_diagnostics,
+    sm_fermion_gauss_constraint,
+    sm_fermion_gauge_kick_then_transport,
+    sm_fermion_left_gauge_current,
+    sm_streaming_fermion_charge_density,
+)
 
 SIDECAR_NAME = "qca_smv0"
 SIDECAR_TITLE = "QCA_SMv0"
-SIDECAR_STATUS = "Stage 10 fermion-Higgs backreaction implemented"
+SIDECAR_STATUS = "Stage 11 fermion gauge current implemented"
 
 __all__ = [
     "BCC_ANISOTROPY_DIRECTIONS",
@@ -267,6 +278,7 @@ __all__ = [
     "FNRecirculationDiagnostics",
     "FamilyHiggsYukawaDiagnostics",
     "FamilyLeptonYukawas",
+    "FermionGaugeCurrentDiagnostics",
     "FermionHiggsBackreactionDiagnostics",
     "GaugeHiggsBackreactionDiagnostics",
     "HiggsYukawaDiagnostics",
@@ -326,6 +338,7 @@ __all__ = [
     "fn_wolfenstein_scaling",
     "higgs_yukawa_diagnostics",
     "sm_apply_family_yukawa_collision",
+    "sm_apply_fermion_gauge_momentum_kick",
     "sm_apply_higgs_link_momentum_update",
     "sm_apply_momentum_update",
     "sm_apply_yukawa_collision",
@@ -347,6 +360,8 @@ __all__ = [
     "sm_constant_higgs",
     "sm_default_family_lepton_yukawas",
     "sm_dirac_beta",
+    "sm_dirac_streaming_energy_density",
+    "sm_dirac_streaming_local_density",
     "sm_electric_divergence",
     "sm_family_chirality_norms",
     "sm_family_embedding_residuals",
@@ -354,7 +369,11 @@ __all__ = [
     "sm_family_higgs_yukawa_diagnostics",
     "sm_family_yukawa_internal_matrix",
     "sm_family_yukawa_collision_with_higgs_kick",
+    "sm_fermion_gauge_current_diagnostics",
+    "sm_fermion_gauss_constraint",
+    "sm_fermion_gauge_kick_then_transport",
     "sm_fermion_higgs_backreaction_diagnostics",
+    "sm_fermion_left_gauge_current",
     "sm_free_dirac_internal_step",
     "sm_coupled_higgs_gauge_hamiltonian_density",
     "sm_coupled_higgs_gauge_leapfrog_step",
@@ -412,6 +431,7 @@ __all__ = [
     "sm_quark_antiquark_mass_residual",
     "sm_site_gauge_from_algebra",
     "sm_site_theta_from_higgs_site_theta",
+    "sm_streaming_fermion_charge_density",
     "sm_transform_family_state",
     "sm_transform_links",
     "sm_transform_higgs_field",

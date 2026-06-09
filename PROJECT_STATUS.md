@@ -78,7 +78,7 @@ physics policy.
 **Boundary**: BCC Weyl/Dirac kernels, BCC plaquettes, Wilson observables, and
 SO(2)/SU(2)/SU(3) force policy remain in `spacetime_qca`.
 
-## qca_smv0 — Stage 10 local fermion/Higgs backreaction
+## qca_smv0 — Stage 11 BCC streaming fermion gauge current
 
 **Goal**: focused simulator sidecar for the next Standard-Model QCA prototype,
 using the shared `sim` infrastructure and local `qca_smv0` kernels only.
@@ -199,9 +199,20 @@ using the shared `sim` infrastructure and local `qca_smv0` kernels only.
 - Reversible Higgs-momentum source kick and local collision-plus-kick wrapper.
 - Fermion norm, source-after-collision, and JIT audits.
 - Session 10 script and focused tests.
+- BCC streaming bilinear `E_stream=Re sum_x,h psi[x]^dag D_h U_h[x]
+  psi[x+h]`.
+- Left-trivialized fermion gauge current from the streaming bilinear.
+- Zero-state and nonzero-current controls.
+- Streaming-energy gauge-invariance audit.
+- Target-site adjoint covariance for the fermion current.
+- Local streaming fermion charge density and Gauss diagnostic
+  `electric divergence - fermion charge`.
+- Reversible fermion-current momentum kick and kick-then-transport wrapper.
+- Kicked-link unitarity, spectator fermion norm, and JIT audits.
+- Session 11 script and focused tests.
 
-**Boundary**: no boundary condition, BCC streaming fermion current on gauge
-links, quantized scalar registers, full dynamic SM gauge update sourced by both
+**Boundary**: no boundary condition, family-summed BCC streaming current,
+quantized scalar/gauge registers, full dynamic SM gauge update sourced by both
 Higgs and fermion currents in the 12-generator carrier, or derivation of the
 flavor/Higgs inputs is implemented yet. FN charges, `lambda`, order-one
 coefficients, center-power matrices, placeholder lepton matrices, and Higgs
