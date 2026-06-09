@@ -3,12 +3,12 @@
 ## Verdict
 
 ```text
-QCA_SMV0_STAGE16_GAUGE_CONVENTION_BRIDGE_PASS
+QCA_SMV0_STAGE17_ANTIUNITARY_BRIDGE_PASS
 ```
 
 ## Current State
 
-Stage 16 gauge-convention bridge audit implemented on top of the Stage 1
+Stage 17 antiunitary singlet bridge implemented on top of the Stage 1
 free BCC Weyl/Dirac walk, Stage 2 static gauge transport, Stage 3 pure dynamic
 gauge fields, Stage 4 local Higgs/Yukawa collision, Stage 5 FN recirculation,
 Stage 6 center-holonomy CP, Stage 7 three-family Higgs/Yukawa collision, and
@@ -16,7 +16,8 @@ Stage 8 dynamic Higgs-field evolution, Stage 9 gauge-Higgs backreaction, and
 Stage 10 local fermion/Higgs backreaction, and Stage 11 BCC streaming fermion
 gauge current, Stage 12 coupled sourced SM gauge tick, and Stage 13
 family-summed BCC fermion gauge current, and Stage 14 family-sourced SM gauge
-tick, and Stage 15 full family production tick.
+tick, Stage 15 full family production tick, and Stage 16 gauge-convention
+bridge audit.
 
 Implemented:
 
@@ -221,6 +222,17 @@ Implemented:
   non-invariance controls;
 - JIT audits for the gauge-convention energy residuals;
 - Session 16 script;
+- physical-right full SM generators built from Stage 2 transport generators by
+  left-linear / right-antilinear projector bridge;
+- exact left-linear and right-antilinear generator residuals;
+- electroweak slice matching the Stage 10/16 physical Yukawa-door generators;
+- finite physical-right site gauge equal to the projected antiunitary finite
+  bridge from the transport gauge;
+- finite bridge unitarity audit;
+- full physical-right gauge covariance for the local Yukawa energy and
+  unbridged transport-gauge non-invariance control;
+- JIT audits for the full bridge energy residuals;
+- Session 17 script;
 - focused tests for algebra, norm preservation, local gauge covariance, Wilson
   response, weak-link scaling, pure-gauge dynamics, Gauss covariance and
   preservation, weak-field Yang-Mills behavior, Higgs/Yukawa door structure,
@@ -229,21 +241,20 @@ Implemented:
   dynamic Higgs evolution, gauge-Higgs backreaction, local fermion/Higgs
   backreaction, BCC streaming fermion gauge current, coupled sourced SM gauge
   tick, family-summed BCC fermion gauge current, family-sourced SM gauge tick,
-  full family production tick, gauge-convention bridge audit, JIT
-  compatibility, and small-momentum Weyl/Dirac behavior.
+  full family production tick, gauge-convention bridge audit, antiunitary
+  singlet bridge, JIT compatibility, and small-momentum Weyl/Dirac behavior.
 
 Not implemented:
 
 - boundary rules;
 - quantized scalar registers;
-- microscopic carrier replacement or antiunitary bridge that unifies the
-  transport/current gauge convention with the physical local Higgs-door gauge
-  convention used by the Yukawa source;
+- microscopic BCC derivation of the antiunitary bridge;
+- rewrite of the production tick on a single bridged carrier;
 - derivation of the FN charges, `lambda`, order-one coefficients, or
   center-power matrices from BCC bulk dynamics;
 - derivation of Higgs potential parameters from BCC bulk dynamics;
 - performance profiles beyond the small
-  Session 01/02/03/04/05/06/07/08/09/10/11/12/13/14/15/16 diagnostics.
+  Session 01/02/03/04/05/06/07/08/09/10/11/12/13/14/15/16/17 diagnostics.
 
 ## Working Boundary
 

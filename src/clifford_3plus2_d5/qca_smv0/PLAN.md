@@ -571,3 +571,36 @@ Verdict:
 ```text
 QCA_SMV0_STAGE16_GAUGE_CONVENTION_BRIDGE_PASS
 ```
+
+## Stage 17 - Antiunitary Singlet Bridge
+
+Pass only if:
+
+- the only upstream runtime imports are from `sim` and local `qca_smv0`
+  modules;
+- the physical-right SM generators are built from the Stage 2 transport
+  generators by a projector rule:
+  `T_phys = T_transport` on left doublets and
+  `T_phys = conj(T_transport)` on right singlets;
+- the bridge is exact on generators: zero residual on the left-linear and
+  right-antilinear projector blocks;
+- the electroweak slice of the physical-right generators reproduces the
+  Stage 10 / Stage 16 physical Yukawa-door generators;
+- finite physical-right site gauges equal the projected finite bridge
+  `P_L G_transport P_L + P_R conj(G_transport) P_R`;
+- finite bridge gauges are unitary to float32 precision;
+- the physical-right generators remain nontrivially different from the Stage 2
+  transport generators, so the bridge is not a unitary identification;
+- the full `SU(3)_c x SU(2)_L x U(1)_Y` physical-right gauge restores local
+  Yukawa energy covariance;
+- the unbridged Stage 2 transport gauge remains non-invariant for the same
+  local Yukawa energy;
+- the full bridge energy-residual audit is JIT-compatible;
+- the stage does not claim a microscopic BCC derivation, boundary rule,
+  quantized register, or rewrite of the production tick carrier.
+
+Verdict:
+
+```text
+QCA_SMV0_STAGE17_ANTIUNITARY_BRIDGE_PASS
+```

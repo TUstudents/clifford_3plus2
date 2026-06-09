@@ -289,10 +289,21 @@ from clifford_3plus2_d5.qca_smv0.sm_gauge_convention_bridge import (
     sm_yukawa_door_site_gauge_from_generators,
     sm_yukawa_gauge_convention_energy_residuals,
 )
+from clifford_3plus2_d5.qca_smv0.sm_antiunitary_bridge import (
+    AntiunitaryBridgeDiagnostics,
+    sm_antiunitary_bridge_diagnostics,
+    sm_antiunitary_bridge_gauge_from_transport,
+    sm_antiunitary_bridge_generator_residuals,
+    sm_full_bridge_yukawa_energy_residuals,
+    sm_physical_right_algebra_matrix_field,
+    sm_physical_right_gauge_unitarity_residual,
+    sm_physical_right_generators,
+    sm_physical_right_site_gauge_from_algebra,
+)
 
 SIDECAR_NAME = "qca_smv0"
 SIDECAR_TITLE = "QCA_SMv0"
-SIDECAR_STATUS = "Stage 16 gauge convention bridge audit implemented"
+SIDECAR_STATUS = "Stage 17 antiunitary bridge implemented"
 
 __all__ = [
     "BCC_ANISOTROPY_DIRECTIONS",
@@ -348,6 +359,7 @@ __all__ = [
     "HiggsDynamicsParameters",
     "SourcedSMTickDiagnostics",
     "SMYukawaCouplings",
+    "AntiunitaryBridgeDiagnostics",
     "StaticSMGaugeDiagnostics",
     "bare_bcc_walk_diagnostics",
     "bcc_anisotropy_scaling",
@@ -413,6 +425,9 @@ __all__ = [
     "sm_apply_yukawa_higgs_momentum_kick",
     "sm_algebra_matrix_field",
     "sm_antiparticle_yukawas",
+    "sm_antiunitary_bridge_diagnostics",
+    "sm_antiunitary_bridge_gauge_from_transport",
+    "sm_antiunitary_bridge_generator_residuals",
     "sm_average_normalized_wilson_loop",
     "sm_average_wilson_action_density",
     "sm_chirality_norms",
@@ -469,6 +484,7 @@ __all__ = [
     "sm_gauge_hamiltonian_density",
     "sm_gauged_dirac_step",
     "sm_gauged_norm_drift",
+    "sm_full_bridge_yukawa_energy_residuals",
     "sm_generator_antihermitian_residual",
     "sm_generator_gram",
     "sm_generators",
@@ -514,6 +530,10 @@ __all__ = [
     "sm_normalized_wilson_traces",
     "sm_no_backreaction_fermion_gauge_step",
     "sm_plaquette_holonomies",
+    "sm_physical_right_algebra_matrix_field",
+    "sm_physical_right_gauge_unitarity_residual",
+    "sm_physical_right_generators",
+    "sm_physical_right_site_gauge_from_algebra",
     "sm_project_to_coordinates",
     "sm_pure_gauge_links_from_site_algebra",
     "sm_pure_gauge_higgs_links_from_site_algebra",
