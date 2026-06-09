@@ -22,9 +22,9 @@ It should not be used for:
 
 ## Current State
 
-Stage 4 implements the free BCC Weyl/Dirac bulk walk, static
+Stage 5 implements the free BCC Weyl/Dirac bulk walk, static
 Standard-Model gauge-background transport, pure dynamic SM gauge fields, and a
-site-local Higgs/Yukawa collision:
+site-local Higgs/Yukawa collision, plus a finite-path FN recirculation module:
 
 ```text
 qca_smv0/
@@ -36,16 +36,19 @@ qca_smv0/
   sm_gauge.py
   sm_dynamics.py
   sm_higgs.py
+  sm_fn.py
   scripts/
     session_01_bare_bcc_walk.py
     session_02_static_sm_gauge_background.py
     session_03_dynamic_sm_gauge.py
     session_04_higgs_yukawa_collision.py
+    session_05_fn_recirculation.py
   tests/
     test_bulk_bcc.py
     test_sm_gauge.py
     test_sm_dynamics.py
     test_sm_higgs.py
+    test_sm_fn.py
 ```
 
 The implemented Weyl kernel is a two-component periodic BCC bulk walk:
@@ -141,8 +144,32 @@ Stage 4 verdict:
 QCA_SMV0_STAGE4_HIGGS_YUKAWA_PASS
 ```
 
-Matter backreaction, dynamic Higgs-field evolution, boundary rules, flavor
-registers, FN recirculation, and center-holonomy CP are not implemented yet.
+Stage 5 adds FN recirculation paths:
+
+- family dimension `3`;
+- explicit simulator inputs `lambda`, `Q`, `U`, `D`, and order-one
+  coefficients;
+- empirical Wolfenstein mode and shear-candidate mode for `lambda`;
+- finite local beam-splitter chains whose endpoint transfer is `lambda^n`;
+- quark path lengths `n^u_ij=Q_i+U_j` and `n^d_ij=Q_i+D_j`;
+- default charges `Q=(3,2,0)`, `U=(5,2,0)`, `D=(1,0,0)`;
+- standard diagonal FN orders `lambda^8:lambda^4:1` and
+  `lambda^4:lambda^2:1`;
+- left-frame Wolfenstein scaling `lambda^abs(Q_i-Q_j)`;
+- generated matrices `Y_ij=c_ij lambda^(Q_i+R_j)`;
+- singular masses and CKM-like left-frame mismatch read from the same
+  generated matrices.
+
+Stage 5 verdict:
+
+```text
+QCA_SMV0_STAGE5_FN_RECIRCULATION_PASS
+```
+
+The charges, `lambda`, and order-one coefficients are simulator inputs, not
+BCC-bulk derivations. Matter backreaction, dynamic Higgs-field evolution,
+boundary rules, center-holonomy CP, and a full three-family Higgs collision are
+not implemented yet.
 
 ## Reuse Boundary
 
@@ -167,5 +194,6 @@ uv run python -m clifford_3plus2_d5.qca_smv0.scripts.session_01_bare_bcc_walk
 uv run python -m clifford_3plus2_d5.qca_smv0.scripts.session_02_static_sm_gauge_background
 uv run python -m clifford_3plus2_d5.qca_smv0.scripts.session_03_dynamic_sm_gauge
 uv run python -m clifford_3plus2_d5.qca_smv0.scripts.session_04_higgs_yukawa_collision
+uv run python -m clifford_3plus2_d5.qca_smv0.scripts.session_05_fn_recirculation
 uv run pytest src/clifford_3plus2_d5/qca_smv0/tests -q
 ```

@@ -3,14 +3,14 @@
 ## Verdict
 
 ```text
-QCA_SMV0_STAGE4_HIGGS_YUKAWA_PASS
+QCA_SMV0_STAGE5_FN_RECIRCULATION_PASS
 ```
 
 ## Current State
 
-Stage 4 local Higgs/Yukawa collision implemented on top of the Stage 1 free
-BCC Weyl/Dirac walk, Stage 2 static gauge transport, and Stage 3 pure dynamic
-gauge fields.
+Stage 5 FN recirculation paths implemented on top of the Stage 1 free BCC
+Weyl/Dirac walk, Stage 2 static gauge transport, Stage 3 pure dynamic gauge
+fields, and Stage 4 local Higgs/Yukawa collision.
 
 Implemented:
 
@@ -58,20 +58,34 @@ Implemented:
 - zero-step and zero-Higgs identity controls;
 - chirality-flip and massive-dispersion diagnostics;
 - Session 04 script;
+- family dimension `3`;
+- explicit FN attenuation inputs for empirical Wolfenstein and shear-candidate
+  modes;
+- local two-state unitary beam splitter for one recirculation step;
+- finite hidden-path unitary chains whose endpoint transfer is `lambda^n`;
+- default simulator charges `Q=(3,2,0)`, `U=(5,2,0)`, `D=(1,0,0)`;
+- quark path-length matrices `n^u_ij=Q_i+U_j`, `n^d_ij=Q_i+D_j`;
+- diagonal FN scaling audits for `lambda^8:lambda^4:1` and
+  `lambda^4:lambda^2:1`;
+- left-frame Wolfenstein scaling matrix `lambda^abs(Q_i-Q_j)`;
+- generated quark Yukawa matrices `Y_ij=c_ij lambda^(Q_i+R_j)`;
+- singular masses and CKM-like left-frame mismatch from the same generated
+  matrices;
+- Session 05 script;
 - focused tests for algebra, norm preservation, local gauge covariance, Wilson
   response, weak-link scaling, pure-gauge dynamics, Gauss covariance and
   preservation, weak-field Yang-Mills behavior, Higgs/Yukawa door structure,
-  chirality flip, massive dispersion, JIT compatibility, and small-momentum
-  Weyl/Dirac behavior.
+  chirality flip, massive dispersion, FN recirculation powers, generated
+  Yukawa matrices, JIT compatibility, and small-momentum Weyl/Dirac behavior.
 
 Not implemented:
 
 - boundary rules;
 - matter backreaction into gauge momenta;
 - dynamic Higgs-field evolution / Higgs potential;
-- flavor or FN recirculation;
+- full three-family Higgs/Yukawa collision using the FN matrices;
 - center-holonomy CP;
-- performance profiles beyond the small Session 01/02/03/04 diagnostics.
+- performance profiles beyond the small Session 01/02/03/04/05 diagnostics.
 
 ## Working Boundary
 

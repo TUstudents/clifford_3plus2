@@ -78,7 +78,7 @@ physics policy.
 **Boundary**: BCC Weyl/Dirac kernels, BCC plaquettes, Wilson observables, and
 SO(2)/SU(2)/SU(3) force policy remain in `spacetime_qca`.
 
-## qca_smv0 — Stage 4 local Higgs/Yukawa collision
+## qca_smv0 — Stage 5 FN recirculation paths
 
 **Goal**: focused simulator sidecar for the next Standard-Model QCA prototype,
 using the shared `sim` infrastructure and local `qca_smv0` kernels only.
@@ -129,9 +129,24 @@ using the shared `sim` infrastructure and local `qca_smv0` kernels only.
 - Zero-step and zero-Higgs identity controls.
 - Chirality-flip and massive-dispersion diagnostics.
 - Session 04 script and focused tests.
+- Family dimension `3`.
+- Empirical Wolfenstein and shear-candidate attenuation inputs.
+- Local two-state unitary beam splitter for one FN recirculation step.
+- Finite hidden-path unitary chains with endpoint transfer `lambda^n`.
+- Default simulator charges `Q=(3,2,0)`, `U=(5,2,0)`, `D=(1,0,0)`.
+- Quark path-length matrices `n^u_ij=Q_i+U_j`, `n^d_ij=Q_i+D_j`.
+- Standard diagonal FN scaling audits `lambda^8:lambda^4:1` and
+  `lambda^4:lambda^2:1`.
+- Left-frame Wolfenstein scaling `lambda^abs(Q_i-Q_j)`.
+- Generated quark Yukawa matrices `Y_ij=c_ij lambda^(Q_i+R_j)`.
+- Singular masses and CKM-like left-frame mismatch from the same generated
+  matrices.
+- Session 05 script and focused tests.
 
 **Boundary**: no boundary condition, matter backreaction, dynamic Higgs-field
-evolution, flavor recirculation, or center-holonomy CP is implemented yet.
+evolution, full three-family Higgs/Yukawa collision, or center-holonomy CP is
+implemented yet. FN charges, `lambda`, and order-one coefficients are explicit
+simulator inputs rather than BCC-bulk derivations.
 
 ## scalar_clebsch — V3 conditional pass, active
 

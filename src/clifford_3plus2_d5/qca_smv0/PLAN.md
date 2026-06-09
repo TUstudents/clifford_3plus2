@@ -151,14 +151,53 @@ Verdict:
 QCA_SMV0_STAGE4_HIGGS_YUKAWA_PASS
 ```
 
+## Stage 5 - FN Recirculation Paths
+
+Pass only if:
+
+- the only upstream runtime imports are from `sim` and local `qca_smv0`
+  modules;
+- the family register dimension is `3`;
+- the FN attenuation `lambda` is an explicit simulator input, with both
+  empirical Wolfenstein and shear-candidate modes supported;
+- a two-state beam splitter
+  `[[sqrt(1-lambda^2), -lambda], [lambda, sqrt(1-lambda^2)]]` is unitary;
+- a finite hidden path of length `n` is a product of local beam splitters;
+- the endpoint transfer amplitude of that path is `lambda^n`;
+- quark path lengths are generated from explicit integer charges:
+  `n^u_ij=Q_i+U_j` and `n^d_ij=Q_i+D_j`;
+- the default simulator charges are `Q=(3,2,0)`, `U=(5,2,0)`,
+  `D=(1,0,0)`;
+- the diagonal scalings reproduce the standard FN orders
+  `m_u:m_c:m_t ~ lambda^8:lambda^4:1` and
+  `m_d:m_s:m_b ~ lambda^4:lambda^2:1`;
+- the left-frame scaling matrix is `lambda^abs(Q_i-Q_j)`, giving the
+  Wolfenstein hierarchy pattern;
+- effective Yukawa matrices are built as
+  `Y_ij=c_ij lambda^(Q_i+R_j)`;
+- singular masses and the CKM-like left-frame mismatch are read from the same
+  generated matrices;
+- the generated CKM-like matrix is unitary to numerical precision;
+- the effective Yukawa generator is JIT-compatible;
+- no claim is made that the BCC bulk derives the charges, `lambda`, or the
+  order-one coefficients;
+- no center-holonomy CP, matter backreaction, boundary rule, or dynamic Higgs
+  field is introduced.
+
+Verdict:
+
+```text
+QCA_SMV0_STAGE5_FN_RECIRCULATION_PASS
+```
+
 ## Next Session Placeholder
 
-The next session should specify whether Stage 5 is:
+The next session should specify whether Stage 6 is:
 
 - matter backreaction and Gauss-law source diagnostics;
-- FN recirculation paths;
 - center-holonomy CP;
+- integrating FN matrices into a three-family Higgs collision;
 - or performance/layout work before adding new physics.
 
-Until that is specified, this sidecar should remain at the local
-Higgs/Yukawa-collision layer.
+Until that is specified, this sidecar should remain at the FN-recirculation
+matrix layer.
