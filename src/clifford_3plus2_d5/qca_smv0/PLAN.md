@@ -668,3 +668,44 @@ Verdict:
 ```text
 QCA_SMV0_STAGE19_PHYSICAL_RIGHT_CURRENT_PASS
 ```
+
+## Stage 20 - Physical-Right Sourced SM Tick
+
+Pass only if:
+
+- the only upstream runtime imports are from `sim` and local `qca_smv0`
+  modules;
+- the Stage 14 sourced gauge tick is lifted from the transport-convention
+  family current to the Stage 19 physical-right family current;
+- the pure Wilson force and embedded Higgs gauge force remain the existing
+  transport-coordinate source terms;
+- the sourced link force is
+  `Wilson + embedded Higgs gauge force + physical-right family current`;
+- the physical-right sourced link force differs nontrivially from the Stage 14
+  transport-convention family-sourced force;
+- the physical-right sourced Gauss diagnostic is physical-right electric
+  divergence minus physical-right family charge minus embedded Higgs charge;
+- zero family state, vacuum Higgs field, identity SM links, and identity Higgs
+  links give zero sourced force to float32 precision;
+- deterministic nonzero family/Higgs/gauge fields give a nonzero sourced
+  force;
+- sourced force and sourced Gauss transform covariantly under the bridged
+  physical-right site gauge;
+- zero family state, zero gauge momenta, vacuum Higgs field, and zero Higgs
+  momenta have zero sourced Gauss residual;
+- the physical-right sourced momentum kick is reversible under
+  `step_size -> -step_size`;
+- the coupled tick transports the family state through physical-right bridged
+  links, advances the Higgs field, keeps SM and Higgs-representation links
+  unitary, and preserves family-state norm to float32 precision;
+- the physical-right sourced tick differs nontrivially from the Stage 14
+  transport-convention sourced tick;
+- the physical-right sourced tick is JIT-compatible;
+- no production tick rewrite, boundary rule, quantized register, or derivation
+  of simulator inputs is introduced.
+
+Verdict:
+
+```text
+QCA_SMV0_STAGE20_PHYSICAL_RIGHT_SOURCED_TICK_PASS
+```

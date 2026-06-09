@@ -324,10 +324,18 @@ from clifford_3plus2_d5.qca_smv0.sm_physical_right_current import (
     sm_physical_right_streaming_local_density,
     sm_physical_right_transform_momenta,
 )
+from clifford_3plus2_d5.qca_smv0.sm_physical_right_sourced_tick import (
+    PhysicalRightSourcedSMTickDiagnostics,
+    sm_apply_physical_right_sourced_sm_momentum_kick,
+    sm_physical_right_sourced_gauss_constraint,
+    sm_physical_right_sourced_link_force,
+    sm_physical_right_sourced_sm_tick,
+    sm_physical_right_sourced_tick_diagnostics,
+)
 
 SIDECAR_NAME = "qca_smv0"
 SIDECAR_TITLE = "QCA_SMv0"
-SIDECAR_STATUS = "Stage 19 physical-right current implemented"
+SIDECAR_STATUS = "Stage 20 physical-right sourced tick implemented"
 
 __all__ = [
     "BCC_ANISOTROPY_DIRECTIONS",
@@ -382,6 +390,7 @@ __all__ = [
     "HiggsDynamicsDiagnostics",
     "HiggsDynamicsParameters",
     "PhysicalRightCurrentDiagnostics",
+    "PhysicalRightSourcedSMTickDiagnostics",
     "PhysicalRightTransportDiagnostics",
     "SourcedSMTickDiagnostics",
     "SMYukawaCouplings",
@@ -446,6 +455,7 @@ __all__ = [
     "sm_apply_higgs_link_momentum_update",
     "sm_apply_momentum_update",
     "sm_apply_physical_right_fermion_gauge_momentum_kick",
+    "sm_apply_physical_right_sourced_sm_momentum_kick",
     "sm_apply_sourced_link_update",
     "sm_apply_sourced_sm_momentum_kick",
     "sm_apply_yukawa_collision",
@@ -571,6 +581,10 @@ __all__ = [
     "sm_physical_right_links_from_transport",
     "sm_physical_right_project_to_coordinates",
     "sm_physical_right_site_gauge_from_algebra",
+    "sm_physical_right_sourced_gauss_constraint",
+    "sm_physical_right_sourced_link_force",
+    "sm_physical_right_sourced_sm_tick",
+    "sm_physical_right_sourced_tick_diagnostics",
     "sm_physical_right_streaming_energy_density",
     "sm_physical_right_streaming_fermion_charge_density",
     "sm_physical_right_streaming_local_density",
