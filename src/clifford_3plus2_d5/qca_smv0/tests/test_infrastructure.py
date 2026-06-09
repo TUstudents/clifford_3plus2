@@ -8,7 +8,7 @@ from clifford_3plus2_d5 import qca_smv0
 def test_qca_smv0_sidecar_metadata() -> None:
     assert qca_smv0.SIDECAR_NAME == "qca_smv0"
     assert qca_smv0.SIDECAR_TITLE == "QCA_SMv0"
-    assert qca_smv0.SIDECAR_STATUS == "Stage 5 FN recirculation paths implemented"
+    assert qca_smv0.SIDECAR_STATUS == "Stage 6 center-holonomy CP implemented"
 
 
 def test_qca_smv0_scaffold_files_exist() -> None:

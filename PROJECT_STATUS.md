@@ -78,7 +78,7 @@ physics policy.
 **Boundary**: BCC Weyl/Dirac kernels, BCC plaquettes, Wilson observables, and
 SO(2)/SU(2)/SU(3) force policy remain in `spacetime_qca`.
 
-## qca_smv0 — Stage 5 FN recirculation paths
+## qca_smv0 — Stage 6 center-holonomy CP
 
 **Goal**: focused simulator sidecar for the next Standard-Model QCA prototype,
 using the shared `sim` infrastructure and local `qca_smv0` kernels only.
@@ -142,11 +142,21 @@ using the shared `sim` infrastructure and local `qca_smv0` kernels only.
 - Singular masses and CKM-like left-frame mismatch from the same generated
   matrices.
 - Session 05 script and focused tests.
+- `SU(3)_c` center phase helper `omega=exp(2 pi i / 3)`.
+- Explicit up/down center-power matrices decorating FN order-one coefficients.
+- Center phase unit-modulus and `phase^3=1` audits.
+- Center-decorated coefficients preserving order-one magnitudes.
+- Antiparticle Yukawas as complex conjugates.
+- Quark/antiquark singular-mass equality audit.
+- Nonzero CKM Jarlskog and nonzero commutator CP trace from center-decorated
+  coefficients.
+- All-real coefficient zero-Jarlskog control.
+- Session 06 script and focused tests.
 
 **Boundary**: no boundary condition, matter backreaction, dynamic Higgs-field
-evolution, full three-family Higgs/Yukawa collision, or center-holonomy CP is
-implemented yet. FN charges, `lambda`, and order-one coefficients are explicit
-simulator inputs rather than BCC-bulk derivations.
+evolution, or full three-family Higgs/Yukawa collision is implemented yet. FN
+charges, `lambda`, order-one coefficients, and center-power matrices are
+explicit simulator inputs rather than BCC-bulk derivations.
 
 ## scalar_clebsch — V3 conditional pass, active
 

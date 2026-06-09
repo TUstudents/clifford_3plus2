@@ -3,14 +3,14 @@
 ## Verdict
 
 ```text
-QCA_SMV0_STAGE5_FN_RECIRCULATION_PASS
+QCA_SMV0_STAGE6_CENTER_HOLONOMY_CP_PASS
 ```
 
 ## Current State
 
-Stage 5 FN recirculation paths implemented on top of the Stage 1 free BCC
+Stage 6 center-holonomy CP implemented on top of the Stage 1 free BCC
 Weyl/Dirac walk, Stage 2 static gauge transport, Stage 3 pure dynamic gauge
-fields, and Stage 4 local Higgs/Yukawa collision.
+fields, Stage 4 local Higgs/Yukawa collision, and Stage 5 FN recirculation.
 
 Implemented:
 
@@ -72,11 +72,22 @@ Implemented:
 - singular masses and CKM-like left-frame mismatch from the same generated
   matrices;
 - Session 05 script;
+- `SU(3)_c` center phase helper `omega=exp(2 pi i / 3)`;
+- explicit center-power matrices for up/down FN coefficient phases;
+- center phase unit-modulus and `phase^3=1` audits;
+- center-decorated FN coefficient matrices preserving order-one magnitudes;
+- antiparticle Yukawas as complex conjugates;
+- quark/antiquark singular-mass equality audit;
+- nonzero CKM Jarlskog from center-decorated coefficients;
+- all-real coefficient control with zero Jarlskog;
+- nonzero CP-odd commutator trace for center-decorated Yukawas;
+- Session 06 script;
 - focused tests for algebra, norm preservation, local gauge covariance, Wilson
   response, weak-link scaling, pure-gauge dynamics, Gauss covariance and
   preservation, weak-field Yang-Mills behavior, Higgs/Yukawa door structure,
   chirality flip, massive dispersion, FN recirculation powers, generated
-  Yukawa matrices, JIT compatibility, and small-momentum Weyl/Dirac behavior.
+  Yukawa matrices, center-holonomy CP, JIT compatibility, and small-momentum
+  Weyl/Dirac behavior.
 
 Not implemented:
 
@@ -84,8 +95,9 @@ Not implemented:
 - matter backreaction into gauge momenta;
 - dynamic Higgs-field evolution / Higgs potential;
 - full three-family Higgs/Yukawa collision using the FN matrices;
-- center-holonomy CP;
-- performance profiles beyond the small Session 01/02/03/04/05 diagnostics.
+- derivation of the FN charges, `lambda`, order-one coefficients, or
+  center-power matrices from BCC bulk dynamics;
+- performance profiles beyond the small Session 01/02/03/04/05/06 diagnostics.
 
 ## Working Boundary
 

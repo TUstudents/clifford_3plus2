@@ -190,14 +190,43 @@ Verdict:
 QCA_SMV0_STAGE5_FN_RECIRCULATION_PASS
 ```
 
+## Stage 6 - Center-Holonomy CP
+
+Pass only if:
+
+- the only upstream runtime imports are from local `qca_smv0` modules;
+- center phases are values in the `SU(3)_c` center:
+  `omega=exp(2 pi i / 3)`;
+- the center-power matrices are explicit simulator inputs;
+- all center phases have unit modulus and satisfy `phase^3=1`;
+- center phases decorate only the FN order-one coefficients and preserve their
+  magnitudes;
+- quark Yukawas and antiparticle Yukawas are related by complex conjugation;
+- quark and antiquark singular masses agree to numerical precision;
+- the CKM-like matrix is still the left-frame mismatch of the generated up/down
+  Yukawas and remains unitary;
+- the center-decorated matrices give a nonzero CKM Jarlskog quartet;
+- the all-real coefficient control gives zero Jarlskog;
+- the commutator trace `Im Tr([Yu Yu^dag,Yd Yd^dag]^3)` is nonzero for the
+  center-decorated matrices and zero for the all-real control;
+- the center-holonomy phase map is JIT-compatible;
+- no claim is made that the BCC bulk derives the center powers;
+- no matter backreaction, boundary rule, dynamic Higgs field, or full
+  three-family Higgs collision is introduced.
+
+Verdict:
+
+```text
+QCA_SMV0_STAGE6_CENTER_HOLONOMY_CP_PASS
+```
+
 ## Next Session Placeholder
 
-The next session should specify whether Stage 6 is:
+The next session should specify whether Stage 7 is:
 
 - matter backreaction and Gauss-law source diagnostics;
-- center-holonomy CP;
 - integrating FN matrices into a three-family Higgs collision;
 - or performance/layout work before adding new physics.
 
-Until that is specified, this sidecar should remain at the FN-recirculation
-matrix layer.
+Until that is specified, this sidecar should remain at the center-holonomy CP
+coefficient layer.
