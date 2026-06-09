@@ -22,11 +22,12 @@ It should not be used for:
 
 ## Current State
 
-Stage 9 implements the free BCC Weyl/Dirac bulk walk, static
+Stage 10 implements the free BCC Weyl/Dirac bulk walk, static
 Standard-Model gauge-background transport, pure dynamic SM gauge fields, and a
 site-local Higgs/Yukawa collision, finite-path FN recirculation, and
 center-holonomy CP coefficients, a three-family Higgs/Yukawa collision, and
-dynamic Higgs-field evolution with scalar gauge backreaction:
+dynamic Higgs-field evolution with scalar gauge and local fermion/Higgs
+backreaction:
 
 ```text
 qca_smv0/
@@ -43,6 +44,7 @@ qca_smv0/
   sm_family_higgs.py
   sm_higgs_dynamics.py
   sm_gauge_higgs.py
+  sm_fermion_higgs.py
   scripts/
     session_01_bare_bcc_walk.py
     session_02_static_sm_gauge_background.py
@@ -53,6 +55,7 @@ qca_smv0/
     session_07_family_higgs_yukawa.py
     session_08_higgs_dynamics.py
     session_09_gauge_higgs_backreaction.py
+    session_10_fermion_higgs_backreaction.py
   tests/
     test_bulk_bcc.py
     test_sm_gauge.py
@@ -63,6 +66,7 @@ qca_smv0/
     test_sm_family_higgs.py
     test_sm_higgs_dynamics.py
     test_sm_gauge_higgs.py
+    test_sm_fermion_higgs.py
 ```
 
 The implemented Weyl kernel is a two-component periodic BCC bulk walk:
@@ -255,10 +259,30 @@ Stage 9 verdict:
 QCA_SMV0_STAGE9_GAUGE_HIGGS_BACKREACTION_PASS
 ```
 
+Stage 10 adds local fermion/Higgs backreaction:
+
+- local Yukawa energy density `E_Y=Re psi^dagger beta Y(H) psi`;
+- Higgs source force `-dE_Y/dH*` computed from real/imaginary autodiff;
+- deterministic source states with nonzero Yukawa bilinears;
+- zero-state and nonzero-source controls;
+- explicit Yukawa-door electroweak gauge helper using physical right-handed
+  hypercharges for local Yukawa covariance;
+- energy gauge-invariance and source covariance checks for that local
+  Yukawa-door convention;
+- reversible Higgs-momentum kick;
+- local collision-plus-kick wrapper;
+- fermion norm, JIT, and source-after-collision audits.
+
+Stage 10 verdict:
+
+```text
+QCA_SMV0_STAGE10_FERMION_HIGGS_BACKREACTION_PASS
+```
+
 The charges, `lambda`, order-one coefficients, and center-power matrices are
-simulator inputs, not BCC-bulk derivations. Fermion backreaction, quantized
-scalar registers, full dynamical SM gauge updates with fermion sources, and
-boundary rules are not implemented yet.
+simulator inputs, not BCC-bulk derivations. BCC streaming fermion currents,
+full dynamical SM gauge updates with fermion sources, quantized scalar
+registers, and boundary rules are not implemented yet.
 
 ## Reuse Boundary
 
@@ -288,5 +312,6 @@ uv run python -m clifford_3plus2_d5.qca_smv0.scripts.session_06_center_holonomy_
 uv run python -m clifford_3plus2_d5.qca_smv0.scripts.session_07_family_higgs_yukawa
 uv run python -m clifford_3plus2_d5.qca_smv0.scripts.session_08_higgs_dynamics
 uv run python -m clifford_3plus2_d5.qca_smv0.scripts.session_09_gauge_higgs_backreaction
+uv run python -m clifford_3plus2_d5.qca_smv0.scripts.session_10_fermion_higgs_backreaction
 uv run pytest src/clifford_3plus2_d5/qca_smv0/tests -q
 ```

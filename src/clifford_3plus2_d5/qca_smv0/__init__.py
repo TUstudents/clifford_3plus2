@@ -208,10 +208,23 @@ from clifford_3plus2_d5.qca_smv0.sm_gauge_higgs import (
     sm_higgs_project_to_coordinates,
     sm_transform_higgs_link_momenta,
 )
+from clifford_3plus2_d5.qca_smv0.sm_fermion_higgs import (
+    FermionHiggsBackreactionDiagnostics,
+    deterministic_yukawa_source_state,
+    sm_apply_yukawa_higgs_momentum_kick,
+    sm_family_yukawa_collision_with_higgs_kick,
+    sm_fermion_higgs_backreaction_diagnostics,
+    sm_site_theta_from_higgs_site_theta,
+    sm_transform_family_state,
+    sm_yukawa_energy_density,
+    sm_yukawa_energy_local_density,
+    sm_yukawa_higgs_force,
+    sm_yukawa_site_gauge_from_higgs_site_theta,
+)
 
 SIDECAR_NAME = "qca_smv0"
 SIDECAR_TITLE = "QCA_SMv0"
-SIDECAR_STATUS = "Stage 9 gauge-Higgs backreaction implemented"
+SIDECAR_STATUS = "Stage 10 fermion-Higgs backreaction implemented"
 
 __all__ = [
     "BCC_ANISOTROPY_DIRECTIONS",
@@ -254,6 +267,7 @@ __all__ = [
     "FNRecirculationDiagnostics",
     "FamilyHiggsYukawaDiagnostics",
     "FamilyLeptonYukawas",
+    "FermionHiggsBackreactionDiagnostics",
     "GaugeHiggsBackreactionDiagnostics",
     "HiggsYukawaDiagnostics",
     "HiggsDynamicsDiagnostics",
@@ -293,6 +307,7 @@ __all__ = [
     "deterministic_sm_momenta",
     "deterministic_sm_site_theta",
     "deterministic_sm_state",
+    "deterministic_yukawa_source_state",
     "dynamic_sm_gauge_diagnostics",
     "fn_beam_splitter",
     "fn_beam_splitter_unitarity_residual",
@@ -314,6 +329,7 @@ __all__ = [
     "sm_apply_higgs_link_momentum_update",
     "sm_apply_momentum_update",
     "sm_apply_yukawa_collision",
+    "sm_apply_yukawa_higgs_momentum_kick",
     "sm_algebra_matrix_field",
     "sm_antiparticle_yukawas",
     "sm_average_normalized_wilson_loop",
@@ -337,6 +353,8 @@ __all__ = [
     "sm_family_extract_block",
     "sm_family_higgs_yukawa_diagnostics",
     "sm_family_yukawa_internal_matrix",
+    "sm_family_yukawa_collision_with_higgs_kick",
+    "sm_fermion_higgs_backreaction_diagnostics",
     "sm_free_dirac_internal_step",
     "sm_coupled_higgs_gauge_hamiltonian_density",
     "sm_coupled_higgs_gauge_leapfrog_step",
@@ -393,6 +411,8 @@ __all__ = [
     "sm_pure_gauge_higgs_links_from_site_algebra",
     "sm_quark_antiquark_mass_residual",
     "sm_site_gauge_from_algebra",
+    "sm_site_theta_from_higgs_site_theta",
+    "sm_transform_family_state",
     "sm_transform_links",
     "sm_transform_higgs_field",
     "sm_transform_higgs_links",
@@ -404,6 +424,10 @@ __all__ = [
     "sm_yukawa_hermitian_residual",
     "sm_yukawa_internal_matrix",
     "sm_yukawa_commutator_cp_trace",
+    "sm_yukawa_energy_density",
+    "sm_yukawa_energy_local_density",
+    "sm_yukawa_higgs_force",
+    "sm_yukawa_site_gauge_from_higgs_site_theta",
     "static_sm_gauge_diagnostics",
     "small_k_dirac_speed_error",
     "small_k_weyl_speed_error",

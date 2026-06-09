@@ -318,3 +318,35 @@ Verdict:
 ```text
 QCA_SMV0_STAGE9_GAUGE_HIGGS_BACKREACTION_PASS
 ```
+
+## Stage 10 - Local Fermion/Higgs Backreaction
+
+Pass only if:
+
+- the only upstream runtime imports are from `sim` and local `qca_smv0`
+  modules;
+- the local source uses the same three-family Yukawa matrix as Stage 7;
+- the local Yukawa energy density is
+  `E_Y=Re psi^dagger beta Y(H) psi`;
+- the Higgs source is the complex-field force `-dE_Y/dH*`, computed from
+  real/imaginary automatic differentiation;
+- zero fermion state gives zero Higgs source;
+- a deterministic Yukawa bilinear source gives nonzero Higgs force;
+- the local Yukawa-door gauge convention is explicit: the source covariance
+  audit uses physical right-handed electroweak hypercharges for the Yukawa
+  doors, while the Stage 2 transport carrier remains the left-handed conjugate
+  chiral-16 convention;
+- Yukawa energy is invariant under the local Yukawa-door electroweak gauge;
+- the Higgs source transforms covariantly under the same gauge;
+- the Higgs momentum kick is reversible under `step_size -> -step_size`;
+- the collision-plus-kick wrapper preserves fermion norm to float32 precision;
+- the source and kick are JIT-compatible;
+- no BCC streaming fermion current, full gauge-link fermion backreaction,
+  quantized scalar register, boundary rule, or derivation of the Yukawa inputs
+  is introduced.
+
+Verdict:
+
+```text
+QCA_SMV0_STAGE10_FERMION_HIGGS_BACKREACTION_PASS
+```

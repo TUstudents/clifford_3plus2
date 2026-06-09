@@ -78,7 +78,7 @@ physics policy.
 **Boundary**: BCC Weyl/Dirac kernels, BCC plaquettes, Wilson observables, and
 SO(2)/SU(2)/SU(3) force policy remain in `spacetime_qca`.
 
-## qca_smv0 — Stage 9 gauge-Higgs backreaction
+## qca_smv0 — Stage 10 local fermion/Higgs backreaction
 
 **Goal**: focused simulator sidecar for the next Standard-Model QCA prototype,
 using the shared `sim` infrastructure and local `qca_smv0` kernels only.
@@ -187,11 +187,23 @@ using the shared `sim` infrastructure and local `qca_smv0` kernels only.
 - Coupled no-fermion Higgs/gauge leapfrog with link-unitarity, reversibility,
   small Hamiltonian-drift, and JIT audits.
 - Session 09 script and focused tests.
+- Local Yukawa energy density `E_Y=Re psi^dagger beta Y(H) psi` from the same
+  Stage 7 three-family Yukawa matrix used by the collision.
+- Higgs source force `-dE_Y/dH*` from real/imaginary automatic differentiation.
+- Deterministic fermion source state with nonzero Yukawa bilinears.
+- Zero-state and nonzero-source controls.
+- Explicit local Yukawa-door electroweak gauge convention using physical
+  right-handed hypercharges for the covariance audit.
+- Yukawa energy gauge-invariance and Higgs-source covariance checks in that
+  local door convention.
+- Reversible Higgs-momentum source kick and local collision-plus-kick wrapper.
+- Fermion norm, source-after-collision, and JIT audits.
+- Session 10 script and focused tests.
 
-**Boundary**: no boundary condition, fermion backreaction into gauge/Higgs
-momenta, quantized scalar registers, full dynamic SM gauge update sourced by
-both Higgs and fermion currents in the 12-generator carrier, or derivation of
-the flavor/Higgs inputs is implemented yet. FN charges, `lambda`, order-one
+**Boundary**: no boundary condition, BCC streaming fermion current on gauge
+links, quantized scalar registers, full dynamic SM gauge update sourced by both
+Higgs and fermion currents in the 12-generator carrier, or derivation of the
+flavor/Higgs inputs is implemented yet. FN charges, `lambda`, order-one
 coefficients, center-power matrices, placeholder lepton matrices, and Higgs
 potential parameters are explicit simulator inputs rather than BCC-bulk
 derivations.
