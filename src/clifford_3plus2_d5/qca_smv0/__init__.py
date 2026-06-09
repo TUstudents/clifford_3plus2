@@ -339,10 +339,20 @@ from clifford_3plus2_d5.qca_smv0.sm_physical_right_production_tick import (
     sm_physical_right_production_sm_tick,
     sm_physical_right_production_tick_diagnostics,
 )
+from clifford_3plus2_d5.qca_smv0.sm_physical_right_production_rollout import (
+    PhysicalRightProductionRolloutDiagnostics,
+    PhysicalRightProductionRolloutState,
+    sm_physical_right_production_initial_state,
+    sm_physical_right_production_observables,
+    sm_physical_right_production_recorded_rollout,
+    sm_physical_right_production_rollout,
+    sm_physical_right_production_rollout_diagnostics,
+    sm_physical_right_production_step,
+)
 
 SIDECAR_NAME = "qca_smv0"
 SIDECAR_TITLE = "QCA_SMv0"
-SIDECAR_STATUS = "Stage 21 physical-right production tick implemented"
+SIDECAR_STATUS = "Stage 22 physical-right production rollout implemented"
 
 __all__ = [
     "BCC_ANISOTROPY_DIRECTIONS",
@@ -397,6 +407,8 @@ __all__ = [
     "HiggsDynamicsDiagnostics",
     "HiggsDynamicsParameters",
     "PhysicalRightCurrentDiagnostics",
+    "PhysicalRightProductionRolloutDiagnostics",
+    "PhysicalRightProductionRolloutState",
     "PhysicalRightProductionSMTickDiagnostics",
     "PhysicalRightSourcedSMTickDiagnostics",
     "PhysicalRightTransportDiagnostics",
@@ -589,8 +601,14 @@ __all__ = [
     "sm_physical_right_link_unitarity_residual",
     "sm_physical_right_links_from_transport",
     "sm_physical_right_project_to_coordinates",
+    "sm_physical_right_production_initial_state",
+    "sm_physical_right_production_observables",
+    "sm_physical_right_production_recorded_rollout",
+    "sm_physical_right_production_rollout",
+    "sm_physical_right_production_rollout_diagnostics",
     "sm_physical_right_production_higgs_force",
     "sm_physical_right_production_sm_tick",
+    "sm_physical_right_production_step",
     "sm_physical_right_production_tick_diagnostics",
     "sm_physical_right_site_gauge_from_algebra",
     "sm_physical_right_sourced_gauss_constraint",

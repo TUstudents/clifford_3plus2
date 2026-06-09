@@ -22,7 +22,7 @@ It should not be used for:
 
 ## Current State
 
-Stage 21 implements the free BCC Weyl/Dirac bulk walk, static
+Stage 22 implements the free BCC Weyl/Dirac bulk walk, static
 Standard-Model gauge-background transport, pure dynamic SM gauge fields, and a
 site-local Higgs/Yukawa collision, finite-path FN recirculation, and
 center-holonomy CP coefficients, a three-family Higgs/Yukawa collision, and
@@ -31,7 +31,7 @@ backreaction, plus BCC streaming fermion gauge currents, the merged
 family-production tick, the gauge-convention bridge audit, and the
 antiunitary singlet bridge, physical-right bridged transport, and the
 physical-right bridged fermion current, sourced gauge tick, and production
-tick:
+tick, plus sparse recorded rollout of that production tick:
 
 ```text
 qca_smv0/
@@ -58,6 +58,7 @@ qca_smv0/
   sm_physical_right_current.py
   sm_physical_right_sourced_tick.py
   sm_physical_right_production_tick.py
+  sm_physical_right_production_rollout.py
   scripts/
     session_01_bare_bcc_walk.py
     session_02_static_sm_gauge_background.py
@@ -80,6 +81,7 @@ qca_smv0/
     session_19_physical_right_current.py
     session_20_physical_right_sourced_tick.py
     session_21_physical_right_production_tick.py
+    session_22_physical_right_production_rollout.py
   tests/
     test_bulk_bcc.py
     test_sm_gauge.py
@@ -100,6 +102,7 @@ qca_smv0/
     test_sm_physical_right_current.py
     test_sm_physical_right_sourced_tick.py
     test_sm_physical_right_production_tick.py
+    test_sm_physical_right_production_rollout.py
 ```
 
 The implemented Weyl kernel is a two-component periodic BCC bulk walk:
@@ -535,6 +538,25 @@ Stage 21 verdict:
 QCA_SMV0_STAGE21_PHYSICAL_RIGHT_PRODUCTION_TICK_PASS
 ```
 
+Stage 22 wraps the Stage 21 physical-right production tick in the shared
+`sim.runner` sparse-recorded rollout interface:
+
+- `PhysicalRightProductionRolloutState` carries family fermions, Higgs fields,
+  SM links/momenta, and Higgs-representation links as one rollout state;
+- one-step rollout matches the direct Stage 21 tick;
+- loop and scan recorded runners agree to float32 precision;
+- sparse observations record family norm, Higgs norms, momentum norms, and
+  SM/Higgs link unitarity;
+- multi-tick rollout keeps family norm and link unitarity controlled;
+- zero-Yukawa rollout remains distinguishable from the default production
+  rollout, so the local production source stays active under iteration.
+
+Stage 22 verdict:
+
+```text
+QCA_SMV0_STAGE22_PHYSICAL_RIGHT_PRODUCTION_ROLLOUT_PASS
+```
+
 The charges, `lambda`, order-one coefficients, and center-power matrices are
 simulator inputs, not BCC-bulk derivations. Quantized scalar/gauge registers,
 boundary rules, microscopic derivation of the bridge, and derivation of the
@@ -580,5 +602,6 @@ uv run python -m clifford_3plus2_d5.qca_smv0.scripts.session_18_physical_right_t
 uv run python -m clifford_3plus2_d5.qca_smv0.scripts.session_19_physical_right_current
 uv run python -m clifford_3plus2_d5.qca_smv0.scripts.session_20_physical_right_sourced_tick
 uv run python -m clifford_3plus2_d5.qca_smv0.scripts.session_21_physical_right_production_tick
+uv run python -m clifford_3plus2_d5.qca_smv0.scripts.session_22_physical_right_production_rollout
 uv run pytest src/clifford_3plus2_d5/qca_smv0/tests -q
 ```

@@ -78,7 +78,7 @@ physics policy.
 **Boundary**: BCC Weyl/Dirac kernels, BCC plaquettes, Wilson observables, and
 SO(2)/SU(2)/SU(3) force policy remain in `spacetime_qca`.
 
-## qca_smv0 — Stage 21 physical-right production tick
+## qca_smv0 — Stage 22 physical-right production rollout
 
 **Goal**: focused simulator sidecar for the next Standard-Model QCA prototype,
 using the shared `sim` infrastructure and local `qca_smv0` kernels only.
@@ -334,6 +334,16 @@ using the shared `sim` infrastructure and local `qca_smv0` kernels only.
 - Nontrivial state difference from the Stage 15 transport-convention production
   tick.
 - Session 21 script and focused tests.
+- Physical-right production rollout state carrying family fermions, Higgs
+  fields/momenta, SM links and momenta, and Higgs-representation links.
+- Direct final-state rollout and sparse recorded rollout through the shared
+  `sim.runner` loop/scan interface.
+- One-step direct-tick agreement and loop/scan agreement audits.
+- Recorded observables for family norm, Higgs norm, Higgs momentum norm, SM
+  momentum norm, and SM/Higgs link-unitarity residuals.
+- Multi-tick family-norm drift, link-unitarity, finite-observable, and
+  zero-Yukawa difference controls.
+- Session 22 script and focused tests.
 
 **Boundary**: no boundary condition, quantized scalar/gauge registers, full
 microscopic BCC derivation of the antiunitary bridge, or derivation of the

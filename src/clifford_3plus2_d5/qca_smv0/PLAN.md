@@ -748,3 +748,32 @@ Verdict:
 ```text
 QCA_SMV0_STAGE21_PHYSICAL_RIGHT_PRODUCTION_TICK_PASS
 ```
+
+## Stage 22 - Physical-Right Production Rollout
+
+Pass only if:
+
+- the only upstream runtime imports are from `sim` and local `qca_smv0`
+  modules;
+- the Stage 21 physical-right production tick is wrapped as one explicit
+  rollout state carrying family fermions, Higgs fields/momenta, SM links and
+  momenta, and Higgs-representation links;
+- one-step rollout agrees with a direct Stage 21 tick to float32 precision;
+- sparse observations are recorded through the shared `sim.runner`
+  loop/scan interface, not a sidecar-specific recording scheme;
+- loop and scan recorded rollouts agree;
+- recorded observables include family norm, Higgs norm, Higgs momentum norm,
+  SM momentum norm, and SM/Higgs link-unitarity residuals;
+- the multi-tick rollout keeps family norm drift and SM/Higgs link unitarity
+  controlled on the deterministic small certificate state;
+- the default production rollout remains distinguishable from a zero-Yukawa
+  rollout, so production is active under iteration;
+- all recorded states and observables are finite;
+- no boundary rule, quantized register, performance benchmark, or derivation
+  of simulator inputs is introduced.
+
+Verdict:
+
+```text
+QCA_SMV0_STAGE22_PHYSICAL_RIGHT_PRODUCTION_ROLLOUT_PASS
+```
