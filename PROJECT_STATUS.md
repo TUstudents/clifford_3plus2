@@ -78,7 +78,7 @@ physics policy.
 **Boundary**: BCC Weyl/Dirac kernels, BCC plaquettes, Wilson observables, and
 SO(2)/SU(2)/SU(3) force policy remain in `spacetime_qca`.
 
-## qca_smv0 — Stage 24 physical-right production energy monitor
+## qca_smv0 — Stage 25 physical-right production variational audit
 
 **Goal**: focused simulator sidecar for the next Standard-Model QCA prototype,
 using the shared `sim` infrastructure and local `qca_smv0` kernels only.
@@ -359,6 +359,15 @@ using the shared `sim` infrastructure and local `qca_smv0` kernels only.
 - Deterministic component-energy history and default-vs-zero-Yukawa
   monitored-total-energy contrast.
 - Session 24 script and focused tests.
+- Higgs force normalization repaired so the production Higgs force is the
+  `-dE/dphi*` force of the monitored Higgs Hamiltonian density plus local
+  Yukawa energy.
+- Variational audit of the physical-right production forces: exact
+  link/Higgs-force decomposition checks, one selected color-link
+  finite-difference check, one selected complex Higgs-component
+  finite-difference check, vacuum force controls, and deterministic
+  nonzero-force controls.
+- Session 25 script and focused tests.
 
 **Boundary**: no boundary condition, quantized scalar/gauge registers, full
 microscopic BCC derivation of the antiunitary bridge, Gauss projection, exact

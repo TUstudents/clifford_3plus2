@@ -836,3 +836,34 @@ Verdict:
 ```text
 QCA_SMV0_STAGE24_PHYSICAL_RIGHT_PRODUCTION_ENERGY_PASS
 ```
+
+## Stage 25 - Physical-Right Production Variational Audit
+
+Pass only if:
+
+- the only upstream runtime imports are from `sim` and local `qca_smv0`
+  modules;
+- the production Higgs force is normalized as `-dE/dphi*` for the Stage 24
+  Higgs Hamiltonian density plus local Yukawa energy;
+- the physical-right sourced link force decomposes exactly into Wilson force,
+  embedded Higgs gauge force, and physical-right family current;
+- the physical-right production Higgs force decomposes exactly into Higgs
+  Hamiltonian force and local Yukawa Higgs source;
+- a selected color-link coordinate agrees with a central finite difference of
+  the Wilson plus physical-right streaming energy;
+- a selected complex Higgs component agrees with real and imaginary central
+  finite differences of the Higgs plus Yukawa energy using the
+  `force=-dE/dphi*` convention;
+- the zero-source production vacuum has negligible link and Higgs force norms;
+- deterministic nonzero production fields have nonzero link and Higgs force
+  norms;
+- all variational residuals are finite;
+- no new dynamics, boundary rule, conservation claim, Gauss projection,
+  quantized register, performance benchmark, or derivation of simulator inputs
+  is introduced.
+
+Verdict:
+
+```text
+QCA_SMV0_STAGE25_PHYSICAL_RIGHT_PRODUCTION_VARIATIONAL_PASS
+```

@@ -22,7 +22,7 @@ It should not be used for:
 
 ## Current State
 
-Stage 24 implements the free BCC Weyl/Dirac bulk walk, static
+Stage 25 implements the free BCC Weyl/Dirac bulk walk, static
 Standard-Model gauge-background transport, pure dynamic SM gauge fields, and a
 site-local Higgs/Yukawa collision, finite-path FN recirculation, and
 center-holonomy CP coefficients, a three-family Higgs/Yukawa collision, and
@@ -32,7 +32,8 @@ family-production tick, the gauge-convention bridge audit, and the
 antiunitary singlet bridge, physical-right bridged transport, and the
 physical-right bridged fermion current, sourced gauge tick, and production
 tick, sparse recorded rollout of that production tick, a physical-right Gauss
-monitor on the production rollout, and an energy-component monitor:
+monitor on the production rollout, an energy-component monitor, and a
+variational force-provenance audit:
 
 ```text
 qca_smv0/
@@ -62,6 +63,7 @@ qca_smv0/
   sm_physical_right_production_rollout.py
   sm_physical_right_production_gauss.py
   sm_physical_right_production_energy.py
+  sm_physical_right_production_variational.py
   scripts/
     session_01_bare_bcc_walk.py
     session_02_static_sm_gauge_background.py
@@ -87,6 +89,7 @@ qca_smv0/
     session_22_physical_right_production_rollout.py
     session_23_physical_right_production_gauss.py
     session_24_physical_right_production_energy.py
+    session_25_physical_right_production_variational.py
   tests/
     test_bulk_bcc.py
     test_sm_gauge.py
@@ -110,6 +113,7 @@ qca_smv0/
     test_sm_physical_right_production_rollout.py
     test_sm_physical_right_production_gauss.py
     test_sm_physical_right_production_energy.py
+    test_sm_physical_right_production_variational.py
 ```
 
 The implemented Weyl kernel is a two-component periodic BCC bulk walk:
@@ -601,6 +605,27 @@ Stage 24 verdict:
 QCA_SMV0_STAGE24_PHYSICAL_RIGHT_PRODUCTION_ENERGY_PASS
 ```
 
+Stage 25 adds a variational audit for the physical-right production forces:
+
+- normalizes the Higgs force as `-dE/dphi*` for the Stage 24 Higgs
+  Hamiltonian density;
+- checks exact decomposition of the sourced link force into Wilson force,
+  embedded Higgs gauge force, and physical-right family current;
+- checks exact decomposition of the production Higgs force into Higgs
+  Hamiltonian force plus local Yukawa Higgs source;
+- compares one color-link coordinate against a central finite difference of
+  the Wilson plus physical-right streaming energy;
+- compares one complex Higgs component against real and imaginary central
+  finite differences of the Higgs plus Yukawa energy;
+- keeps zero-source vacuum force controls and deterministic nonzero-force
+  controls.
+
+Stage 25 verdict:
+
+```text
+QCA_SMV0_STAGE25_PHYSICAL_RIGHT_PRODUCTION_VARIATIONAL_PASS
+```
+
 The charges, `lambda`, order-one coefficients, and center-power matrices are
 simulator inputs, not BCC-bulk derivations. Quantized scalar/gauge registers,
 boundary rules, microscopic derivation of the bridge, and derivation of the
@@ -649,5 +674,6 @@ uv run python -m clifford_3plus2_d5.qca_smv0.scripts.session_21_physical_right_p
 uv run python -m clifford_3plus2_d5.qca_smv0.scripts.session_22_physical_right_production_rollout
 uv run python -m clifford_3plus2_d5.qca_smv0.scripts.session_23_physical_right_production_gauss
 uv run python -m clifford_3plus2_d5.qca_smv0.scripts.session_24_physical_right_production_energy
+uv run python -m clifford_3plus2_d5.qca_smv0.scripts.session_25_physical_right_production_variational
 uv run pytest src/clifford_3plus2_d5/qca_smv0/tests -q
 ```

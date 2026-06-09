@@ -363,10 +363,18 @@ from clifford_3plus2_d5.qca_smv0.sm_physical_right_production_energy import (
     sm_physical_right_production_energy_history,
     sm_physical_right_production_energy_observables,
 )
+from clifford_3plus2_d5.qca_smv0.sm_physical_right_production_variational import (
+    PhysicalRightProductionVariationalDiagnostics,
+    sm_physical_right_production_higgs_directional_derivative_residuals,
+    sm_physical_right_production_higgs_force_decomposition_residual,
+    sm_physical_right_production_link_directional_derivative_residual,
+    sm_physical_right_production_link_force_decomposition_residual,
+    sm_physical_right_production_variational_diagnostics,
+)
 
 SIDECAR_NAME = "qca_smv0"
 SIDECAR_TITLE = "QCA_SMv0"
-SIDECAR_STATUS = "Stage 24 physical-right production energy monitor implemented"
+SIDECAR_STATUS = "Stage 25 physical-right production variational audit implemented"
 
 __all__ = [
     "BCC_ANISOTROPY_DIRECTIONS",
@@ -426,6 +434,7 @@ __all__ = [
     "PhysicalRightProductionRolloutDiagnostics",
     "PhysicalRightProductionRolloutState",
     "PhysicalRightProductionSMTickDiagnostics",
+    "PhysicalRightProductionVariationalDiagnostics",
     "PhysicalRightSourcedSMTickDiagnostics",
     "PhysicalRightTransportDiagnostics",
     "SourcedSMTickDiagnostics",
@@ -630,9 +639,14 @@ __all__ = [
     "sm_physical_right_production_rollout",
     "sm_physical_right_production_rollout_diagnostics",
     "sm_physical_right_production_higgs_force",
+    "sm_physical_right_production_higgs_directional_derivative_residuals",
+    "sm_physical_right_production_higgs_force_decomposition_residual",
+    "sm_physical_right_production_link_directional_derivative_residual",
+    "sm_physical_right_production_link_force_decomposition_residual",
     "sm_physical_right_production_sm_tick",
     "sm_physical_right_production_step",
     "sm_physical_right_production_tick_diagnostics",
+    "sm_physical_right_production_variational_diagnostics",
     "sm_physical_right_production_vacuum_state",
     "sm_physical_right_site_gauge_from_algebra",
     "sm_physical_right_sourced_gauss_constraint",

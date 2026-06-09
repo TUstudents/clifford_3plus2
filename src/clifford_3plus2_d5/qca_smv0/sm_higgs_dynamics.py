@@ -282,9 +282,16 @@ def sm_higgs_force(
 
     lattice_shape = _validate_higgs_field(field)
     _validate_higgs_links(links, lattice_shape)
+    site_count = jnp.asarray(field.shape[0] * field.shape[1] * field.shape[2], dtype=field.real.dtype)
     norm_sq = jnp.real(jnp.sum(jnp.conj(field) * field, axis=-1, keepdims=True))
     target = jnp.asarray(parameters.vev * parameters.vev / 2.0, dtype=norm_sq.dtype)
-    potential_force = -2.0 * jnp.asarray(parameters.quartic, dtype=norm_sq.dtype) * (norm_sq - target) * field
+    potential_force = (
+        -2.0
+        * jnp.asarray(parameters.quartic, dtype=norm_sq.dtype)
+        * (norm_sq - target)
+        * field
+        / site_count
+    )
 
     target_sum = jnp.zeros_like(field)
     source_sum = jnp.zeros_like(field)
@@ -299,9 +306,9 @@ def sm_higgs_force(
         source_diff = jnp.einsum("...ab,...b->...a", link_at_target, field) - target_field
         source_sum = source_sum + jnp.einsum("...ba,...b->...a", jnp.conj(link_at_target), source_diff)
 
-    grad_derivative = jnp.asarray(parameters.gradient_coupling / len(BCC_DISPLACEMENTS), dtype=field.real.dtype) * (
+    grad_derivative = jnp.asarray(0.5 * parameters.gradient_coupling, dtype=field.real.dtype) * (
         target_sum + source_sum
-    )
+    ) / site_count
     return potential_force - grad_derivative
 
 

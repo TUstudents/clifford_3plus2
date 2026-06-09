@@ -3,12 +3,12 @@
 ## Verdict
 
 ```text
-QCA_SMV0_STAGE24_PHYSICAL_RIGHT_PRODUCTION_ENERGY_PASS
+QCA_SMV0_STAGE25_PHYSICAL_RIGHT_PRODUCTION_VARIATIONAL_PASS
 ```
 
 ## Current State
 
-Stage 24 physical-right production energy monitor implemented on top of the Stage 1
+Stage 25 physical-right production variational audit implemented on top of the Stage 1
 free BCC Weyl/Dirac walk, Stage 2 static gauge transport, Stage 3 pure dynamic
 gauge fields, Stage 4 local Higgs/Yukawa collision, Stage 5 FN recirculation,
 Stage 6 center-holonomy CP, Stage 7 three-family Higgs/Yukawa collision, and
@@ -317,6 +317,19 @@ Implemented:
 - default-vs-zero-Yukawa monitored-total-energy contrast;
 - monitored rollout family-norm control;
 - Session 24 script;
+- repaired Higgs force normalization so `sm_higgs_force` is the
+  `-dE/dphi*` force of the monitored Higgs Hamiltonian density;
+- physical-right production variational audit for force provenance;
+- exact sourced-link force decomposition into Wilson force, embedded Higgs
+  gauge force, and physical-right family current;
+- exact production-Higgs force decomposition into Higgs Hamiltonian force plus
+  local Yukawa Higgs source;
+- selected color-link central-difference check against Wilson plus
+  physical-right streaming energy;
+- selected complex Higgs-field central-difference check against Higgs plus
+  Yukawa energy;
+- zero-source vacuum force controls and deterministic nonzero-force controls;
+- Session 25 script;
 - focused tests for algebra, norm preservation, local gauge covariance, Wilson
   response, weak-link scaling, pure-gauge dynamics, Gauss covariance and
   preservation, weak-field Yang-Mills behavior, Higgs/Yukawa door structure,
@@ -329,8 +342,8 @@ Implemented:
   singlet bridge, physical-right bridged transport, physical-right bridged
   fermion current, physical-right sourced gauge tick, physical-right production
   tick, physical-right production rollout, physical-right production Gauss
-  monitor, physical-right production energy monitor, JIT compatibility, and
-  small-momentum Weyl/Dirac behavior.
+  monitor, physical-right production energy monitor, physical-right production
+  variational audit, JIT compatibility, and small-momentum Weyl/Dirac behavior.
 
 Not implemented:
 
@@ -343,7 +356,7 @@ Not implemented:
 - Gauss projection / constraint-solving dynamics;
 - exact conservation claim for the full hybrid production energy monitor;
 - performance profiles beyond the small
-  Session 01/02/03/04/05/06/07/08/09/10/11/12/13/14/15/16/17/18/19/20/21/22/23/24 diagnostics.
+  Session 01/02/03/04/05/06/07/08/09/10/11/12/13/14/15/16/17/18/19/20/21/22/23/24/25 diagnostics.
 
 ## Working Boundary
 
