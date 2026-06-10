@@ -1090,3 +1090,30 @@ Verdict:
 ```text
 QCA_SMV0_STAGE33_PHYSICAL_RIGHT_PRODUCTION_ECHO_GRAM_SCALE_PASS
 ```
+
+## Stage 34 - Physical-Right Production Echo Horizon
+
+Pass only if:
+
+- the only upstream runtime imports are from `sim` and local `qca_smv0`
+  modules;
+- the Stage 32 echo-Gram diagnostic is evaluated at two trajectory horizons,
+  one production tick and two production ticks;
+- inverse-pulled echo gains are finite, nonzero, and bounded at both
+  horizons;
+- gain growth between horizons remains controlled on the certificate
+  trajectory;
+- dimensionless Gram data, including condition number and off-diagonal
+  correlation, remain controlled between horizons;
+- both base roundtrips and all inverse-pulled links remain controlled;
+- the result is documented as a finite-horizon stability diagnostic for the
+  current discrete production map, not as a continuum Lyapunov theorem, new
+  dynamics rule, energy-conservation claim, timestep-convergence claim,
+  boundary rule, Gauss projection, quantized register, performance benchmark,
+  or microscopic-input derivation.
+
+Verdict:
+
+```text
+QCA_SMV0_STAGE34_PHYSICAL_RIGHT_PRODUCTION_ECHO_HORIZON_PASS
+```

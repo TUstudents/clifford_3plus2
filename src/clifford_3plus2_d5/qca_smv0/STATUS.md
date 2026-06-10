@@ -3,12 +3,12 @@
 ## Verdict
 
 ```text
-QCA_SMV0_STAGE33_PHYSICAL_RIGHT_PRODUCTION_ECHO_GRAM_SCALE_PASS
+QCA_SMV0_STAGE34_PHYSICAL_RIGHT_PRODUCTION_ECHO_HORIZON_PASS
 ```
 
 ## Current State
 
-Stage 33 physical-right production echo-Gram scale stability implemented on top of the Stage 1
+Stage 34 physical-right production echo horizon implemented on top of the Stage 1
 free BCC Weyl/Dirac walk, Stage 2 static gauge transport, Stage 3 pure dynamic
 gauge fields, Stage 4 local Higgs/Yukawa collision, Stage 5 FN recirculation,
 Stage 6 center-holonomy CP, Stage 7 three-family Higgs/Yukawa collision, and
@@ -26,7 +26,8 @@ production energy monitor, Stage 25 variational force audit, Stage 26
 refinement limitation audit, Stage 27 adjoint limitation audit, and Stage 28
 explicit inverse helper, Stage 29 trajectory reversibility audit, and Stage 30
 Loschmidt echo diagnostic, Stage 31 tangent echo audit, and Stage 32 echo Gram
-audit.
+audit, Stage 33 echo-Gram scale-stability audit, and Stage 34 finite-horizon
+echo-spectrum audit.
 
 Implemented:
 
@@ -414,6 +415,16 @@ Implemented:
 - explicit boundary: the scale audit is finite-difference evidence for the
   current diagnostic regime, not a continuum stability theorem;
 - Session 33 script;
+- finite-horizon echo-spectrum audit comparing one-tick and two-tick production
+  trajectories;
+- echo gains derived from the Stage 32 Gram eigenvalues at both horizons;
+- bounded finite-horizon gain growth on the certificate trajectory;
+- dimensionless stability checks for Gram condition number and off-diagonal
+  correlations across horizons;
+- base-roundtrip and inverse-pulled link-unitarity controls at both horizons;
+- explicit boundary: the horizon audit is a finite diagnostic for the current
+  discrete production map, not a continuum Lyapunov theorem;
+- Session 34 script;
 - focused tests for algebra, norm preservation, local gauge covariance, Wilson
   response, weak-link scaling, pure-gauge dynamics, Gauss covariance and
   preservation, weak-field Yang-Mills behavior, Higgs/Yukawa door structure,
@@ -433,7 +444,7 @@ Implemented:
   trajectory reversibility audit, physical-right production Loschmidt echo
   audit, physical-right production tangent echo audit, physical-right
   production echo Gram audit, physical-right production echo-Gram scale audit,
-  and
+  physical-right production echo horizon audit, and
   small-momentum Weyl/Dirac behavior.
 
 Not implemented:
@@ -451,7 +462,7 @@ Not implemented:
 - energy-conserving or timestep-convergent reversible integrator claim for the
   current hybrid production tick beyond the explicit inverse helper;
 - performance profiles beyond the small
-  Session 01/02/03/04/05/06/07/08/09/10/11/12/13/14/15/16/17/18/19/20/21/22/23/24/25/26/27/28/29/30/31/32/33 diagnostics.
+  Session 01/02/03/04/05/06/07/08/09/10/11/12/13/14/15/16/17/18/19/20/21/22/23/24/25/26/27/28/29/30/31/32/33/34 diagnostics.
 
 ## Working Boundary
 

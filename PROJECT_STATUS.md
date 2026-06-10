@@ -78,7 +78,7 @@ physics policy.
 **Boundary**: BCC Weyl/Dirac kernels, BCC plaquettes, Wilson observables, and
 SO(2)/SU(2)/SU(3) force policy remain in `spacetime_qca`.
 
-## qca_smv0 — Stage 33 physical-right production echo-Gram scale stability
+## qca_smv0 — Stage 34 physical-right production echo horizon
 
 **Goal**: focused simulator sidecar for the next Standard-Model QCA prototype,
 using the shared `sim` infrastructure and local `qca_smv0` kernels only.
@@ -430,12 +430,20 @@ using the shared `sim` infrastructure and local `qca_smv0` kernels only.
 - Dimensionless Gram data, including condition number and off-diagonal
   correlation, remain stable across the two perturbation sizes.
 - Session 33 script and focused tests.
+- Finite-horizon echo-spectrum audit comparing one-tick and two-tick production
+  trajectories.
+- Echo gains derived from Gram eigenvalues remain finite, nonzero, and locally
+  bounded across the two horizons.
+- Condition number, off-diagonal correlations, base roundtrips, and
+  inverse-pulled link unitarity remain controlled across horizons.
+- Session 34 script and focused tests.
 
 **Boundary**: no boundary condition, quantized scalar/gauge registers, full
 microscopic BCC derivation of the antiunitary bridge, Gauss projection, exact
 full-energy conservation claim, timestep-refined energy-convergence claim, or
 energy-convergent reversible-integrator claim beyond the explicit inverse
-helper is implemented yet.  The derivation of the flavor/Higgs inputs is also
+helper, or continuum Lyapunov claim is implemented yet.  The derivation of the
+flavor/Higgs inputs is also
 not implemented: FN charges, `lambda`, order-one coefficients, center-power
 matrices, placeholder lepton matrices, and Higgs potential parameters are
 explicit simulator inputs rather than BCC-bulk derivations.
