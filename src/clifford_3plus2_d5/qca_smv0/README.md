@@ -22,7 +22,7 @@ It should not be used for:
 
 ## Current State
 
-Stage 44 implements the free BCC Weyl/Dirac bulk walk, static
+Stage 45 implements the free BCC Weyl/Dirac bulk walk, static
 Standard-Model gauge-background transport, pure dynamic SM gauge fields, and a
 site-local Higgs/Yukawa collision, finite-path FN recirculation, and
 center-holonomy CP coefficients, a three-family Higgs/Yukawa collision, and
@@ -43,7 +43,7 @@ physical-right fermion-current replacement, and a local-force production
 rollout smoke test, a multi-step local-force recorded-rollout audit, a
 local-force production profiling certificate, a numerical local-force
 spatial-support audit, a one-tick full-production spatial-support audit, and a
-three-tick family-cone audit:
+three-tick family-cone audit, and a two-tick all-sector cone audit:
 
 ```text
 qca_smv0/
@@ -93,6 +93,7 @@ qca_smv0/
   sm_physical_right_production_local_current.py
   sm_physical_right_production_spatial_support.py
   sm_physical_right_production_cone.py
+  sm_physical_right_production_sector_cones.py
   scripts/
     session_01_bare_bcc_walk.py
     session_02_static_sm_gauge_background.py
@@ -138,6 +139,7 @@ qca_smv0/
     session_42_physical_right_production_local_current.py
     session_43_physical_right_production_spatial_support.py
     session_44_physical_right_production_cone.py
+    session_45_physical_right_production_sector_cones.py
   tests/
     test_bulk_bcc.py
     test_sm_gauge.py
@@ -1052,6 +1054,26 @@ Stage 44 verdict:
 QCA_SMV0_STAGE44_PHYSICAL_RIGHT_PRODUCTION_CONE_PASS
 ```
 
+Stage 45 measures two-tick cone support for every production sector:
+
+- perturbs family state, Higgs field, Higgs momentum, SM link, SM momentum, and
+  Higgs link independently on a `5 x 5 x 5` periodic lattice;
+- runs the full physical-right production map for two ticks for every
+  perturbation;
+- records support radii `(2, 1, 0, 0, 0, 1)` for
+  `(family, Higgs, Higgs momentum, SM link, SM momentum, Higgs link)`;
+- records support counts `(22, 9, 1, 1, 1, 2)`;
+- detects zero support outside the two-step cone;
+- treats the result as a finite-horizon all-sector cone audit, not as a
+  continuum light-cone theorem, performance benchmark, or exact
+  energy-conservation theorem.
+
+Stage 45 verdict:
+
+```text
+QCA_SMV0_STAGE45_PHYSICAL_RIGHT_PRODUCTION_SECTOR_CONES_PASS
+```
+
 The charges, `lambda`, order-one coefficients, and center-power matrices are
 simulator inputs, not BCC-bulk derivations. Quantized scalar/gauge registers,
 boundary rules, microscopic derivation of the bridge, and derivation of the
@@ -1120,5 +1142,6 @@ uv run python -m clifford_3plus2_d5.qca_smv0.scripts.session_41_physical_right_p
 uv run python -m clifford_3plus2_d5.qca_smv0.scripts.session_42_physical_right_production_local_current
 uv run python -m clifford_3plus2_d5.qca_smv0.scripts.session_43_physical_right_production_spatial_support
 uv run python -m clifford_3plus2_d5.qca_smv0.scripts.session_44_physical_right_production_cone
+uv run python -m clifford_3plus2_d5.qca_smv0.scripts.session_45_physical_right_production_sector_cones
 uv run pytest src/clifford_3plus2_d5/qca_smv0/tests -q
 ```

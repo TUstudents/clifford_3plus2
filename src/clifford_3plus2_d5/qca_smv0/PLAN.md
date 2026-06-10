@@ -1403,3 +1403,31 @@ Verdict:
 ```text
 QCA_SMV0_STAGE44_PHYSICAL_RIGHT_PRODUCTION_CONE_PASS
 ```
+
+## Stage 45 - Physical-Right Production All-Sector Cones
+
+Pass only if:
+
+- the only upstream runtime imports are from `sim` and local `qca_smv0`
+  modules;
+- localized perturbations are applied independently to family state, Higgs
+  field, Higgs momentum, SM link, SM momentum, and Higgs link;
+- every perturbed state is evolved by the assembled physical-right production
+  tick for two ticks on a lattice containing the two-step cone;
+- the combined per-site response is measured against the unperturbed two-tick
+  baseline for every sector;
+- every perturbation produces a finite nonzero response;
+- the maximum measured support radius over all sectors is at most the
+  two-step discrete cone radius;
+- detected support outside the two-step cone is zero within the configured
+  numerical threshold;
+- the result is documented as a finite-horizon all-sector cone support audit,
+  not as a continuum light-cone theorem, Lyapunov estimate, performance
+  benchmark, exact energy-conservation theorem, timestep-convergence theorem,
+  boundary rule, or microscopic-input derivation.
+
+Verdict:
+
+```text
+QCA_SMV0_STAGE45_PHYSICAL_RIGHT_PRODUCTION_SECTOR_CONES_PASS
+```

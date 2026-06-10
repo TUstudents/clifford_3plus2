@@ -3,12 +3,12 @@
 ## Verdict
 
 ```text
-QCA_SMV0_STAGE44_PHYSICAL_RIGHT_PRODUCTION_CONE_PASS
+QCA_SMV0_STAGE45_PHYSICAL_RIGHT_PRODUCTION_SECTOR_CONES_PASS
 ```
 
 ## Current State
 
-Stage 44 physical-right production family-cone audit implemented on top of the Stage 1
+Stage 45 physical-right production all-sector cone audit implemented on top of the Stage 1
 free BCC Weyl/Dirac walk, Stage 2 static gauge transport, Stage 3 pure dynamic
 gauge fields, Stage 4 local Higgs/Yukawa collision, Stage 5 FN recirculation,
 Stage 6 center-holonomy CP, Stage 7 three-family Higgs/Yukawa collision, and
@@ -31,8 +31,9 @@ echo-spectrum audit, Stage 35 finite-stencil locality audit, Stage 36
 dense-workload audit, Stage 37 local Wilson-force replacement, Stage 38
 local-force production-rollout smoke test, Stage 39 multi-step local-force
 recorded rollout, Stage 40 local-force production profile, Stage 41
-local-force support audit, Stage 42 local-current production replacement, and
-Stage 43 one-tick production spatial-support audit.
+local-force support audit, Stage 42 local-current production replacement,
+Stage 43 one-tick production spatial-support audit, and Stage 44 family-cone
+audit.
 
 Implemented:
 
@@ -538,6 +539,19 @@ Implemented:
   continuum light-cone theorem, Lyapunov estimate, or all-sector propagation
   theorem;
 - Session 44 script;
+- two-tick all-sector cone support audit on a `5 x 5 x 5` lattice;
+- localized perturbations applied independently to family state, Higgs field,
+  Higgs momentum, SM link, SM momentum, and Higgs link;
+- each perturbation evolved by the assembled production map for two ticks;
+- measured support radii `(2, 1, 0, 0, 0, 1)` for `(family, Higgs, Higgs
+  momentum, SM link, SM momentum, Higgs link)`;
+- support counts `(22, 9, 1, 1, 1, 2)`;
+- zero detected support outside the two-step cone;
+- explicit boundary: this is a finite-horizon all-sector cone audit, not a
+  continuum light-cone theorem, Lyapunov estimate, performance benchmark, exact
+  energy-conservation theorem, timestep-convergence theorem, boundary rule, or
+  microscopic-input derivation;
+- Session 45 script;
 - focused tests for algebra, norm preservation, local gauge covariance, Wilson
   response, weak-link scaling, pure-gauge dynamics, Gauss covariance and
   preservation, weak-field Yang-Mills behavior, Higgs/Yukawa door structure,
@@ -564,8 +578,8 @@ Implemented:
   recorded-rollout audit, physical-right production local-force profiling
   audit, physical-right production local-force support audit, physical-right
   production local-current audit, physical-right production spatial-support
-  audit, physical-right production family-cone audit, and
-  small-momentum Weyl/Dirac behavior.
+  audit, physical-right production family-cone audit, physical-right production
+  all-sector cone audit, and small-momentum Weyl/Dirac behavior.
 
 Not implemented:
 
@@ -581,7 +595,7 @@ Not implemented:
   tick;
 - energy-conserving or timestep-convergent reversible integrator claim for the
   current hybrid production tick beyond the explicit inverse helper;
-- large-lattice numerical spatial echo / causal-cone measurement for the
+- large-lattice numerical spatial echo / continuum causal-cone theorem for the
   physical-right production map;
 - performance profiles beyond the small
   Session 01/02/03/04/05/06/07/08/09/10/11/12/13/14/15/16/17/18/19/20/21/22/23/24/25/26/27/28/29/30/31/32/33/34/35/36/37/38/39/40/41 diagnostics.
