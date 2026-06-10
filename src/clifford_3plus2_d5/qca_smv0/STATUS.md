@@ -3,12 +3,12 @@
 ## Verdict
 
 ```text
-QCA_SMV0_STAGE42_PHYSICAL_RIGHT_PRODUCTION_LOCAL_CURRENT_PASS
+QCA_SMV0_STAGE43_PHYSICAL_RIGHT_PRODUCTION_SPATIAL_SUPPORT_PASS
 ```
 
 ## Current State
 
-Stage 42 physical-right production local fermion-current replacement implemented on top of the Stage 1
+Stage 43 physical-right production one-tick spatial-support audit implemented on top of the Stage 1
 free BCC Weyl/Dirac walk, Stage 2 static gauge transport, Stage 3 pure dynamic
 gauge fields, Stage 4 local Higgs/Yukawa collision, Stage 5 FN recirculation,
 Stage 6 center-holonomy CP, Stage 7 three-family Higgs/Yukawa collision, and
@@ -30,8 +30,8 @@ audit, Stage 33 echo-Gram scale-stability audit, and Stage 34 finite-horizon
 echo-spectrum audit, Stage 35 finite-stencil locality audit, Stage 36
 dense-workload audit, Stage 37 local Wilson-force replacement, Stage 38
 local-force production-rollout smoke test, Stage 39 multi-step local-force
-recorded rollout, Stage 40 local-force production profile, and Stage 41
-local-force support audit.
+recorded rollout, Stage 40 local-force production profile, Stage 41
+local-force support audit, and Stage 42 local-current production replacement.
 
 Implemented:
 
@@ -513,6 +513,19 @@ Implemented:
 - explicit boundary: this is a local-current implementation stage, not a full
   production-map large-lattice spatial echo or continuum causal-cone theorem;
 - Session 42 script;
+- one-tick spatial-support measurement of the assembled physical-right
+  production map on a `7 x 7 x 7` lattice;
+- localized perturbations applied independently to family state, Higgs field,
+  Higgs momentum, SM link, SM momentum, and Higgs link;
+- combined per-site response measured after one full production tick;
+- maximum measured support radius `1`, inside the Stage 35 conservative
+  one-tick stencil radius `2`;
+- zero detected support outside the predicted radius;
+- support counts `(8, 9, 1, 1, 1, 1)` for `(family, Higgs, Higgs momentum,
+  SM link, SM momentum, Higgs link)`;
+- explicit boundary: this is a one-tick finite-support measurement, not a
+  multi-step spatial echo or continuum causal-cone theorem;
+- Session 43 script;
 - focused tests for algebra, norm preservation, local gauge covariance, Wilson
   response, weak-link scaling, pure-gauge dynamics, Gauss covariance and
   preservation, weak-field Yang-Mills behavior, Higgs/Yukawa door structure,
@@ -538,7 +551,8 @@ Implemented:
   production local-force rollout audit, physical-right production local-force
   recorded-rollout audit, physical-right production local-force profiling
   audit, physical-right production local-force support audit, physical-right
-  production local-current audit, and
+  production local-current audit, physical-right production spatial-support
+  audit, and
   small-momentum Weyl/Dirac behavior.
 
 Not implemented:

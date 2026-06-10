@@ -1348,3 +1348,33 @@ Verdict:
 ```text
 QCA_SMV0_STAGE42_PHYSICAL_RIGHT_PRODUCTION_LOCAL_CURRENT_PASS
 ```
+
+## Stage 43 - Physical-Right Production One-Tick Spatial Support
+
+Pass only if:
+
+- the only upstream runtime imports are from `sim` and local `qca_smv0`
+  modules;
+- the assembled physical-right production tick is run on a lattice large enough
+  to contain sites outside the conservative Stage 35 one-tick stencil radius;
+- each production state sector is perturbed locally: family state, Higgs field,
+  Higgs momentum, SM link, SM momentum, and Higgs link;
+- the combined per-site response after one full production tick is measured for
+  each perturbation;
+- the maximum measured support radius does not exceed the Stage 35 one-tick
+  production stencil radius;
+- detected support outside the predicted radius is zero within the configured
+  numerical threshold;
+- every perturbation gives a nonzero response, so the audit is not a trivial
+  zero measurement;
+- the result is documented as a one-tick finite-support measurement of the
+  implemented discrete production map, not as a multi-step spatial echo,
+  continuum causal-cone theorem, performance benchmark, exact
+  energy-conservation theorem, timestep-convergence theorem, boundary rule, or
+  microscopic-input derivation.
+
+Verdict:
+
+```text
+QCA_SMV0_STAGE43_PHYSICAL_RIGHT_PRODUCTION_SPATIAL_SUPPORT_PASS
+```

@@ -78,7 +78,7 @@ physics policy.
 **Boundary**: BCC Weyl/Dirac kernels, BCC plaquettes, Wilson observables, and
 SO(2)/SU(2)/SU(3) force policy remain in `spacetime_qca`.
 
-## qca_smv0 — Stage 42 physical-right production local current
+## qca_smv0 — Stage 43 physical-right production spatial support
 
 **Goal**: focused simulator sidecar for the next Standard-Model QCA prototype,
 using the shared `sim` infrastructure and local `qca_smv0` kernels only.
@@ -505,12 +505,22 @@ using the shared `sim` infrastructure and local `qca_smv0` kernels only.
 - `2 x 2 x 1` production smoke tick keeps family norm drift and SM/Higgs link
   unitarity controlled.
 - Stage 42 script and focused tests.
+- One-tick spatial-support audit of the assembled physical-right production map
+  on a `7 x 7 x 7` lattice.
+- Localized perturbations of family state, Higgs field, Higgs momentum, SM link,
+  SM momentum, and Higgs link.
+- Maximum measured support radius `1`, inside the conservative Stage 35
+  one-tick radius `2`.
+- Zero detected support outside the predicted radius.
+- Support counts `(8, 9, 1, 1, 1, 1)` for `(family, Higgs, Higgs momentum,
+  SM link, SM momentum, Higgs link)`.
+- Stage 43 script and focused tests.
 
 **Boundary**: no boundary condition, quantized scalar/gauge registers, full
 microscopic BCC derivation of the antiunitary bridge, Gauss projection, exact
 full-energy conservation claim, timestep-refined energy-convergence claim, or
 energy-convergent reversible-integrator claim beyond the explicit inverse
-helper, continuum Lyapunov claim, or large-lattice spatial echo measurement is
+helper, continuum Lyapunov claim, or multi-step large-lattice spatial echo measurement is
 implemented yet.  The derivation of the flavor/Higgs inputs is also
 not implemented: FN charges, `lambda`, order-one coefficients, center-power
 matrices, placeholder lepton matrices, and Higgs potential parameters are
