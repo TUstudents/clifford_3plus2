@@ -1009,3 +1009,30 @@ Verdict:
 ```text
 QCA_SMV0_STAGE30_PHYSICAL_RIGHT_PRODUCTION_LOSCHMIDT_ECHO_PASS
 ```
+
+## Stage 31 - Physical-Right Production Tangent Echo
+
+Pass only if:
+
+- the only upstream runtime imports are from `sim` and local `qca_smv0`
+  modules;
+- two independent final-time perturbations are applied to a short production
+  trajectory: one SM momentum coordinate and one Higgs momentum coordinate;
+- each perturbation has a finite nonzero inverse echo on the restored initial
+  surface;
+- the combined perturbation echo matches the sum of the two separate echoes to
+  local finite-difference precision;
+- the unperturbed base roundtrip remains at float32 precision;
+- the combined perturbed inverse state keeps SM/Higgs link unitarity
+  controlled;
+- the result is documented as a finite tangent-response diagnostic for the
+  current discrete production map, not as a new dynamics rule,
+  energy-conservation claim, timestep-convergence claim, boundary rule, Gauss
+  projection, quantized register, performance benchmark, or microscopic-input
+  derivation.
+
+Verdict:
+
+```text
+QCA_SMV0_STAGE31_PHYSICAL_RIGHT_PRODUCTION_TANGENT_ECHO_PASS
+```

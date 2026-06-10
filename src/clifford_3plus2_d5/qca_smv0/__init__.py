@@ -398,10 +398,15 @@ from clifford_3plus2_d5.qca_smv0.sm_physical_right_production_echo import (
     sm_physical_right_production_apex_momentum_perturbation,
     sm_physical_right_production_echo_diagnostics,
 )
+from clifford_3plus2_d5.qca_smv0.sm_physical_right_production_tangent import (
+    PhysicalRightProductionTangentDiagnostics,
+    sm_physical_right_production_apex_higgs_momentum_perturbation,
+    sm_physical_right_production_tangent_diagnostics,
+)
 
 SIDECAR_NAME = "qca_smv0"
 SIDECAR_TITLE = "QCA_SMv0"
-SIDECAR_STATUS = "Stage 30 physical-right production Loschmidt echo implemented"
+SIDECAR_STATUS = "Stage 31 physical-right production tangent echo implemented"
 
 __all__ = [
     "BCC_ANISOTROPY_DIRECTIONS",
@@ -467,6 +472,7 @@ __all__ = [
     "PhysicalRightProductionSMTickDiagnostics",
     "PhysicalRightProductionRefinementDiagnostics",
     "PhysicalRightProductionVariationalDiagnostics",
+    "PhysicalRightProductionTangentDiagnostics",
     "PhysicalRightSourcedSMTickDiagnostics",
     "PhysicalRightTransportDiagnostics",
     "SourcedSMTickDiagnostics",
@@ -660,6 +666,7 @@ __all__ = [
     "sm_physical_right_links_from_transport",
     "sm_physical_right_project_to_coordinates",
     "sm_physical_right_production_adjoint_diagnostics",
+    "sm_physical_right_production_apex_higgs_momentum_perturbation",
     "sm_physical_right_production_apex_momentum_perturbation",
     "sm_physical_right_production_echo_diagnostics",
     "sm_physical_right_production_energy_diagnostics",
@@ -689,6 +696,7 @@ __all__ = [
     "sm_physical_right_production_reversibility_diagnostics",
     "sm_physical_right_production_sm_tick",
     "sm_physical_right_production_step",
+    "sm_physical_right_production_tangent_diagnostics",
     "sm_physical_right_production_tick_diagnostics",
     "sm_physical_right_production_variational_diagnostics",
     "sm_physical_right_production_vacuum_state",
