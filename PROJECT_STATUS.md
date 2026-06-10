@@ -78,7 +78,7 @@ physics policy.
 **Boundary**: BCC Weyl/Dirac kernels, BCC plaquettes, Wilson observables, and
 SO(2)/SU(2)/SU(3) force policy remain in `spacetime_qca`.
 
-## qca_smv0 — Stage 37 physical-right production local Wilson force
+## qca_smv0 — Stage 38 physical-right production local-force rollout
 
 **Goal**: focused simulator sidecar for the next Standard-Model QCA prototype,
 using the shared `sim` infrastructure and local `qca_smv0` kernels only.
@@ -462,6 +462,16 @@ using the shared `sim` infrastructure and local `qca_smv0` kernels only.
 - Identity, pure-gauge, covariance, and coarse legacy finite-difference
   controls for the local force.
 - Session 37 script and focused tests.
+- Local-force production-rollout smoke test on a `2 x 2 x 1` lattice.
+- The production step is finite, keeps SM/Higgs links unitary, and produces
+  nonzero Higgs, SM-link, and SM-momentum updates.
+- Changing the legacy `wilson_epsilon` keyword leaves the production step
+  unchanged, confirming the old finite-difference Wilson knob no longer drives
+  the tick.
+- On the Stage 38 certificate lattice the local Wilson-force path uses `24`
+  plaquette holonomies versus `18432` for the legacy finite-difference path
+  (`768x` reduction).
+- Session 38 script and focused tests.
 
 **Boundary**: no boundary condition, quantized scalar/gauge registers, full
 microscopic BCC derivation of the antiunitary bridge, Gauss projection, exact

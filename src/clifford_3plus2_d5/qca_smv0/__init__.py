@@ -438,10 +438,14 @@ from clifford_3plus2_d5.qca_smv0.sm_physical_right_production_local_force import
     sm_local_wilson_force_ad_coordinate_residual,
     sm_physical_right_production_local_force_diagnostics,
 )
+from clifford_3plus2_d5.qca_smv0.sm_physical_right_production_local_rollout import (
+    PhysicalRightProductionLocalRolloutDiagnostics,
+    sm_physical_right_production_local_rollout_diagnostics,
+)
 
 SIDECAR_NAME = "qca_smv0"
 SIDECAR_TITLE = "QCA_SMv0"
-SIDECAR_STATUS = "Stage 37 physical-right production local force implemented"
+SIDECAR_STATUS = "Stage 38 physical-right production local rollout implemented"
 
 __all__ = [
     "BCC_ANISOTROPY_DIRECTIONS",
@@ -514,6 +518,7 @@ __all__ = [
     "PhysicalRightProductionTangentDiagnostics",
     "PhysicalRightProductionWorkloadDiagnostics",
     "PhysicalRightProductionLocalForceDiagnostics",
+    "PhysicalRightProductionLocalRolloutDiagnostics",
     "PhysicalRightSourcedSMTickDiagnostics",
     "PhysicalRightTransportDiagnostics",
     "SourcedSMTickDiagnostics",
@@ -740,6 +745,7 @@ __all__ = [
     "sm_physical_right_production_link_directional_derivative_residual",
     "sm_physical_right_production_link_force_decomposition_residual",
     "sm_physical_right_production_local_force_diagnostics",
+    "sm_physical_right_production_local_rollout_diagnostics",
     "sm_physical_right_production_frozen_fermion_stage",
     "sm_physical_right_production_frozen_fermion_stage_adjoint",
     "sm_physical_right_production_inverse_diagnostics",

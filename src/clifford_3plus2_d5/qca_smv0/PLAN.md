@@ -1207,3 +1207,30 @@ Verdict:
 ```text
 QCA_SMV0_STAGE37_PHYSICAL_RIGHT_PRODUCTION_LOCAL_FORCE_PASS
 ```
+
+## Stage 38 - Physical-Right Production Local-Force Rollout
+
+Pass only if:
+
+- the only upstream runtime imports are from `sim` and local `qca_smv0`
+  modules;
+- the implemented production tick is run on a lattice larger than the one-site
+  Stage 21/22 default;
+- the final rollout state is finite and the SM/Higgs links remain unitary;
+- the tick produces nonzero Higgs-field, SM-link, and SM-momentum changes;
+- changing the legacy `wilson_epsilon` keyword leaves the production step
+  unchanged, proving that the old finite-difference Wilson-force knob is no
+  longer active in the tick;
+- the local-force plaquette workload is recorded on the certificate lattice
+  and remains a large reduction relative to the legacy finite-difference path;
+- the result is documented as a local-force rollout smoke test, not as a
+  large-lattice spatial echo measurement, continuum causal-cone theorem,
+  performance benchmark, exact energy-conservation theorem,
+  timestep-convergence theorem, boundary rule, or microscopic-input
+  derivation.
+
+Verdict:
+
+```text
+QCA_SMV0_STAGE38_PHYSICAL_RIGHT_PRODUCTION_LOCAL_ROLLOUT_PASS
+```
