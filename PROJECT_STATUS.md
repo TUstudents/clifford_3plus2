@@ -78,7 +78,7 @@ physics policy.
 **Boundary**: BCC Weyl/Dirac kernels, BCC plaquettes, Wilson observables, and
 SO(2)/SU(2)/SU(3) force policy remain in `spacetime_qca`.
 
-## qca_smv0 — Stage 36 physical-right production dense workload
+## qca_smv0 — Stage 37 physical-right production local Wilson force
 
 **Goal**: focused simulator sidecar for the next Standard-Model QCA prototype,
 using the shared `sim` infrastructure and local `qca_smv0` kernels only.
@@ -111,7 +111,9 @@ using the shared `sim` infrastructure and local `qca_smv0` kernels only.
 - Real SM link momenta with shape `(nx, ny, nz, 8, 12)`.
 - Algebra-coordinate projection and target-site adjoint momentum gauge
   transforms.
-- Finite-difference left Wilson force.
+- Legacy finite-difference left Wilson-force oracle.
+- Local analytic BCC plaquette-staple force as the production
+  left-trivialized Wilson force.
 - Pure-gauge Hamiltonian density and reversible leapfrog update.
 - Electric-divergence / Gauss covariance diagnostics.
 - Pure-gauge zero-momentum Gauss-preservation audit.
@@ -448,20 +450,25 @@ using the shared `sim` infrastructure and local `qca_smv0` kernels only.
 - Dense production-workload audit from the implemented register dimensions.
 - The dense rollout state is linear in site count and remains modest on the
   `3^3` certificate lattice.
-- The current finite-difference Wilson force evaluates a global plaquette
+- The pre-Stage-37 finite-difference Wilson force evaluated a global plaquette
   action for every `sites x 8 links x 12 generators` coordinate.
 - The finite-difference plaquette workload scales quadratically in site count;
   on the `3^3` certificate it is `5184x` the linear local staple-force target.
 - Session 36 script and focused tests.
+- Local analytic Wilson-force replacement for the production
+  `sm_left_wilson_force` path.
+- Automatic-differentiation coordinate audit against exact left-update
+  derivatives of the Wilson action.
+- Identity, pure-gauge, covariance, and coarse legacy finite-difference
+  controls for the local force.
+- Session 37 script and focused tests.
 
 **Boundary**: no boundary condition, quantized scalar/gauge registers, full
 microscopic BCC derivation of the antiunitary bridge, Gauss projection, exact
 full-energy conservation claim, timestep-refined energy-convergence claim, or
 energy-convergent reversible-integrator claim beyond the explicit inverse
 helper, continuum Lyapunov claim, or large-lattice spatial echo measurement is
-implemented yet.  The local analytic staple-force replacement for the current
-global finite-difference Wilson force is also not implemented yet.  The
-derivation of the flavor/Higgs inputs is also
+implemented yet.  The derivation of the flavor/Higgs inputs is also
 not implemented: FN charges, `lambda`, order-one coefficients, center-power
 matrices, placeholder lepton matrices, and Higgs potential parameters are
 explicit simulator inputs rather than BCC-bulk derivations.

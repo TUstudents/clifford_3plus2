@@ -1,14 +1,14 @@
 """Dense-workload audit for the production map.
 
-Stage 36 explains why the current dense physical-right production tick is not
-yet a large-lattice spatial-echo engine.  The raw rollout state is only linear
-in the site count, but the current finite-difference Wilson force evaluates a
-global plaquette action for every link/generator coordinate.  That makes the
+Stage 36 explained why the pre-Stage-37 dense physical-right production tick
+was not yet a large-lattice spatial-echo engine.  The raw rollout state was
+only linear in the site count, but the finite-difference Wilson force evaluated
+a global plaquette action for every link/generator coordinate.  That made the
 force certificate quadratic in the number of sites.
 
 This stage records that scaling explicitly so the next implementation target
-is clear: replace the finite-difference global force with a local analytic
-staple force before attempting large-lattice production echoes.
+is clear in the ledger: replace the finite-difference global force with a local
+analytic staple force before attempting large-lattice production echoes.
 """
 
 from __future__ import annotations

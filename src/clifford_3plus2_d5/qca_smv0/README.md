@@ -22,7 +22,7 @@ It should not be used for:
 
 ## Current State
 
-Stage 36 implements the free BCC Weyl/Dirac bulk walk, static
+Stage 37 implements the free BCC Weyl/Dirac bulk walk, static
 Standard-Model gauge-background transport, pure dynamic SM gauge fields, and a
 site-local Higgs/Yukawa collision, finite-path FN recirculation, and
 center-holonomy CP coefficients, a three-family Higgs/Yukawa collision, and
@@ -37,7 +37,8 @@ variational force-provenance audit, plus refinement and adjoint limitation
 audits, an explicit inverse helper for the current production tick, a
 trajectory-level reversibility audit, a Loschmidt echo diagnostic, and a
 finite tangent-response, echo-Gram, echo-Gram scale, and echo-horizon audit
-suite, a finite-stencil locality audit, and a dense-workload scaling audit:
+suite, a finite-stencil locality audit, a dense-workload scaling audit, and a
+local analytic Wilson staple-force replacement:
 
 ```text
 qca_smv0/
@@ -79,6 +80,7 @@ qca_smv0/
   sm_physical_right_production_echo_horizon.py
   sm_physical_right_production_stencil.py
   sm_physical_right_production_workload.py
+  sm_physical_right_production_local_force.py
   scripts/
     session_01_bare_bcc_walk.py
     session_02_static_sm_gauge_background.py
@@ -116,6 +118,7 @@ qca_smv0/
     session_34_physical_right_production_echo_horizon.py
     session_35_physical_right_production_stencil.py
     session_36_physical_right_production_workload.py
+    session_37_physical_right_production_local_force.py
   tests/
     test_bulk_bcc.py
     test_sm_gauge.py
@@ -151,6 +154,7 @@ qca_smv0/
     test_sm_physical_right_production_echo_horizon.py
     test_sm_physical_right_production_stencil.py
     test_sm_physical_right_production_workload.py
+    test_sm_physical_right_production_local_force.py
 ```
 
 The implemented Weyl kernel is a two-component periodic BCC bulk walk:
@@ -870,6 +874,27 @@ Stage 36 verdict:
 QCA_SMV0_STAGE36_PHYSICAL_RIGHT_PRODUCTION_WORKLOAD_PASS
 ```
 
+Stage 37 replaces the dense Wilson-force path with a local analytic staple:
+
+- preserves the old centered finite-difference force as an explicit legacy
+  oracle;
+- makes `sm_left_wilson_force` dispatch to the local BCC plaquette-staple
+  derivative;
+- checks identity and pure-gauge zero force and nonflat curvature response;
+- checks gauge covariance of the force coordinates;
+- certifies representative coordinates against automatic differentiation of
+  the exact Wilson action under left link updates;
+- keeps a coarse finite-difference comparison as a sanity check while not
+  using finite differences as the production path;
+- reduces the Stage 37 certificate shape from `4608` finite-difference
+  plaquette holonomies to `12` local plaquette holonomies (`384x`).
+
+Stage 37 verdict:
+
+```text
+QCA_SMV0_STAGE37_PHYSICAL_RIGHT_PRODUCTION_LOCAL_FORCE_PASS
+```
+
 The charges, `lambda`, order-one coefficients, and center-power matrices are
 simulator inputs, not BCC-bulk derivations. Quantized scalar/gauge registers,
 boundary rules, microscopic derivation of the bridge, and derivation of the
@@ -930,5 +955,6 @@ uv run python -m clifford_3plus2_d5.qca_smv0.scripts.session_33_physical_right_p
 uv run python -m clifford_3plus2_d5.qca_smv0.scripts.session_34_physical_right_production_echo_horizon
 uv run python -m clifford_3plus2_d5.qca_smv0.scripts.session_35_physical_right_production_stencil
 uv run python -m clifford_3plus2_d5.qca_smv0.scripts.session_36_physical_right_production_workload
+uv run python -m clifford_3plus2_d5.qca_smv0.scripts.session_37_physical_right_production_local_force
 uv run pytest src/clifford_3plus2_d5/qca_smv0/tests -q
 ```

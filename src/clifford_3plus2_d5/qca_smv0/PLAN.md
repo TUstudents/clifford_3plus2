@@ -1175,3 +1175,35 @@ Verdict:
 ```text
 QCA_SMV0_STAGE36_PHYSICAL_RIGHT_PRODUCTION_WORKLOAD_PASS
 ```
+
+## Stage 37 - Physical-Right Production Local Wilson Force
+
+Pass only if:
+
+- the only upstream runtime imports are from `sim` and local `qca_smv0`
+  modules;
+- the legacy centered finite-difference Wilson force remains available as an
+  explicit diagnostic oracle;
+- the production `sm_left_wilson_force` uses the local BCC plaquette-staple
+  derivative rather than global action finite differences;
+- the local force vanishes on identity and pure-gauge links and responds to a
+  deterministic nonflat link field;
+- the local force transforms covariantly under site-local SM gauge rotations;
+- representative force coordinates match automatic differentiation of the
+  exact Wilson action under left link updates;
+- a coarse legacy finite-difference comparison remains bounded but is not used
+  as the defining proof because float32 cancellation is visible at small
+  coordinate scales;
+- the local-force plaquette workload is linear in the site count and the Stage
+  37 certificate reports a large reduction relative to the legacy finite
+  difference path;
+- the result is documented as a production force replacement and scalability
+  fix, not as a boundary rule, Gauss projection, exact energy-conservation
+  theorem, timestep-convergence theorem, continuum causal-cone theorem, or
+  microscopic-input derivation.
+
+Verdict:
+
+```text
+QCA_SMV0_STAGE37_PHYSICAL_RIGHT_PRODUCTION_LOCAL_FORCE_PASS
+```

@@ -151,8 +151,14 @@ def _force_coordinate_indices(links: jnp.ndarray) -> np.ndarray:
     return np.asarray(list(np.ndindex(*links.shape[:4], SM_GENERATOR_COUNT)), dtype=np.int32)
 
 
-def sm_left_wilson_force(links: jnp.ndarray, *, epsilon: float = 1e-3) -> jnp.ndarray:
-    """Return centered finite-difference left-trivialized Wilson force."""
+def sm_finite_difference_left_wilson_force(links: jnp.ndarray, *, epsilon: float = 1e-3) -> jnp.ndarray:
+    """Return centered finite-difference left-trivialized Wilson force.
+
+    This legacy oracle is useful for small diagnostic checks, but it evaluates
+    the global Wilson action twice for every link/generator coordinate.  The
+    production force is :func:`sm_left_wilson_force`, which uses the local
+    plaquette staple below.
+    """
 
     if epsilon <= 0:
         raise ValueError("epsilon must be positive")
@@ -180,6 +186,95 @@ def sm_left_wilson_force(links: jnp.ndarray, *, epsilon: float = 1e-3) -> jnp.nd
         coordinate_indices[:, 4],
     ].set(derivatives)
     return force
+
+
+def _dagger_field(matrix: jnp.ndarray) -> jnp.ndarray:
+    return jnp.swapaxes(jnp.conj(matrix), -1, -2)
+
+
+def sm_local_wilson_staple(links: jnp.ndarray) -> jnp.ndarray:
+    """Return the local Wilson staple matrix for every BCC link.
+
+    The staple is the matrix ``K`` satisfying, for a left update
+    ``U_e(x) -> exp(eps T) U_e(x)``,
+
+    ``dS/deps = -Re Tr(T K_e(x)) / (N_site N_plaq N_internal)``.
+
+    It uses the same pull-link plaquette convention as
+    :func:`sm_plaquette_holonomies`.
+    """
+
+    if links.ndim != 6 or links.shape[3:] != (8, SM_INTERNAL_DIM, SM_INTERNAL_DIM):
+        raise ValueError("SM links must have shape (nx, ny, nz, 8, 32, 32)")
+
+    staple = jnp.zeros_like(links)
+    for first, second in BCC_PLAQUETTE_PAIRS:
+        displacement_a = BCC_DISPLACEMENTS[first]
+        displacement_b = BCC_DISPLACEMENTS[second]
+        negative_a = tuple(-component for component in displacement_a)
+        negative_b = tuple(-component for component in displacement_b)
+        link_a = links[..., first, :, :]
+        link_b = links[..., second, :, :]
+        link_a_at_b = source_roll(link_a, displacement_b)
+        link_b_at_a = source_roll(link_b, displacement_a)
+        link_a_dagger = _dagger_field(link_a)
+        link_b_at_a_dagger = _dagger_field(link_b_at_a)
+
+        plaquette = jnp.einsum(
+            "...ab,...bc,...cd,...de->...ae",
+            link_b,
+            link_a_at_b,
+            link_b_at_a_dagger,
+            link_a_dagger,
+        )
+        second_link_contribution = jnp.einsum(
+            "...ab,...bc,...cd,...de->...ae",
+            link_a_at_b,
+            link_b_at_a_dagger,
+            link_a_dagger,
+            link_b,
+        )
+        third_link_contribution = -jnp.einsum(
+            "...ab,...bc,...cd,...de->...ae",
+            link_a_dagger,
+            link_b,
+            link_a_at_b,
+            link_b_at_a_dagger,
+        )
+
+        staple = staple.at[..., second, :, :].add(plaquette)
+        staple = staple.at[..., first, :, :].add(-plaquette)
+        staple = staple.at[..., first, :, :].add(source_roll(second_link_contribution, negative_b))
+        staple = staple.at[..., second, :, :].add(source_roll(third_link_contribution, negative_a))
+    return staple
+
+
+def sm_local_wilson_force(links: jnp.ndarray) -> jnp.ndarray:
+    """Return analytic local left-trivialized Wilson-force coordinates."""
+
+    if links.ndim != 6 or links.shape[3:] != (8, SM_INTERNAL_DIM, SM_INTERNAL_DIM):
+        raise ValueError("SM links must have shape (nx, ny, nz, 8, 32, 32)")
+    site_count = links.shape[0] * links.shape[1] * links.shape[2]
+    normalization = jnp.asarray(
+        site_count * len(BCC_PLAQUETTE_PAIRS) * SM_INTERNAL_DIM,
+        dtype=jnp.real(links).dtype,
+    )
+    generators = sm_generators(dtype=links.dtype)
+    staple = sm_local_wilson_staple(links)
+    return -jnp.real(jnp.einsum("gij,...hji->...hg", generators, staple)) / normalization
+
+
+def sm_left_wilson_force(links: jnp.ndarray, *, epsilon: float | None = None) -> jnp.ndarray:
+    """Return the production local left-trivialized Wilson force.
+
+    The ``epsilon`` keyword is retained for compatibility with earlier sourced
+    tick call sites.  The analytic local force does not finite-difference the
+    action, so the value is ignored after validation.
+    """
+
+    if epsilon is not None and epsilon <= 0:
+        raise ValueError("epsilon must be positive")
+    return sm_local_wilson_force(links)
 
 
 def sm_linearized_plaquette_field_strength(theta: jnp.ndarray) -> jnp.ndarray:

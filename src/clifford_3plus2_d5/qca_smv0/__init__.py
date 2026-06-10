@@ -38,12 +38,15 @@ from clifford_3plus2_d5.qca_smv0.sm_dynamics import (
     dynamic_sm_gauge_diagnostics,
     sm_apply_momentum_update,
     sm_electric_divergence,
+    sm_finite_difference_left_wilson_force,
     sm_gauge_hamiltonian_density,
     sm_generator_gram,
     sm_leapfrog_step,
     sm_left_wilson_force,
     sm_linearized_plaquette_field_strength,
     sm_linearized_yang_mills_action_density,
+    sm_local_wilson_force,
+    sm_local_wilson_staple,
     sm_momentum_algebra,
     sm_momentum_kinetic_energy_density,
     sm_no_backreaction_fermion_gauge_step,
@@ -430,10 +433,15 @@ from clifford_3plus2_d5.qca_smv0.sm_physical_right_production_workload import (
     physical_right_production_state_bytes_per_site,
     sm_physical_right_production_workload_diagnostics,
 )
+from clifford_3plus2_d5.qca_smv0.sm_physical_right_production_local_force import (
+    PhysicalRightProductionLocalForceDiagnostics,
+    sm_local_wilson_force_ad_coordinate_residual,
+    sm_physical_right_production_local_force_diagnostics,
+)
 
 SIDECAR_NAME = "qca_smv0"
 SIDECAR_TITLE = "QCA_SMv0"
-SIDECAR_STATUS = "Stage 36 physical-right production workload implemented"
+SIDECAR_STATUS = "Stage 37 physical-right production local force implemented"
 
 __all__ = [
     "BCC_ANISOTROPY_DIRECTIONS",
@@ -505,6 +513,7 @@ __all__ = [
     "PhysicalRightProductionVariationalDiagnostics",
     "PhysicalRightProductionTangentDiagnostics",
     "PhysicalRightProductionWorkloadDiagnostics",
+    "PhysicalRightProductionLocalForceDiagnostics",
     "PhysicalRightSourcedSMTickDiagnostics",
     "PhysicalRightTransportDiagnostics",
     "SourcedSMTickDiagnostics",
@@ -631,6 +640,7 @@ __all__ = [
     "sm_fermion_gauge_kick_then_transport",
     "sm_fermion_higgs_backreaction_diagnostics",
     "sm_fermion_left_gauge_current",
+    "sm_finite_difference_left_wilson_force",
     "sm_free_dirac_internal_step",
     "sm_gauge_convention_bridge_diagnostics",
     "sm_gauge_convention_generator_residuals",
@@ -679,6 +689,9 @@ __all__ = [
     "sm_left_doublet_projector",
     "sm_linearized_plaquette_field_strength",
     "sm_linearized_yang_mills_action_density",
+    "sm_local_wilson_force",
+    "sm_local_wilson_force_ad_coordinate_residual",
+    "sm_local_wilson_staple",
     "sm_link_field_from_algebra",
     "sm_link_unitarity_residual",
     "sm_massive_dispersion_residual",
@@ -726,6 +739,7 @@ __all__ = [
     "sm_physical_right_production_higgs_force_decomposition_residual",
     "sm_physical_right_production_link_directional_derivative_residual",
     "sm_physical_right_production_link_force_decomposition_residual",
+    "sm_physical_right_production_local_force_diagnostics",
     "sm_physical_right_production_frozen_fermion_stage",
     "sm_physical_right_production_frozen_fermion_stage_adjoint",
     "sm_physical_right_production_inverse_diagnostics",
