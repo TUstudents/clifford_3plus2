@@ -22,7 +22,7 @@ It should not be used for:
 
 ## Current State
 
-Stage 29 implements the free BCC Weyl/Dirac bulk walk, static
+Stage 30 implements the free BCC Weyl/Dirac bulk walk, static
 Standard-Model gauge-background transport, pure dynamic SM gauge fields, and a
 site-local Higgs/Yukawa collision, finite-path FN recirculation, and
 center-holonomy CP coefficients, a three-family Higgs/Yukawa collision, and
@@ -34,8 +34,8 @@ physical-right bridged fermion current, sourced gauge tick, and production
 tick, sparse recorded rollout of that production tick, a physical-right Gauss
 monitor on the production rollout, an energy-component monitor, and a
 variational force-provenance audit, plus refinement and adjoint limitation
-audits, an explicit inverse helper for the current production tick, and a
-trajectory-level reversibility audit:
+audits, an explicit inverse helper for the current production tick, a
+trajectory-level reversibility audit, and a Loschmidt echo diagnostic:
 
 ```text
 qca_smv0/
@@ -70,6 +70,7 @@ qca_smv0/
   sm_physical_right_production_adjoint.py
   sm_physical_right_production_inverse.py
   sm_physical_right_production_reversibility.py
+  sm_physical_right_production_echo.py
   scripts/
     session_01_bare_bcc_walk.py
     session_02_static_sm_gauge_background.py
@@ -100,6 +101,7 @@ qca_smv0/
     session_27_physical_right_production_adjoint.py
     session_28_physical_right_production_inverse.py
     session_29_physical_right_production_reversibility.py
+    session_30_physical_right_production_echo.py
   tests/
     test_bulk_bcc.py
     test_sm_gauge.py
@@ -128,6 +130,7 @@ qca_smv0/
     test_sm_physical_right_production_adjoint.py
     test_sm_physical_right_production_inverse.py
     test_sm_physical_right_production_reversibility.py
+    test_sm_physical_right_production_echo.py
 ```
 
 The implemented Weyl kernel is a two-component periodic BCC bulk walk:
@@ -717,6 +720,25 @@ Stage 29 verdict:
 QCA_SMV0_STAGE29_PHYSICAL_RIGHT_PRODUCTION_TRAJECTORY_REVERSIBILITY_PASS
 ```
 
+Stage 30 uses the inverse trajectory as a Loschmidt echo diagnostic:
+
+- advances a short deterministic physical-right production trajectory;
+- applies a small local SM-momentum perturbation at the final time;
+- rewinds the perturbed final state to measure the initial-surface echo;
+- checks that the echo is finite and nonzero;
+- doubles the final-time perturbation and checks that the echo doubles to
+  local linear precision;
+- keeps the unperturbed roundtrip and perturbed inverse link unitarity
+  controlled;
+- treats the result as a stability diagnostic for the current discrete map,
+  not as a new dynamics rule or energy-convergence theorem.
+
+Stage 30 verdict:
+
+```text
+QCA_SMV0_STAGE30_PHYSICAL_RIGHT_PRODUCTION_LOSCHMIDT_ECHO_PASS
+```
+
 The charges, `lambda`, order-one coefficients, and center-power matrices are
 simulator inputs, not BCC-bulk derivations. Quantized scalar/gauge registers,
 boundary rules, microscopic derivation of the bridge, and derivation of the
@@ -770,5 +792,6 @@ uv run python -m clifford_3plus2_d5.qca_smv0.scripts.session_26_physical_right_p
 uv run python -m clifford_3plus2_d5.qca_smv0.scripts.session_27_physical_right_production_adjoint
 uv run python -m clifford_3plus2_d5.qca_smv0.scripts.session_28_physical_right_production_inverse
 uv run python -m clifford_3plus2_d5.qca_smv0.scripts.session_29_physical_right_production_reversibility
+uv run python -m clifford_3plus2_d5.qca_smv0.scripts.session_30_physical_right_production_echo
 uv run pytest src/clifford_3plus2_d5/qca_smv0/tests -q
 ```

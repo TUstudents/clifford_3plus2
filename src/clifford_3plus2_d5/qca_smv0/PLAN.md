@@ -984,3 +984,28 @@ Verdict:
 ```text
 QCA_SMV0_STAGE29_PHYSICAL_RIGHT_PRODUCTION_TRAJECTORY_REVERSIBILITY_PASS
 ```
+
+## Stage 30 - Physical-Right Production Loschmidt Echo
+
+Pass only if:
+
+- the only upstream runtime imports are from `sim` and local `qca_smv0`
+  modules;
+- a short deterministic production trajectory is advanced and then exactly
+  rewound with the Stage 29 inverse rollout;
+- a small local final-time SM momentum perturbation has a finite nonzero echo
+  on the restored initial surface;
+- doubling that final-time perturbation doubles the echo to local linear
+  precision;
+- the unperturbed base roundtrip remains at float32 precision;
+- the perturbed inverse path keeps SM/Higgs link unitarity controlled;
+- the result is documented as a Loschmidt/stability diagnostic for the current
+  discrete production map, not as a new dynamics rule, energy-conservation
+  claim, timestep-convergence claim, boundary rule, Gauss projection,
+  quantized register, performance benchmark, or microscopic-input derivation.
+
+Verdict:
+
+```text
+QCA_SMV0_STAGE30_PHYSICAL_RIGHT_PRODUCTION_LOSCHMIDT_ECHO_PASS
+```

@@ -3,12 +3,12 @@
 ## Verdict
 
 ```text
-QCA_SMV0_STAGE29_PHYSICAL_RIGHT_PRODUCTION_TRAJECTORY_REVERSIBILITY_PASS
+QCA_SMV0_STAGE30_PHYSICAL_RIGHT_PRODUCTION_LOSCHMIDT_ECHO_PASS
 ```
 
 ## Current State
 
-Stage 29 physical-right production trajectory reversibility implemented on top of the Stage 1
+Stage 30 physical-right production Loschmidt echo implemented on top of the Stage 1
 free BCC Weyl/Dirac walk, Stage 2 static gauge transport, Stage 3 pure dynamic
 gauge fields, Stage 4 local Higgs/Yukawa collision, Stage 5 FN recirculation,
 Stage 6 center-holonomy CP, Stage 7 three-family Higgs/Yukawa collision, and
@@ -24,7 +24,7 @@ physical-right production tick, Stage 22 physical-right production rollout,
 Stage 23 physical-right production Gauss monitor, Stage 24 physical-right
 production energy monitor, Stage 25 variational force audit, Stage 26
 refinement limitation audit, Stage 27 adjoint limitation audit, and Stage 28
-explicit inverse helper.
+explicit inverse helper, and Stage 29 trajectory reversibility audit.
 
 Implemented:
 
@@ -375,6 +375,15 @@ Implemented:
 - explicit boundary: trajectory reversibility is for the current discrete map
   and is not an energy-convergent Hamiltonian-integrator theorem;
 - Session 29 script;
+- Loschmidt echo diagnostic using the Stage 29 inverse trajectory;
+- local final-time SM momentum perturbation at the trajectory apex;
+- finite nonzero initial-surface echo after inverse rollback;
+- doubled-perturbation control with locally linear doubled echo;
+- unperturbed base roundtrip and perturbed inverse link-unitarity controls;
+- explicit boundary: the echo is a stability diagnostic for the current
+  discrete production map, not a new dynamics rule or energy-convergence
+  theorem;
+- Session 30 script;
 - focused tests for algebra, norm preservation, local gauge covariance, Wilson
   response, weak-link scaling, pure-gauge dynamics, Gauss covariance and
   preservation, weak-field Yang-Mills behavior, Higgs/Yukawa door structure,
@@ -391,7 +400,8 @@ Implemented:
   variational audit, physical-right production refinement limitation audit, JIT
   compatibility, physical-right production adjoint limitation audit,
   physical-right production explicit inverse audit, physical-right production
-  trajectory reversibility audit, and
+  trajectory reversibility audit, physical-right production Loschmidt echo
+  audit, and
   small-momentum Weyl/Dirac behavior.
 
 Not implemented:
@@ -409,7 +419,7 @@ Not implemented:
 - energy-conserving or timestep-convergent reversible integrator claim for the
   current hybrid production tick beyond the explicit inverse helper;
 - performance profiles beyond the small
-  Session 01/02/03/04/05/06/07/08/09/10/11/12/13/14/15/16/17/18/19/20/21/22/23/24/25/26/27/28/29 diagnostics.
+  Session 01/02/03/04/05/06/07/08/09/10/11/12/13/14/15/16/17/18/19/20/21/22/23/24/25/26/27/28/29/30 diagnostics.
 
 ## Working Boundary
 

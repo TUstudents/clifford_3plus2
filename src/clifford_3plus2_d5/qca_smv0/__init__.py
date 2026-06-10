@@ -393,10 +393,15 @@ from clifford_3plus2_d5.qca_smv0.sm_physical_right_production_reversibility impo
     sm_physical_right_production_inverse_rollout,
     sm_physical_right_production_reversibility_diagnostics,
 )
+from clifford_3plus2_d5.qca_smv0.sm_physical_right_production_echo import (
+    PhysicalRightProductionEchoDiagnostics,
+    sm_physical_right_production_apex_momentum_perturbation,
+    sm_physical_right_production_echo_diagnostics,
+)
 
 SIDECAR_NAME = "qca_smv0"
 SIDECAR_TITLE = "QCA_SMv0"
-SIDECAR_STATUS = "Stage 29 physical-right production trajectory reversibility implemented"
+SIDECAR_STATUS = "Stage 30 physical-right production Loschmidt echo implemented"
 
 __all__ = [
     "BCC_ANISOTROPY_DIRECTIONS",
@@ -452,6 +457,7 @@ __all__ = [
     "HiggsDynamicsParameters",
     "PhysicalRightCurrentDiagnostics",
     "PhysicalRightProductionAdjointDiagnostics",
+    "PhysicalRightProductionEchoDiagnostics",
     "PhysicalRightProductionEnergyDiagnostics",
     "PhysicalRightProductionGaussDiagnostics",
     "PhysicalRightProductionInverseDiagnostics",
@@ -654,6 +660,8 @@ __all__ = [
     "sm_physical_right_links_from_transport",
     "sm_physical_right_project_to_coordinates",
     "sm_physical_right_production_adjoint_diagnostics",
+    "sm_physical_right_production_apex_momentum_perturbation",
+    "sm_physical_right_production_echo_diagnostics",
     "sm_physical_right_production_energy_diagnostics",
     "sm_physical_right_production_energy_history",
     "sm_physical_right_production_energy_observables",
