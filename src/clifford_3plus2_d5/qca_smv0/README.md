@@ -22,7 +22,7 @@ It should not be used for:
 
 ## Current State
 
-Stage 48 implements the free BCC Weyl/Dirac bulk walk, static
+Stage 49 implements the free BCC Weyl/Dirac bulk walk, static
 Standard-Model gauge-background transport, pure dynamic SM gauge fields, and a
 site-local Higgs/Yukawa collision, finite-path FN recirculation, and
 center-holonomy CP coefficients, a three-family Higgs/Yukawa collision, and
@@ -44,8 +44,8 @@ rollout smoke test, a multi-step local-force recorded-rollout audit, a
 local-force production profiling certificate, a numerical local-force
 spatial-support audit, a one-tick full-production spatial-support audit, a
 three-tick family-cone audit, a two-tick all-sector cone audit, and a
-momentum-only Gauss relaxation/projection precursor with an iterated solver and
-a Gauss-projected production-step wrapper:
+momentum-only Gauss relaxation/projection precursor with an iterated solver, a
+Gauss-projected production-step wrapper, and a finite projected-rollout audit:
 
 ```text
 qca_smv0/
@@ -77,6 +77,7 @@ qca_smv0/
   sm_physical_right_production_gauss_projection.py
   sm_physical_right_production_gauss_solver.py
   sm_physical_right_production_projected.py
+  sm_physical_right_production_projected_rollout.py
   sm_physical_right_production_energy.py
   sm_physical_right_production_variational.py
   sm_physical_right_production_refinement.py
@@ -126,6 +127,7 @@ qca_smv0/
     session_46_physical_right_production_gauss_projection.py
     session_47_physical_right_production_gauss_solver.py
     session_48_physical_right_production_projected.py
+    session_49_physical_right_production_projected_rollout.py
     session_24_physical_right_production_energy.py
     session_25_physical_right_production_variational.py
     session_26_physical_right_production_refinement.py
@@ -1143,6 +1145,29 @@ Stage 48 verdict:
 
 ```text
 QCA_SMV0_STAGE48_PHYSICAL_RIGHT_PRODUCTION_PROJECTED_STEP_PASS
+```
+
+Stage 49 iterates the projected production step over a short finite horizon:
+
+- records a raw production rollout and a projected production rollout from the
+  same deterministic initial state;
+- applies ten fixed-link, momentum-only Gauss relaxation iterations after each
+  projected tick;
+- keeps the zero-source vacuum unchanged over the projected rollout;
+- reduces the two-step deterministic final Gauss norm from raw `5.937e-1` to
+  projected `3.787e-1`;
+- gives final raw-vs-projected reduction fraction `3.621e-1`;
+- each projected step has positive Gauss reduction and zero monotonicity
+  violation inside its finite relaxation history;
+- keeps projected SM and Higgs links unitary to float32 precision;
+- treats the result as a finite projected-rollout audit, not as a
+  Gauss-preserving integrator, exact energy-conservation theorem, or continuum
+  stability theorem.
+
+Stage 49 verdict:
+
+```text
+QCA_SMV0_STAGE49_PHYSICAL_RIGHT_PRODUCTION_PROJECTED_ROLLOUT_PASS
 ```
 
 The charges, `lambda`, order-one coefficients, and center-power matrices are

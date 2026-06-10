@@ -1528,3 +1528,34 @@ Verdict:
 ```text
 QCA_SMV0_STAGE48_PHYSICAL_RIGHT_PRODUCTION_PROJECTED_STEP_PASS
 ```
+
+## Stage 49 - Physical-Right Production Gauss-Projected Rollout
+
+Pass only if:
+
+- the only upstream runtime imports are from `sim` and local `qca_smv0`
+  modules;
+- the Stage 48 projected tick can be iterated over a finite horizon without
+  changing the raw production tick helper;
+- the helper records raw-rollout Gauss norms and projected-rollout Gauss norms
+  from the same initial state;
+- every projected tick records its raw post-tick Gauss norm, final projected
+  Gauss norm, projection-reduction fraction, projection momentum delta, and
+  finite relaxation-history consistency checks;
+- the zero-source vacuum remains Gauss-free over the projected rollout;
+- a deterministic projected rollout ends with a smaller final Gauss residual
+  than the raw rollout over the same horizon;
+- every projected step has positive Gauss reduction and monotone finite
+  relaxation history;
+- projected SM and Higgs links remain unitary to float32 precision over the
+  recorded horizon;
+- the result is documented as a finite projected-rollout audit, not as a full
+  nonlinear gauge-orbit projection, Gauss-preserving integrator, exact
+  energy-conservation theorem, timestep-convergence theorem, continuum
+  stability theorem, boundary rule, or microscopic-input derivation.
+
+Verdict:
+
+```text
+QCA_SMV0_STAGE49_PHYSICAL_RIGHT_PRODUCTION_PROJECTED_ROLLOUT_PASS
+```

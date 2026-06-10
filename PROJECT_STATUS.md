@@ -78,7 +78,7 @@ physics policy.
 **Boundary**: BCC Weyl/Dirac kernels, BCC plaquettes, Wilson observables, and
 SO(2)/SU(2)/SU(3) force policy remain in `spacetime_qca`.
 
-## qca_smv0 — Stage 48 physical-right production Gauss-projected step
+## qca_smv0 — Stage 49 physical-right production Gauss-projected rollout
 
 **Goal**: focused simulator sidecar for the next Standard-Model QCA prototype,
 using the shared `sim` infrastructure and local `qca_smv0` kernels only.
@@ -562,6 +562,15 @@ using the shared `sim` infrastructure and local `qca_smv0` kernels only.
   monotonicity violation.
 - Projection changes only SM link momenta relative to the raw production step.
 - Stage 48 script and focused tests.
+- Finite Gauss-projected physical-right production rollout.
+- Raw and projected Gauss histories recorded from the same deterministic
+  initial state.
+- Two-step deterministic final Gauss norm reduced from raw `5.937e-1` to
+  projected `3.787e-1`.
+- Final raw-vs-projected reduction fraction `3.621e-1`.
+- Every projected step has positive Gauss reduction and zero monotonicity
+  violation in its finite relaxation history.
+- Stage 49 script and focused tests.
 
 **Boundary**: no boundary condition, quantized scalar/gauge registers, full
 microscopic BCC derivation of the antiunitary bridge, full nonlinear
