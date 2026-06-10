@@ -13,6 +13,7 @@ from clifford_3plus2_d5.qca_smv0.sm_fermion_higgs import (
     sm_yukawa_energy_density,
     sm_yukawa_higgs_force,
 )
+from clifford_3plus2_d5.qca_smv0.sm_family_higgs import sm_family_recirculated_quark_yukawas
 from clifford_3plus2_d5.qca_smv0.sm_higgs import sm_constant_higgs
 from clifford_3plus2_d5.qca_smv0.sm_higgs_dynamics import (
     deterministic_higgs_momenta,
@@ -30,6 +31,21 @@ def test_yukawa_higgs_source_vanishes_for_zero_state_and_not_for_seed() -> None:
 
     assert jnp.linalg.norm(sm_yukawa_higgs_force(zero_state, higgs)) < 1e-8
     assert jnp.linalg.norm(sm_yukawa_higgs_force(state, higgs)) > 1e-4
+
+
+def test_yukawa_higgs_source_defaults_to_fn_recirculation() -> None:
+    lattice_shape = (1, 1, 1)
+    state = deterministic_yukawa_source_state(lattice_shape)
+    higgs = sm_constant_higgs(lattice_shape)
+    quark_yukawas = sm_family_recirculated_quark_yukawas()
+
+    default_energy = sm_yukawa_energy_density(state, higgs)
+    explicit_energy = sm_yukawa_energy_density(state, higgs, quark_yukawas=quark_yukawas)
+    default_force = sm_yukawa_higgs_force(state, higgs)
+    explicit_force = sm_yukawa_higgs_force(state, higgs, quark_yukawas=quark_yukawas)
+
+    assert jnp.abs(default_energy - explicit_energy) < 1e-8
+    assert jnp.max(jnp.abs(default_force - explicit_force)) < 1e-8
 
 
 def test_yukawa_energy_and_source_are_gauge_covariant() -> None:
@@ -87,6 +103,7 @@ def test_family_yukawa_collision_with_higgs_kick_preserves_fermion_norm() -> Non
 def test_fermion_higgs_backreaction_diagnostics_and_jit_pass_stage_thresholds() -> None:
     diagnostics = sm_fermion_higgs_backreaction_diagnostics()
 
+    assert diagnostics.fn_recirculated_source_residual < 1e-8
     assert diagnostics.energy_reality_residual < 1e-8
     assert diagnostics.zero_state_source_norm < 1e-8
     assert diagnostics.nonzero_source_norm > 1e-4

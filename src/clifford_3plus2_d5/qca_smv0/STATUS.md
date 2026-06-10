@@ -165,6 +165,8 @@ Implemented:
 - Session 09 script;
 - local Yukawa energy density `E_Y=Re psi^dagger beta Y(H) psi` from the same
   Stage 7 three-family Yukawa matrix used by the collision;
+- default quark source inherited from the recirculation-backed Stage 7 FN
+  Yukawa matrices;
 - complex-field Higgs source force `-dE_Y/dH*` from real/imaginary automatic
   differentiation;
 - deterministic fermion source state with nonzero Yukawa bilinears;

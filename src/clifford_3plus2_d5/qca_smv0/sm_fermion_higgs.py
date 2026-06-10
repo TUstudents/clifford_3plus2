@@ -21,7 +21,6 @@ import jax
 import jax.numpy as jnp
 import jax.scipy.linalg as jsp_linalg
 
-from clifford_3plus2_d5.qca_smv0.sm_cp import sm_center_cp_quark_yukawas
 from clifford_3plus2_d5.qca_smv0.sm_family_higgs import (
     FamilyLeptonYukawas,
     SM_FAMILY_DIM,
@@ -33,6 +32,7 @@ from clifford_3plus2_d5.qca_smv0.sm_family_higgs import (
     _u_c_index,
     sm_apply_family_yukawa_collision,
     sm_default_family_lepton_yukawas,
+    sm_family_recirculated_quark_yukawas,
     sm_family_yukawa_internal_matrix,
 )
 from clifford_3plus2_d5.qca_smv0.sm_fn import FNQuarkYukawas
@@ -53,6 +53,7 @@ from clifford_3plus2_d5.qca_smv0.sm_higgs_dynamics import (
 class FermionHiggsBackreactionDiagnostics(NamedTuple):
     """Focused diagnostics for Stage 10 Yukawa/Higgs backreaction."""
 
+    fn_recirculated_source_residual: jnp.ndarray
     energy_reality_residual: jnp.ndarray
     zero_state_source_norm: jnp.ndarray
     nonzero_source_norm: jnp.ndarray
@@ -182,7 +183,7 @@ def sm_yukawa_energy_local_density(
     lattice_shape = _validate_family_state(state)
     _validate_higgs_field(higgs, lattice_shape)
     if quark_yukawas is None:
-        quark_yukawas = sm_center_cp_quark_yukawas()
+        quark_yukawas = sm_family_recirculated_quark_yukawas()
     if lepton_yukawas is None:
         lepton_yukawas = sm_default_family_lepton_yukawas()
 
@@ -308,10 +309,13 @@ def sm_fermion_higgs_backreaction_diagnostics() -> FermionHiggsBackreactionDiagn
     sm_gauge = sm_yukawa_site_gauge_from_higgs_site_theta(site_theta)
     transformed_state = sm_transform_family_state(state, sm_gauge)
     transformed_higgs = sm_transform_higgs_field(higgs, higgs_gauge)
+    reference_quark_yukawas = sm_family_recirculated_quark_yukawas()
 
     energy = sm_yukawa_energy_density(state, higgs)
+    reference_energy = sm_yukawa_energy_density(state, higgs, quark_yukawas=reference_quark_yukawas)
     transformed_energy = sm_yukawa_energy_density(transformed_state, transformed_higgs)
     source = sm_yukawa_higgs_force(state, higgs)
+    reference_source = sm_yukawa_higgs_force(state, higgs, quark_yukawas=reference_quark_yukawas)
     transformed_source = sm_yukawa_higgs_force(transformed_state, transformed_higgs)
     expected_source = sm_transform_higgs_field(source, higgs_gauge)
     kicked = sm_apply_yukawa_higgs_momentum_kick(higgs_momenta, state, higgs, step_size=0.03)
@@ -330,6 +334,10 @@ def sm_fermion_higgs_backreaction_diagnostics() -> FermionHiggsBackreactionDiagn
     before_norm = jnp.real(jnp.sum(jnp.conj(state) * state))
     after_norm = jnp.real(jnp.sum(jnp.conj(updated_state) * updated_state))
     return FermionHiggsBackreactionDiagnostics(
+        fn_recirculated_source_residual=jnp.maximum(
+            jnp.abs(energy - reference_energy),
+            jnp.max(jnp.abs(source - reference_source)),
+        ),
         energy_reality_residual=jnp.abs(jnp.imag(energy + 0j)),
         zero_state_source_norm=jnp.linalg.norm(sm_yukawa_higgs_force(zero_state, higgs)),
         nonzero_source_norm=jnp.linalg.norm(source),

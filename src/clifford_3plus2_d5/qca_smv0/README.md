@@ -401,6 +401,8 @@ QCA_SMV0_STAGE9_GAUGE_HIGGS_BACKREACTION_PASS
 Stage 10 adds local fermion/Higgs backreaction:
 
 - local Yukawa energy density `E_Y=Re psi^dagger beta Y(H) psi`;
+- default quark source inherited from the Stage 7 recirculation-backed FN
+  Yukawa matrices;
 - Higgs source force `-dE_Y/dH*` computed from real/imaginary autodiff;
 - deterministic source states with nonzero Yukawa bilinears;
 - zero-state and nonzero-source controls;

@@ -11,6 +11,7 @@ def main() -> None:
     for name, value in diagnostics._asdict().items():
         print(f"{name}: {float(value):.3e}")
 
+    assert diagnostics.fn_recirculated_source_residual < 1e-8
     assert diagnostics.energy_reality_residual < 1e-8
     assert diagnostics.zero_state_source_norm < 1e-8
     assert diagnostics.nonzero_source_norm > 1e-4

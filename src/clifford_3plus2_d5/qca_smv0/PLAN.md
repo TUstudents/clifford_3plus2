@@ -342,6 +342,7 @@ Pass only if:
 - the only upstream runtime imports are from `sim` and local `qca_smv0`
   modules;
 - the local source uses the same three-family Yukawa matrix as Stage 7;
+- the default quark source is the recirculation-backed FN source from Stage 7;
 - the local Yukawa energy density is
   `E_Y=Re psi^dagger beta Y(H) psi`;
 - the Higgs source is the complex-field force `-dE_Y/dH*`, computed from
