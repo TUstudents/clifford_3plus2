@@ -1431,3 +1431,34 @@ Verdict:
 ```text
 QCA_SMV0_STAGE45_PHYSICAL_RIGHT_PRODUCTION_SECTOR_CONES_PASS
 ```
+
+## Stage 46 - Physical-Right Production Gauss Projection
+
+Pass only if:
+
+- the only upstream runtime imports are from `sim` and local `qca_smv0`
+  modules;
+- the existing physical-right production Gauss residual is treated as
+  `G(P)=div_E(P)-rho` at fixed links and matter fields;
+- the correction acts only on SM link momenta, leaving family state, Higgs
+  field, Higgs momenta, SM links, and Higgs links unchanged;
+- the descent direction is the automatic-differentiated gradient of
+  `0.5 ||G||^2` with respect to SM link momenta;
+- the line step is the exact one-dimensional least-squares minimizer along
+  that gradient direction for the affine fixed-link Gauss map;
+- the zero-source vacuum has zero Gauss residual and remains unchanged by the
+  relaxation step;
+- a deterministic production state has nonzero initial Gauss residual and the
+  relaxation step strictly reduces it;
+- the relaxed state keeps SM and Higgs links unitary to float32 precision;
+- the relaxation helper is JIT-compatible;
+- the result is documented as a momentum-only Gauss relaxation/projection
+  precursor, not as a full nonlinear gauge-orbit projection, Gauss-preserving
+  production integrator, boundary rule, exact energy-conservation theorem,
+  timestep-convergence theorem, or microscopic-input derivation.
+
+Verdict:
+
+```text
+QCA_SMV0_STAGE46_PHYSICAL_RIGHT_PRODUCTION_GAUSS_PROJECTION_PASS
+```

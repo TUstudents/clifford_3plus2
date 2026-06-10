@@ -22,7 +22,7 @@ It should not be used for:
 
 ## Current State
 
-Stage 45 implements the free BCC Weyl/Dirac bulk walk, static
+Stage 46 implements the free BCC Weyl/Dirac bulk walk, static
 Standard-Model gauge-background transport, pure dynamic SM gauge fields, and a
 site-local Higgs/Yukawa collision, finite-path FN recirculation, and
 center-holonomy CP coefficients, a three-family Higgs/Yukawa collision, and
@@ -42,8 +42,9 @@ local analytic Wilson staple-force replacement, a local analytic
 physical-right fermion-current replacement, and a local-force production
 rollout smoke test, a multi-step local-force recorded-rollout audit, a
 local-force production profiling certificate, a numerical local-force
-spatial-support audit, a one-tick full-production spatial-support audit, and a
-three-tick family-cone audit, and a two-tick all-sector cone audit:
+spatial-support audit, a one-tick full-production spatial-support audit, a
+three-tick family-cone audit, a two-tick all-sector cone audit, and a
+momentum-only Gauss relaxation/projection precursor:
 
 ```text
 qca_smv0/
@@ -72,6 +73,7 @@ qca_smv0/
   sm_physical_right_production_tick.py
   sm_physical_right_production_rollout.py
   sm_physical_right_production_gauss.py
+  sm_physical_right_production_gauss_projection.py
   sm_physical_right_production_energy.py
   sm_physical_right_production_variational.py
   sm_physical_right_production_refinement.py
@@ -118,6 +120,7 @@ qca_smv0/
     session_21_physical_right_production_tick.py
     session_22_physical_right_production_rollout.py
     session_23_physical_right_production_gauss.py
+    session_46_physical_right_production_gauss_projection.py
     session_24_physical_right_production_energy.py
     session_25_physical_right_production_variational.py
     session_26_physical_right_production_refinement.py
@@ -1074,6 +1077,27 @@ Stage 45 verdict:
 QCA_SMV0_STAGE45_PHYSICAL_RIGHT_PRODUCTION_SECTOR_CONES_PASS
 ```
 
+Stage 46 adds a momentum-only Gauss relaxation/projection precursor:
+
+- treats the existing physical-right production Gauss residual as
+  `G(P)=div_E(P)-rho` at fixed links and matter fields;
+- computes the gradient of `0.5 ||G||^2` with respect to SM link momenta;
+- chooses the exact one-dimensional least-squares line step along that
+  gradient direction;
+- leaves family state, Higgs field, Higgs momenta, SM links, and Higgs links
+  unchanged;
+- keeps the zero-source vacuum unchanged;
+- reduces the deterministic Gauss norm from `5.939e-1` to `4.816e-1` in one
+  relaxation step;
+- treats the result as a constraint-solving precursor, not as a full nonlinear
+  Gauss projection or Gauss-preserving production integrator.
+
+Stage 46 verdict:
+
+```text
+QCA_SMV0_STAGE46_PHYSICAL_RIGHT_PRODUCTION_GAUSS_PROJECTION_PASS
+```
+
 The charges, `lambda`, order-one coefficients, and center-power matrices are
 simulator inputs, not BCC-bulk derivations. Quantized scalar/gauge registers,
 boundary rules, microscopic derivation of the bridge, and derivation of the
@@ -1143,5 +1167,6 @@ uv run python -m clifford_3plus2_d5.qca_smv0.scripts.session_42_physical_right_p
 uv run python -m clifford_3plus2_d5.qca_smv0.scripts.session_43_physical_right_production_spatial_support
 uv run python -m clifford_3plus2_d5.qca_smv0.scripts.session_44_physical_right_production_cone
 uv run python -m clifford_3plus2_d5.qca_smv0.scripts.session_45_physical_right_production_sector_cones
+uv run python -m clifford_3plus2_d5.qca_smv0.scripts.session_46_physical_right_production_gauss_projection
 uv run pytest src/clifford_3plus2_d5/qca_smv0/tests -q
 ```

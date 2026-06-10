@@ -78,7 +78,7 @@ physics policy.
 **Boundary**: BCC Weyl/Dirac kernels, BCC plaquettes, Wilson observables, and
 SO(2)/SU(2)/SU(3) force policy remain in `spacetime_qca`.
 
-## qca_smv0 — Stage 45 physical-right production all-sector cones
+## qca_smv0 — Stage 46 physical-right production Gauss projection precursor
 
 **Goal**: focused simulator sidecar for the next Standard-Model QCA prototype,
 using the shared `sim` infrastructure and local `qca_smv0` kernels only.
@@ -532,9 +532,22 @@ using the shared `sim` infrastructure and local `qca_smv0` kernels only.
   SM momentum, Higgs link)`.
 - Zero detected support outside the two-step cone.
 - Stage 45 script and focused tests.
+- Momentum-only Gauss relaxation/projection precursor at fixed links and matter
+  fields.
+- Automatic-differentiated gradient of `0.5 ||G||^2` with respect to SM link
+  momenta, where `G(P)=div_E(P)-rho`.
+- Exact one-dimensional least-squares line minimizer along that gradient
+  direction.
+- Zero-source vacuum remains unchanged with zero Gauss residual.
+- Deterministic Gauss norm reduced from `5.939e-1` to `4.816e-1` in one
+  relaxation step.
+- All non-momentum fields remain unchanged and SM/Higgs link unitarity remains
+  controlled.
+- Stage 46 script and focused tests.
 
 **Boundary**: no boundary condition, quantized scalar/gauge registers, full
-microscopic BCC derivation of the antiunitary bridge, Gauss projection, exact
+microscopic BCC derivation of the antiunitary bridge, full nonlinear
+gauge-orbit projection / Gauss-preserving production integrator, exact
 full-energy conservation claim, timestep-refined energy-convergence claim, or
 energy-convergent reversible-integrator claim beyond the explicit inverse
 helper, continuum Lyapunov claim, or large-lattice continuum spatial echo theorem is

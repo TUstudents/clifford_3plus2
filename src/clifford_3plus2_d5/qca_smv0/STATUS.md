@@ -3,12 +3,12 @@
 ## Verdict
 
 ```text
-QCA_SMV0_STAGE45_PHYSICAL_RIGHT_PRODUCTION_SECTOR_CONES_PASS
+QCA_SMV0_STAGE46_PHYSICAL_RIGHT_PRODUCTION_GAUSS_PROJECTION_PASS
 ```
 
 ## Current State
 
-Stage 45 physical-right production all-sector cone audit implemented on top of the Stage 1
+Stage 46 physical-right production Gauss relaxation/projection precursor implemented on top of the Stage 1
 free BCC Weyl/Dirac walk, Stage 2 static gauge transport, Stage 3 pure dynamic
 gauge fields, Stage 4 local Higgs/Yukawa collision, Stage 5 FN recirculation,
 Stage 6 center-holonomy CP, Stage 7 three-family Higgs/Yukawa collision, and
@@ -32,8 +32,8 @@ dense-workload audit, Stage 37 local Wilson-force replacement, Stage 38
 local-force production-rollout smoke test, Stage 39 multi-step local-force
 recorded rollout, Stage 40 local-force production profile, Stage 41
 local-force support audit, Stage 42 local-current production replacement,
-Stage 43 one-tick production spatial-support audit, and Stage 44 family-cone
-audit.
+Stage 43 one-tick production spatial-support audit, Stage 44 family-cone
+audit, and Stage 45 all-sector cone audit.
 
 Implemented:
 
@@ -552,6 +552,22 @@ Implemented:
   energy-conservation theorem, timestep-convergence theorem, boundary rule, or
   microscopic-input derivation;
 - Session 45 script;
+- momentum-only Gauss relaxation/projection precursor at fixed links and matter
+  fields;
+- automatic-differentiated gradient of `0.5 ||G||^2` with respect to SM link
+  momenta, where `G(P)=div_E(P)-rho`;
+- exact one-dimensional least-squares line minimizer along that gradient
+  direction;
+- zero-source vacuum remains unchanged with zero Gauss residual;
+- deterministic Gauss norm reduced from `5.939e-1` to `4.816e-1` in one
+  relaxation step;
+- all non-momentum fields remain unchanged and SM/Higgs link unitarity remains
+  controlled;
+- explicit boundary: this is a constraint-solving precursor, not a full
+  nonlinear gauge-orbit projection, Gauss-preserving production integrator,
+  boundary rule, exact energy-conservation theorem, timestep-convergence
+  theorem, or microscopic-input derivation;
+- Session 46 script;
 - focused tests for algebra, norm preservation, local gauge covariance, Wilson
   response, weak-link scaling, pure-gauge dynamics, Gauss covariance and
   preservation, weak-field Yang-Mills behavior, Higgs/Yukawa door structure,
@@ -579,7 +595,8 @@ Implemented:
   audit, physical-right production local-force support audit, physical-right
   production local-current audit, physical-right production spatial-support
   audit, physical-right production family-cone audit, physical-right production
-  all-sector cone audit, and small-momentum Weyl/Dirac behavior.
+  all-sector cone audit, physical-right production Gauss relaxation/projection
+  audit, and small-momentum Weyl/Dirac behavior.
 
 Not implemented:
 
@@ -589,7 +606,8 @@ Not implemented:
 - derivation of the FN charges, `lambda`, order-one coefficients, or
   center-power matrices from BCC bulk dynamics;
 - derivation of Higgs potential parameters from BCC bulk dynamics;
-- Gauss projection / constraint-solving dynamics;
+- full nonlinear gauge-orbit projection / Gauss-preserving production
+  integrator;
 - exact conservation claim for the full hybrid production energy monitor;
 - timestep-refined energy-convergence claim for the current hybrid production
   tick;

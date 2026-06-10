@@ -472,10 +472,16 @@ from clifford_3plus2_d5.qca_smv0.sm_physical_right_production_sector_cones impor
     PhysicalRightProductionSectorConesDiagnostics,
     sm_physical_right_production_sector_cones_diagnostics,
 )
+from clifford_3plus2_d5.qca_smv0.sm_physical_right_production_gauss_projection import (
+    PhysicalRightProductionGaussProjectionDiagnostics,
+    sm_physical_right_production_gauss_gradient,
+    sm_physical_right_production_gauss_projection_diagnostics,
+    sm_physical_right_production_gauss_relaxation_step,
+)
 
 SIDECAR_NAME = "qca_smv0"
 SIDECAR_TITLE = "QCA_SMv0"
-SIDECAR_STATUS = "Stage 45 physical-right production sector cones implemented"
+SIDECAR_STATUS = "Stage 46 physical-right production Gauss projection implemented"
 
 __all__ = [
     "BCC_ANISOTROPY_DIRECTIONS",
@@ -537,6 +543,7 @@ __all__ = [
     "PhysicalRightProductionEchoScaleDiagnostics",
     "PhysicalRightProductionEnergyDiagnostics",
     "PhysicalRightProductionGaussDiagnostics",
+    "PhysicalRightProductionGaussProjectionDiagnostics",
     "PhysicalRightProductionInverseDiagnostics",
     "PhysicalRightProductionReversibilityDiagnostics",
     "PhysicalRightProductionRolloutDiagnostics",
@@ -772,8 +779,11 @@ __all__ = [
     "sm_physical_right_production_force_support_diagnostics",
     "sm_physical_right_production_gauss",
     "sm_physical_right_production_gauss_diagnostics",
+    "sm_physical_right_production_gauss_gradient",
     "sm_physical_right_production_gauss_history",
     "sm_physical_right_production_gauss_observables",
+    "sm_physical_right_production_gauss_projection_diagnostics",
+    "sm_physical_right_production_gauss_relaxation_step",
     "sm_physical_right_production_initial_state",
     "sm_physical_right_production_observables",
     "sm_physical_right_production_recorded_rollout",
