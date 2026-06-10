@@ -867,3 +867,32 @@ Verdict:
 ```text
 QCA_SMV0_STAGE25_PHYSICAL_RIGHT_PRODUCTION_VARIATIONAL_PASS
 ```
+
+## Stage 26 - Physical-Right Production Refinement Limitation Audit
+
+Pass only if:
+
+- the only upstream runtime imports are from `sim` and local `qca_smv0`
+  modules;
+- the audit compares two deterministic production rollouts at the same physical
+  time, using `dt` and `dt/2` with doubled step count;
+- the compared histories use the Stage 24 monitored total energy;
+- the fixed physical times match exactly to numerical precision;
+- the coarse rollout has controlled monitored total-energy drift;
+- the refined rollout remains finite, link-unitary, and family-norm
+  controlled;
+- the zero-source production vacuum keeps zero monitored total-energy drift
+  under the refined rollout;
+- the audit explicitly detects that the current hybrid production tick does
+  not improve monitored total-energy drift under timestep halving;
+- the detected limitation is documented as an integrator limitation, not as a
+  physics conservation result;
+- no new dynamics, boundary rule, conservation claim, Gauss projection,
+  quantized register, performance benchmark, or derivation of simulator inputs
+  is introduced.
+
+Verdict:
+
+```text
+QCA_SMV0_STAGE26_PHYSICAL_RIGHT_PRODUCTION_REFINEMENT_LIMITATION_PASS
+```

@@ -22,7 +22,7 @@ It should not be used for:
 
 ## Current State
 
-Stage 25 implements the free BCC Weyl/Dirac bulk walk, static
+Stage 26 implements the free BCC Weyl/Dirac bulk walk, static
 Standard-Model gauge-background transport, pure dynamic SM gauge fields, and a
 site-local Higgs/Yukawa collision, finite-path FN recirculation, and
 center-holonomy CP coefficients, a three-family Higgs/Yukawa collision, and
@@ -33,7 +33,7 @@ antiunitary singlet bridge, physical-right bridged transport, and the
 physical-right bridged fermion current, sourced gauge tick, and production
 tick, sparse recorded rollout of that production tick, a physical-right Gauss
 monitor on the production rollout, an energy-component monitor, and a
-variational force-provenance audit:
+variational force-provenance audit, plus a refinement-limitation audit:
 
 ```text
 qca_smv0/
@@ -64,6 +64,7 @@ qca_smv0/
   sm_physical_right_production_gauss.py
   sm_physical_right_production_energy.py
   sm_physical_right_production_variational.py
+  sm_physical_right_production_refinement.py
   scripts/
     session_01_bare_bcc_walk.py
     session_02_static_sm_gauge_background.py
@@ -90,6 +91,7 @@ qca_smv0/
     session_23_physical_right_production_gauss.py
     session_24_physical_right_production_energy.py
     session_25_physical_right_production_variational.py
+    session_26_physical_right_production_refinement.py
   tests/
     test_bulk_bcc.py
     test_sm_gauge.py
@@ -114,6 +116,7 @@ qca_smv0/
     test_sm_physical_right_production_gauss.py
     test_sm_physical_right_production_energy.py
     test_sm_physical_right_production_variational.py
+    test_sm_physical_right_production_refinement.py
 ```
 
 The implemented Weyl kernel is a two-component periodic BCC bulk walk:
@@ -626,6 +629,23 @@ Stage 25 verdict:
 QCA_SMV0_STAGE25_PHYSICAL_RIGHT_PRODUCTION_VARIATIONAL_PASS
 ```
 
+Stage 26 adds a fixed-time timestep-refinement audit for the monitored
+production energy:
+
+- compares `dt` against `dt/2` with doubled step count at the same physical
+  time;
+- keeps the refined rollout finite, link-unitary, and family-norm controlled;
+- keeps the zero-source production vacuum at zero monitored energy drift;
+- records that the current hybrid production tick does not improve monitored
+  total-energy drift under timestep halving;
+- treats that as an integrator limitation, not as a conservation theorem.
+
+Stage 26 verdict:
+
+```text
+QCA_SMV0_STAGE26_PHYSICAL_RIGHT_PRODUCTION_REFINEMENT_LIMITATION_PASS
+```
+
 The charges, `lambda`, order-one coefficients, and center-power matrices are
 simulator inputs, not BCC-bulk derivations. Quantized scalar/gauge registers,
 boundary rules, microscopic derivation of the bridge, and derivation of the
@@ -675,5 +695,6 @@ uv run python -m clifford_3plus2_d5.qca_smv0.scripts.session_22_physical_right_p
 uv run python -m clifford_3plus2_d5.qca_smv0.scripts.session_23_physical_right_production_gauss
 uv run python -m clifford_3plus2_d5.qca_smv0.scripts.session_24_physical_right_production_energy
 uv run python -m clifford_3plus2_d5.qca_smv0.scripts.session_25_physical_right_production_variational
+uv run python -m clifford_3plus2_d5.qca_smv0.scripts.session_26_physical_right_production_refinement
 uv run pytest src/clifford_3plus2_d5/qca_smv0/tests -q
 ```

@@ -371,10 +371,15 @@ from clifford_3plus2_d5.qca_smv0.sm_physical_right_production_variational import
     sm_physical_right_production_link_force_decomposition_residual,
     sm_physical_right_production_variational_diagnostics,
 )
+from clifford_3plus2_d5.qca_smv0.sm_physical_right_production_refinement import (
+    PhysicalRightProductionRefinementDiagnostics,
+    sm_physical_right_production_refinement_diagnostics,
+    sm_physical_right_production_refinement_pair,
+)
 
 SIDECAR_NAME = "qca_smv0"
 SIDECAR_TITLE = "QCA_SMv0"
-SIDECAR_STATUS = "Stage 25 physical-right production variational audit implemented"
+SIDECAR_STATUS = "Stage 26 physical-right production refinement limitation audit implemented"
 
 __all__ = [
     "BCC_ANISOTROPY_DIRECTIONS",
@@ -434,6 +439,7 @@ __all__ = [
     "PhysicalRightProductionRolloutDiagnostics",
     "PhysicalRightProductionRolloutState",
     "PhysicalRightProductionSMTickDiagnostics",
+    "PhysicalRightProductionRefinementDiagnostics",
     "PhysicalRightProductionVariationalDiagnostics",
     "PhysicalRightSourcedSMTickDiagnostics",
     "PhysicalRightTransportDiagnostics",
@@ -643,6 +649,8 @@ __all__ = [
     "sm_physical_right_production_higgs_force_decomposition_residual",
     "sm_physical_right_production_link_directional_derivative_residual",
     "sm_physical_right_production_link_force_decomposition_residual",
+    "sm_physical_right_production_refinement_diagnostics",
+    "sm_physical_right_production_refinement_pair",
     "sm_physical_right_production_sm_tick",
     "sm_physical_right_production_step",
     "sm_physical_right_production_tick_diagnostics",
