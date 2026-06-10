@@ -301,6 +301,8 @@ Stage 5 adds FN recirculation paths:
 - visible-hidden-visible readout maps that send left-family channels through
   the hidden recirculation network into right-family channels;
 - exact finite unitary dilations of the visible FN transfer blocks;
+- a local visible-plus-auxiliary FN collision primitive that applies the
+  dilation unitarily and exposes the normalized visible transfer;
 - quark path lengths `n^u_ij=Q_i+U_j` and `n^d_ij=Q_i+D_j`;
 - default charges `Q=(3,2,0)`, `U=(5,2,0)`, `D=(1,0,0)`;
 - standard diagonal FN orders `lambda^8:lambda^4:1` and

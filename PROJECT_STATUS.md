@@ -142,6 +142,8 @@ using the shared `sim` infrastructure and local `qca_smv0` kernels only.
 - Visible-hidden-visible readout maps from left-family channels through the
   hidden recirculation network into right-family channels.
 - Exact finite unitary dilations of the visible FN transfer blocks.
+- Local visible-plus-auxiliary FN collision primitive that applies the dilation
+  unitarily and exposes the normalized visible transfer.
 - Default simulator charges `Q=(3,2,0)`, `U=(5,2,0)`, `D=(1,0,0)`.
 - Quark path-length matrices `n^u_ij=Q_i+U_j`, `n^d_ij=Q_i+D_j`.
 - Standard diagonal FN scaling audits `lambda^8:lambda^4:1` and

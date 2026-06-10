@@ -87,6 +87,10 @@ class FNRecirculationDiagnostics(NamedTuple):
     down_unitary_dilation_residual: jnp.ndarray
     up_unitary_dilation_transfer_residual: jnp.ndarray
     down_unitary_dilation_transfer_residual: jnp.ndarray
+    up_collision_norm_drift: jnp.ndarray
+    down_collision_norm_drift: jnp.ndarray
+    up_collision_transfer_residual: jnp.ndarray
+    down_collision_transfer_residual: jnp.ndarray
     up_exponent_residual: jnp.ndarray
     down_exponent_residual: jnp.ndarray
     up_diagonal_scaling_residual: jnp.ndarray
@@ -315,6 +319,58 @@ def fn_unitary_dilation_residual(dilation: FNUnitaryDilation) -> jnp.ndarray:
     return jnp.max(jnp.abs(jnp.swapaxes(jnp.conj(unitary), -1, -2) @ unitary - identity))
 
 
+def fn_recirculation_collision_dilation(
+    lambda_rec: float | jnp.ndarray,
+    left_charges: tuple[int, int, int],
+    right_charges: tuple[int, int, int],
+    *,
+    coefficients: jnp.ndarray | None = None,
+) -> FNUnitaryDilation:
+    """Return a unitary local collision dilation for one FN sector.
+
+    ``fn_effective_yukawa`` stores the Yukawa table with indices
+    ``(left_family, right_family)``.  A local collision acts as an operator from
+    left-family amplitudes to right-family amplitudes, so the dilated transfer
+    block is the transpose of that table.
+    """
+
+    table = fn_visible_recirculation_transfer(
+        lambda_rec,
+        left_charges,
+        right_charges,
+        coefficients=coefficients,
+    )
+    return fn_unitary_dilation(jnp.swapaxes(table, -1, -2))
+
+
+def fn_prepare_visible_collision_state(left_state: jnp.ndarray) -> jnp.ndarray:
+    """Embed a visible left-family vector into the dilated FN collision space."""
+
+    arr = jnp.asarray(left_state, dtype=jnp.complex64)
+    if arr.shape[-1] != SM_FAMILY_DIM:
+        raise ValueError("left_state must end with family dimension 3")
+    zeros = jnp.zeros_like(arr)
+    return jnp.concatenate([arr, zeros], axis=-1)
+
+
+def fn_apply_recirculation_collision(dilation: FNUnitaryDilation, state: jnp.ndarray) -> jnp.ndarray:
+    """Apply a finite unitary FN collision dilation to a visible-plus-aux state."""
+
+    arr = jnp.asarray(state, dtype=jnp.complex64)
+    if arr.shape[-1] != 2 * SM_FAMILY_DIM:
+        raise ValueError("collision state must end with dimension 6")
+    return jnp.einsum("ij,...j->...i", dilation.unitary, arr)
+
+
+def fn_read_visible_collision_output(state: jnp.ndarray) -> jnp.ndarray:
+    """Return the visible right-family component of a dilated FN collision state."""
+
+    arr = jnp.asarray(state, dtype=jnp.complex64)
+    if arr.shape[-1] != 2 * SM_FAMILY_DIM:
+        raise ValueError("collision state must end with dimension 6")
+    return arr[..., :SM_FAMILY_DIM]
+
+
 def fn_charge_exponents(left_charges: tuple[int, int, int], right_charges: tuple[int, int, int]) -> jnp.ndarray:
     """Return the FN path-length matrix ``n_ij=Q_i+R_j``."""
 
@@ -463,6 +519,26 @@ def fn_recirculation_diagnostics(lambda_rec: float = FN_LAMBDA_WOLFENSTEIN) -> F
     )
     up_dilation = fn_unitary_dilation(up_readout.transfer)
     down_dilation = fn_unitary_dilation(down_readout.transfer)
+    up_collision = fn_recirculation_collision_dilation(
+        lambda_rec,
+        charges.q,
+        charges.u,
+        coefficients=fn_default_coefficients("up"),
+    )
+    down_collision = fn_recirculation_collision_dilation(
+        lambda_rec,
+        charges.q,
+        charges.d,
+        coefficients=fn_default_coefficients("down"),
+    )
+    probe = jnp.asarray([1.0 + 0.0j, -0.5 + 0.25j, 0.2 - 0.4j], dtype=jnp.complex64)
+    prepared = fn_prepare_visible_collision_state(probe)
+    up_collision_output = fn_apply_recirculation_collision(up_collision, prepared)
+    down_collision_output = fn_apply_recirculation_collision(down_collision, prepared)
+    up_visible_output = fn_read_visible_collision_output(up_collision_output)
+    down_visible_output = fn_read_visible_collision_output(down_collision_output)
+    up_operator = jnp.swapaxes(yukawas.up, -1, -2)
+    down_operator = jnp.swapaxes(yukawas.down, -1, -2)
     ckm = fn_ckm_from_yukawas(yukawas.up, yukawas.down)
     jit_yukawa = jax.jit(fn_effective_yukawa, static_argnames=("left_charges", "right_charges"))
     eager = fn_effective_yukawa(lambda_rec, charges.q, charges.u, coefficients=fn_default_coefficients("up"))
@@ -494,6 +570,14 @@ def fn_recirculation_diagnostics(lambda_rec: float = FN_LAMBDA_WOLFENSTEIN) -> F
         up_unitary_dilation_transfer_residual=jnp.max(jnp.abs(up_dilation.normalization * up_dilation.transfer - yukawas.up)),
         down_unitary_dilation_transfer_residual=jnp.max(
             jnp.abs(down_dilation.normalization * down_dilation.transfer - yukawas.down),
+        ),
+        up_collision_norm_drift=jnp.abs(jnp.linalg.norm(up_collision_output) - jnp.linalg.norm(prepared)),
+        down_collision_norm_drift=jnp.abs(jnp.linalg.norm(down_collision_output) - jnp.linalg.norm(prepared)),
+        up_collision_transfer_residual=jnp.max(
+            jnp.abs(up_collision.normalization * up_visible_output - up_operator @ probe),
+        ),
+        down_collision_transfer_residual=jnp.max(
+            jnp.abs(down_collision.normalization * down_visible_output - down_operator @ probe),
         ),
         up_exponent_residual=jnp.max(jnp.abs(up_exponents - expected_up)),
         down_exponent_residual=jnp.max(jnp.abs(down_exponents - expected_down)),

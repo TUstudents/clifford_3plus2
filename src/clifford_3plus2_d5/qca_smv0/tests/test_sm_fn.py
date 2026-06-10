@@ -14,6 +14,7 @@ from clifford_3plus2_d5.qca_smv0.sm_fn import (
     fn_ckm_from_yukawas,
     fn_default_coefficients,
     fn_effective_yukawa,
+    fn_apply_recirculation_collision,
     fn_path_transfer_amplitude,
     fn_path_transfer_residual,
     fn_path_unitary,
@@ -26,6 +27,9 @@ from clifford_3plus2_d5.qca_smv0.sm_fn import (
     fn_unitarity_residual,
     fn_unitary_dilation,
     fn_unitary_dilation_residual,
+    fn_prepare_visible_collision_state,
+    fn_read_visible_collision_output,
+    fn_recirculation_collision_dilation,
     fn_visible_recirculation_readout,
     fn_visible_recirculation_transfer,
     fn_wolfenstein_scaling,
@@ -96,6 +100,32 @@ def test_fn_visible_transfer_has_exact_unitary_dilation() -> None:
     assert dilation.normalization >= 1.0
     assert fn_unitary_dilation_residual(dilation) < 2e-6
     assert jnp.max(jnp.abs(dilation.normalization * dilation.transfer - transfer)) < 1e-8
+
+
+def test_fn_recirculation_collision_is_unitary_and_exposes_visible_transfer() -> None:
+    charges = DEFAULT_FN_QUARK_CHARGES
+    coeffs = fn_default_coefficients("up")
+    operator = jnp.swapaxes(
+        fn_visible_recirculation_transfer(FN_LAMBDA_WOLFENSTEIN, charges.q, charges.u, coefficients=coeffs),
+        -1,
+        -2,
+    )
+    collision = fn_recirculation_collision_dilation(
+        FN_LAMBDA_WOLFENSTEIN,
+        charges.q,
+        charges.u,
+        coefficients=coeffs,
+    )
+    left_state = jnp.asarray([1.0 + 0.0j, -0.5 + 0.25j, 0.2 - 0.4j], dtype=jnp.complex64)
+    prepared = fn_prepare_visible_collision_state(left_state)
+    evolved = fn_apply_recirculation_collision(collision, prepared)
+    visible = fn_read_visible_collision_output(evolved)
+
+    assert prepared.shape == (6,)
+    assert evolved.shape == (6,)
+    assert fn_unitary_dilation_residual(collision) < 2e-6
+    assert jnp.abs(jnp.linalg.norm(evolved) - jnp.linalg.norm(prepared)) < 1e-6
+    assert jnp.max(jnp.abs(collision.normalization * visible - operator @ left_state)) < 1e-8
 
 
 def test_fn_quark_charge_exponents_match_standard_assignment() -> None:

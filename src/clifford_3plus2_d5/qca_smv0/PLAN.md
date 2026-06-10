@@ -172,6 +172,9 @@ Pass only if:
   the unitary recirculation network, and exit through right-family channels;
 - the visible transfer has an exact finite unitary dilation, so the nonunitary
   Yukawa block can be embedded in a local simulator gate;
+- a local FN collision primitive applies that dilation to visible-plus-auxiliary
+  family states, preserving norm while exposing the normalized visible transfer
+  block;
 - quark path lengths are generated from explicit integer charges:
   `n^u_ij=Q_i+U_j` and `n^d_ij=Q_i+D_j`;
 - the default simulator charges are `Q=(3,2,0)`, `U=(5,2,0)`,
