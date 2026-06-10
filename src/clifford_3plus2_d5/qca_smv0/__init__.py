@@ -446,10 +446,14 @@ from clifford_3plus2_d5.qca_smv0.sm_physical_right_production_local_recorded imp
     PhysicalRightProductionLocalRecordedDiagnostics,
     sm_physical_right_production_local_recorded_diagnostics,
 )
+from clifford_3plus2_d5.qca_smv0.sm_physical_right_production_local_profile import (
+    PhysicalRightProductionLocalProfileDiagnostics,
+    sm_physical_right_production_local_profile_diagnostics,
+)
 
 SIDECAR_NAME = "qca_smv0"
 SIDECAR_TITLE = "QCA_SMv0"
-SIDECAR_STATUS = "Stage 39 physical-right production local recorded rollout implemented"
+SIDECAR_STATUS = "Stage 40 physical-right production local profile implemented"
 
 __all__ = [
     "BCC_ANISOTROPY_DIRECTIONS",
@@ -524,6 +528,7 @@ __all__ = [
     "PhysicalRightProductionLocalForceDiagnostics",
     "PhysicalRightProductionLocalRolloutDiagnostics",
     "PhysicalRightProductionLocalRecordedDiagnostics",
+    "PhysicalRightProductionLocalProfileDiagnostics",
     "PhysicalRightSourcedSMTickDiagnostics",
     "PhysicalRightTransportDiagnostics",
     "SourcedSMTickDiagnostics",
@@ -750,6 +755,7 @@ __all__ = [
     "sm_physical_right_production_link_directional_derivative_residual",
     "sm_physical_right_production_link_force_decomposition_residual",
     "sm_physical_right_production_local_force_diagnostics",
+    "sm_physical_right_production_local_profile_diagnostics",
     "sm_physical_right_production_local_recorded_diagnostics",
     "sm_physical_right_production_local_rollout_diagnostics",
     "sm_physical_right_production_frozen_fermion_stage",

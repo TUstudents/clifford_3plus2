@@ -1261,3 +1261,31 @@ Verdict:
 ```text
 QCA_SMV0_STAGE39_PHYSICAL_RIGHT_PRODUCTION_LOCAL_RECORDED_PASS
 ```
+
+## Stage 40 - Physical-Right Production Local-Force Profile
+
+Pass only if:
+
+- the only upstream runtime imports are from `sim` and local `qca_smv0`
+  modules;
+- the shared `sim.profile_callable` helper produces an eager profile payload
+  for one local-force production step;
+- the payload is finite and JSON-safe through the shared profiler contract;
+- a closed-over JIT version of the same step produces separate compile and
+  cached-run timing fields without tracing `step_size` through Python control
+  flow;
+- eager and JIT outputs agree within float32 tolerance;
+- final state finiteness, family norm drift, and SM/Higgs link unitarity remain
+  controlled;
+- all timing fields are documented as machine-dependent diagnostics, not as
+  strict performance claims or physics derivations;
+- the result is documented as a profile smoke test, not as a large-lattice
+  spatial echo measurement, continuum causal-cone theorem, exact
+  energy-conservation theorem, timestep-convergence theorem, boundary rule, or
+  microscopic-input derivation.
+
+Verdict:
+
+```text
+QCA_SMV0_STAGE40_PHYSICAL_RIGHT_PRODUCTION_LOCAL_PROFILE_PASS
+```

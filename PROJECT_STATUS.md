@@ -78,7 +78,7 @@ physics policy.
 **Boundary**: BCC Weyl/Dirac kernels, BCC plaquettes, Wilson observables, and
 SO(2)/SU(2)/SU(3) force policy remain in `spacetime_qca`.
 
-## qca_smv0 — Stage 39 physical-right production local-force recorded rollout
+## qca_smv0 — Stage 40 physical-right production local-force profile
 
 **Goal**: focused simulator sidecar for the next Standard-Model QCA prototype,
 using the shared `sim` infrastructure and local `qca_smv0` kernels only.
@@ -480,6 +480,13 @@ using the shared `sim` infrastructure and local `qca_smv0` kernels only.
   unitarity remain controlled while Higgs, SM-link, and SM-momentum changes
   stay nonzero.
 - Session 39 script and focused tests.
+- Eager `sim.profile_callable` payload for one local-force production step on
+  a `2 x 1 x 1` lattice.
+- Closed-over JIT compile/run timing for the same step, avoiding traced
+  `step_size` Python control flow.
+- Eager/JIT output agreement, finite-output, family-norm, and link-unitarity
+  controls; timing fields are recorded only as machine-dependent diagnostics.
+- Session 40 script and focused tests.
 
 **Boundary**: no boundary condition, quantized scalar/gauge registers, full
 microscopic BCC derivation of the antiunitary bridge, Gauss projection, exact

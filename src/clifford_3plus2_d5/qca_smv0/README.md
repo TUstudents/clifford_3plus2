@@ -22,7 +22,7 @@ It should not be used for:
 
 ## Current State
 
-Stage 39 implements the free BCC Weyl/Dirac bulk walk, static
+Stage 40 implements the free BCC Weyl/Dirac bulk walk, static
 Standard-Model gauge-background transport, pure dynamic SM gauge fields, and a
 site-local Higgs/Yukawa collision, finite-path FN recirculation, and
 center-holonomy CP coefficients, a three-family Higgs/Yukawa collision, and
@@ -39,7 +39,8 @@ trajectory-level reversibility audit, a Loschmidt echo diagnostic, and a
 finite tangent-response, echo-Gram, echo-Gram scale, and echo-horizon audit
 suite, a finite-stencil locality audit, a dense-workload scaling audit, a
 local analytic Wilson staple-force replacement, and a local-force production
-rollout smoke test, and a multi-step local-force recorded-rollout audit:
+rollout smoke test, a multi-step local-force recorded-rollout audit, and a
+local-force production profiling certificate:
 
 ```text
 qca_smv0/
@@ -84,6 +85,7 @@ qca_smv0/
   sm_physical_right_production_local_force.py
   sm_physical_right_production_local_rollout.py
   sm_physical_right_production_local_recorded.py
+  sm_physical_right_production_local_profile.py
   scripts/
     session_01_bare_bcc_walk.py
     session_02_static_sm_gauge_background.py
@@ -124,6 +126,7 @@ qca_smv0/
     session_37_physical_right_production_local_force.py
     session_38_physical_right_production_local_rollout.py
     session_39_physical_right_production_local_recorded.py
+    session_40_physical_right_production_local_profile.py
   tests/
     test_bulk_bcc.py
     test_sm_gauge.py
@@ -162,6 +165,7 @@ qca_smv0/
     test_sm_physical_right_production_local_force.py
     test_sm_physical_right_production_local_rollout.py
     test_sm_physical_right_production_local_recorded.py
+    test_sm_physical_right_production_local_profile.py
 ```
 
 The implemented Weyl kernel is a two-component periodic BCC bulk walk:
@@ -940,6 +944,24 @@ Stage 39 verdict:
 QCA_SMV0_STAGE39_PHYSICAL_RIGHT_PRODUCTION_LOCAL_RECORDED_PASS
 ```
 
+Stage 40 profiles the local-force production step:
+
+- uses `sim.profile_callable` to produce a JSON-safe eager timing payload for
+  one local-force production step on a `2 x 1 x 1` lattice;
+- profiles a closed-over JIT version of the same step so `step_size` remains a
+  static Python value;
+- records separate JIT compile and cached-run timing fields;
+- verifies eager and JIT outputs agree, the final state is finite, and
+  SM/Higgs links remain unitary;
+- treats all timing fields as machine-dependent diagnostics, not as strict
+  performance claims.
+
+Stage 40 verdict:
+
+```text
+QCA_SMV0_STAGE40_PHYSICAL_RIGHT_PRODUCTION_LOCAL_PROFILE_PASS
+```
+
 The charges, `lambda`, order-one coefficients, and center-power matrices are
 simulator inputs, not BCC-bulk derivations. Quantized scalar/gauge registers,
 boundary rules, microscopic derivation of the bridge, and derivation of the
@@ -1003,5 +1025,6 @@ uv run python -m clifford_3plus2_d5.qca_smv0.scripts.session_36_physical_right_p
 uv run python -m clifford_3plus2_d5.qca_smv0.scripts.session_37_physical_right_production_local_force
 uv run python -m clifford_3plus2_d5.qca_smv0.scripts.session_38_physical_right_production_local_rollout
 uv run python -m clifford_3plus2_d5.qca_smv0.scripts.session_39_physical_right_production_local_recorded
+uv run python -m clifford_3plus2_d5.qca_smv0.scripts.session_40_physical_right_production_local_profile
 uv run pytest src/clifford_3plus2_d5/qca_smv0/tests -q
 ```
