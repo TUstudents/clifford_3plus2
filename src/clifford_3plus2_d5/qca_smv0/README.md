@@ -22,7 +22,7 @@ It should not be used for:
 
 ## Current State
 
-Stage 38 implements the free BCC Weyl/Dirac bulk walk, static
+Stage 39 implements the free BCC Weyl/Dirac bulk walk, static
 Standard-Model gauge-background transport, pure dynamic SM gauge fields, and a
 site-local Higgs/Yukawa collision, finite-path FN recirculation, and
 center-holonomy CP coefficients, a three-family Higgs/Yukawa collision, and
@@ -39,7 +39,7 @@ trajectory-level reversibility audit, a Loschmidt echo diagnostic, and a
 finite tangent-response, echo-Gram, echo-Gram scale, and echo-horizon audit
 suite, a finite-stencil locality audit, a dense-workload scaling audit, a
 local analytic Wilson staple-force replacement, and a local-force production
-rollout smoke test:
+rollout smoke test, and a multi-step local-force recorded-rollout audit:
 
 ```text
 qca_smv0/
@@ -83,6 +83,7 @@ qca_smv0/
   sm_physical_right_production_workload.py
   sm_physical_right_production_local_force.py
   sm_physical_right_production_local_rollout.py
+  sm_physical_right_production_local_recorded.py
   scripts/
     session_01_bare_bcc_walk.py
     session_02_static_sm_gauge_background.py
@@ -122,6 +123,7 @@ qca_smv0/
     session_36_physical_right_production_workload.py
     session_37_physical_right_production_local_force.py
     session_38_physical_right_production_local_rollout.py
+    session_39_physical_right_production_local_recorded.py
   tests/
     test_bulk_bcc.py
     test_sm_gauge.py
@@ -159,6 +161,7 @@ qca_smv0/
     test_sm_physical_right_production_workload.py
     test_sm_physical_right_production_local_force.py
     test_sm_physical_right_production_local_rollout.py
+    test_sm_physical_right_production_local_recorded.py
 ```
 
 The implemented Weyl kernel is a two-component periodic BCC bulk walk:
@@ -918,6 +921,25 @@ Stage 38 verdict:
 QCA_SMV0_STAGE38_PHYSICAL_RIGHT_PRODUCTION_LOCAL_ROLLOUT_PASS
 ```
 
+Stage 39 runs a multi-step recorded rollout on the local-force path:
+
+- uses the same `2 x 2 x 1` certificate lattice as Stage 38;
+- records a two-step physical-right production rollout with both the Python
+  loop runner and the `lax.scan` runner;
+- verifies loop/scan final-state and observation agreement;
+- verifies all recorded observations are finite, family norm drift remains
+  bounded, and SM/Higgs link unitarity remains controlled;
+- verifies Higgs, SM-link, and SM-momentum changes remain nontrivial over the
+  recorded history;
+- treats the result as a sparse-runner stability check, not as a large-lattice
+  spatial echo measurement or performance benchmark.
+
+Stage 39 verdict:
+
+```text
+QCA_SMV0_STAGE39_PHYSICAL_RIGHT_PRODUCTION_LOCAL_RECORDED_PASS
+```
+
 The charges, `lambda`, order-one coefficients, and center-power matrices are
 simulator inputs, not BCC-bulk derivations. Quantized scalar/gauge registers,
 boundary rules, microscopic derivation of the bridge, and derivation of the
@@ -980,5 +1002,6 @@ uv run python -m clifford_3plus2_d5.qca_smv0.scripts.session_35_physical_right_p
 uv run python -m clifford_3plus2_d5.qca_smv0.scripts.session_36_physical_right_production_workload
 uv run python -m clifford_3plus2_d5.qca_smv0.scripts.session_37_physical_right_production_local_force
 uv run python -m clifford_3plus2_d5.qca_smv0.scripts.session_38_physical_right_production_local_rollout
+uv run python -m clifford_3plus2_d5.qca_smv0.scripts.session_39_physical_right_production_local_recorded
 uv run pytest src/clifford_3plus2_d5/qca_smv0/tests -q
 ```

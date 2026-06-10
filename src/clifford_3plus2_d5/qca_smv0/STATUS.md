@@ -3,12 +3,12 @@
 ## Verdict
 
 ```text
-QCA_SMV0_STAGE38_PHYSICAL_RIGHT_PRODUCTION_LOCAL_ROLLOUT_PASS
+QCA_SMV0_STAGE39_PHYSICAL_RIGHT_PRODUCTION_LOCAL_RECORDED_PASS
 ```
 
 ## Current State
 
-Stage 38 physical-right production local-force rollout smoke test implemented on top of the Stage 1
+Stage 39 physical-right production multi-step local-force recorded rollout implemented on top of the Stage 1
 free BCC Weyl/Dirac walk, Stage 2 static gauge transport, Stage 3 pure dynamic
 gauge fields, Stage 4 local Higgs/Yukawa collision, Stage 5 FN recirculation,
 Stage 6 center-holonomy CP, Stage 7 three-family Higgs/Yukawa collision, and
@@ -28,7 +28,8 @@ explicit inverse helper, Stage 29 trajectory reversibility audit, and Stage 30
 Loschmidt echo diagnostic, Stage 31 tangent echo audit, and Stage 32 echo Gram
 audit, Stage 33 echo-Gram scale-stability audit, and Stage 34 finite-horizon
 echo-spectrum audit, Stage 35 finite-stencil locality audit, Stage 36
-dense-workload audit, and Stage 37 local Wilson-force replacement.
+dense-workload audit, Stage 37 local Wilson-force replacement, and Stage 38
+local-force production-rollout smoke test.
 
 Implemented:
 
@@ -470,6 +471,12 @@ Implemented:
 - finite-output, link-unitarity, nontrivial Higgs/link/momentum update, and
   local-vs-legacy force-workload controls for the larger certificate lattice;
 - Session 38 script;
+- two-step sparse recorded physical-right production rollout on the `2 x 2 x
+  1` local-force certificate lattice;
+- Python-loop versus `lax.scan` runner agreement for the multi-step rollout;
+- finite-observation, family-norm, link-unitarity, and nontrivial update
+  controls over the recorded history;
+- Session 39 script;
 - focused tests for algebra, norm preservation, local gauge covariance, Wilson
   response, weak-link scaling, pure-gauge dynamics, Gauss covariance and
   preservation, weak-field Yang-Mills behavior, Higgs/Yukawa door structure,
@@ -492,7 +499,8 @@ Implemented:
   physical-right production echo horizon audit, physical-right production
   finite-stencil locality audit, physical-right production dense-workload
   audit, physical-right production local-force audit, physical-right
-  production local-force rollout audit, and
+  production local-force rollout audit, physical-right production local-force
+  recorded-rollout audit, and
   small-momentum Weyl/Dirac behavior.
 
 Not implemented:
@@ -512,7 +520,7 @@ Not implemented:
 - large-lattice numerical spatial echo / causal-cone measurement for the
   physical-right production map;
 - performance profiles beyond the small
-  Session 01/02/03/04/05/06/07/08/09/10/11/12/13/14/15/16/17/18/19/20/21/22/23/24/25/26/27/28/29/30/31/32/33/34/35/36/37/38 diagnostics.
+  Session 01/02/03/04/05/06/07/08/09/10/11/12/13/14/15/16/17/18/19/20/21/22/23/24/25/26/27/28/29/30/31/32/33/34/35/36/37/38/39 diagnostics.
 
 ## Working Boundary
 

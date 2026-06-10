@@ -78,7 +78,7 @@ physics policy.
 **Boundary**: BCC Weyl/Dirac kernels, BCC plaquettes, Wilson observables, and
 SO(2)/SU(2)/SU(3) force policy remain in `spacetime_qca`.
 
-## qca_smv0 — Stage 38 physical-right production local-force rollout
+## qca_smv0 — Stage 39 physical-right production local-force recorded rollout
 
 **Goal**: focused simulator sidecar for the next Standard-Model QCA prototype,
 using the shared `sim` infrastructure and local `qca_smv0` kernels only.
@@ -472,6 +472,14 @@ using the shared `sim` infrastructure and local `qca_smv0` kernels only.
   plaquette holonomies versus `18432` for the legacy finite-difference path
   (`768x` reduction).
 - Session 38 script and focused tests.
+- Multi-step sparse recorded rollout on the same `2 x 2 x 1` local-force
+  certificate lattice.
+- Python-loop and `lax.scan` recorded runners agree on final state and
+  observations over two production steps.
+- Recorded observations remain finite; family norm drift and SM/Higgs link
+  unitarity remain controlled while Higgs, SM-link, and SM-momentum changes
+  stay nonzero.
+- Session 39 script and focused tests.
 
 **Boundary**: no boundary condition, quantized scalar/gauge registers, full
 microscopic BCC derivation of the antiunitary bridge, Gauss projection, exact

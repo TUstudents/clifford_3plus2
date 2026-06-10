@@ -1234,3 +1234,30 @@ Verdict:
 ```text
 QCA_SMV0_STAGE38_PHYSICAL_RIGHT_PRODUCTION_LOCAL_ROLLOUT_PASS
 ```
+
+## Stage 39 - Physical-Right Production Local-Force Recorded Rollout
+
+Pass only if:
+
+- the only upstream runtime imports are from `sim` and local `qca_smv0`
+  modules;
+- the implemented production tick is recorded for more than one step on a
+  lattice larger than the one-site Stage 21/22 default;
+- the Python loop runner and `lax.scan` runner agree on both final state and
+  recorded observations;
+- all recorded observations remain finite;
+- family norm drift and SM/Higgs link unitarity remain controlled over the
+  recorded history;
+- Higgs-field, SM-link, and SM-momentum changes remain nonzero over the
+  rollout;
+- the result is documented as a sparse-runner stability check on the local
+  force path, not as a large-lattice spatial echo measurement, continuum
+  causal-cone theorem, performance benchmark, exact energy-conservation
+  theorem, timestep-convergence theorem, boundary rule, or microscopic-input
+  derivation.
+
+Verdict:
+
+```text
+QCA_SMV0_STAGE39_PHYSICAL_RIGHT_PRODUCTION_LOCAL_RECORDED_PASS
+```
