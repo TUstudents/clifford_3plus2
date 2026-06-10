@@ -9,18 +9,31 @@ from clifford_3plus2_d5.qca_smv0.sm_fn import (
 )
 
 
+THRESHOLDS = {
+    "beam_splitter_unitarity_residual": 1e-7,
+    "path_transfer_residual": 1e-7,
+    "up_network_unitarity_residual": 1e-6,
+    "down_network_unitarity_residual": 1e-6,
+    "up_network_transfer_residual": 1e-7,
+    "down_network_transfer_residual": 1e-7,
+    "up_exponent_residual": 1e-8,
+    "down_exponent_residual": 1e-8,
+    "up_diagonal_scaling_residual": 1e-10,
+    "down_diagonal_scaling_residual": 1e-10,
+    "wolfenstein_scaling_residual": 1e-10,
+    "ckm_unitarity_residual": 2e-6,
+    "jit_delta": 1e-10,
+}
+
+
 def _print_diagnostics(label: str, lambda_rec: float) -> None:
     diagnostics = fn_recirculation_diagnostics(lambda_rec)
     print(f"{label}_lambda: {lambda_rec:.12e}")
-    print(f"{label}_beam_splitter_unitarity_residual: {float(diagnostics.beam_splitter_unitarity_residual):.3e}")
-    print(f"{label}_path_transfer_residual: {float(diagnostics.path_transfer_residual):.3e}")
-    print(f"{label}_up_exponent_residual: {float(diagnostics.up_exponent_residual):.3e}")
-    print(f"{label}_down_exponent_residual: {float(diagnostics.down_exponent_residual):.3e}")
-    print(f"{label}_up_diagonal_scaling_residual: {float(diagnostics.up_diagonal_scaling_residual):.3e}")
-    print(f"{label}_down_diagonal_scaling_residual: {float(diagnostics.down_diagonal_scaling_residual):.3e}")
-    print(f"{label}_wolfenstein_scaling_residual: {float(diagnostics.wolfenstein_scaling_residual):.3e}")
-    print(f"{label}_ckm_unitarity_residual: {float(diagnostics.ckm_unitarity_residual):.3e}")
-    print(f"{label}_jit_delta: {float(diagnostics.jit_delta):.3e}")
+    for field in diagnostics._fields:
+        value = float(getattr(diagnostics, field))
+        print(f"{label}_{field}: {value:.3e}")
+        if value >= THRESHOLDS[field]:
+            raise SystemExit(f"{label}_{field}={value:.3e} exceeds threshold {THRESHOLDS[field]:.3e}")
 
 
 def main() -> None:

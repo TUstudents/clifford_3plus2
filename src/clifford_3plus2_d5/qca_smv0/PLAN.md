@@ -164,6 +164,10 @@ Pass only if:
   `[[sqrt(1-lambda^2), -lambda], [lambda, sqrt(1-lambda^2)]]` is unitary;
 - a finite hidden path of length `n` is a product of local beam splitters;
 - the endpoint transfer amplitude of that path is `lambda^n`;
+- the full sector is an explicit direct-sum hidden unitary network containing
+  one local path for every `L_i -> R_j` entry;
+- the FN power matrix is read from source-to-sink transfer amplitudes of that
+  hidden network, not inserted as a bare power table;
 - quark path lengths are generated from explicit integer charges:
   `n^u_ij=Q_i+U_j` and `n^d_ij=Q_i+D_j`;
 - the default simulator charges are `Q=(3,2,0)`, `U=(5,2,0)`,
@@ -174,7 +178,7 @@ Pass only if:
 - the left-frame scaling matrix is `lambda^abs(Q_i-Q_j)`, giving the
   Wolfenstein hierarchy pattern;
 - effective Yukawa matrices are built as
-  `Y_ij=c_ij lambda^(Q_i+R_j)`;
+  `Y_ij=c_ij A_ij`, where `A_ij` is the measured hidden-network transfer;
 - singular masses and the CKM-like left-frame mismatch are read from the same
   generated matrices;
 - the generated CKM-like matrix is unitary to numerical precision;

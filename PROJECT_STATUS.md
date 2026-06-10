@@ -135,12 +135,17 @@ using the shared `sim` infrastructure and local `qca_smv0` kernels only.
 - Empirical Wolfenstein and shear-candidate attenuation inputs.
 - Local two-state unitary beam splitter for one FN recirculation step.
 - Finite hidden-path unitary chains with endpoint transfer `lambda^n`.
+- Explicit direct-sum hidden unitary networks with one path for every
+  `L_i -> R_j` entry.
+- FN power matrices measured from hidden-network source-to-sink transfer
+  amplitudes.
 - Default simulator charges `Q=(3,2,0)`, `U=(5,2,0)`, `D=(1,0,0)`.
 - Quark path-length matrices `n^u_ij=Q_i+U_j`, `n^d_ij=Q_i+D_j`.
 - Standard diagonal FN scaling audits `lambda^8:lambda^4:1` and
   `lambda^4:lambda^2:1`.
 - Left-frame Wolfenstein scaling `lambda^abs(Q_i-Q_j)`.
-- Generated quark Yukawa matrices `Y_ij=c_ij lambda^(Q_i+R_j)`.
+- Generated quark Yukawa matrices `Y_ij=c_ij A_ij`, where `A_ij` is the
+  hidden-network transfer amplitude.
 - Singular masses and CKM-like left-frame mismatch from the same generated
   matrices.
 - Session 05 script and focused tests.

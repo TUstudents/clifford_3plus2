@@ -24,7 +24,7 @@ It should not be used for:
 
 Stage 49 implements the free BCC Weyl/Dirac bulk walk, static
 Standard-Model gauge-background transport, pure dynamic SM gauge fields, and a
-site-local Higgs/Yukawa collision, finite-path FN recirculation, and
+site-local Higgs/Yukawa collision, explicit hidden-network FN recirculation, and
 center-holonomy CP coefficients, a three-family Higgs/Yukawa collision, and
 dynamic Higgs-field evolution with scalar gauge and local fermion/Higgs
 backreaction, plus BCC streaming fermion gauge currents, the merged
@@ -295,12 +295,16 @@ Stage 5 adds FN recirculation paths:
   coefficients;
 - empirical Wolfenstein mode and shear-candidate mode for `lambda`;
 - finite local beam-splitter chains whose endpoint transfer is `lambda^n`;
+- explicit direct-sum hidden unitary networks with one path for every
+  `L_i -> R_j` entry;
+- FN power matrices measured from hidden-network source-to-sink transfers;
 - quark path lengths `n^u_ij=Q_i+U_j` and `n^d_ij=Q_i+D_j`;
 - default charges `Q=(3,2,0)`, `U=(5,2,0)`, `D=(1,0,0)`;
 - standard diagonal FN orders `lambda^8:lambda^4:1` and
   `lambda^4:lambda^2:1`;
 - left-frame Wolfenstein scaling `lambda^abs(Q_i-Q_j)`;
-- generated matrices `Y_ij=c_ij lambda^(Q_i+R_j)`;
+- generated matrices `Y_ij=c_ij A_ij`, where `A_ij` is the hidden-network
+  transfer amplitude;
 - singular masses and CKM-like left-frame mismatch read from the same
   generated matrices.
 

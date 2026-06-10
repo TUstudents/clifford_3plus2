@@ -18,6 +18,10 @@ from clifford_3plus2_d5.qca_smv0.sm_fn import (
     fn_path_transfer_residual,
     fn_path_unitary,
     fn_quark_yukawa_matrices,
+    fn_recirculation_network,
+    fn_recirculation_network_unitarity_residual,
+    fn_recirculation_power_matrix,
+    fn_recirculation_transfer_matrix,
     fn_singular_masses,
     fn_unitarity_residual,
     fn_wolfenstein_scaling,
@@ -42,6 +46,23 @@ def test_fn_hidden_path_transfer_is_lambda_to_path_length() -> None:
     assert fn_path_transfer_residual(lam, max_path_length=8) < 1e-7
 
 
+def test_fn_all_entry_recirculation_network_is_unitary_and_reads_powers() -> None:
+    charges = DEFAULT_FN_QUARK_CHARGES
+    lam = FN_LAMBDA_WOLFENSTEIN
+    network = fn_recirculation_network(lam, charges.q, charges.u)
+    transfers = fn_recirculation_transfer_matrix(network)
+    expected_exponents = fn_charge_exponents(charges.q, charges.u)
+    expected = jnp.asarray(lam, dtype=jnp.float32) ** expected_exponents
+
+    assert network.path_lengths.shape == (3, 3)
+    assert network.source_indices.shape == (3, 3)
+    assert network.sink_indices.shape == (3, 3)
+    assert network.unitary.shape == (45, 45)
+    assert fn_recirculation_network_unitarity_residual(network) < 1e-6
+    assert jnp.max(jnp.abs(transfers - expected)) < 1e-7
+    assert jnp.max(jnp.abs(fn_recirculation_power_matrix(lam, charges.q, charges.u) - expected)) < 1e-7
+
+
 def test_fn_quark_charge_exponents_match_standard_assignment() -> None:
     charges = DEFAULT_FN_QUARK_CHARGES
     expected_up = jnp.asarray([[8, 5, 3], [7, 4, 2], [5, 2, 0]], dtype=jnp.int32)
@@ -54,9 +75,9 @@ def test_fn_quark_charge_exponents_match_standard_assignment() -> None:
 def test_fn_effective_yukawa_is_coefficients_times_recirculation_powers() -> None:
     charges = DEFAULT_FN_QUARK_CHARGES
     coeffs = fn_default_coefficients("up")
-    exponents = fn_charge_exponents(charges.q, charges.u)
+    powers = fn_recirculation_power_matrix(FN_LAMBDA_WOLFENSTEIN, charges.q, charges.u)
     y = fn_effective_yukawa(FN_LAMBDA_WOLFENSTEIN, charges.q, charges.u, coefficients=coeffs)
-    expected = coeffs * (jnp.asarray(FN_LAMBDA_WOLFENSTEIN, dtype=jnp.float32) ** exponents).astype(jnp.complex64)
+    expected = coeffs * powers.astype(jnp.complex64)
 
     assert y.shape == (SM_FAMILY_DIM, SM_FAMILY_DIM)
     assert jnp.max(jnp.abs(y - expected)) < 1e-10

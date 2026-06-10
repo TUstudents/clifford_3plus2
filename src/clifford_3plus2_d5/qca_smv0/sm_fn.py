@@ -46,11 +46,24 @@ class FNQuarkYukawas(NamedTuple):
     down: jnp.ndarray
 
 
+class FNRecirculationNetwork(NamedTuple):
+    """Direct-sum unitary hidden path network for one FN Yukawa sector."""
+
+    unitary: jnp.ndarray
+    source_indices: jnp.ndarray
+    sink_indices: jnp.ndarray
+    path_lengths: jnp.ndarray
+
+
 class FNRecirculationDiagnostics(NamedTuple):
     """Focused diagnostics for Stage 5 FN recirculation paths."""
 
     beam_splitter_unitarity_residual: jnp.ndarray
     path_transfer_residual: jnp.ndarray
+    up_network_unitarity_residual: jnp.ndarray
+    down_network_unitarity_residual: jnp.ndarray
+    up_network_transfer_residual: jnp.ndarray
+    down_network_transfer_residual: jnp.ndarray
     up_exponent_residual: jnp.ndarray
     down_exponent_residual: jnp.ndarray
     up_diagonal_scaling_residual: jnp.ndarray
@@ -126,6 +139,66 @@ def fn_path_transfer_residual(lambda_rec: float, *, max_path_length: int = 8) ->
     return residual
 
 
+def fn_recirculation_network(
+    lambda_rec: float | jnp.ndarray,
+    left_charges: tuple[int, int, int],
+    right_charges: tuple[int, int, int],
+) -> FNRecirculationNetwork:
+    """Return the explicit direct-sum hidden unitary for all FN paths.
+
+    Each entry ``(i,j)`` gets an independent path of length
+    ``n_ij=Q_i+R_j``.  The full hidden evolution is the direct sum of the local
+    two-state beam-splitter chains, so the end-to-end transfer read from the
+    block is ``lambda**n_ij`` without inserting that power directly.
+    """
+
+    path_lengths = fn_charge_exponents(left_charges, right_charges)
+    left_py = tuple(int(charge) for charge in left_charges)
+    right_py = tuple(int(charge) for charge in right_charges)
+    path_lengths_py = tuple(left + right for left in left_py for right in right_py)
+    total_dim = sum(length + 1 for length in path_lengths_py)
+    unitary = jnp.zeros((total_dim, total_dim), dtype=jnp.float32)
+    source_indices = []
+    sink_indices = []
+    offset = 0
+    for length in path_lengths_py:
+        path = fn_path_unitary(lambda_rec, length)
+        dim = length + 1
+        unitary = unitary.at[offset : offset + dim, offset : offset + dim].set(path)
+        source_indices.append(offset)
+        sink_indices.append(offset + length)
+        offset += dim
+    return FNRecirculationNetwork(
+        unitary=unitary,
+        source_indices=jnp.asarray(source_indices, dtype=jnp.int32).reshape((SM_FAMILY_DIM, SM_FAMILY_DIM)),
+        sink_indices=jnp.asarray(sink_indices, dtype=jnp.int32).reshape((SM_FAMILY_DIM, SM_FAMILY_DIM)),
+        path_lengths=path_lengths,
+    )
+
+
+def fn_recirculation_network_unitarity_residual(network: FNRecirculationNetwork) -> jnp.ndarray:
+    """Return ``max_abs(U^T U-I)`` for a hidden FN recirculation network."""
+
+    unitary = jnp.asarray(network.unitary)
+    return jnp.max(jnp.abs(unitary.T @ unitary - jnp.eye(unitary.shape[0], dtype=unitary.dtype)))
+
+
+def fn_recirculation_transfer_matrix(network: FNRecirculationNetwork) -> jnp.ndarray:
+    """Read the effective family transfer matrix from a hidden FN network."""
+
+    return network.unitary[network.sink_indices, network.source_indices]
+
+
+def fn_recirculation_power_matrix(
+    lambda_rec: float | jnp.ndarray,
+    left_charges: tuple[int, int, int],
+    right_charges: tuple[int, int, int],
+) -> jnp.ndarray:
+    """Return FN powers by measuring the explicit hidden path network."""
+
+    return fn_recirculation_transfer_matrix(fn_recirculation_network(lambda_rec, left_charges, right_charges))
+
+
 def fn_charge_exponents(left_charges: tuple[int, int, int], right_charges: tuple[int, int, int]) -> jnp.ndarray:
     """Return the FN path-length matrix ``n_ij=Q_i+R_j``."""
 
@@ -175,11 +248,10 @@ def fn_effective_yukawa(
 ) -> jnp.ndarray:
     """Return ``c_ij lambda**(Q_i+R_j)`` from FN recirculation path lengths."""
 
-    exponents = fn_charge_exponents(left_charges, right_charges)
     coeffs = jnp.ones((SM_FAMILY_DIM, SM_FAMILY_DIM), dtype=jnp.complex64)
     if coefficients is not None:
         coeffs = _validate_family_matrix(coefficients, "coefficients").astype(jnp.complex64)
-    powers = jnp.asarray(lambda_rec, dtype=jnp.float32) ** exponents
+    powers = fn_recirculation_power_matrix(lambda_rec, left_charges, right_charges)
     return coeffs * powers.astype(jnp.complex64)
 
 
@@ -252,13 +324,19 @@ def fn_recirculation_diagnostics(lambda_rec: float = FN_LAMBDA_WOLFENSTEIN) -> F
         ],
         dtype=jnp.int32,
     )
+    lambda_value = jnp.asarray(lambda_rec, dtype=jnp.float32)
     yukawas = fn_quark_yukawa_matrices(lambda_rec=lambda_rec, charges=charges)
+    up_network = fn_recirculation_network(lambda_rec, charges.q, charges.u)
+    down_network = fn_recirculation_network(lambda_rec, charges.q, charges.d)
+    up_network_transfers = fn_recirculation_transfer_matrix(up_network)
+    down_network_transfers = fn_recirculation_transfer_matrix(down_network)
+    lambda_powers_up = lambda_value ** up_exponents
+    lambda_powers_down = lambda_value ** down_exponents
     ckm = fn_ckm_from_yukawas(yukawas.up, yukawas.down)
     jit_yukawa = jax.jit(fn_effective_yukawa, static_argnames=("left_charges", "right_charges"))
     eager = fn_effective_yukawa(lambda_rec, charges.q, charges.u, coefficients=fn_default_coefficients("up"))
     jitted = jit_yukawa(lambda_rec, charges.q, charges.u, coefficients=fn_default_coefficients("up"))
     wolfenstein = fn_wolfenstein_scaling(charges.q, lambda_rec)
-    lambda_value = jnp.asarray(lambda_rec, dtype=jnp.float32)
     unit_coefficients = jnp.eye(SM_FAMILY_DIM, dtype=jnp.complex64)
     diagonal_up = fn_effective_yukawa(lambda_rec, charges.q, charges.u, coefficients=unit_coefficients)
     diagonal_down = fn_effective_yukawa(lambda_rec, charges.q, charges.d, coefficients=unit_coefficients)
@@ -274,6 +352,10 @@ def fn_recirculation_diagnostics(lambda_rec: float = FN_LAMBDA_WOLFENSTEIN) -> F
     return FNRecirculationDiagnostics(
         beam_splitter_unitarity_residual=fn_beam_splitter_unitarity_residual(lambda_rec),
         path_transfer_residual=fn_path_transfer_residual(lambda_rec),
+        up_network_unitarity_residual=fn_recirculation_network_unitarity_residual(up_network),
+        down_network_unitarity_residual=fn_recirculation_network_unitarity_residual(down_network),
+        up_network_transfer_residual=jnp.max(jnp.abs(up_network_transfers - lambda_powers_up)),
+        down_network_transfer_residual=jnp.max(jnp.abs(down_network_transfers - lambda_powers_down)),
         up_exponent_residual=jnp.max(jnp.abs(up_exponents - expected_up)),
         down_exponent_residual=jnp.max(jnp.abs(down_exponents - expected_down)),
         up_diagonal_scaling_residual=jnp.max(
