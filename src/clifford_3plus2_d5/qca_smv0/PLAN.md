@@ -926,3 +926,31 @@ Verdict:
 ```text
 QCA_SMV0_STAGE27_PHYSICAL_RIGHT_PRODUCTION_ADJOINT_LIMITATION_PASS
 ```
+
+## Stage 28 - Explicit Physical-Right Production Inverse
+
+Pass only if:
+
+- the only upstream runtime imports are from `sim` and local `qca_smv0`
+  modules;
+- the inverse reconstructs the half-step momenta from the final production
+  forces, runs the sourced link update backward, rewinds the Higgs field, and
+  applies the frozen fermion-stage adjoint from Stage 27;
+- a deterministic forward production tick followed by the explicit inverse
+  restores all rollout-state fields to float32 precision;
+- the restored state, advanced again with the forward tick, reproduces the
+  original final state;
+- the explicit inverse improves over the naive negative-timestep production
+  tick by a large margin;
+- the restored family norm and SM/Higgs link unitarity remain controlled;
+- the inverse is compatible with JIT;
+- the result is documented as an exact inverse helper for the current discrete
+  map, not as an energy-conservation, timestep-convergence, boundary,
+  Gauss-projection, quantized-register, performance, or microscopic-input
+  derivation claim.
+
+Verdict:
+
+```text
+QCA_SMV0_STAGE28_PHYSICAL_RIGHT_PRODUCTION_EXPLICIT_INVERSE_PASS
+```

@@ -78,7 +78,7 @@ physics policy.
 **Boundary**: BCC Weyl/Dirac kernels, BCC plaquettes, Wilson observables, and
 SO(2)/SU(2)/SU(3) force policy remain in `spacetime_qca`.
 
-## qca_smv0 — Stage 27 physical-right production adjoint limitation audit
+## qca_smv0 — Stage 28 explicit physical-right production inverse
 
 **Goal**: focused simulator sidecar for the next Standard-Model QCA prototype,
 using the shared `sim` infrastructure and local `qca_smv0` kernels only.
@@ -384,15 +384,24 @@ using the shared `sim` infrastructure and local `qca_smv0` kernels only.
 - Full production tick followed by a negative-timestep production tick is
   explicitly detected as not being the inverse of the full map.
 - Session 27 script and focused tests.
+- Explicit inverse helper for the current physical-right production tick:
+  reconstructs final half-step momenta from final production forces, rewinds
+  the sourced link update and Higgs field, applies the frozen fermion-stage
+  adjoint, and recovers initial momenta from reconstructed first forces.
+- Forward-then-inverse and inverse-then-forward audits restore the rollout
+  state to float32 precision.
+- The explicit inverse improves strongly over the naive negative-timestep
+  production tick while preserving family norm and SM/Higgs link unitarity.
+- Session 28 script and focused tests.
 
 **Boundary**: no boundary condition, quantized scalar/gauge registers, full
 microscopic BCC derivation of the antiunitary bridge, Gauss projection, exact
 full-energy conservation claim, timestep-refined energy-convergence claim, or
-full reversible-integrator claim is implemented yet.  The derivation of the
-flavor/Higgs inputs is also not implemented: FN charges, `lambda`, order-one
-coefficients, center-power matrices, placeholder lepton matrices, and Higgs
-potential parameters are explicit simulator inputs rather than BCC-bulk
-derivations.
+energy-convergent reversible-integrator claim beyond the explicit inverse
+helper is implemented yet.  The derivation of the flavor/Higgs inputs is also
+not implemented: FN charges, `lambda`, order-one coefficients, center-power
+matrices, placeholder lepton matrices, and Higgs potential parameters are
+explicit simulator inputs rather than BCC-bulk derivations.
 
 ## scalar_clebsch — V3 conditional pass, active
 

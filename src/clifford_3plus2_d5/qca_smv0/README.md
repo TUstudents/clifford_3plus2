@@ -22,7 +22,7 @@ It should not be used for:
 
 ## Current State
 
-Stage 27 implements the free BCC Weyl/Dirac bulk walk, static
+Stage 28 implements the free BCC Weyl/Dirac bulk walk, static
 Standard-Model gauge-background transport, pure dynamic SM gauge fields, and a
 site-local Higgs/Yukawa collision, finite-path FN recirculation, and
 center-holonomy CP coefficients, a three-family Higgs/Yukawa collision, and
@@ -34,7 +34,7 @@ physical-right bridged fermion current, sourced gauge tick, and production
 tick, sparse recorded rollout of that production tick, a physical-right Gauss
 monitor on the production rollout, an energy-component monitor, and a
 variational force-provenance audit, plus refinement and adjoint limitation
-audits:
+audits, and an explicit inverse helper for the current production tick:
 
 ```text
 qca_smv0/
@@ -67,6 +67,7 @@ qca_smv0/
   sm_physical_right_production_variational.py
   sm_physical_right_production_refinement.py
   sm_physical_right_production_adjoint.py
+  sm_physical_right_production_inverse.py
   scripts/
     session_01_bare_bcc_walk.py
     session_02_static_sm_gauge_background.py
@@ -95,6 +96,7 @@ qca_smv0/
     session_25_physical_right_production_variational.py
     session_26_physical_right_production_refinement.py
     session_27_physical_right_production_adjoint.py
+    session_28_physical_right_production_inverse.py
   tests/
     test_bulk_bcc.py
     test_sm_gauge.py
@@ -121,6 +123,7 @@ qca_smv0/
     test_sm_physical_right_production_variational.py
     test_sm_physical_right_production_refinement.py
     test_sm_physical_right_production_adjoint.py
+    test_sm_physical_right_production_inverse.py
 ```
 
 The implemented Weyl kernel is a two-component periodic BCC bulk walk:
@@ -669,6 +672,28 @@ Stage 27 verdict:
 QCA_SMV0_STAGE27_PHYSICAL_RIGHT_PRODUCTION_ADJOINT_LIMITATION_PASS
 ```
 
+Stage 28 adds an explicit inverse helper for the current physical-right
+production tick:
+
+- reconstructs final half-step momenta from the final production forces;
+- rewinds the sourced link update and Higgs field update;
+- uses the Stage 27 frozen fermion-stage adjoint to rewind the local
+  collision / bridged transport / local collision substage;
+- recovers the initial momenta from the reconstructed first production forces;
+- verifies forward-then-inverse and inverse-then-forward roundtrips to float32
+  precision;
+- keeps family norm and SM/Higgs link unitarity controlled;
+- records a large improvement over the naive negative-timestep production
+  tick;
+- treats the result as an inverse of the current discrete map, not as an
+  energy-conservation or timestep-convergence theorem.
+
+Stage 28 verdict:
+
+```text
+QCA_SMV0_STAGE28_PHYSICAL_RIGHT_PRODUCTION_EXPLICIT_INVERSE_PASS
+```
+
 The charges, `lambda`, order-one coefficients, and center-power matrices are
 simulator inputs, not BCC-bulk derivations. Quantized scalar/gauge registers,
 boundary rules, microscopic derivation of the bridge, and derivation of the
@@ -720,5 +745,6 @@ uv run python -m clifford_3plus2_d5.qca_smv0.scripts.session_24_physical_right_p
 uv run python -m clifford_3plus2_d5.qca_smv0.scripts.session_25_physical_right_production_variational
 uv run python -m clifford_3plus2_d5.qca_smv0.scripts.session_26_physical_right_production_refinement
 uv run python -m clifford_3plus2_d5.qca_smv0.scripts.session_27_physical_right_production_adjoint
+uv run python -m clifford_3plus2_d5.qca_smv0.scripts.session_28_physical_right_production_inverse
 uv run pytest src/clifford_3plus2_d5/qca_smv0/tests -q
 ```
