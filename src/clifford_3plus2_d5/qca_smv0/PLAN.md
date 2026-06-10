@@ -1462,3 +1462,36 @@ Verdict:
 ```text
 QCA_SMV0_STAGE46_PHYSICAL_RIGHT_PRODUCTION_GAUSS_PROJECTION_PASS
 ```
+
+## Stage 47 - Physical-Right Production Gauss Solver
+
+Pass only if:
+
+- the only upstream runtime imports are from `sim` and local `qca_smv0`
+  modules;
+- the Stage 46 momentum-only relaxation is iterated for a fixed finite number
+  of steps with an explicit residual history;
+- the recorded history contains the initial Gauss norm, every post-step Gauss
+  norm, every line step, and every gradient norm;
+- the zero-source vacuum has zero Gauss residual and remains unchanged by the
+  solver;
+- a deterministic production state has nonzero initial Gauss residual and the
+  solver reduces it monotonically over the recorded history;
+- the total reduction is large enough to be a solver signal, not only a
+  one-step smoke check;
+- the correction acts only on SM link momenta, leaving family state, Higgs
+  field, Higgs momenta, SM links, and Higgs links unchanged;
+- the relaxed state keeps SM and Higgs links unitary to float32 precision;
+- the solver helper is JIT-compatible with bounded float32 eager/JIT drift over
+  the finite iteration history;
+- the result is documented as a finite iterated relaxation solver for the
+  current frozen production state, not as a full nonlinear gauge-orbit
+  projection, Gauss-preserving production integrator, boundary rule, exact
+  energy-conservation theorem, timestep-convergence theorem, or
+  microscopic-input derivation.
+
+Verdict:
+
+```text
+QCA_SMV0_STAGE47_PHYSICAL_RIGHT_PRODUCTION_GAUSS_SOLVER_PASS
+```

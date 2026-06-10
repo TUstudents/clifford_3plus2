@@ -3,12 +3,12 @@
 ## Verdict
 
 ```text
-QCA_SMV0_STAGE46_PHYSICAL_RIGHT_PRODUCTION_GAUSS_PROJECTION_PASS
+QCA_SMV0_STAGE47_PHYSICAL_RIGHT_PRODUCTION_GAUSS_SOLVER_PASS
 ```
 
 ## Current State
 
-Stage 46 physical-right production Gauss relaxation/projection precursor implemented on top of the Stage 1
+Stage 47 physical-right production Gauss relaxation solver implemented on top of the Stage 1
 free BCC Weyl/Dirac walk, Stage 2 static gauge transport, Stage 3 pure dynamic
 gauge fields, Stage 4 local Higgs/Yukawa collision, Stage 5 FN recirculation,
 Stage 6 center-holonomy CP, Stage 7 three-family Higgs/Yukawa collision, and
@@ -33,7 +33,8 @@ local-force production-rollout smoke test, Stage 39 multi-step local-force
 recorded rollout, Stage 40 local-force production profile, Stage 41
 local-force support audit, Stage 42 local-current production replacement,
 Stage 43 one-tick production spatial-support audit, Stage 44 family-cone
-audit, and Stage 45 all-sector cone audit.
+audit, Stage 45 all-sector cone audit, and Stage 46 Gauss relaxation
+precursor.
 
 Implemented:
 
@@ -568,6 +569,21 @@ Implemented:
   boundary rule, exact energy-conservation theorem, timestep-convergence
   theorem, or microscopic-input derivation;
 - Session 46 script;
+- iterated finite Gauss relaxation solver built from repeated Stage 46
+  exact-line relaxation steps;
+- explicit residual history recording Gauss norms, line steps, and gradient
+  norms;
+- zero-source vacuum remains unchanged across the solver;
+- deterministic Gauss norm reduced monotonically from `5.939e-1` to `4.092e-1`
+  over ten iterations;
+- total Gauss reduction fraction `3.109e-1` with zero monotonicity violation;
+- all non-momentum fields remain unchanged and SM/Higgs link unitarity remains
+  controlled;
+- explicit boundary: this is a finite frozen-state relaxation solver, not a
+  full nonlinear gauge-orbit projection, Gauss-preserving production integrator,
+  boundary rule, exact energy-conservation theorem, timestep-convergence
+  theorem, or microscopic-input derivation;
+- Session 47 script;
 - focused tests for algebra, norm preservation, local gauge covariance, Wilson
   response, weak-link scaling, pure-gauge dynamics, Gauss covariance and
   preservation, weak-field Yang-Mills behavior, Higgs/Yukawa door structure,
@@ -596,7 +612,8 @@ Implemented:
   production local-current audit, physical-right production spatial-support
   audit, physical-right production family-cone audit, physical-right production
   all-sector cone audit, physical-right production Gauss relaxation/projection
-  audit, and small-momentum Weyl/Dirac behavior.
+  audit, physical-right production Gauss solver audit, and small-momentum
+  Weyl/Dirac behavior.
 
 Not implemented:
 

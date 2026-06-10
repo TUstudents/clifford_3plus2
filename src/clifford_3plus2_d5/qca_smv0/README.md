@@ -22,7 +22,7 @@ It should not be used for:
 
 ## Current State
 
-Stage 46 implements the free BCC Weyl/Dirac bulk walk, static
+Stage 47 implements the free BCC Weyl/Dirac bulk walk, static
 Standard-Model gauge-background transport, pure dynamic SM gauge fields, and a
 site-local Higgs/Yukawa collision, finite-path FN recirculation, and
 center-holonomy CP coefficients, a three-family Higgs/Yukawa collision, and
@@ -44,7 +44,7 @@ rollout smoke test, a multi-step local-force recorded-rollout audit, a
 local-force production profiling certificate, a numerical local-force
 spatial-support audit, a one-tick full-production spatial-support audit, a
 three-tick family-cone audit, a two-tick all-sector cone audit, and a
-momentum-only Gauss relaxation/projection precursor:
+momentum-only Gauss relaxation/projection precursor with an iterated solver:
 
 ```text
 qca_smv0/
@@ -74,6 +74,7 @@ qca_smv0/
   sm_physical_right_production_rollout.py
   sm_physical_right_production_gauss.py
   sm_physical_right_production_gauss_projection.py
+  sm_physical_right_production_gauss_solver.py
   sm_physical_right_production_energy.py
   sm_physical_right_production_variational.py
   sm_physical_right_production_refinement.py
@@ -121,6 +122,7 @@ qca_smv0/
     session_22_physical_right_production_rollout.py
     session_23_physical_right_production_gauss.py
     session_46_physical_right_production_gauss_projection.py
+    session_47_physical_right_production_gauss_solver.py
     session_24_physical_right_production_energy.py
     session_25_physical_right_production_variational.py
     session_26_physical_right_production_refinement.py
@@ -1098,6 +1100,25 @@ Stage 46 verdict:
 QCA_SMV0_STAGE46_PHYSICAL_RIGHT_PRODUCTION_GAUSS_PROJECTION_PASS
 ```
 
+Stage 47 iterates the momentum-only Gauss relaxation into a finite solver:
+
+- repeats the Stage 46 exact-line relaxation for ten iterations;
+- records Gauss norms, line steps, and gradient norms over the solver history;
+- keeps the zero-source vacuum unchanged;
+- reduces the deterministic Gauss norm monotonically from `5.939e-1` to
+  `4.092e-1`;
+- gives total reduction fraction `3.109e-1` with zero monotonicity violation;
+- leaves family state, Higgs field, Higgs momenta, SM links, and Higgs links
+  unchanged;
+- treats the result as a finite frozen-state relaxation solver, not as a full
+  nonlinear Gauss projection or Gauss-preserving production integrator.
+
+Stage 47 verdict:
+
+```text
+QCA_SMV0_STAGE47_PHYSICAL_RIGHT_PRODUCTION_GAUSS_SOLVER_PASS
+```
+
 The charges, `lambda`, order-one coefficients, and center-power matrices are
 simulator inputs, not BCC-bulk derivations. Quantized scalar/gauge registers,
 boundary rules, microscopic derivation of the bridge, and derivation of the
@@ -1168,5 +1189,6 @@ uv run python -m clifford_3plus2_d5.qca_smv0.scripts.session_43_physical_right_p
 uv run python -m clifford_3plus2_d5.qca_smv0.scripts.session_44_physical_right_production_cone
 uv run python -m clifford_3plus2_d5.qca_smv0.scripts.session_45_physical_right_production_sector_cones
 uv run python -m clifford_3plus2_d5.qca_smv0.scripts.session_46_physical_right_production_gauss_projection
+uv run python -m clifford_3plus2_d5.qca_smv0.scripts.session_47_physical_right_production_gauss_solver
 uv run pytest src/clifford_3plus2_d5/qca_smv0/tests -q
 ```

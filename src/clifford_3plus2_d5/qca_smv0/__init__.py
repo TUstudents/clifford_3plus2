@@ -478,10 +478,16 @@ from clifford_3plus2_d5.qca_smv0.sm_physical_right_production_gauss_projection i
     sm_physical_right_production_gauss_projection_diagnostics,
     sm_physical_right_production_gauss_relaxation_step,
 )
+from clifford_3plus2_d5.qca_smv0.sm_physical_right_production_gauss_solver import (
+    PhysicalRightProductionGaussRelaxationHistory,
+    PhysicalRightProductionGaussSolverDiagnostics,
+    sm_physical_right_production_gauss_relaxation_solve,
+    sm_physical_right_production_gauss_solver_diagnostics,
+)
 
 SIDECAR_NAME = "qca_smv0"
 SIDECAR_TITLE = "QCA_SMv0"
-SIDECAR_STATUS = "Stage 46 physical-right production Gauss projection implemented"
+SIDECAR_STATUS = "Stage 47 physical-right production Gauss solver implemented"
 
 __all__ = [
     "BCC_ANISOTROPY_DIRECTIONS",
@@ -544,6 +550,8 @@ __all__ = [
     "PhysicalRightProductionEnergyDiagnostics",
     "PhysicalRightProductionGaussDiagnostics",
     "PhysicalRightProductionGaussProjectionDiagnostics",
+    "PhysicalRightProductionGaussRelaxationHistory",
+    "PhysicalRightProductionGaussSolverDiagnostics",
     "PhysicalRightProductionInverseDiagnostics",
     "PhysicalRightProductionReversibilityDiagnostics",
     "PhysicalRightProductionRolloutDiagnostics",
@@ -784,6 +792,8 @@ __all__ = [
     "sm_physical_right_production_gauss_observables",
     "sm_physical_right_production_gauss_projection_diagnostics",
     "sm_physical_right_production_gauss_relaxation_step",
+    "sm_physical_right_production_gauss_relaxation_solve",
+    "sm_physical_right_production_gauss_solver_diagnostics",
     "sm_physical_right_production_initial_state",
     "sm_physical_right_production_observables",
     "sm_physical_right_production_recorded_rollout",
