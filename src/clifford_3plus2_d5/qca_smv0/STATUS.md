@@ -3,12 +3,12 @@
 ## Verdict
 
 ```text
-QCA_SMV0_STAGE34_PHYSICAL_RIGHT_PRODUCTION_ECHO_HORIZON_PASS
+QCA_SMV0_STAGE35_PHYSICAL_RIGHT_PRODUCTION_STENCIL_PASS
 ```
 
 ## Current State
 
-Stage 34 physical-right production echo horizon implemented on top of the Stage 1
+Stage 35 physical-right production finite-stencil locality audit implemented on top of the Stage 1
 free BCC Weyl/Dirac walk, Stage 2 static gauge transport, Stage 3 pure dynamic
 gauge fields, Stage 4 local Higgs/Yukawa collision, Stage 5 FN recirculation,
 Stage 6 center-holonomy CP, Stage 7 three-family Higgs/Yukawa collision, and
@@ -425,6 +425,18 @@ Implemented:
 - explicit boundary: the horizon audit is a finite diagnostic for the current
   discrete production map, not a continuum Lyapunov theorem;
 - Session 34 script;
+- finite-stencil locality audit using exact integer BCC displacement sets;
+- BCC transport stencil certified as the eight body-diagonal hops and closed
+  under inversion;
+- Higgs-gradient terms bounded by the one-hop BCC envelope;
+- plaquette/current force terms conservatively bounded by the two-hop BCC
+  envelope;
+- one-tick production envelope radius `2`;
+- two-tick inverse echo envelope radius `4`, with linear radius growth per
+  tick on the static stencil certificate;
+- explicit boundary: the stencil audit is not a large-lattice spatial echo
+  measurement or continuum causal-cone theorem;
+- Session 35 script;
 - focused tests for algebra, norm preservation, local gauge covariance, Wilson
   response, weak-link scaling, pure-gauge dynamics, Gauss covariance and
   preservation, weak-field Yang-Mills behavior, Higgs/Yukawa door structure,
@@ -444,7 +456,8 @@ Implemented:
   trajectory reversibility audit, physical-right production Loschmidt echo
   audit, physical-right production tangent echo audit, physical-right
   production echo Gram audit, physical-right production echo-Gram scale audit,
-  physical-right production echo horizon audit, and
+  physical-right production echo horizon audit, physical-right production
+  finite-stencil locality audit, and
   small-momentum Weyl/Dirac behavior.
 
 Not implemented:
@@ -461,8 +474,10 @@ Not implemented:
   tick;
 - energy-conserving or timestep-convergent reversible integrator claim for the
   current hybrid production tick beyond the explicit inverse helper;
+- large-lattice numerical spatial echo / causal-cone measurement for the
+  physical-right production map;
 - performance profiles beyond the small
-  Session 01/02/03/04/05/06/07/08/09/10/11/12/13/14/15/16/17/18/19/20/21/22/23/24/25/26/27/28/29/30/31/32/33/34 diagnostics.
+  Session 01/02/03/04/05/06/07/08/09/10/11/12/13/14/15/16/17/18/19/20/21/22/23/24/25/26/27/28/29/30/31/32/33/34/35 diagnostics.
 
 ## Working Boundary
 

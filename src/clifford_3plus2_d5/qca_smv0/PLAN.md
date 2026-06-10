@@ -1117,3 +1117,33 @@ Verdict:
 ```text
 QCA_SMV0_STAGE34_PHYSICAL_RIGHT_PRODUCTION_ECHO_HORIZON_PASS
 ```
+
+## Stage 35 - Physical-Right Production Finite Stencil
+
+Pass only if:
+
+- the only upstream runtime imports are from `sim` and local `qca_smv0`
+  modules;
+- the BCC transport stencil is the eight body-diagonal hops and is closed under
+  inversion;
+- local Higgs/collision terms have radius zero and Higgs-gradient terms remain
+  inside the one-hop BCC envelope;
+- plaquette/current force terms are conservatively bounded by the two-hop BCC
+  envelope;
+- the full one-tick production envelope has finite radius `2`;
+- the two-tick inverse echo envelope has finite radius `4`, giving linear
+  radius growth per tick on the static stencil certificate;
+- the origin remains in the tick stencil, so local/contact terms are explicitly
+  represented;
+- the result is documented as a static finite-stencil locality audit for the
+  current discrete production map, not as a numerical large-lattice spatial
+  echo measurement, continuum causal-cone theorem, new dynamics rule,
+  energy-conservation claim, timestep-convergence claim, boundary rule, Gauss
+  projection, quantized register, performance benchmark, or microscopic-input
+  derivation.
+
+Verdict:
+
+```text
+QCA_SMV0_STAGE35_PHYSICAL_RIGHT_PRODUCTION_STENCIL_PASS
+```

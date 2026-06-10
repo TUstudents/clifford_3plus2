@@ -22,7 +22,7 @@ It should not be used for:
 
 ## Current State
 
-Stage 34 implements the free BCC Weyl/Dirac bulk walk, static
+Stage 35 implements the free BCC Weyl/Dirac bulk walk, static
 Standard-Model gauge-background transport, pure dynamic SM gauge fields, and a
 site-local Higgs/Yukawa collision, finite-path FN recirculation, and
 center-holonomy CP coefficients, a three-family Higgs/Yukawa collision, and
@@ -37,7 +37,7 @@ variational force-provenance audit, plus refinement and adjoint limitation
 audits, an explicit inverse helper for the current production tick, a
 trajectory-level reversibility audit, a Loschmidt echo diagnostic, and a
 finite tangent-response, echo-Gram, echo-Gram scale, and echo-horizon audit
-suite:
+suite, plus a finite-stencil locality audit:
 
 ```text
 qca_smv0/
@@ -77,6 +77,7 @@ qca_smv0/
   sm_physical_right_production_echo_gram.py
   sm_physical_right_production_echo_scale.py
   sm_physical_right_production_echo_horizon.py
+  sm_physical_right_production_stencil.py
   scripts/
     session_01_bare_bcc_walk.py
     session_02_static_sm_gauge_background.py
@@ -112,6 +113,7 @@ qca_smv0/
     session_32_physical_right_production_echo_gram.py
     session_33_physical_right_production_echo_scale.py
     session_34_physical_right_production_echo_horizon.py
+    session_35_physical_right_production_stencil.py
   tests/
     test_bulk_bcc.py
     test_sm_gauge.py
@@ -145,6 +147,7 @@ qca_smv0/
     test_sm_physical_right_production_echo_gram.py
     test_sm_physical_right_production_echo_scale.py
     test_sm_physical_right_production_echo_horizon.py
+    test_sm_physical_right_production_stencil.py
 ```
 
 The implemented Weyl kernel is a two-component periodic BCC bulk walk:
@@ -824,6 +827,26 @@ Stage 34 verdict:
 QCA_SMV0_STAGE34_PHYSICAL_RIGHT_PRODUCTION_ECHO_HORIZON_PASS
 ```
 
+Stage 35 records the finite stencil envelope of the production tick:
+
+- builds exact integer displacement sets for BCC transport, local Higgs terms,
+  one-hop Higgs-gradient forces, and conservative two-hop plaquette/current
+  forces;
+- verifies the current one-tick production envelope has radius `2`;
+- verifies the two-tick inverse echo envelope has radius `4`, with linear
+  radius growth per tick;
+- checks BCC inverse-hop closure and origin retention in the local tick
+  stencil;
+- treats the result as a finite-speed stencil audit for the implemented
+  discrete map, not as a large-lattice spatial echo measurement or continuum
+  causal-cone theorem.
+
+Stage 35 verdict:
+
+```text
+QCA_SMV0_STAGE35_PHYSICAL_RIGHT_PRODUCTION_STENCIL_PASS
+```
+
 The charges, `lambda`, order-one coefficients, and center-power matrices are
 simulator inputs, not BCC-bulk derivations. Quantized scalar/gauge registers,
 boundary rules, microscopic derivation of the bridge, and derivation of the
@@ -882,5 +905,6 @@ uv run python -m clifford_3plus2_d5.qca_smv0.scripts.session_31_physical_right_p
 uv run python -m clifford_3plus2_d5.qca_smv0.scripts.session_32_physical_right_production_echo_gram
 uv run python -m clifford_3plus2_d5.qca_smv0.scripts.session_33_physical_right_production_echo_scale
 uv run python -m clifford_3plus2_d5.qca_smv0.scripts.session_34_physical_right_production_echo_horizon
+uv run python -m clifford_3plus2_d5.qca_smv0.scripts.session_35_physical_right_production_stencil
 uv run pytest src/clifford_3plus2_d5/qca_smv0/tests -q
 ```

@@ -416,10 +416,18 @@ from clifford_3plus2_d5.qca_smv0.sm_physical_right_production_echo_horizon impor
     PhysicalRightProductionEchoHorizonDiagnostics,
     sm_physical_right_production_echo_horizon_diagnostics,
 )
+from clifford_3plus2_d5.qca_smv0.sm_physical_right_production_stencil import (
+    PhysicalRightProductionStencilDiagnostics,
+    bcc_transport_stencil,
+    higgs_force_stencil,
+    production_tick_stencil,
+    sm_physical_right_production_stencil_diagnostics,
+    two_hop_force_stencil,
+)
 
 SIDECAR_NAME = "qca_smv0"
 SIDECAR_TITLE = "QCA_SMv0"
-SIDECAR_STATUS = "Stage 34 physical-right production echo horizon implemented"
+SIDECAR_STATUS = "Stage 35 physical-right production stencil implemented"
 
 __all__ = [
     "BCC_ANISOTROPY_DIRECTIONS",
@@ -487,6 +495,7 @@ __all__ = [
     "PhysicalRightProductionRolloutState",
     "PhysicalRightProductionSMTickDiagnostics",
     "PhysicalRightProductionRefinementDiagnostics",
+    "PhysicalRightProductionStencilDiagnostics",
     "PhysicalRightProductionVariationalDiagnostics",
     "PhysicalRightProductionTangentDiagnostics",
     "PhysicalRightSourcedSMTickDiagnostics",
@@ -512,6 +521,7 @@ __all__ = [
     "bcc_split_symbol",
     "bcc_symbol_from_hops",
     "bcc_symbol_unitarity_residual",
+    "bcc_transport_stencil",
     "bcc_weyl_phase_speed",
     "bcc_weyl_step",
     "jitted_bcc_dirac_step",
@@ -545,6 +555,7 @@ __all__ = [
     "fn_singular_masses",
     "fn_unitarity_residual",
     "fn_wolfenstein_scaling",
+    "higgs_force_stencil",
     "higgs_yukawa_diagnostics",
     "sm_apply_family_fermion_gauge_momentum_kick",
     "sm_apply_family_production_higgs_momentum_kick",
@@ -716,6 +727,7 @@ __all__ = [
     "sm_physical_right_production_reversibility_diagnostics",
     "sm_physical_right_production_sm_tick",
     "sm_physical_right_production_step",
+    "sm_physical_right_production_stencil_diagnostics",
     "sm_physical_right_production_tangent_diagnostics",
     "sm_physical_right_production_tick_diagnostics",
     "sm_physical_right_production_variational_diagnostics",
@@ -773,4 +785,6 @@ __all__ = [
     "static_sm_gauge_diagnostics",
     "small_k_dirac_speed_error",
     "small_k_weyl_speed_error",
+    "production_tick_stencil",
+    "two_hop_force_stencil",
 ]
