@@ -1036,3 +1036,30 @@ Verdict:
 ```text
 QCA_SMV0_STAGE31_PHYSICAL_RIGHT_PRODUCTION_TANGENT_ECHO_PASS
 ```
+
+## Stage 32 - Physical-Right Production Echo Gram
+
+Pass only if:
+
+- the only upstream runtime imports are from `sim` and local `qca_smv0`
+  modules;
+- at least three independent final-time perturbations are pulled back through
+  the inverse production trajectory;
+- the initial-surface echo Gram matrix is symmetric to numerical precision;
+- all echo norms are finite and nonzero;
+- the Gram matrix has a positive minimum eigenvalue and finite condition
+  number on the certificate trajectory;
+- off-diagonal echo correlations remain bounded, so the chosen local probes do
+  not collapse to the same tangent direction;
+- all inverse-pulled echo states keep SM/Higgs link unitarity controlled;
+- the result is documented as a finite local tangent-metric diagnostic for the
+  current discrete production map, not as a continuum stability theorem, new
+  dynamics rule, energy-conservation claim, timestep-convergence claim,
+  boundary rule, Gauss projection, quantized register, performance benchmark,
+  or microscopic-input derivation.
+
+Verdict:
+
+```text
+QCA_SMV0_STAGE32_PHYSICAL_RIGHT_PRODUCTION_ECHO_GRAM_PASS
+```

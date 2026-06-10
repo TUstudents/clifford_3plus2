@@ -8,7 +8,7 @@ from clifford_3plus2_d5 import qca_smv0
 def test_qca_smv0_sidecar_metadata() -> None:
     assert qca_smv0.SIDECAR_NAME == "qca_smv0"
     assert qca_smv0.SIDECAR_TITLE == "QCA_SMv0"
-    assert qca_smv0.SIDECAR_STATUS == "Stage 31 physical-right production tangent echo implemented"
+    assert qca_smv0.SIDECAR_STATUS == "Stage 32 physical-right production echo Gram implemented"
 
 
 def test_qca_smv0_scaffold_files_exist() -> None:

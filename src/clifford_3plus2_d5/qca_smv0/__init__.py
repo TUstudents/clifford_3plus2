@@ -403,10 +403,15 @@ from clifford_3plus2_d5.qca_smv0.sm_physical_right_production_tangent import (
     sm_physical_right_production_apex_higgs_momentum_perturbation,
     sm_physical_right_production_tangent_diagnostics,
 )
+from clifford_3plus2_d5.qca_smv0.sm_physical_right_production_echo_gram import (
+    PhysicalRightProductionEchoGramDiagnostics,
+    sm_physical_right_production_apex_family_perturbation,
+    sm_physical_right_production_echo_gram_diagnostics,
+)
 
 SIDECAR_NAME = "qca_smv0"
 SIDECAR_TITLE = "QCA_SMv0"
-SIDECAR_STATUS = "Stage 31 physical-right production tangent echo implemented"
+SIDECAR_STATUS = "Stage 32 physical-right production echo Gram implemented"
 
 __all__ = [
     "BCC_ANISOTROPY_DIRECTIONS",
@@ -463,6 +468,7 @@ __all__ = [
     "PhysicalRightCurrentDiagnostics",
     "PhysicalRightProductionAdjointDiagnostics",
     "PhysicalRightProductionEchoDiagnostics",
+    "PhysicalRightProductionEchoGramDiagnostics",
     "PhysicalRightProductionEnergyDiagnostics",
     "PhysicalRightProductionGaussDiagnostics",
     "PhysicalRightProductionInverseDiagnostics",
@@ -666,9 +672,11 @@ __all__ = [
     "sm_physical_right_links_from_transport",
     "sm_physical_right_project_to_coordinates",
     "sm_physical_right_production_adjoint_diagnostics",
+    "sm_physical_right_production_apex_family_perturbation",
     "sm_physical_right_production_apex_higgs_momentum_perturbation",
     "sm_physical_right_production_apex_momentum_perturbation",
     "sm_physical_right_production_echo_diagnostics",
+    "sm_physical_right_production_echo_gram_diagnostics",
     "sm_physical_right_production_energy_diagnostics",
     "sm_physical_right_production_energy_history",
     "sm_physical_right_production_energy_observables",

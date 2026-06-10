@@ -3,12 +3,12 @@
 ## Verdict
 
 ```text
-QCA_SMV0_STAGE31_PHYSICAL_RIGHT_PRODUCTION_TANGENT_ECHO_PASS
+QCA_SMV0_STAGE32_PHYSICAL_RIGHT_PRODUCTION_ECHO_GRAM_PASS
 ```
 
 ## Current State
 
-Stage 31 physical-right production tangent echo implemented on top of the Stage 1
+Stage 32 physical-right production echo Gram implemented on top of the Stage 1
 free BCC Weyl/Dirac walk, Stage 2 static gauge transport, Stage 3 pure dynamic
 gauge fields, Stage 4 local Higgs/Yukawa collision, Stage 5 FN recirculation,
 Stage 6 center-holonomy CP, Stage 7 three-family Higgs/Yukawa collision, and
@@ -25,7 +25,7 @@ Stage 23 physical-right production Gauss monitor, Stage 24 physical-right
 production energy monitor, Stage 25 variational force audit, Stage 26
 refinement limitation audit, Stage 27 adjoint limitation audit, and Stage 28
 explicit inverse helper, Stage 29 trajectory reversibility audit, and Stage 30
-Loschmidt echo diagnostic.
+Loschmidt echo diagnostic, and Stage 31 tangent echo audit.
 
 Implemented:
 
@@ -396,6 +396,14 @@ Implemented:
   for the current discrete production map, not a new dynamics rule or
   conservation theorem;
 - Session 31 script;
+- local echo Gram matrix built from three independent final-time perturbations
+  pulled back through the inverse trajectory;
+- finite nonzero echo norms, exact Gram symmetry, positive minimum eigenvalue,
+  finite condition number, and bounded off-diagonal correlations;
+- inverse-pulled echo-state SM/Higgs link-unitarity controls;
+- explicit boundary: the echo Gram is a finite local tangent-metric diagnostic
+  for the current discrete production map, not a continuum stability theorem;
+- Session 32 script;
 - focused tests for algebra, norm preservation, local gauge covariance, Wilson
   response, weak-link scaling, pure-gauge dynamics, Gauss covariance and
   preservation, weak-field Yang-Mills behavior, Higgs/Yukawa door structure,
@@ -413,7 +421,8 @@ Implemented:
   compatibility, physical-right production adjoint limitation audit,
   physical-right production explicit inverse audit, physical-right production
   trajectory reversibility audit, physical-right production Loschmidt echo
-  audit, physical-right production tangent echo audit, and
+  audit, physical-right production tangent echo audit, physical-right
+  production echo Gram audit, and
   small-momentum Weyl/Dirac behavior.
 
 Not implemented:
@@ -431,7 +440,7 @@ Not implemented:
 - energy-conserving or timestep-convergent reversible integrator claim for the
   current hybrid production tick beyond the explicit inverse helper;
 - performance profiles beyond the small
-  Session 01/02/03/04/05/06/07/08/09/10/11/12/13/14/15/16/17/18/19/20/21/22/23/24/25/26/27/28/29/30/31 diagnostics.
+  Session 01/02/03/04/05/06/07/08/09/10/11/12/13/14/15/16/17/18/19/20/21/22/23/24/25/26/27/28/29/30/31/32 diagnostics.
 
 ## Working Boundary
 

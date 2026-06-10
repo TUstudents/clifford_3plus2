@@ -78,7 +78,7 @@ physics policy.
 **Boundary**: BCC Weyl/Dirac kernels, BCC plaquettes, Wilson observables, and
 SO(2)/SU(2)/SU(3) force policy remain in `spacetime_qca`.
 
-## qca_smv0 — Stage 31 physical-right production tangent echo
+## qca_smv0 — Stage 32 physical-right production echo Gram
 
 **Goal**: focused simulator sidecar for the next Standard-Model QCA prototype,
 using the shared `sim` infrastructure and local `qca_smv0` kernels only.
@@ -417,6 +417,13 @@ using the shared `sim` infrastructure and local `qca_smv0` kernels only.
   separate inverse echoes to local finite-difference precision.
 - Combined perturbed inverse link unitarity remains controlled.
 - Session 31 script and focused tests.
+- Local echo Gram matrix from three independent final-time perturbations:
+  SM momentum, Higgs momentum, and family state.
+- Echo norms are finite and nonzero; the Gram matrix is symmetric, positive,
+  well-conditioned on the certificate trajectory, and has bounded off-diagonal
+  correlations.
+- Inverse-pulled echo-state link unitarity remains controlled.
+- Session 32 script and focused tests.
 
 **Boundary**: no boundary condition, quantized scalar/gauge registers, full
 microscopic BCC derivation of the antiunitary bridge, Gauss projection, exact
