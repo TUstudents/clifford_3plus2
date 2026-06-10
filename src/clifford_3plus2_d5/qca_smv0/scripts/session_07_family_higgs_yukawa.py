@@ -12,6 +12,8 @@ def main() -> None:
     print(f"family_yukawa_hermitian_residual: {float(diagnostics.family_yukawa_hermitian_residual):.3e}")
     print(f"fn_recirculated_quark_yukawa_residual: {float(diagnostics.fn_recirculated_quark_yukawa_residual):.3e}")
     print(f"fn_recirculated_embedding_residual: {float(diagnostics.fn_recirculated_embedding_residual):.3e}")
+    print(f"fn_quark_dilation_unitarity_residual: {float(diagnostics.fn_quark_dilation_unitarity_residual):.3e}")
+    print(f"fn_quark_door_transfer_residual: {float(diagnostics.fn_quark_door_transfer_residual):.3e}")
     print(f"quark_embedding_residual: {float(diagnostics.quark_embedding_residual):.3e}")
     print(f"wrong_door_residual: {float(diagnostics.wrong_door_residual):.3e}")
     print(f"ckm_embedding_residual: {float(diagnostics.ckm_embedding_residual):.3e}")

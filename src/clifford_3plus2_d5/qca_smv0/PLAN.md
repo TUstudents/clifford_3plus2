@@ -244,6 +244,8 @@ Pass only if:
 - the default quark Yukawa source is explicitly reconstructed from
   center-holonomy coefficients and the Stage 5 visible-hidden-visible FN
   recirculation readout before embedding;
+- finite FN unitary dilations expose the Higgs-scaled visible transfers for
+  the up/down quark doors;
 - the local three-family Yukawa matrix is Hermitian;
 - in unitary gauge, the up block extracted from the local matrix reproduces
   the generated up Yukawa matrix and the down block reproduces the generated

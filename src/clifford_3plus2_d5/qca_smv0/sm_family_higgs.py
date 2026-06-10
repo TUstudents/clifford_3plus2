@@ -26,8 +26,14 @@ from clifford_3plus2_d5.qca_smv0.sm_fn import (
     FN_LAMBDA_WOLFENSTEIN,
     FNQuarkCharges,
     FNQuarkYukawas,
+    FNUnitaryDilation,
     SM_FAMILY_DIM,
+    fn_apply_recirculation_collision,
     fn_ckm_from_yukawas,
+    fn_prepare_visible_collision_state,
+    fn_read_visible_collision_output,
+    fn_recirculation_collision_dilation,
+    fn_unitary_dilation_residual,
     fn_visible_recirculation_transfer,
 )
 from clifford_3plus2_d5.qca_smv0.sm_gauge import SM_CHIRAL16_DIM, SM_INTERNAL_DIM, deterministic_sm_state
@@ -56,6 +62,8 @@ class FamilyHiggsYukawaDiagnostics(NamedTuple):
     family_yukawa_hermitian_residual: jnp.ndarray
     fn_recirculated_quark_yukawa_residual: jnp.ndarray
     fn_recirculated_embedding_residual: jnp.ndarray
+    fn_quark_dilation_unitarity_residual: jnp.ndarray
+    fn_quark_door_transfer_residual: jnp.ndarray
     quark_embedding_residual: jnp.ndarray
     wrong_door_residual: jnp.ndarray
     ckm_embedding_residual: jnp.ndarray
@@ -64,6 +72,13 @@ class FamilyHiggsYukawaDiagnostics(NamedTuple):
     norm_drift: jnp.ndarray
     chirality_flip_right_norm: jnp.ndarray
     jit_delta: jnp.ndarray
+
+
+class FamilyFNQuarkDilations(NamedTuple):
+    """Finite FN unitary dilations for the up/down quark Higgs doors."""
+
+    up: FNUnitaryDilation
+    down: FNUnitaryDilation
 
 
 def _q_index(color: int, weak: int) -> int:
@@ -143,6 +158,43 @@ def sm_family_recirculated_quark_yukawas(
         up=fn_visible_recirculation_transfer(lambda_rec, charges.q, charges.u, coefficients=up_coeffs),
         down=fn_visible_recirculation_transfer(lambda_rec, charges.q, charges.d, coefficients=down_coeffs),
     )
+
+
+def sm_family_recirculated_quark_dilations(
+    *,
+    lambda_rec: float = FN_LAMBDA_WOLFENSTEIN,
+    charges: FNQuarkCharges = DEFAULT_FN_QUARK_CHARGES,
+    powers: CenterHolonomyPowers = DEFAULT_CENTER_HOLONOMY_POWERS,
+) -> FamilyFNQuarkDilations:
+    """Return finite unitary FN collision dilations for the quark doors."""
+
+    up_coeffs = sm_center_coefficients("up", powers=powers.up)
+    down_coeffs = sm_center_coefficients("down", powers=powers.down)
+    return FamilyFNQuarkDilations(
+        up=fn_recirculation_collision_dilation(lambda_rec, charges.q, charges.u, coefficients=up_coeffs),
+        down=fn_recirculation_collision_dilation(lambda_rec, charges.q, charges.d, coefficients=down_coeffs),
+    )
+
+
+def sm_apply_family_recirculated_quark_door(
+    left_family_state: jnp.ndarray,
+    higgs_component: jnp.ndarray,
+    dilation: FNUnitaryDilation,
+) -> jnp.ndarray:
+    """Apply one Higgs-scaled quark FN door through its finite dilation.
+
+    The returned visible component equals ``higgs_component * Y.T @ left``.
+    The hidden/auxiliary part is evolved by the exact unitary dilation; the
+    normalization rescales the exposed contraction back to the physical source.
+    """
+
+    prepared = fn_prepare_visible_collision_state(left_family_state)
+    evolved = fn_apply_recirculation_collision(dilation, prepared)
+    visible = dilation.normalization * fn_read_visible_collision_output(evolved)
+    higgs = jnp.asarray(higgs_component, dtype=visible.dtype)
+    if higgs.ndim == 0:
+        return higgs * visible
+    return higgs[..., None] * visible
 
 
 def deterministic_sm_family_state(lattice_shape: tuple[int, int, int]) -> jnp.ndarray:
@@ -340,6 +392,7 @@ def sm_family_higgs_yukawa_diagnostics() -> FamilyHiggsYukawaDiagnostics:
     zero_higgs = jnp.zeros_like(higgs)
     quark_yukawas = sm_family_recirculated_quark_yukawas()
     reference_quark_yukawas = sm_center_cp_quark_yukawas()
+    dilations = sm_family_recirculated_quark_dilations()
     lepton_yukawas = sm_default_family_lepton_yukawas()
     matrix = sm_family_yukawa_internal_matrix(higgs, quark_yukawas=quark_yukawas, lepton_yukawas=lepton_yukawas)
     quark_embedding, wrong_door, ckm_embedding = sm_family_embedding_residuals(
@@ -371,6 +424,11 @@ def sm_family_higgs_yukawa_diagnostics() -> FamilyHiggsYukawaDiagnostics:
     )
     _, right_norm = sm_family_chirality_norms(flipped)
     jitted = jax.jit(sm_apply_family_yukawa_collision, static_argnames=("step_size",))
+    probe = jnp.asarray([1.0 + 0.0j, -0.35 + 0.2j, 0.1 - 0.45j], dtype=jnp.complex64)
+    up_door = sm_apply_family_recirculated_quark_door(probe, sm_higgs_tilde(higgs)[0, 0, 0, 0], dilations.up)
+    down_door = sm_apply_family_recirculated_quark_door(probe, higgs[0, 0, 0, 1], dilations.down)
+    expected_up_door = sm_higgs_tilde(higgs)[0, 0, 0, 0] * (jnp.swapaxes(quark_yukawas.up, -1, -2) @ probe)
+    expected_down_door = higgs[0, 0, 0, 1] * (jnp.swapaxes(quark_yukawas.down, -1, -2) @ probe)
 
     return FamilyHiggsYukawaDiagnostics(
         family_yukawa_hermitian_residual=sm_yukawa_hermitian_residual(matrix),
@@ -379,6 +437,14 @@ def sm_family_higgs_yukawa_diagnostics() -> FamilyHiggsYukawaDiagnostics:
             jnp.max(jnp.abs(quark_yukawas.down - reference_quark_yukawas.down)),
         ),
         fn_recirculated_embedding_residual=recirculated_embedding,
+        fn_quark_dilation_unitarity_residual=jnp.maximum(
+            fn_unitary_dilation_residual(dilations.up),
+            fn_unitary_dilation_residual(dilations.down),
+        ),
+        fn_quark_door_transfer_residual=jnp.maximum(
+            jnp.max(jnp.abs(up_door - expected_up_door)),
+            jnp.max(jnp.abs(down_door - expected_down_door)),
+        ),
         quark_embedding_residual=quark_embedding,
         wrong_door_residual=wrong_door,
         ckm_embedding_residual=ckm_embedding,

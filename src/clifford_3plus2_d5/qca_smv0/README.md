@@ -341,6 +341,8 @@ Stage 7 adds a three-family Higgs/Yukawa collision:
 - local internal/family dimension `96`;
 - default quark Yukawa source built from center-holonomy coefficients feeding
   the Stage 5 visible-hidden-visible FN recirculation readout;
+- finite FN unitary dilations for the up/down quark Higgs doors, with exposed
+  Higgs-scaled visible transfers;
 - recirculation-backed quark Yukawa matrices embedded in the local Higgs doors;
 - explicit diagonal placeholder lepton matrices as simulator inputs;
 - Hermitian local three-family Yukawa matrix;

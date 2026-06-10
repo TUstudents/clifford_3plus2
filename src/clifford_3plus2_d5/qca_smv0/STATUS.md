@@ -123,6 +123,8 @@ Implemented:
 - local internal/family dimension `96`;
 - default quark Yukawa source built from center-holonomy coefficients feeding
   the visible-hidden-visible FN recirculation readout;
+- finite FN unitary dilations for the up/down quark Higgs doors, exposing the
+  Higgs-scaled visible transfers used by the local source blocks;
 - exact embedding of recirculation-backed quark Yukawa matrices into local
   Higgs doors;
 - explicit diagonal placeholder lepton matrices as simulator inputs;
