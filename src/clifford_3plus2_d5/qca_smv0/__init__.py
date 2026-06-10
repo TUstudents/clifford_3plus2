@@ -484,10 +484,15 @@ from clifford_3plus2_d5.qca_smv0.sm_physical_right_production_gauss_solver impor
     sm_physical_right_production_gauss_relaxation_solve,
     sm_physical_right_production_gauss_solver_diagnostics,
 )
+from clifford_3plus2_d5.qca_smv0.sm_physical_right_production_projected import (
+    PhysicalRightProductionProjectedStepDiagnostics,
+    sm_physical_right_production_projected_step,
+    sm_physical_right_production_projected_step_diagnostics,
+)
 
 SIDECAR_NAME = "qca_smv0"
 SIDECAR_TITLE = "QCA_SMv0"
-SIDECAR_STATUS = "Stage 47 physical-right production Gauss solver implemented"
+SIDECAR_STATUS = "Stage 48 physical-right production Gauss-projected step implemented"
 
 __all__ = [
     "BCC_ANISOTROPY_DIRECTIONS",
@@ -552,6 +557,7 @@ __all__ = [
     "PhysicalRightProductionGaussProjectionDiagnostics",
     "PhysicalRightProductionGaussRelaxationHistory",
     "PhysicalRightProductionGaussSolverDiagnostics",
+    "PhysicalRightProductionProjectedStepDiagnostics",
     "PhysicalRightProductionInverseDiagnostics",
     "PhysicalRightProductionReversibilityDiagnostics",
     "PhysicalRightProductionRolloutDiagnostics",
@@ -812,6 +818,8 @@ __all__ = [
     "sm_physical_right_production_spatial_support_diagnostics",
     "sm_physical_right_production_cone_diagnostics",
     "sm_physical_right_production_sector_cones_diagnostics",
+    "sm_physical_right_production_projected_step",
+    "sm_physical_right_production_projected_step_diagnostics",
     "sm_physical_right_production_frozen_fermion_stage",
     "sm_physical_right_production_frozen_fermion_stage_adjoint",
     "sm_physical_right_production_inverse_diagnostics",

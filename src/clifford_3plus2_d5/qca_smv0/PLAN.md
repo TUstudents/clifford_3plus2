@@ -1495,3 +1495,36 @@ Verdict:
 ```text
 QCA_SMV0_STAGE47_PHYSICAL_RIGHT_PRODUCTION_GAUSS_SOLVER_PASS
 ```
+
+## Stage 48 - Physical-Right Production Gauss-Projected Step
+
+Pass only if:
+
+- the only upstream runtime imports are from `sim` and local `qca_smv0`
+  modules;
+- the current physical-right production tick remains available as the raw
+  unprojected step;
+- a new wrapper advances one raw production tick and then applies the Stage 47
+  finite momentum-only Gauss relaxation to the post-tick state;
+- the zero-source vacuum has zero post-tick Gauss residual and remains
+  unchanged by the projection;
+- the deterministic post-tick Gauss residual is nonzero and the projected
+  state has a smaller Gauss residual;
+- the recorded projection history is monotone over the finite relaxation
+  iterations and its final residual equals the projected-state residual;
+- the projection changes only SM link momenta relative to the unprojected
+  production step, leaving family state, Higgs field, Higgs momenta, SM links,
+  and Higgs links unchanged;
+- the projected state keeps SM and Higgs links unitary to float32 precision;
+- the projected helper is JIT-compatible with bounded float32 eager/JIT drift
+  over the projected momenta and finite residual history;
+- the result is documented as an explicit projected-step wrapper, not as a
+  full nonlinear gauge-orbit projection, rewritten production tick,
+  Gauss-preserving integrator, boundary rule, exact energy-conservation
+  theorem, timestep-convergence theorem, or microscopic-input derivation.
+
+Verdict:
+
+```text
+QCA_SMV0_STAGE48_PHYSICAL_RIGHT_PRODUCTION_PROJECTED_STEP_PASS
+```

@@ -3,12 +3,12 @@
 ## Verdict
 
 ```text
-QCA_SMV0_STAGE47_PHYSICAL_RIGHT_PRODUCTION_GAUSS_SOLVER_PASS
+QCA_SMV0_STAGE48_PHYSICAL_RIGHT_PRODUCTION_PROJECTED_STEP_PASS
 ```
 
 ## Current State
 
-Stage 47 physical-right production Gauss relaxation solver implemented on top of the Stage 1
+Stage 48 physical-right production Gauss-projected step implemented on top of the Stage 1
 free BCC Weyl/Dirac walk, Stage 2 static gauge transport, Stage 3 pure dynamic
 gauge fields, Stage 4 local Higgs/Yukawa collision, Stage 5 FN recirculation,
 Stage 6 center-holonomy CP, Stage 7 three-family Higgs/Yukawa collision, and
@@ -34,7 +34,8 @@ recorded rollout, Stage 40 local-force production profile, Stage 41
 local-force support audit, Stage 42 local-current production replacement,
 Stage 43 one-tick production spatial-support audit, Stage 44 family-cone
 audit, Stage 45 all-sector cone audit, and Stage 46 Gauss relaxation
-precursor.
+precursor, Stage 47 iterated Gauss solver, and Stage 48 projected production
+step.
 
 Implemented:
 
@@ -584,6 +585,22 @@ Implemented:
   boundary rule, exact energy-conservation theorem, timestep-convergence
   theorem, or microscopic-input derivation;
 - Session 47 script;
+- Gauss-projected physical-right production-step wrapper;
+- one raw production tick followed by ten finite Stage 47 Gauss relaxation
+  iterations on the post-tick state;
+- zero-source vacuum remains unchanged with zero post-tick Gauss residual;
+- post-tick deterministic Gauss norm reduced from `5.938e-1` to `4.095e-1`;
+- total projected-step Gauss reduction fraction `3.104e-1` with zero
+  monotonicity violation;
+- projection changes only SM link momenta relative to the raw production step;
+- projected state keeps SM/Higgs link unitarity controlled to float32
+  precision;
+- explicit boundary: this is a projected wrapper around the current
+  production tick, not a rewritten production tick, full nonlinear gauge-orbit
+  projection, Gauss-preserving integrator, boundary rule, exact
+  energy-conservation theorem, timestep-convergence theorem, or
+  microscopic-input derivation;
+- Session 48 script;
 - focused tests for algebra, norm preservation, local gauge covariance, Wilson
   response, weak-link scaling, pure-gauge dynamics, Gauss covariance and
   preservation, weak-field Yang-Mills behavior, Higgs/Yukawa door structure,
@@ -612,8 +629,8 @@ Implemented:
   production local-current audit, physical-right production spatial-support
   audit, physical-right production family-cone audit, physical-right production
   all-sector cone audit, physical-right production Gauss relaxation/projection
-  audit, physical-right production Gauss solver audit, and small-momentum
-  Weyl/Dirac behavior.
+  audit, physical-right production Gauss solver audit, physical-right
+  production projected-step audit, and small-momentum Weyl/Dirac behavior.
 
 Not implemented:
 

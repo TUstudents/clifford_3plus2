@@ -78,7 +78,7 @@ physics policy.
 **Boundary**: BCC Weyl/Dirac kernels, BCC plaquettes, Wilson observables, and
 SO(2)/SU(2)/SU(3) force policy remain in `spacetime_qca`.
 
-## qca_smv0 — Stage 47 physical-right production Gauss solver
+## qca_smv0 — Stage 48 physical-right production Gauss-projected step
 
 **Goal**: focused simulator sidecar for the next Standard-Model QCA prototype,
 using the shared `sim` infrastructure and local `qca_smv0` kernels only.
@@ -553,6 +553,15 @@ using the shared `sim` infrastructure and local `qca_smv0` kernels only.
   over ten iterations.
 - Total Gauss reduction fraction `3.109e-1` with zero monotonicity violation.
 - Stage 47 script and focused tests.
+- Gauss-projected wrapper around the current physical-right production tick.
+- One raw production tick followed by ten finite Stage 47 Gauss relaxation
+  iterations on the post-tick state.
+- Zero-source vacuum remains unchanged with zero post-tick Gauss residual.
+- Post-tick deterministic Gauss norm reduced from `5.938e-1` to `4.095e-1`.
+- Total projected-step Gauss reduction fraction `3.104e-1` with zero
+  monotonicity violation.
+- Projection changes only SM link momenta relative to the raw production step.
+- Stage 48 script and focused tests.
 
 **Boundary**: no boundary condition, quantized scalar/gauge registers, full
 microscopic BCC derivation of the antiunitary bridge, full nonlinear

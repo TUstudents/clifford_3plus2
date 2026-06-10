@@ -22,7 +22,7 @@ It should not be used for:
 
 ## Current State
 
-Stage 47 implements the free BCC Weyl/Dirac bulk walk, static
+Stage 48 implements the free BCC Weyl/Dirac bulk walk, static
 Standard-Model gauge-background transport, pure dynamic SM gauge fields, and a
 site-local Higgs/Yukawa collision, finite-path FN recirculation, and
 center-holonomy CP coefficients, a three-family Higgs/Yukawa collision, and
@@ -44,7 +44,8 @@ rollout smoke test, a multi-step local-force recorded-rollout audit, a
 local-force production profiling certificate, a numerical local-force
 spatial-support audit, a one-tick full-production spatial-support audit, a
 three-tick family-cone audit, a two-tick all-sector cone audit, and a
-momentum-only Gauss relaxation/projection precursor with an iterated solver:
+momentum-only Gauss relaxation/projection precursor with an iterated solver and
+a Gauss-projected production-step wrapper:
 
 ```text
 qca_smv0/
@@ -75,6 +76,7 @@ qca_smv0/
   sm_physical_right_production_gauss.py
   sm_physical_right_production_gauss_projection.py
   sm_physical_right_production_gauss_solver.py
+  sm_physical_right_production_projected.py
   sm_physical_right_production_energy.py
   sm_physical_right_production_variational.py
   sm_physical_right_production_refinement.py
@@ -123,6 +125,7 @@ qca_smv0/
     session_23_physical_right_production_gauss.py
     session_46_physical_right_production_gauss_projection.py
     session_47_physical_right_production_gauss_solver.py
+    session_48_physical_right_production_projected.py
     session_24_physical_right_production_energy.py
     session_25_physical_right_production_variational.py
     session_26_physical_right_production_refinement.py
@@ -1117,6 +1120,29 @@ Stage 47 verdict:
 
 ```text
 QCA_SMV0_STAGE47_PHYSICAL_RIGHT_PRODUCTION_GAUSS_SOLVER_PASS
+```
+
+Stage 48 composes the current production tick with the Stage 47 finite
+Gauss-relaxation solver:
+
+- advances the deterministic state with the unprojected physical-right
+  production tick;
+- applies ten fixed-link, momentum-only Gauss relaxation iterations to the
+  post-tick state;
+- keeps the zero-source vacuum unchanged;
+- reduces the post-tick deterministic Gauss norm from `5.938e-1` to
+  `4.095e-1`;
+- gives total reduction fraction `3.104e-1` with zero monotonicity violation;
+- changes only SM link momenta relative to the unprojected production step;
+- keeps SM and Higgs links unitary to float32 precision;
+- treats the result as an explicit projected-step wrapper, not as a rewritten
+  production tick, nonlinear gauge-orbit projection, or Gauss-preserving
+  integrator.
+
+Stage 48 verdict:
+
+```text
+QCA_SMV0_STAGE48_PHYSICAL_RIGHT_PRODUCTION_PROJECTED_STEP_PASS
 ```
 
 The charges, `lambda`, order-one coefficients, and center-power matrices are
