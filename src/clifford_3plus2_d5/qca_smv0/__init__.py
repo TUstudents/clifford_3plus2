@@ -160,6 +160,7 @@ from clifford_3plus2_d5.qca_smv0.sm_family_higgs import (
     sm_family_embedding_residuals,
     sm_family_extract_block,
     sm_family_higgs_yukawa_diagnostics,
+    sm_family_recirculated_quark_yukawas,
     sm_family_yukawa_internal_matrix,
 )
 from clifford_3plus2_d5.qca_smv0.sm_family_gauge import (
@@ -722,6 +723,7 @@ __all__ = [
     "sm_family_fermion_left_gauge_current",
     "sm_family_gauged_dirac_step",
     "sm_family_higgs_yukawa_diagnostics",
+    "sm_family_recirculated_quark_yukawas",
     "sm_family_production_higgs_force",
     "sm_family_production_sm_tick",
     "sm_family_production_tick_diagnostics",

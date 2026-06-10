@@ -121,7 +121,10 @@ Implemented:
 - Session 06 script;
 - family-extended fermion state layout `(nx, ny, nz, 4, 32, 3)`;
 - local internal/family dimension `96`;
-- exact embedding of generated quark Yukawa matrices into local Higgs doors;
+- default quark Yukawa source built from center-holonomy coefficients feeding
+  the visible-hidden-visible FN recirculation readout;
+- exact embedding of recirculation-backed quark Yukawa matrices into local
+  Higgs doors;
 - explicit diagonal placeholder lepton matrices as simulator inputs;
 - Hermitian three-family local Yukawa matrix;
 - unitary-gauge quark block extraction and wrong-door controls;

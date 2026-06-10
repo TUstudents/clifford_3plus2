@@ -10,6 +10,8 @@ def main() -> None:
 
     print("QCA_SMv0 Session 07 - three-family Higgs/Yukawa collision")
     print(f"family_yukawa_hermitian_residual: {float(diagnostics.family_yukawa_hermitian_residual):.3e}")
+    print(f"fn_recirculated_quark_yukawa_residual: {float(diagnostics.fn_recirculated_quark_yukawa_residual):.3e}")
+    print(f"fn_recirculated_embedding_residual: {float(diagnostics.fn_recirculated_embedding_residual):.3e}")
     print(f"quark_embedding_residual: {float(diagnostics.quark_embedding_residual):.3e}")
     print(f"wrong_door_residual: {float(diagnostics.wrong_door_residual):.3e}")
     print(f"ckm_embedding_residual: {float(diagnostics.ckm_embedding_residual):.3e}")

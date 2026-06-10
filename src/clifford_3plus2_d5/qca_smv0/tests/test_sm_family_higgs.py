@@ -3,7 +3,11 @@
 import jax
 import jax.numpy as jnp
 
-from clifford_3plus2_d5.qca_smv0.sm_cp import sm_center_cp_quark_yukawas
+from clifford_3plus2_d5.qca_smv0.sm_cp import (
+    DEFAULT_CENTER_HOLONOMY_POWERS,
+    sm_center_coefficients,
+    sm_center_cp_quark_yukawas,
+)
 from clifford_3plus2_d5.qca_smv0.sm_family_higgs import (
     SM_FAMILY_INTERNAL_DIM,
     deterministic_sm_family_state,
@@ -12,7 +16,13 @@ from clifford_3plus2_d5.qca_smv0.sm_family_higgs import (
     sm_family_chirality_norms,
     sm_family_embedding_residuals,
     sm_family_higgs_yukawa_diagnostics,
+    sm_family_recirculated_quark_yukawas,
     sm_family_yukawa_internal_matrix,
+)
+from clifford_3plus2_d5.qca_smv0.sm_fn import (
+    DEFAULT_FN_QUARK_CHARGES,
+    FN_LAMBDA_WOLFENSTEIN,
+    fn_visible_recirculation_transfer,
 )
 from clifford_3plus2_d5.qca_smv0.sm_gauge import SM_INTERNAL_DIM
 from clifford_3plus2_d5.qca_smv0.sm_higgs import sm_constant_higgs, sm_yukawa_hermitian_residual
@@ -40,6 +50,40 @@ def test_family_yukawa_embeds_stage6_quark_matrices_in_correct_doors() -> None:
         lepton_yukawas=lepton_yukawas,
     )
 
+    assert quark_embedding < 2e-7
+    assert wrong_door < 1e-7
+    assert ckm_embedding < 3e-6
+
+
+def test_family_quark_source_is_fn_recirculation_readout() -> None:
+    charges = DEFAULT_FN_QUARK_CHARGES
+    powers = DEFAULT_CENTER_HOLONOMY_POWERS
+    recirculated = sm_family_recirculated_quark_yukawas()
+    center_reference = sm_center_cp_quark_yukawas()
+    expected_up = fn_visible_recirculation_transfer(
+        FN_LAMBDA_WOLFENSTEIN,
+        charges.q,
+        charges.u,
+        coefficients=sm_center_coefficients("up", powers=powers.up),
+    )
+    expected_down = fn_visible_recirculation_transfer(
+        FN_LAMBDA_WOLFENSTEIN,
+        charges.q,
+        charges.d,
+        coefficients=sm_center_coefficients("down", powers=powers.down),
+    )
+    higgs = sm_constant_higgs((1, 1, 1))
+    lepton_yukawas = sm_default_family_lepton_yukawas()
+    quark_embedding, wrong_door, ckm_embedding = sm_family_embedding_residuals(
+        higgs,
+        quark_yukawas=recirculated,
+        lepton_yukawas=lepton_yukawas,
+    )
+
+    assert jnp.max(jnp.abs(recirculated.up - expected_up)) < 1e-10
+    assert jnp.max(jnp.abs(recirculated.down - expected_down)) < 1e-10
+    assert jnp.max(jnp.abs(recirculated.up - center_reference.up)) < 1e-10
+    assert jnp.max(jnp.abs(recirculated.down - center_reference.down)) < 1e-10
     assert quark_embedding < 2e-7
     assert wrong_door < 1e-7
     assert ckm_embedding < 3e-6
@@ -96,6 +140,8 @@ def test_family_higgs_diagnostics_and_jit_pass_stage_thresholds() -> None:
     diagnostics = sm_family_higgs_yukawa_diagnostics()
 
     assert diagnostics.family_yukawa_hermitian_residual < 1e-7
+    assert diagnostics.fn_recirculated_quark_yukawa_residual < 1e-10
+    assert diagnostics.fn_recirculated_embedding_residual < 2e-7
     assert diagnostics.quark_embedding_residual < 2e-7
     assert diagnostics.wrong_door_residual < 1e-7
     assert diagnostics.ckm_embedding_residual < 3e-6

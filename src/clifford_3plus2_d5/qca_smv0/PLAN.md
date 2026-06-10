@@ -241,6 +241,9 @@ Pass only if:
 - the local internal/family register has dimension `32 x 3 = 96`;
 - the Stage 5/6 generated quark Yukawa matrices are embedded into the local
   Higgs/Yukawa matrix, not re-entered as scalars;
+- the default quark Yukawa source is explicitly reconstructed from
+  center-holonomy coefficients and the Stage 5 visible-hidden-visible FN
+  recirculation readout before embedding;
 - the local three-family Yukawa matrix is Hermitian;
 - in unitary gauge, the up block extracted from the local matrix reproduces
   the generated up Yukawa matrix and the down block reproduces the generated

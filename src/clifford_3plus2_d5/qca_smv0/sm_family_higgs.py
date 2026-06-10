@@ -15,11 +15,20 @@ from typing import NamedTuple
 import jax
 import jax.numpy as jnp
 
-from clifford_3plus2_d5.qca_smv0.sm_cp import sm_center_cp_quark_yukawas
+from clifford_3plus2_d5.qca_smv0.sm_cp import (
+    DEFAULT_CENTER_HOLONOMY_POWERS,
+    CenterHolonomyPowers,
+    sm_center_coefficients,
+    sm_center_cp_quark_yukawas,
+)
 from clifford_3plus2_d5.qca_smv0.sm_fn import (
+    DEFAULT_FN_QUARK_CHARGES,
+    FN_LAMBDA_WOLFENSTEIN,
+    FNQuarkCharges,
     FNQuarkYukawas,
     SM_FAMILY_DIM,
     fn_ckm_from_yukawas,
+    fn_visible_recirculation_transfer,
 )
 from clifford_3plus2_d5.qca_smv0.sm_gauge import SM_CHIRAL16_DIM, SM_INTERNAL_DIM, deterministic_sm_state
 from clifford_3plus2_d5.qca_smv0.sm_higgs import (
@@ -45,6 +54,8 @@ class FamilyHiggsYukawaDiagnostics(NamedTuple):
     """Focused diagnostics for Stage 7 three-family Higgs/Yukawa collision."""
 
     family_yukawa_hermitian_residual: jnp.ndarray
+    fn_recirculated_quark_yukawa_residual: jnp.ndarray
+    fn_recirculated_embedding_residual: jnp.ndarray
     quark_embedding_residual: jnp.ndarray
     wrong_door_residual: jnp.ndarray
     ckm_embedding_residual: jnp.ndarray
@@ -113,6 +124,27 @@ def sm_default_family_lepton_yukawas() -> FamilyLeptonYukawas:
     )
 
 
+def sm_family_recirculated_quark_yukawas(
+    *,
+    lambda_rec: float = FN_LAMBDA_WOLFENSTEIN,
+    charges: FNQuarkCharges = DEFAULT_FN_QUARK_CHARGES,
+    powers: CenterHolonomyPowers = DEFAULT_CENTER_HOLONOMY_POWERS,
+) -> FNQuarkYukawas:
+    """Return the quark matrices consumed by the family Higgs collision.
+
+    The source is the simulator FN rule itself: center-holonomy order-one
+    coefficients enter the visible incidence/readout maps, while the powers are
+    measured from the explicit hidden recirculation paths.
+    """
+
+    up_coeffs = sm_center_coefficients("up", powers=powers.up)
+    down_coeffs = sm_center_coefficients("down", powers=powers.down)
+    return FNQuarkYukawas(
+        up=fn_visible_recirculation_transfer(lambda_rec, charges.q, charges.u, coefficients=up_coeffs),
+        down=fn_visible_recirculation_transfer(lambda_rec, charges.q, charges.d, coefficients=down_coeffs),
+    )
+
+
 def deterministic_sm_family_state(lattice_shape: tuple[int, int, int]) -> jnp.ndarray:
     """Return a deterministic family-extended SM Dirac state."""
 
@@ -148,7 +180,7 @@ def sm_family_yukawa_internal_matrix(
 
     _validate_higgs_field(higgs)
     if quark_yukawas is None:
-        quark_yukawas = sm_center_cp_quark_yukawas()
+        quark_yukawas = sm_family_recirculated_quark_yukawas()
     if lepton_yukawas is None:
         lepton_yukawas = sm_default_family_lepton_yukawas()
 
@@ -275,7 +307,7 @@ def sm_family_embedding_residuals(
     """Return quark embedding, wrong-door, and CKM residuals."""
 
     if quark_yukawas is None:
-        quark_yukawas = sm_center_cp_quark_yukawas()
+        quark_yukawas = sm_family_recirculated_quark_yukawas()
     matrix = sm_family_yukawa_internal_matrix(higgs, quark_yukawas=quark_yukawas, lepton_yukawas=lepton_yukawas)
     h_tilde = sm_higgs_tilde(higgs)
     up_scale = h_tilde[0, 0, 0, 0]
@@ -306,12 +338,18 @@ def sm_family_higgs_yukawa_diagnostics() -> FamilyHiggsYukawaDiagnostics:
     state = deterministic_sm_family_state(lattice_shape)
     higgs = sm_constant_higgs(lattice_shape)
     zero_higgs = jnp.zeros_like(higgs)
-    quark_yukawas = sm_center_cp_quark_yukawas()
+    quark_yukawas = sm_family_recirculated_quark_yukawas()
+    reference_quark_yukawas = sm_center_cp_quark_yukawas()
     lepton_yukawas = sm_default_family_lepton_yukawas()
     matrix = sm_family_yukawa_internal_matrix(higgs, quark_yukawas=quark_yukawas, lepton_yukawas=lepton_yukawas)
     quark_embedding, wrong_door, ckm_embedding = sm_family_embedding_residuals(
         higgs,
         quark_yukawas=quark_yukawas,
+        lepton_yukawas=lepton_yukawas,
+    )
+    recirculated_embedding, _, _ = sm_family_embedding_residuals(
+        higgs,
+        quark_yukawas=sm_family_recirculated_quark_yukawas(),
         lepton_yukawas=lepton_yukawas,
     )
     step_size = 0.04
@@ -336,6 +374,11 @@ def sm_family_higgs_yukawa_diagnostics() -> FamilyHiggsYukawaDiagnostics:
 
     return FamilyHiggsYukawaDiagnostics(
         family_yukawa_hermitian_residual=sm_yukawa_hermitian_residual(matrix),
+        fn_recirculated_quark_yukawa_residual=jnp.maximum(
+            jnp.max(jnp.abs(quark_yukawas.up - reference_quark_yukawas.up)),
+            jnp.max(jnp.abs(quark_yukawas.down - reference_quark_yukawas.down)),
+        ),
+        fn_recirculated_embedding_residual=recirculated_embedding,
         quark_embedding_residual=quark_embedding,
         wrong_door_residual=wrong_door,
         ckm_embedding_residual=ckm_embedding,
