@@ -450,10 +450,14 @@ from clifford_3plus2_d5.qca_smv0.sm_physical_right_production_local_profile impo
     PhysicalRightProductionLocalProfileDiagnostics,
     sm_physical_right_production_local_profile_diagnostics,
 )
+from clifford_3plus2_d5.qca_smv0.sm_physical_right_production_force_support import (
+    PhysicalRightProductionForceSupportDiagnostics,
+    sm_physical_right_production_force_support_diagnostics,
+)
 
 SIDECAR_NAME = "qca_smv0"
 SIDECAR_TITLE = "QCA_SMv0"
-SIDECAR_STATUS = "Stage 40 physical-right production local profile implemented"
+SIDECAR_STATUS = "Stage 41 physical-right production force support implemented"
 
 __all__ = [
     "BCC_ANISOTROPY_DIRECTIONS",
@@ -529,6 +533,7 @@ __all__ = [
     "PhysicalRightProductionLocalRolloutDiagnostics",
     "PhysicalRightProductionLocalRecordedDiagnostics",
     "PhysicalRightProductionLocalProfileDiagnostics",
+    "PhysicalRightProductionForceSupportDiagnostics",
     "PhysicalRightSourcedSMTickDiagnostics",
     "PhysicalRightTransportDiagnostics",
     "SourcedSMTickDiagnostics",
@@ -740,6 +745,7 @@ __all__ = [
     "sm_physical_right_production_energy_diagnostics",
     "sm_physical_right_production_energy_history",
     "sm_physical_right_production_energy_observables",
+    "sm_physical_right_production_force_support_diagnostics",
     "sm_physical_right_production_gauss",
     "sm_physical_right_production_gauss_diagnostics",
     "sm_physical_right_production_gauss_history",

@@ -78,7 +78,7 @@ physics policy.
 **Boundary**: BCC Weyl/Dirac kernels, BCC plaquettes, Wilson observables, and
 SO(2)/SU(2)/SU(3) force policy remain in `spacetime_qca`.
 
-## qca_smv0 — Stage 40 physical-right production local-force profile
+## qca_smv0 — Stage 41 physical-right production local-force support
 
 **Goal**: focused simulator sidecar for the next Standard-Model QCA prototype,
 using the shared `sim` infrastructure and local `qca_smv0` kernels only.
@@ -487,6 +487,13 @@ using the shared `sim` infrastructure and local `qca_smv0` kernels only.
 - Eager/JIT output agreement, finite-output, family-norm, and link-unitarity
   controls; timing fields are recorded only as machine-dependent diagnostics.
 - Session 40 script and focused tests.
+- Numerical local Wilson-force support measurement on a `7 x 7 x 7` lattice
+  after a localized SM-link perturbation.
+- Measured support radius equals the Stage 35 two-hop force envelope radius
+  `2`, with zero detected support outside that radius.
+- Support appears on `11` sites with radius distribution `(1, 7, 3)` over
+  radii `(0, 1, 2)`.
+- Session 41 script and focused tests.
 
 **Boundary**: no boundary condition, quantized scalar/gauge registers, full
 microscopic BCC derivation of the antiunitary bridge, Gauss projection, exact

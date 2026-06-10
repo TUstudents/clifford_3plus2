@@ -3,12 +3,12 @@
 ## Verdict
 
 ```text
-QCA_SMV0_STAGE40_PHYSICAL_RIGHT_PRODUCTION_LOCAL_PROFILE_PASS
+QCA_SMV0_STAGE41_PHYSICAL_RIGHT_PRODUCTION_FORCE_SUPPORT_PASS
 ```
 
 ## Current State
 
-Stage 40 physical-right production local-force profiling certificate implemented on top of the Stage 1
+Stage 41 physical-right production local-force spatial-support audit implemented on top of the Stage 1
 free BCC Weyl/Dirac walk, Stage 2 static gauge transport, Stage 3 pure dynamic
 gauge fields, Stage 4 local Higgs/Yukawa collision, Stage 5 FN recirculation,
 Stage 6 center-holonomy CP, Stage 7 three-family Higgs/Yukawa collision, and
@@ -29,8 +29,8 @@ Loschmidt echo diagnostic, Stage 31 tangent echo audit, and Stage 32 echo Gram
 audit, Stage 33 echo-Gram scale-stability audit, and Stage 34 finite-horizon
 echo-spectrum audit, Stage 35 finite-stencil locality audit, Stage 36
 dense-workload audit, Stage 37 local Wilson-force replacement, Stage 38
-local-force production-rollout smoke test, and Stage 39 multi-step local-force
-recorded rollout.
+local-force production-rollout smoke test, Stage 39 multi-step local-force
+recorded rollout, and Stage 40 local-force production profile.
 
 Implemented:
 
@@ -487,6 +487,15 @@ Implemented:
 - explicit boundary: timing fields are machine-dependent diagnostics, not
   performance claims;
 - Session 40 script;
+- numerical local Wilson-force spatial-support measurement on a `7 x 7 x 7`
+  lattice after one localized SM-link perturbation;
+- measured support radius equals the Stage 35 two-hop force envelope radius
+  `2`;
+- support distribution by radius `(1, 7, 3)` over radii `(0, 1, 2)`;
+- zero detected support outside the predicted force radius;
+- explicit boundary: this is a local-force support measurement, not a full
+  production-map large-lattice spatial echo or continuum causal-cone theorem;
+- Session 41 script;
 - focused tests for algebra, norm preservation, local gauge covariance, Wilson
   response, weak-link scaling, pure-gauge dynamics, Gauss covariance and
   preservation, weak-field Yang-Mills behavior, Higgs/Yukawa door structure,
@@ -511,7 +520,7 @@ Implemented:
   audit, physical-right production local-force audit, physical-right
   production local-force rollout audit, physical-right production local-force
   recorded-rollout audit, physical-right production local-force profiling
-  audit, and
+  audit, physical-right production local-force support audit, and
   small-momentum Weyl/Dirac behavior.
 
 Not implemented:
@@ -531,7 +540,7 @@ Not implemented:
 - large-lattice numerical spatial echo / causal-cone measurement for the
   physical-right production map;
 - performance profiles beyond the small
-  Session 01/02/03/04/05/06/07/08/09/10/11/12/13/14/15/16/17/18/19/20/21/22/23/24/25/26/27/28/29/30/31/32/33/34/35/36/37/38/39/40 diagnostics.
+  Session 01/02/03/04/05/06/07/08/09/10/11/12/13/14/15/16/17/18/19/20/21/22/23/24/25/26/27/28/29/30/31/32/33/34/35/36/37/38/39/40/41 diagnostics.
 
 ## Working Boundary
 

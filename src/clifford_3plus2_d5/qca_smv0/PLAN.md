@@ -1289,3 +1289,29 @@ Verdict:
 ```text
 QCA_SMV0_STAGE40_PHYSICAL_RIGHT_PRODUCTION_LOCAL_PROFILE_PASS
 ```
+
+## Stage 41 - Physical-Right Production Local-Force Support
+
+Pass only if:
+
+- the only upstream runtime imports are from `sim` and local `qca_smv0`
+  modules;
+- the local Wilson force is measured numerically after a single localized
+  SM-link perturbation on a lattice large enough to contain sites outside the
+  Stage 35 two-hop force radius;
+- the measured support radius does not exceed the two-hop force envelope;
+- at least one center site and multiple neighboring sites respond, so the
+  perturbation is not a zero or trivial measurement;
+- detected support outside the predicted force radius is zero within the
+  configured numerical threshold;
+- the result is documented as a local-force support measurement, not as a full
+  production-map large-lattice spatial echo measurement, continuum causal-cone
+  theorem, performance benchmark, exact energy-conservation theorem,
+  timestep-convergence theorem, boundary rule, or microscopic-input
+  derivation.
+
+Verdict:
+
+```text
+QCA_SMV0_STAGE41_PHYSICAL_RIGHT_PRODUCTION_FORCE_SUPPORT_PASS
+```
