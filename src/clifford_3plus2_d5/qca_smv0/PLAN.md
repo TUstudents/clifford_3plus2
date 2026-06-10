@@ -1063,3 +1063,30 @@ Verdict:
 ```text
 QCA_SMV0_STAGE32_PHYSICAL_RIGHT_PRODUCTION_ECHO_GRAM_PASS
 ```
+
+## Stage 33 - Physical-Right Production Echo-Gram Scale Stability
+
+Pass only if:
+
+- the only upstream runtime imports are from `sim` and local `qca_smv0`
+  modules;
+- the Stage 32 echo-Gram diagnostic is evaluated at two perturbation sizes,
+  `epsilon` and `2 epsilon`;
+- echo norms scale linearly with perturbation size to local finite-difference
+  precision;
+- Gram eigenvalues scale quadratically with perturbation size to local
+  finite-difference precision;
+- dimensionless Gram data, including condition number and off-diagonal
+  correlation, remain stable between the two perturbation sizes;
+- both base roundtrips and all inverse-pulled links remain controlled;
+- the result is documented as a finite scale-stability audit for the local
+  echo-Gram diagnostic, not as a continuum stability theorem, new dynamics
+  rule, energy-conservation claim, timestep-convergence claim, boundary rule,
+  Gauss projection, quantized register, performance benchmark, or
+  microscopic-input derivation.
+
+Verdict:
+
+```text
+QCA_SMV0_STAGE33_PHYSICAL_RIGHT_PRODUCTION_ECHO_GRAM_SCALE_PASS
+```

@@ -22,7 +22,7 @@ It should not be used for:
 
 ## Current State
 
-Stage 32 implements the free BCC Weyl/Dirac bulk walk, static
+Stage 33 implements the free BCC Weyl/Dirac bulk walk, static
 Standard-Model gauge-background transport, pure dynamic SM gauge fields, and a
 site-local Higgs/Yukawa collision, finite-path FN recirculation, and
 center-holonomy CP coefficients, a three-family Higgs/Yukawa collision, and
@@ -36,7 +36,7 @@ monitor on the production rollout, an energy-component monitor, and a
 variational force-provenance audit, plus refinement and adjoint limitation
 audits, an explicit inverse helper for the current production tick, a
 trajectory-level reversibility audit, a Loschmidt echo diagnostic, and a
-finite tangent-response and echo-Gram audits:
+finite tangent-response, echo-Gram, and echo-Gram scale audits:
 
 ```text
 qca_smv0/
@@ -74,6 +74,7 @@ qca_smv0/
   sm_physical_right_production_echo.py
   sm_physical_right_production_tangent.py
   sm_physical_right_production_echo_gram.py
+  sm_physical_right_production_echo_scale.py
   scripts/
     session_01_bare_bcc_walk.py
     session_02_static_sm_gauge_background.py
@@ -107,6 +108,7 @@ qca_smv0/
     session_30_physical_right_production_echo.py
     session_31_physical_right_production_tangent.py
     session_32_physical_right_production_echo_gram.py
+    session_33_physical_right_production_echo_scale.py
   tests/
     test_bulk_bcc.py
     test_sm_gauge.py
@@ -138,6 +140,7 @@ qca_smv0/
     test_sm_physical_right_production_echo.py
     test_sm_physical_right_production_tangent.py
     test_sm_physical_right_production_echo_gram.py
+    test_sm_physical_right_production_echo_scale.py
 ```
 
 The implemented Weyl kernel is a two-component periodic BCC bulk walk:
@@ -783,6 +786,22 @@ Stage 32 verdict:
 QCA_SMV0_STAGE32_PHYSICAL_RIGHT_PRODUCTION_ECHO_GRAM_PASS
 ```
 
+Stage 33 checks that the echo Gram sits in a local scale-stable regime:
+
+- evaluates the Stage 32 echo Gram at `epsilon` and `2 epsilon`;
+- verifies that echo norms scale linearly;
+- verifies that Gram eigenvalues scale quadratically;
+- checks that condition number and off-diagonal correlations remain stable;
+- keeps base roundtrips and inverse-pulled link unitarity controlled;
+- treats the result as a finite scale-stability audit, not as a continuum
+  stability theorem.
+
+Stage 33 verdict:
+
+```text
+QCA_SMV0_STAGE33_PHYSICAL_RIGHT_PRODUCTION_ECHO_GRAM_SCALE_PASS
+```
+
 The charges, `lambda`, order-one coefficients, and center-power matrices are
 simulator inputs, not BCC-bulk derivations. Quantized scalar/gauge registers,
 boundary rules, microscopic derivation of the bridge, and derivation of the
@@ -839,5 +858,6 @@ uv run python -m clifford_3plus2_d5.qca_smv0.scripts.session_29_physical_right_p
 uv run python -m clifford_3plus2_d5.qca_smv0.scripts.session_30_physical_right_production_echo
 uv run python -m clifford_3plus2_d5.qca_smv0.scripts.session_31_physical_right_production_tangent
 uv run python -m clifford_3plus2_d5.qca_smv0.scripts.session_32_physical_right_production_echo_gram
+uv run python -m clifford_3plus2_d5.qca_smv0.scripts.session_33_physical_right_production_echo_scale
 uv run pytest src/clifford_3plus2_d5/qca_smv0/tests -q
 ```

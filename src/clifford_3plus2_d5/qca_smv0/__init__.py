@@ -408,10 +408,14 @@ from clifford_3plus2_d5.qca_smv0.sm_physical_right_production_echo_gram import (
     sm_physical_right_production_apex_family_perturbation,
     sm_physical_right_production_echo_gram_diagnostics,
 )
+from clifford_3plus2_d5.qca_smv0.sm_physical_right_production_echo_scale import (
+    PhysicalRightProductionEchoScaleDiagnostics,
+    sm_physical_right_production_echo_scale_diagnostics,
+)
 
 SIDECAR_NAME = "qca_smv0"
 SIDECAR_TITLE = "QCA_SMv0"
-SIDECAR_STATUS = "Stage 32 physical-right production echo Gram implemented"
+SIDECAR_STATUS = "Stage 33 physical-right production echo Gram scale implemented"
 
 __all__ = [
     "BCC_ANISOTROPY_DIRECTIONS",
@@ -469,6 +473,7 @@ __all__ = [
     "PhysicalRightProductionAdjointDiagnostics",
     "PhysicalRightProductionEchoDiagnostics",
     "PhysicalRightProductionEchoGramDiagnostics",
+    "PhysicalRightProductionEchoScaleDiagnostics",
     "PhysicalRightProductionEnergyDiagnostics",
     "PhysicalRightProductionGaussDiagnostics",
     "PhysicalRightProductionInverseDiagnostics",
@@ -677,6 +682,7 @@ __all__ = [
     "sm_physical_right_production_apex_momentum_perturbation",
     "sm_physical_right_production_echo_diagnostics",
     "sm_physical_right_production_echo_gram_diagnostics",
+    "sm_physical_right_production_echo_scale_diagnostics",
     "sm_physical_right_production_energy_diagnostics",
     "sm_physical_right_production_energy_history",
     "sm_physical_right_production_energy_observables",
