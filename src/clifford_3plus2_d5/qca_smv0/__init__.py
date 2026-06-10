@@ -388,10 +388,15 @@ from clifford_3plus2_d5.qca_smv0.sm_physical_right_production_inverse import (
     sm_physical_right_production_inverse_diagnostics,
     sm_physical_right_production_inverse_step,
 )
+from clifford_3plus2_d5.qca_smv0.sm_physical_right_production_reversibility import (
+    PhysicalRightProductionReversibilityDiagnostics,
+    sm_physical_right_production_inverse_rollout,
+    sm_physical_right_production_reversibility_diagnostics,
+)
 
 SIDECAR_NAME = "qca_smv0"
 SIDECAR_TITLE = "QCA_SMv0"
-SIDECAR_STATUS = "Stage 28 explicit physical-right production inverse implemented"
+SIDECAR_STATUS = "Stage 29 physical-right production trajectory reversibility implemented"
 
 __all__ = [
     "BCC_ANISOTROPY_DIRECTIONS",
@@ -450,6 +455,7 @@ __all__ = [
     "PhysicalRightProductionEnergyDiagnostics",
     "PhysicalRightProductionGaussDiagnostics",
     "PhysicalRightProductionInverseDiagnostics",
+    "PhysicalRightProductionReversibilityDiagnostics",
     "PhysicalRightProductionRolloutDiagnostics",
     "PhysicalRightProductionRolloutState",
     "PhysicalRightProductionSMTickDiagnostics",
@@ -668,9 +674,11 @@ __all__ = [
     "sm_physical_right_production_frozen_fermion_stage",
     "sm_physical_right_production_frozen_fermion_stage_adjoint",
     "sm_physical_right_production_inverse_diagnostics",
+    "sm_physical_right_production_inverse_rollout",
     "sm_physical_right_production_inverse_step",
     "sm_physical_right_production_refinement_diagnostics",
     "sm_physical_right_production_refinement_pair",
+    "sm_physical_right_production_reversibility_diagnostics",
     "sm_physical_right_production_sm_tick",
     "sm_physical_right_production_step",
     "sm_physical_right_production_tick_diagnostics",

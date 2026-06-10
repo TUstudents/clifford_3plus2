@@ -22,7 +22,7 @@ It should not be used for:
 
 ## Current State
 
-Stage 28 implements the free BCC Weyl/Dirac bulk walk, static
+Stage 29 implements the free BCC Weyl/Dirac bulk walk, static
 Standard-Model gauge-background transport, pure dynamic SM gauge fields, and a
 site-local Higgs/Yukawa collision, finite-path FN recirculation, and
 center-holonomy CP coefficients, a three-family Higgs/Yukawa collision, and
@@ -34,7 +34,8 @@ physical-right bridged fermion current, sourced gauge tick, and production
 tick, sparse recorded rollout of that production tick, a physical-right Gauss
 monitor on the production rollout, an energy-component monitor, and a
 variational force-provenance audit, plus refinement and adjoint limitation
-audits, and an explicit inverse helper for the current production tick:
+audits, an explicit inverse helper for the current production tick, and a
+trajectory-level reversibility audit:
 
 ```text
 qca_smv0/
@@ -68,6 +69,7 @@ qca_smv0/
   sm_physical_right_production_refinement.py
   sm_physical_right_production_adjoint.py
   sm_physical_right_production_inverse.py
+  sm_physical_right_production_reversibility.py
   scripts/
     session_01_bare_bcc_walk.py
     session_02_static_sm_gauge_background.py
@@ -97,6 +99,7 @@ qca_smv0/
     session_26_physical_right_production_refinement.py
     session_27_physical_right_production_adjoint.py
     session_28_physical_right_production_inverse.py
+    session_29_physical_right_production_reversibility.py
   tests/
     test_bulk_bcc.py
     test_sm_gauge.py
@@ -124,6 +127,7 @@ qca_smv0/
     test_sm_physical_right_production_refinement.py
     test_sm_physical_right_production_adjoint.py
     test_sm_physical_right_production_inverse.py
+    test_sm_physical_right_production_reversibility.py
 ```
 
 The implemented Weyl kernel is a two-component periodic BCC bulk walk:
@@ -694,6 +698,25 @@ Stage 28 verdict:
 QCA_SMV0_STAGE28_PHYSICAL_RIGHT_PRODUCTION_EXPLICIT_INVERSE_PASS
 ```
 
+Stage 29 composes the explicit inverse over a short production trajectory:
+
+- rewinds a multi-step physical-right production rollout with repeated
+  Stage 28 inverse steps;
+- checks that each inverse step lands on the stored forward trajectory;
+- checks forward-then-inverse and inverse-then-forward trajectory roundtrips;
+- compares against a multi-step naive negative-timestep rollout;
+- keeps family norm and SM/Higgs link unitarity controlled across the forward
+  and inverse paths;
+- verifies fixed-step inverse rollout JIT compatibility;
+- treats the result as a reversibility audit of the current discrete map, not
+  as an energy-convergent Hamiltonian integrator theorem.
+
+Stage 29 verdict:
+
+```text
+QCA_SMV0_STAGE29_PHYSICAL_RIGHT_PRODUCTION_TRAJECTORY_REVERSIBILITY_PASS
+```
+
 The charges, `lambda`, order-one coefficients, and center-power matrices are
 simulator inputs, not BCC-bulk derivations. Quantized scalar/gauge registers,
 boundary rules, microscopic derivation of the bridge, and derivation of the
@@ -746,5 +769,6 @@ uv run python -m clifford_3plus2_d5.qca_smv0.scripts.session_25_physical_right_p
 uv run python -m clifford_3plus2_d5.qca_smv0.scripts.session_26_physical_right_production_refinement
 uv run python -m clifford_3plus2_d5.qca_smv0.scripts.session_27_physical_right_production_adjoint
 uv run python -m clifford_3plus2_d5.qca_smv0.scripts.session_28_physical_right_production_inverse
+uv run python -m clifford_3plus2_d5.qca_smv0.scripts.session_29_physical_right_production_reversibility
 uv run pytest src/clifford_3plus2_d5/qca_smv0/tests -q
 ```

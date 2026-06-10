@@ -3,12 +3,12 @@
 ## Verdict
 
 ```text
-QCA_SMV0_STAGE28_PHYSICAL_RIGHT_PRODUCTION_EXPLICIT_INVERSE_PASS
+QCA_SMV0_STAGE29_PHYSICAL_RIGHT_PRODUCTION_TRAJECTORY_REVERSIBILITY_PASS
 ```
 
 ## Current State
 
-Stage 28 explicit physical-right production inverse implemented on top of the Stage 1
+Stage 29 physical-right production trajectory reversibility implemented on top of the Stage 1
 free BCC Weyl/Dirac walk, Stage 2 static gauge transport, Stage 3 pure dynamic
 gauge fields, Stage 4 local Higgs/Yukawa collision, Stage 5 FN recirculation,
 Stage 6 center-holonomy CP, Stage 7 three-family Higgs/Yukawa collision, and
@@ -23,7 +23,8 @@ current, Stage 20 physical-right sourced gauge tick, and Stage 21
 physical-right production tick, Stage 22 physical-right production rollout,
 Stage 23 physical-right production Gauss monitor, Stage 24 physical-right
 production energy monitor, Stage 25 variational force audit, Stage 26
-refinement limitation audit, and Stage 27 adjoint limitation audit.
+refinement limitation audit, Stage 27 adjoint limitation audit, and Stage 28
+explicit inverse helper.
 
 Implemented:
 
@@ -362,6 +363,18 @@ Implemented:
   energy-conservation, timestep-convergence, boundary, Gauss-projection,
   quantized-register, performance, or microscopic-input derivation claim;
 - Session 28 script;
+- multi-step inverse rollout by repeated Stage 28 inverse steps;
+- trajectory roundtrip audit: forward rollout then inverse rollout restores
+  the initial state;
+- trajectory replay audit: restored initial state, advanced again, reproduces
+  the stored final state;
+- intermediate path-restore audit against the stored forward trajectory;
+- multi-step naive negative-timestep control and improvement ratio;
+- forward/inverse family-norm and SM/Higgs link-unitarity controls;
+- fixed-step JIT audit for the inverse rollout;
+- explicit boundary: trajectory reversibility is for the current discrete map
+  and is not an energy-convergent Hamiltonian-integrator theorem;
+- Session 29 script;
 - focused tests for algebra, norm preservation, local gauge covariance, Wilson
   response, weak-link scaling, pure-gauge dynamics, Gauss covariance and
   preservation, weak-field Yang-Mills behavior, Higgs/Yukawa door structure,
@@ -377,7 +390,8 @@ Implemented:
   monitor, physical-right production energy monitor, physical-right production
   variational audit, physical-right production refinement limitation audit, JIT
   compatibility, physical-right production adjoint limitation audit,
-  physical-right production explicit inverse audit, and
+  physical-right production explicit inverse audit, physical-right production
+  trajectory reversibility audit, and
   small-momentum Weyl/Dirac behavior.
 
 Not implemented:
@@ -395,7 +409,7 @@ Not implemented:
 - energy-conserving or timestep-convergent reversible integrator claim for the
   current hybrid production tick beyond the explicit inverse helper;
 - performance profiles beyond the small
-  Session 01/02/03/04/05/06/07/08/09/10/11/12/13/14/15/16/17/18/19/20/21/22/23/24/25/26/27/28 diagnostics.
+  Session 01/02/03/04/05/06/07/08/09/10/11/12/13/14/15/16/17/18/19/20/21/22/23/24/25/26/27/28/29 diagnostics.
 
 ## Working Boundary
 

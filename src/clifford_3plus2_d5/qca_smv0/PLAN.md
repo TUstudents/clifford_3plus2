@@ -954,3 +954,33 @@ Verdict:
 ```text
 QCA_SMV0_STAGE28_PHYSICAL_RIGHT_PRODUCTION_EXPLICIT_INVERSE_PASS
 ```
+
+## Stage 29 - Physical-Right Production Trajectory Reversibility
+
+Pass only if:
+
+- the only upstream runtime imports are from `sim` and local `qca_smv0`
+  modules;
+- the Stage 28 explicit inverse can be composed into a multi-step inverse
+  rollout;
+- a deterministic multi-step production rollout followed by the inverse
+  rollout restores the initial state to float32 precision;
+- the restored initial state, advanced again for the same number of steps,
+  reproduces the original final state;
+- each intermediate inverse restore matches the stored forward trajectory to
+  float32 precision;
+- the explicit inverse trajectory improves strongly over a multi-step naive
+  negative-timestep rollout;
+- forward and inverse trajectories keep family norm and SM/Higgs link
+  unitarity controlled;
+- the inverse rollout is compatible with JIT for fixed step count;
+- the result is documented as a trajectory-level audit of the current
+  discrete map, not as an energy-conservation, timestep-convergence, boundary,
+  Gauss-projection, quantized-register, performance, or microscopic-input
+  derivation claim.
+
+Verdict:
+
+```text
+QCA_SMV0_STAGE29_PHYSICAL_RIGHT_PRODUCTION_TRAJECTORY_REVERSIBILITY_PASS
+```
