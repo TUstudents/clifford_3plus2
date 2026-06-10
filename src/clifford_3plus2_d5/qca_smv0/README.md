@@ -22,7 +22,7 @@ It should not be used for:
 
 ## Current State
 
-Stage 26 implements the free BCC Weyl/Dirac bulk walk, static
+Stage 27 implements the free BCC Weyl/Dirac bulk walk, static
 Standard-Model gauge-background transport, pure dynamic SM gauge fields, and a
 site-local Higgs/Yukawa collision, finite-path FN recirculation, and
 center-holonomy CP coefficients, a three-family Higgs/Yukawa collision, and
@@ -33,7 +33,8 @@ antiunitary singlet bridge, physical-right bridged transport, and the
 physical-right bridged fermion current, sourced gauge tick, and production
 tick, sparse recorded rollout of that production tick, a physical-right Gauss
 monitor on the production rollout, an energy-component monitor, and a
-variational force-provenance audit, plus a refinement-limitation audit:
+variational force-provenance audit, plus refinement and adjoint limitation
+audits:
 
 ```text
 qca_smv0/
@@ -65,6 +66,7 @@ qca_smv0/
   sm_physical_right_production_energy.py
   sm_physical_right_production_variational.py
   sm_physical_right_production_refinement.py
+  sm_physical_right_production_adjoint.py
   scripts/
     session_01_bare_bcc_walk.py
     session_02_static_sm_gauge_background.py
@@ -92,6 +94,7 @@ qca_smv0/
     session_24_physical_right_production_energy.py
     session_25_physical_right_production_variational.py
     session_26_physical_right_production_refinement.py
+    session_27_physical_right_production_adjoint.py
   tests/
     test_bulk_bcc.py
     test_sm_gauge.py
@@ -117,6 +120,7 @@ qca_smv0/
     test_sm_physical_right_production_energy.py
     test_sm_physical_right_production_variational.py
     test_sm_physical_right_production_refinement.py
+    test_sm_physical_right_production_adjoint.py
 ```
 
 The implemented Weyl kernel is a two-component periodic BCC bulk walk:
@@ -646,6 +650,25 @@ Stage 26 verdict:
 QCA_SMV0_STAGE26_PHYSICAL_RIGHT_PRODUCTION_REFINEMENT_LIMITATION_PASS
 ```
 
+Stage 27 adds an adjoint audit for the production fermion substage:
+
+- implements the adjoint of the physical-right BCC family transport;
+- verifies that adjoint transport restores a deterministic family state;
+- verifies that the frozen production fermion substage has an explicit
+  adjoint and preserves norm;
+- verifies that the local family Yukawa collision inverts under
+  `step_size -> -step_size` on frozen Higgs fields;
+- records that a full production tick followed by a negative-timestep
+  production tick is not the inverse of the full map;
+- treats that as a missing full reversible production integrator, not as a
+  failure of the frozen fermion substage.
+
+Stage 27 verdict:
+
+```text
+QCA_SMV0_STAGE27_PHYSICAL_RIGHT_PRODUCTION_ADJOINT_LIMITATION_PASS
+```
+
 The charges, `lambda`, order-one coefficients, and center-power matrices are
 simulator inputs, not BCC-bulk derivations. Quantized scalar/gauge registers,
 boundary rules, microscopic derivation of the bridge, and derivation of the
@@ -696,5 +719,6 @@ uv run python -m clifford_3plus2_d5.qca_smv0.scripts.session_23_physical_right_p
 uv run python -m clifford_3plus2_d5.qca_smv0.scripts.session_24_physical_right_production_energy
 uv run python -m clifford_3plus2_d5.qca_smv0.scripts.session_25_physical_right_production_variational
 uv run python -m clifford_3plus2_d5.qca_smv0.scripts.session_26_physical_right_production_refinement
+uv run python -m clifford_3plus2_d5.qca_smv0.scripts.session_27_physical_right_production_adjoint
 uv run pytest src/clifford_3plus2_d5/qca_smv0/tests -q
 ```

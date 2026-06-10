@@ -3,12 +3,12 @@
 ## Verdict
 
 ```text
-QCA_SMV0_STAGE26_PHYSICAL_RIGHT_PRODUCTION_REFINEMENT_LIMITATION_PASS
+QCA_SMV0_STAGE27_PHYSICAL_RIGHT_PRODUCTION_ADJOINT_LIMITATION_PASS
 ```
 
 ## Current State
 
-Stage 26 physical-right production refinement limitation audit implemented on top of the Stage 1
+Stage 27 physical-right production adjoint limitation audit implemented on top of the Stage 1
 free BCC Weyl/Dirac walk, Stage 2 static gauge transport, Stage 3 pure dynamic
 gauge fields, Stage 4 local Higgs/Yukawa collision, Stage 5 FN recirculation,
 Stage 6 center-holonomy CP, Stage 7 three-family Higgs/Yukawa collision, and
@@ -339,6 +339,13 @@ Implemented:
 - explicit limitation verdict: the current hybrid production tick should not
   be claimed as an energy-convergent Hamiltonian integrator;
 - Session 26 script;
+- physical-right BCC family transport adjoint step;
+- exact adjoint audit for the frozen production fermion substage;
+- local family Yukawa collision inverse audit under `step_size -> -step_size`;
+- frozen fermion substage norm-preservation audit;
+- explicit limitation verdict: a full production tick followed by a
+  negative-timestep production tick is not the inverse of the full map;
+- Session 27 script;
 - focused tests for algebra, norm preservation, local gauge covariance, Wilson
   response, weak-link scaling, pure-gauge dynamics, Gauss covariance and
   preservation, weak-field Yang-Mills behavior, Higgs/Yukawa door structure,
@@ -353,7 +360,8 @@ Implemented:
   tick, physical-right production rollout, physical-right production Gauss
   monitor, physical-right production energy monitor, physical-right production
   variational audit, physical-right production refinement limitation audit, JIT
-  compatibility, and small-momentum Weyl/Dirac behavior.
+  compatibility, physical-right production adjoint limitation audit, and
+  small-momentum Weyl/Dirac behavior.
 
 Not implemented:
 
@@ -367,8 +375,10 @@ Not implemented:
 - exact conservation claim for the full hybrid production energy monitor;
 - timestep-refined energy-convergence claim for the current hybrid production
   tick;
+- full inverse/reversible-integrator claim for the current hybrid production
+  tick;
 - performance profiles beyond the small
-  Session 01/02/03/04/05/06/07/08/09/10/11/12/13/14/15/16/17/18/19/20/21/22/23/24/25/26 diagnostics.
+  Session 01/02/03/04/05/06/07/08/09/10/11/12/13/14/15/16/17/18/19/20/21/22/23/24/25/26/27 diagnostics.
 
 ## Working Boundary
 

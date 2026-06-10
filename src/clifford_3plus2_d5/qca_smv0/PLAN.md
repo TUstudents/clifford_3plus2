@@ -896,3 +896,33 @@ Verdict:
 ```text
 QCA_SMV0_STAGE26_PHYSICAL_RIGHT_PRODUCTION_REFINEMENT_LIMITATION_PASS
 ```
+
+## Stage 27 - Physical-Right Production Adjoint Limitation Audit
+
+Pass only if:
+
+- the only upstream runtime imports are from `sim` and local `qca_smv0`
+  modules;
+- the physical-right BCC family transport has an explicit adjoint step;
+- the adjoint transport restores a deterministic state to float32 precision;
+- the local family Yukawa collision is inverted by `step_size -> -step_size`
+  on frozen Higgs fields;
+- the frozen fermion substage of the production tick
+  `(old-Higgs half collision, updated-link transport, updated-Higgs half
+  collision)` has an explicit adjoint and restores the input state;
+- the frozen fermion substage preserves norm to float32 precision;
+- a full production tick followed by another production tick with negative
+  timestep is explicitly detected as **not** an inverse of the full map;
+- both the forward and naive negative-step rollouts keep SM and Higgs links
+  unitary;
+- the detected limitation is documented as a missing full adjoint/reversible
+  production integrator, not as a failure of the frozen fermion substage;
+- no new dynamics, boundary rule, conservation claim, Gauss projection,
+  quantized register, performance benchmark, or derivation of simulator inputs
+  is introduced.
+
+Verdict:
+
+```text
+QCA_SMV0_STAGE27_PHYSICAL_RIGHT_PRODUCTION_ADJOINT_LIMITATION_PASS
+```

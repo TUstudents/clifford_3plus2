@@ -78,7 +78,7 @@ physics policy.
 **Boundary**: BCC Weyl/Dirac kernels, BCC plaquettes, Wilson observables, and
 SO(2)/SU(2)/SU(3) force policy remain in `spacetime_qca`.
 
-## qca_smv0 — Stage 26 physical-right production refinement limitation audit
+## qca_smv0 — Stage 27 physical-right production adjoint limitation audit
 
 **Goal**: focused simulator sidecar for the next Standard-Model QCA prototype,
 using the shared `sim` infrastructure and local `qca_smv0` kernels only.
@@ -376,13 +376,22 @@ using the shared `sim` infrastructure and local `qca_smv0` kernels only.
   under timestep halving, so timestep-refined energy convergence is explicitly
   not claimed.
 - Session 26 script and focused tests.
+- Physical-right BCC family transport adjoint step.
+- Frozen production fermion substage adjoint audit: old-Higgs half collision,
+  updated-link transport, and updated-Higgs half collision restore under the
+  explicit adjoint.
+- Local family Yukawa collision inverse audit under `step_size -> -step_size`.
+- Full production tick followed by a negative-timestep production tick is
+  explicitly detected as not being the inverse of the full map.
+- Session 27 script and focused tests.
 
 **Boundary**: no boundary condition, quantized scalar/gauge registers, full
 microscopic BCC derivation of the antiunitary bridge, Gauss projection, exact
 full-energy conservation claim, timestep-refined energy-convergence claim, or
-derivation of the flavor/Higgs inputs is implemented yet. FN charges, `lambda`,
-order-one coefficients, center-power matrices, placeholder lepton matrices, and
-Higgs potential parameters are explicit simulator inputs rather than BCC-bulk
+full reversible-integrator claim is implemented yet.  The derivation of the
+flavor/Higgs inputs is also not implemented: FN charges, `lambda`, order-one
+coefficients, center-power matrices, placeholder lepton matrices, and Higgs
+potential parameters are explicit simulator inputs rather than BCC-bulk
 derivations.
 
 ## scalar_clebsch — V3 conditional pass, active

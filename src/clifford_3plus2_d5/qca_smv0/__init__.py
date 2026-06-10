@@ -376,10 +376,17 @@ from clifford_3plus2_d5.qca_smv0.sm_physical_right_production_refinement import 
     sm_physical_right_production_refinement_diagnostics,
     sm_physical_right_production_refinement_pair,
 )
+from clifford_3plus2_d5.qca_smv0.sm_physical_right_production_adjoint import (
+    PhysicalRightProductionAdjointDiagnostics,
+    sm_family_physical_right_gauged_dirac_adjoint_step,
+    sm_physical_right_production_adjoint_diagnostics,
+    sm_physical_right_production_frozen_fermion_stage,
+    sm_physical_right_production_frozen_fermion_stage_adjoint,
+)
 
 SIDECAR_NAME = "qca_smv0"
 SIDECAR_TITLE = "QCA_SMv0"
-SIDECAR_STATUS = "Stage 26 physical-right production refinement limitation audit implemented"
+SIDECAR_STATUS = "Stage 27 physical-right production adjoint limitation audit implemented"
 
 __all__ = [
     "BCC_ANISOTROPY_DIRECTIONS",
@@ -434,6 +441,7 @@ __all__ = [
     "HiggsDynamicsDiagnostics",
     "HiggsDynamicsParameters",
     "PhysicalRightCurrentDiagnostics",
+    "PhysicalRightProductionAdjointDiagnostics",
     "PhysicalRightProductionEnergyDiagnostics",
     "PhysicalRightProductionGaussDiagnostics",
     "PhysicalRightProductionRolloutDiagnostics",
@@ -548,6 +556,7 @@ __all__ = [
     "sm_family_production_sm_tick",
     "sm_family_production_tick_diagnostics",
     "sm_family_physical_right_gauged_dirac_step",
+    "sm_family_physical_right_gauged_dirac_adjoint_step",
     "sm_family_sourced_gauss_constraint",
     "sm_family_sourced_link_force",
     "sm_family_sourced_sm_tick",
@@ -632,6 +641,7 @@ __all__ = [
     "sm_physical_right_link_unitarity_residual",
     "sm_physical_right_links_from_transport",
     "sm_physical_right_project_to_coordinates",
+    "sm_physical_right_production_adjoint_diagnostics",
     "sm_physical_right_production_energy_diagnostics",
     "sm_physical_right_production_energy_history",
     "sm_physical_right_production_energy_observables",
@@ -649,6 +659,8 @@ __all__ = [
     "sm_physical_right_production_higgs_force_decomposition_residual",
     "sm_physical_right_production_link_directional_derivative_residual",
     "sm_physical_right_production_link_force_decomposition_residual",
+    "sm_physical_right_production_frozen_fermion_stage",
+    "sm_physical_right_production_frozen_fermion_stage_adjoint",
     "sm_physical_right_production_refinement_diagnostics",
     "sm_physical_right_production_refinement_pair",
     "sm_physical_right_production_sm_tick",
