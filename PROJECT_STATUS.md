@@ -78,7 +78,7 @@ physics policy.
 **Boundary**: BCC Weyl/Dirac kernels, BCC plaquettes, Wilson observables, and
 SO(2)/SU(2)/SU(3) force policy remain in `spacetime_qca`.
 
-## qca_smv0 — Stage 35 physical-right production finite stencil
+## qca_smv0 — Stage 36 physical-right production dense workload
 
 **Goal**: focused simulator sidecar for the next Standard-Model QCA prototype,
 using the shared `sim` infrastructure and local `qca_smv0` kernels only.
@@ -445,13 +445,23 @@ using the shared `sim` infrastructure and local `qca_smv0` kernels only.
 - The one-tick production envelope has radius `2`; the two-tick inverse echo
   envelope has radius `4`.
 - Session 35 script and focused tests.
+- Dense production-workload audit from the implemented register dimensions.
+- The dense rollout state is linear in site count and remains modest on the
+  `3^3` certificate lattice.
+- The current finite-difference Wilson force evaluates a global plaquette
+  action for every `sites x 8 links x 12 generators` coordinate.
+- The finite-difference plaquette workload scales quadratically in site count;
+  on the `3^3` certificate it is `5184x` the linear local staple-force target.
+- Session 36 script and focused tests.
 
 **Boundary**: no boundary condition, quantized scalar/gauge registers, full
 microscopic BCC derivation of the antiunitary bridge, Gauss projection, exact
 full-energy conservation claim, timestep-refined energy-convergence claim, or
 energy-convergent reversible-integrator claim beyond the explicit inverse
 helper, continuum Lyapunov claim, or large-lattice spatial echo measurement is
-implemented yet.  The derivation of the flavor/Higgs inputs is also
+implemented yet.  The local analytic staple-force replacement for the current
+global finite-difference Wilson force is also not implemented yet.  The
+derivation of the flavor/Higgs inputs is also
 not implemented: FN charges, `lambda`, order-one coefficients, center-power
 matrices, placeholder lepton matrices, and Higgs potential parameters are
 explicit simulator inputs rather than BCC-bulk derivations.

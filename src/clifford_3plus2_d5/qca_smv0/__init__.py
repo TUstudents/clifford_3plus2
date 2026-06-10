@@ -424,10 +424,16 @@ from clifford_3plus2_d5.qca_smv0.sm_physical_right_production_stencil import (
     sm_physical_right_production_stencil_diagnostics,
     two_hop_force_stencil,
 )
+from clifford_3plus2_d5.qca_smv0.sm_physical_right_production_workload import (
+    PhysicalRightProductionWorkloadDiagnostics,
+    physical_right_production_sm_link_bytes_per_site,
+    physical_right_production_state_bytes_per_site,
+    sm_physical_right_production_workload_diagnostics,
+)
 
 SIDECAR_NAME = "qca_smv0"
 SIDECAR_TITLE = "QCA_SMv0"
-SIDECAR_STATUS = "Stage 35 physical-right production stencil implemented"
+SIDECAR_STATUS = "Stage 36 physical-right production workload implemented"
 
 __all__ = [
     "BCC_ANISOTROPY_DIRECTIONS",
@@ -498,6 +504,7 @@ __all__ = [
     "PhysicalRightProductionStencilDiagnostics",
     "PhysicalRightProductionVariationalDiagnostics",
     "PhysicalRightProductionTangentDiagnostics",
+    "PhysicalRightProductionWorkloadDiagnostics",
     "PhysicalRightSourcedSMTickDiagnostics",
     "PhysicalRightTransportDiagnostics",
     "SourcedSMTickDiagnostics",
@@ -527,6 +534,8 @@ __all__ = [
     "jitted_bcc_dirac_step",
     "jitted_bcc_weyl_step",
     "pauli_matrices",
+    "physical_right_production_sm_link_bytes_per_site",
+    "physical_right_production_state_bytes_per_site",
     "deterministic_higgs_field",
     "deterministic_higgs_link_momenta",
     "deterministic_higgs_momenta",
@@ -732,6 +741,7 @@ __all__ = [
     "sm_physical_right_production_tick_diagnostics",
     "sm_physical_right_production_variational_diagnostics",
     "sm_physical_right_production_vacuum_state",
+    "sm_physical_right_production_workload_diagnostics",
     "sm_physical_right_site_gauge_from_algebra",
     "sm_physical_right_sourced_gauss_constraint",
     "sm_physical_right_sourced_link_force",

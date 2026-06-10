@@ -1147,3 +1147,31 @@ Verdict:
 ```text
 QCA_SMV0_STAGE35_PHYSICAL_RIGHT_PRODUCTION_STENCIL_PASS
 ```
+
+## Stage 36 - Physical-Right Production Dense Workload
+
+Pass only if:
+
+- the only upstream runtime imports are from `sim` and local `qca_smv0`
+  modules;
+- the implemented dense rollout-state bytes per site are computed directly
+  from the current register dimensions;
+- the `3^3` certificate lattice remains small in raw state storage, separating
+  data size from the observed large-lattice echo failure;
+- the finite-difference Wilson-force coordinate count is computed from
+  `sites x 8 BCC links x 12 SM generators`;
+- the global action-evaluation count and plaquette-holonomy workload are
+  computed for the current finite-difference force implementation;
+- the workload is shown to scale quadratically in the site count while a local
+  analytic staple-force target would scale linearly;
+- the result is documented as a dense-workload scalability audit and next-step
+  selector, not as a performance benchmark, new dynamics rule,
+  energy-conservation claim, timestep-convergence claim, boundary rule, Gauss
+  projection, quantized register, continuum causal-cone theorem, or
+  microscopic-input derivation.
+
+Verdict:
+
+```text
+QCA_SMV0_STAGE36_PHYSICAL_RIGHT_PRODUCTION_WORKLOAD_PASS
+```

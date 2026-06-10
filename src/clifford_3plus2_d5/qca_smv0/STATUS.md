@@ -3,12 +3,12 @@
 ## Verdict
 
 ```text
-QCA_SMV0_STAGE35_PHYSICAL_RIGHT_PRODUCTION_STENCIL_PASS
+QCA_SMV0_STAGE36_PHYSICAL_RIGHT_PRODUCTION_WORKLOAD_PASS
 ```
 
 ## Current State
 
-Stage 35 physical-right production finite-stencil locality audit implemented on top of the Stage 1
+Stage 36 physical-right production dense-workload audit implemented on top of the Stage 1
 free BCC Weyl/Dirac walk, Stage 2 static gauge transport, Stage 3 pure dynamic
 gauge fields, Stage 4 local Higgs/Yukawa collision, Stage 5 FN recirculation,
 Stage 6 center-holonomy CP, Stage 7 three-family Higgs/Yukawa collision, and
@@ -27,7 +27,7 @@ refinement limitation audit, Stage 27 adjoint limitation audit, and Stage 28
 explicit inverse helper, Stage 29 trajectory reversibility audit, and Stage 30
 Loschmidt echo diagnostic, Stage 31 tangent echo audit, and Stage 32 echo Gram
 audit, Stage 33 echo-Gram scale-stability audit, and Stage 34 finite-horizon
-echo-spectrum audit.
+echo-spectrum audit, and Stage 35 finite-stencil locality audit.
 
 Implemented:
 
@@ -437,6 +437,19 @@ Implemented:
 - explicit boundary: the stencil audit is not a large-lattice spatial echo
   measurement or continuum causal-cone theorem;
 - Session 35 script;
+- dense production-workload audit from the implemented register dimensions;
+- dense rollout-state storage per lattice site, including family state, Higgs
+  field/momenta, dense SM links, SM momenta, and Higgs links;
+- SM-link storage fraction of the dense state;
+- finite-difference Wilson-force coordinate and global action-evaluation
+  counts;
+- finite-difference plaquette-holonomy workload and its quadratic scaling in
+  site count;
+- comparison against the linear local staple-force target, identifying the
+  next scalability target before large-lattice spatial echo work;
+- explicit boundary: the workload audit is a scalability diagnostic, not a
+  performance benchmark or physics derivation;
+- Session 36 script;
 - focused tests for algebra, norm preservation, local gauge covariance, Wilson
   response, weak-link scaling, pure-gauge dynamics, Gauss covariance and
   preservation, weak-field Yang-Mills behavior, Higgs/Yukawa door structure,
@@ -457,7 +470,8 @@ Implemented:
   audit, physical-right production tangent echo audit, physical-right
   production echo Gram audit, physical-right production echo-Gram scale audit,
   physical-right production echo horizon audit, physical-right production
-  finite-stencil locality audit, and
+  finite-stencil locality audit, physical-right production dense-workload
+  audit, and
   small-momentum Weyl/Dirac behavior.
 
 Not implemented:
@@ -476,8 +490,10 @@ Not implemented:
   current hybrid production tick beyond the explicit inverse helper;
 - large-lattice numerical spatial echo / causal-cone measurement for the
   physical-right production map;
+- local analytic staple-force replacement for the current global
+  finite-difference Wilson force;
 - performance profiles beyond the small
-  Session 01/02/03/04/05/06/07/08/09/10/11/12/13/14/15/16/17/18/19/20/21/22/23/24/25/26/27/28/29/30/31/32/33/34/35 diagnostics.
+  Session 01/02/03/04/05/06/07/08/09/10/11/12/13/14/15/16/17/18/19/20/21/22/23/24/25/26/27/28/29/30/31/32/33/34/35/36 diagnostics.
 
 ## Working Boundary
 
