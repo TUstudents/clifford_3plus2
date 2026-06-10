@@ -55,6 +55,23 @@ class FNRecirculationNetwork(NamedTuple):
     path_lengths: jnp.ndarray
 
 
+class FNVisibleRecirculationReadout(NamedTuple):
+    """Visible-hidden-visible readout of one FN recirculation sector."""
+
+    network: FNRecirculationNetwork
+    entry: jnp.ndarray
+    exit: jnp.ndarray
+    transfer: jnp.ndarray
+
+
+class FNUnitaryDilation(NamedTuple):
+    """Exact unitary dilation of a visible FN transfer contraction."""
+
+    unitary: jnp.ndarray
+    transfer: jnp.ndarray
+    normalization: jnp.ndarray
+
+
 class FNRecirculationDiagnostics(NamedTuple):
     """Focused diagnostics for Stage 5 FN recirculation paths."""
 
@@ -64,6 +81,12 @@ class FNRecirculationDiagnostics(NamedTuple):
     down_network_unitarity_residual: jnp.ndarray
     up_network_transfer_residual: jnp.ndarray
     down_network_transfer_residual: jnp.ndarray
+    up_visible_readout_residual: jnp.ndarray
+    down_visible_readout_residual: jnp.ndarray
+    up_unitary_dilation_residual: jnp.ndarray
+    down_unitary_dilation_residual: jnp.ndarray
+    up_unitary_dilation_transfer_residual: jnp.ndarray
+    down_unitary_dilation_transfer_residual: jnp.ndarray
     up_exponent_residual: jnp.ndarray
     down_exponent_residual: jnp.ndarray
     up_diagonal_scaling_residual: jnp.ndarray
@@ -88,6 +111,12 @@ def _validate_family_matrix(matrix: jnp.ndarray, name: str) -> jnp.ndarray:
     if arr.shape != (SM_FAMILY_DIM, SM_FAMILY_DIM):
         raise ValueError(f"{name} must have shape (3,3)")
     return arr
+
+
+def _positive_sqrt(matrix: jnp.ndarray) -> jnp.ndarray:
+    values, vectors = jnp.linalg.eigh(matrix)
+    clipped = jnp.maximum(values, 0.0)
+    return (vectors * jnp.sqrt(clipped)[None, :]) @ jnp.swapaxes(jnp.conj(vectors), -1, -2)
 
 
 def fn_beam_splitter(lambda_rec: float | jnp.ndarray) -> jnp.ndarray:
@@ -199,6 +228,93 @@ def fn_recirculation_power_matrix(
     return fn_recirculation_transfer_matrix(fn_recirculation_network(lambda_rec, left_charges, right_charges))
 
 
+def fn_visible_recirculation_readout(
+    lambda_rec: float | jnp.ndarray,
+    left_charges: tuple[int, int, int],
+    right_charges: tuple[int, int, int],
+    *,
+    coefficients: jnp.ndarray | None = None,
+) -> FNVisibleRecirculationReadout:
+    """Return visible-to-visible FN transfer through explicit hidden paths.
+
+    The hidden propagation is unitary.  The visible incidence/readout maps are
+    where the explicit order-one coefficients live: entry maps a visible
+    left-family source into the corresponding pair path sources, the hidden
+    network propagates along each path, and exit collects each pair sink into a
+    right-family channel.  The returned ``transfer`` has shape ``(left,right)``.
+    """
+
+    network = fn_recirculation_network(lambda_rec, left_charges, right_charges)
+    coeffs = jnp.ones((SM_FAMILY_DIM, SM_FAMILY_DIM), dtype=jnp.complex64)
+    if coefficients is not None:
+        coeffs = _validate_family_matrix(coefficients, "coefficients").astype(jnp.complex64)
+    hidden_dim = network.unitary.shape[0]
+    entry = jnp.zeros((hidden_dim, SM_FAMILY_DIM), dtype=jnp.complex64)
+    exit_map = jnp.zeros((SM_FAMILY_DIM, hidden_dim), dtype=jnp.complex64)
+    for left_family in range(SM_FAMILY_DIM):
+        for right_family in range(SM_FAMILY_DIM):
+            source = network.source_indices[left_family, right_family]
+            sink = network.sink_indices[left_family, right_family]
+            entry = entry.at[source, left_family].set(1.0 + 0.0j)
+            exit_map = exit_map.at[right_family, sink].set(coeffs[left_family, right_family])
+    right_by_left = exit_map @ network.unitary.astype(jnp.complex64) @ entry
+    return FNVisibleRecirculationReadout(
+        network=network,
+        entry=entry,
+        exit=exit_map,
+        transfer=jnp.swapaxes(right_by_left, -1, -2),
+    )
+
+
+def fn_visible_recirculation_transfer(
+    lambda_rec: float | jnp.ndarray,
+    left_charges: tuple[int, int, int],
+    right_charges: tuple[int, int, int],
+    *,
+    coefficients: jnp.ndarray | None = None,
+) -> jnp.ndarray:
+    """Return the visible FN transfer measured through hidden recirculation."""
+
+    return fn_visible_recirculation_readout(
+        lambda_rec,
+        left_charges,
+        right_charges,
+        coefficients=coefficients,
+    ).transfer
+
+
+def fn_unitary_dilation(transfer: jnp.ndarray) -> FNUnitaryDilation:
+    """Return the exact Halmos unitary dilation of a visible transfer matrix.
+
+    The visible Yukawa block is generally not unitary.  For simulator use it is
+    embedded as a contraction in a larger local unitary.  The returned
+    ``normalization`` rescales the physical transfer block back to the input.
+    """
+
+    raw = _validate_family_matrix(transfer, "transfer").astype(jnp.complex64)
+    singular_values = jnp.linalg.svd(raw, compute_uv=False)
+    normalization = jnp.maximum(jnp.max(singular_values), 1.0) * jnp.asarray(1.0001, dtype=raw.real.dtype)
+    block = raw / normalization
+    identity = jnp.eye(SM_FAMILY_DIM, dtype=jnp.complex64)
+    left_defect = _positive_sqrt(identity - block @ jnp.swapaxes(jnp.conj(block), -1, -2))
+    right_defect = _positive_sqrt(identity - jnp.swapaxes(jnp.conj(block), -1, -2) @ block)
+    unitary = jnp.block(
+        [
+            [block, left_defect],
+            [right_defect, -jnp.swapaxes(jnp.conj(block), -1, -2)],
+        ],
+    )
+    return FNUnitaryDilation(unitary=unitary, transfer=block, normalization=normalization)
+
+
+def fn_unitary_dilation_residual(dilation: FNUnitaryDilation) -> jnp.ndarray:
+    """Return ``max_abs(U^dag U-I)`` for a finite FN unitary dilation."""
+
+    unitary = jnp.asarray(dilation.unitary)
+    identity = jnp.eye(unitary.shape[0], dtype=unitary.dtype)
+    return jnp.max(jnp.abs(jnp.swapaxes(jnp.conj(unitary), -1, -2) @ unitary - identity))
+
+
 def fn_charge_exponents(left_charges: tuple[int, int, int], right_charges: tuple[int, int, int]) -> jnp.ndarray:
     """Return the FN path-length matrix ``n_ij=Q_i+R_j``."""
 
@@ -248,11 +364,12 @@ def fn_effective_yukawa(
 ) -> jnp.ndarray:
     """Return ``c_ij lambda**(Q_i+R_j)`` from FN recirculation path lengths."""
 
-    coeffs = jnp.ones((SM_FAMILY_DIM, SM_FAMILY_DIM), dtype=jnp.complex64)
-    if coefficients is not None:
-        coeffs = _validate_family_matrix(coefficients, "coefficients").astype(jnp.complex64)
-    powers = fn_recirculation_power_matrix(lambda_rec, left_charges, right_charges)
-    return coeffs * powers.astype(jnp.complex64)
+    return fn_visible_recirculation_transfer(
+        lambda_rec,
+        left_charges,
+        right_charges,
+        coefficients=coefficients,
+    )
 
 
 def fn_quark_yukawa_matrices(
@@ -332,6 +449,20 @@ def fn_recirculation_diagnostics(lambda_rec: float = FN_LAMBDA_WOLFENSTEIN) -> F
     down_network_transfers = fn_recirculation_transfer_matrix(down_network)
     lambda_powers_up = lambda_value ** up_exponents
     lambda_powers_down = lambda_value ** down_exponents
+    up_readout = fn_visible_recirculation_readout(
+        lambda_rec,
+        charges.q,
+        charges.u,
+        coefficients=fn_default_coefficients("up"),
+    )
+    down_readout = fn_visible_recirculation_readout(
+        lambda_rec,
+        charges.q,
+        charges.d,
+        coefficients=fn_default_coefficients("down"),
+    )
+    up_dilation = fn_unitary_dilation(up_readout.transfer)
+    down_dilation = fn_unitary_dilation(down_readout.transfer)
     ckm = fn_ckm_from_yukawas(yukawas.up, yukawas.down)
     jit_yukawa = jax.jit(fn_effective_yukawa, static_argnames=("left_charges", "right_charges"))
     eager = fn_effective_yukawa(lambda_rec, charges.q, charges.u, coefficients=fn_default_coefficients("up"))
@@ -356,6 +487,14 @@ def fn_recirculation_diagnostics(lambda_rec: float = FN_LAMBDA_WOLFENSTEIN) -> F
         down_network_unitarity_residual=fn_recirculation_network_unitarity_residual(down_network),
         up_network_transfer_residual=jnp.max(jnp.abs(up_network_transfers - lambda_powers_up)),
         down_network_transfer_residual=jnp.max(jnp.abs(down_network_transfers - lambda_powers_down)),
+        up_visible_readout_residual=jnp.max(jnp.abs(up_readout.transfer - yukawas.up)),
+        down_visible_readout_residual=jnp.max(jnp.abs(down_readout.transfer - yukawas.down)),
+        up_unitary_dilation_residual=fn_unitary_dilation_residual(up_dilation),
+        down_unitary_dilation_residual=fn_unitary_dilation_residual(down_dilation),
+        up_unitary_dilation_transfer_residual=jnp.max(jnp.abs(up_dilation.normalization * up_dilation.transfer - yukawas.up)),
+        down_unitary_dilation_transfer_residual=jnp.max(
+            jnp.abs(down_dilation.normalization * down_dilation.transfer - yukawas.down),
+        ),
         up_exponent_residual=jnp.max(jnp.abs(up_exponents - expected_up)),
         down_exponent_residual=jnp.max(jnp.abs(down_exponents - expected_down)),
         up_diagonal_scaling_residual=jnp.max(

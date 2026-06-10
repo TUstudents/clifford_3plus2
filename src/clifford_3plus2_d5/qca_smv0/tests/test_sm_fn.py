@@ -24,6 +24,10 @@ from clifford_3plus2_d5.qca_smv0.sm_fn import (
     fn_recirculation_transfer_matrix,
     fn_singular_masses,
     fn_unitarity_residual,
+    fn_unitary_dilation,
+    fn_unitary_dilation_residual,
+    fn_visible_recirculation_readout,
+    fn_visible_recirculation_transfer,
     fn_wolfenstein_scaling,
 )
 
@@ -61,6 +65,37 @@ def test_fn_all_entry_recirculation_network_is_unitary_and_reads_powers() -> Non
     assert fn_recirculation_network_unitarity_residual(network) < 1e-6
     assert jnp.max(jnp.abs(transfers - expected)) < 1e-7
     assert jnp.max(jnp.abs(fn_recirculation_power_matrix(lam, charges.q, charges.u) - expected)) < 1e-7
+
+
+def test_fn_visible_hidden_visible_readout_generates_yukawa_transfer() -> None:
+    charges = DEFAULT_FN_QUARK_CHARGES
+    lam = FN_LAMBDA_WOLFENSTEIN
+    coeffs = fn_default_coefficients("down")
+    readout = fn_visible_recirculation_readout(lam, charges.q, charges.d, coefficients=coeffs)
+    powers = fn_recirculation_power_matrix(lam, charges.q, charges.d)
+    expected = coeffs * powers.astype(jnp.complex64)
+
+    assert readout.entry.shape[1] == 3
+    assert readout.exit.shape[0] == 3
+    assert readout.transfer.shape == (3, 3)
+    assert jnp.max(jnp.abs(readout.transfer - expected)) < 1e-10
+    assert jnp.max(jnp.abs(fn_visible_recirculation_transfer(lam, charges.q, charges.d, coefficients=coeffs) - expected)) < 1e-10
+
+
+def test_fn_visible_transfer_has_exact_unitary_dilation() -> None:
+    charges = DEFAULT_FN_QUARK_CHARGES
+    transfer = fn_visible_recirculation_transfer(
+        FN_LAMBDA_WOLFENSTEIN,
+        charges.q,
+        charges.u,
+        coefficients=fn_default_coefficients("up"),
+    )
+    dilation = fn_unitary_dilation(transfer)
+
+    assert dilation.unitary.shape == (6, 6)
+    assert dilation.normalization >= 1.0
+    assert fn_unitary_dilation_residual(dilation) < 2e-6
+    assert jnp.max(jnp.abs(dilation.normalization * dilation.transfer - transfer)) < 1e-8
 
 
 def test_fn_quark_charge_exponents_match_standard_assignment() -> None:

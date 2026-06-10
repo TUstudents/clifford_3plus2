@@ -94,6 +94,9 @@ Implemented:
   `L_i -> R_j` entry;
 - FN power matrices measured from hidden-network source-to-sink transfer
   amplitudes rather than inserted as bare power tables;
+- visible-hidden-visible readout maps from left-family channels through the
+  hidden recirculation network into right-family channels;
+- exact finite unitary dilations of the visible FN transfer blocks;
 - default simulator charges `Q=(3,2,0)`, `U=(5,2,0)`, `D=(1,0,0)`;
 - quark path-length matrices `n^u_ij=Q_i+U_j`, `n^d_ij=Q_i+D_j`;
 - diagonal FN scaling audits for `lambda^8:lambda^4:1` and

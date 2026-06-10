@@ -168,6 +168,10 @@ Pass only if:
   one local path for every `L_i -> R_j` entry;
 - the FN power matrix is read from source-to-sink transfer amplitudes of that
   hidden network, not inserted as a bare power table;
+- visible left-family channels enter the hidden path sources, propagate through
+  the unitary recirculation network, and exit through right-family channels;
+- the visible transfer has an exact finite unitary dilation, so the nonunitary
+  Yukawa block can be embedded in a local simulator gate;
 - quark path lengths are generated from explicit integer charges:
   `n^u_ij=Q_i+U_j` and `n^d_ij=Q_i+D_j`;
 - the default simulator charges are `Q=(3,2,0)`, `U=(5,2,0)`,
