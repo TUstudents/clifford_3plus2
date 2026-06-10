@@ -1378,3 +1378,28 @@ Verdict:
 ```text
 QCA_SMV0_STAGE43_PHYSICAL_RIGHT_PRODUCTION_SPATIAL_SUPPORT_PASS
 ```
+
+## Stage 44 - Physical-Right Production Family Cone
+
+Pass only if:
+
+- the only upstream runtime imports are from `sim` and local `qca_smv0`
+  modules;
+- a localized family-state perturbation is evolved by the assembled
+  physical-right production tick for more than one tick;
+- the measured support radii over steps `1, 2, 3` are exactly `1, 2, 3`;
+- the measured support is zero outside the discrete step-count cone at each
+  horizon;
+- support counts grow monotonically over the measured horizons;
+- the response remains nonzero and finite over the measured horizons;
+- the result is documented as a finite-horizon discrete family-cone support
+  audit, not as a continuum light-cone theorem, Lyapunov estimate, all-sector
+  propagation theorem, performance benchmark, exact energy-conservation
+  theorem, timestep-convergence theorem, boundary rule, or microscopic-input
+  derivation.
+
+Verdict:
+
+```text
+QCA_SMV0_STAGE44_PHYSICAL_RIGHT_PRODUCTION_CONE_PASS
+```

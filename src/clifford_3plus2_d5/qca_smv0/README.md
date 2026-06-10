@@ -22,7 +22,7 @@ It should not be used for:
 
 ## Current State
 
-Stage 43 implements the free BCC Weyl/Dirac bulk walk, static
+Stage 44 implements the free BCC Weyl/Dirac bulk walk, static
 Standard-Model gauge-background transport, pure dynamic SM gauge fields, and a
 site-local Higgs/Yukawa collision, finite-path FN recirculation, and
 center-holonomy CP coefficients, a three-family Higgs/Yukawa collision, and
@@ -38,11 +38,12 @@ audits, an explicit inverse helper for the current production tick, a
 trajectory-level reversibility audit, a Loschmidt echo diagnostic, and a
 finite tangent-response, echo-Gram, echo-Gram scale, and echo-horizon audit
 suite, a finite-stencil locality audit, a dense-workload scaling audit, a
-  local analytic Wilson staple-force replacement, a local analytic
-  physical-right fermion-current replacement, and a local-force production
-  rollout smoke test, a multi-step local-force recorded-rollout audit, a
-  local-force production profiling certificate, a numerical local-force
-  spatial-support audit, and a one-tick full-production spatial-support audit:
+local analytic Wilson staple-force replacement, a local analytic
+physical-right fermion-current replacement, and a local-force production
+rollout smoke test, a multi-step local-force recorded-rollout audit, a
+local-force production profiling certificate, a numerical local-force
+spatial-support audit, a one-tick full-production spatial-support audit, and a
+three-tick family-cone audit:
 
 ```text
 qca_smv0/
@@ -91,6 +92,7 @@ qca_smv0/
   sm_physical_right_production_force_support.py
   sm_physical_right_production_local_current.py
   sm_physical_right_production_spatial_support.py
+  sm_physical_right_production_cone.py
   scripts/
     session_01_bare_bcc_walk.py
     session_02_static_sm_gauge_background.py
@@ -135,6 +137,7 @@ qca_smv0/
     session_41_physical_right_production_force_support.py
     session_42_physical_right_production_local_current.py
     session_43_physical_right_production_spatial_support.py
+    session_44_physical_right_production_cone.py
   tests/
     test_bulk_bcc.py
     test_sm_gauge.py
@@ -177,6 +180,7 @@ qca_smv0/
     test_sm_physical_right_production_force_support.py
     test_sm_physical_right_production_local_current.py
     test_sm_physical_right_production_spatial_support.py
+    test_sm_physical_right_production_cone.py
 ```
 
 The implemented Weyl kernel is a two-component periodic BCC bulk walk:
@@ -1030,6 +1034,24 @@ Stage 43 verdict:
 QCA_SMV0_STAGE43_PHYSICAL_RIGHT_PRODUCTION_SPATIAL_SUPPORT_PASS
 ```
 
+Stage 44 measures finite-horizon family-cone growth of the assembled production
+map:
+
+- perturbs one family-state component at the center of a `7 x 7 x 7` periodic
+  lattice;
+- runs the full physical-right production map for one, two, and three ticks;
+- measures support radii `(1, 2, 3)` for the three horizons;
+- records support counts `(8, 22, 48)`;
+- detects zero support outside the step-count cone at each horizon;
+- treats the result as a finite-horizon discrete family-cone audit, not as a
+  continuum light-cone theorem or all-sector propagation theorem.
+
+Stage 44 verdict:
+
+```text
+QCA_SMV0_STAGE44_PHYSICAL_RIGHT_PRODUCTION_CONE_PASS
+```
+
 The charges, `lambda`, order-one coefficients, and center-power matrices are
 simulator inputs, not BCC-bulk derivations. Quantized scalar/gauge registers,
 boundary rules, microscopic derivation of the bridge, and derivation of the
@@ -1097,5 +1119,6 @@ uv run python -m clifford_3plus2_d5.qca_smv0.scripts.session_40_physical_right_p
 uv run python -m clifford_3plus2_d5.qca_smv0.scripts.session_41_physical_right_production_force_support
 uv run python -m clifford_3plus2_d5.qca_smv0.scripts.session_42_physical_right_production_local_current
 uv run python -m clifford_3plus2_d5.qca_smv0.scripts.session_43_physical_right_production_spatial_support
+uv run python -m clifford_3plus2_d5.qca_smv0.scripts.session_44_physical_right_production_cone
 uv run pytest src/clifford_3plus2_d5/qca_smv0/tests -q
 ```

@@ -3,12 +3,12 @@
 ## Verdict
 
 ```text
-QCA_SMV0_STAGE43_PHYSICAL_RIGHT_PRODUCTION_SPATIAL_SUPPORT_PASS
+QCA_SMV0_STAGE44_PHYSICAL_RIGHT_PRODUCTION_CONE_PASS
 ```
 
 ## Current State
 
-Stage 43 physical-right production one-tick spatial-support audit implemented on top of the Stage 1
+Stage 44 physical-right production family-cone audit implemented on top of the Stage 1
 free BCC Weyl/Dirac walk, Stage 2 static gauge transport, Stage 3 pure dynamic
 gauge fields, Stage 4 local Higgs/Yukawa collision, Stage 5 FN recirculation,
 Stage 6 center-holonomy CP, Stage 7 three-family Higgs/Yukawa collision, and
@@ -31,7 +31,8 @@ echo-spectrum audit, Stage 35 finite-stencil locality audit, Stage 36
 dense-workload audit, Stage 37 local Wilson-force replacement, Stage 38
 local-force production-rollout smoke test, Stage 39 multi-step local-force
 recorded rollout, Stage 40 local-force production profile, Stage 41
-local-force support audit, and Stage 42 local-current production replacement.
+local-force support audit, Stage 42 local-current production replacement, and
+Stage 43 one-tick production spatial-support audit.
 
 Implemented:
 
@@ -526,6 +527,17 @@ Implemented:
 - explicit boundary: this is a one-tick finite-support measurement, not a
   multi-step spatial echo or continuum causal-cone theorem;
 - Session 43 script;
+- finite-horizon family-cone support audit on a `7 x 7 x 7` lattice;
+- one localized family-state perturbation evolved by the assembled production
+  map over one, two, and three ticks;
+- measured support radii `(1, 2, 3)`;
+- support counts `(8, 22, 48)`;
+- zero detected support outside the discrete step-count cone at every measured
+  horizon;
+- explicit boundary: this is a finite-horizon discrete family-cone audit, not a
+  continuum light-cone theorem, Lyapunov estimate, or all-sector propagation
+  theorem;
+- Session 44 script;
 - focused tests for algebra, norm preservation, local gauge covariance, Wilson
   response, weak-link scaling, pure-gauge dynamics, Gauss covariance and
   preservation, weak-field Yang-Mills behavior, Higgs/Yukawa door structure,
@@ -552,7 +564,7 @@ Implemented:
   recorded-rollout audit, physical-right production local-force profiling
   audit, physical-right production local-force support audit, physical-right
   production local-current audit, physical-right production spatial-support
-  audit, and
+  audit, physical-right production family-cone audit, and
   small-momentum Weyl/Dirac behavior.
 
 Not implemented:

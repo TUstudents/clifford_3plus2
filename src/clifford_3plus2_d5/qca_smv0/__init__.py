@@ -464,10 +464,14 @@ from clifford_3plus2_d5.qca_smv0.sm_physical_right_production_spatial_support im
     PhysicalRightProductionSpatialSupportDiagnostics,
     sm_physical_right_production_spatial_support_diagnostics,
 )
+from clifford_3plus2_d5.qca_smv0.sm_physical_right_production_cone import (
+    PhysicalRightProductionConeDiagnostics,
+    sm_physical_right_production_cone_diagnostics,
+)
 
 SIDECAR_NAME = "qca_smv0"
 SIDECAR_TITLE = "QCA_SMv0"
-SIDECAR_STATUS = "Stage 43 physical-right production spatial support implemented"
+SIDECAR_STATUS = "Stage 44 physical-right production cone implemented"
 
 __all__ = [
     "BCC_ANISOTROPY_DIRECTIONS",
@@ -546,6 +550,7 @@ __all__ = [
     "PhysicalRightProductionLocalProfileDiagnostics",
     "PhysicalRightProductionForceSupportDiagnostics",
     "PhysicalRightProductionSpatialSupportDiagnostics",
+    "PhysicalRightProductionConeDiagnostics",
     "PhysicalRightSourcedSMTickDiagnostics",
     "PhysicalRightTransportDiagnostics",
     "SourcedSMTickDiagnostics",
@@ -780,6 +785,7 @@ __all__ = [
     "sm_physical_right_production_local_recorded_diagnostics",
     "sm_physical_right_production_local_rollout_diagnostics",
     "sm_physical_right_production_spatial_support_diagnostics",
+    "sm_physical_right_production_cone_diagnostics",
     "sm_physical_right_production_frozen_fermion_stage",
     "sm_physical_right_production_frozen_fermion_stage_adjoint",
     "sm_physical_right_production_inverse_diagnostics",
