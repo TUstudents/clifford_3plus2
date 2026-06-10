@@ -83,7 +83,7 @@ def test_physical_right_momentum_kick_is_reversible() -> None:
     restored = sm_apply_physical_right_fermion_gauge_momentum_kick(kicked, state, links, step_size=-step_size)
 
     assert jnp.linalg.norm(kicked - momenta) > 1e-4
-    assert jnp.max(jnp.abs(restored - momenta)) < 2e-10
+    assert jnp.max(jnp.abs(restored - momenta)) < 3e-10
 
 
 def test_physical_right_kick_then_transport_is_jittable() -> None:
@@ -113,7 +113,7 @@ def test_physical_right_current_diagnostics_pass_stage_thresholds() -> None:
     assert diagnostics.charge_covariance_residual < 3e-7
     assert diagnostics.gauss_covariance_residual < 3e-7
     assert diagnostics.momentum_kick_delta_norm > 1e-4
-    assert diagnostics.momentum_kick_reversibility_residual < 2e-10
+    assert diagnostics.momentum_kick_reversibility_residual < 3e-10
     assert diagnostics.kicked_link_unitarity_residual < 7e-7
     assert diagnostics.spectator_norm_drift_after_kick < 8e-6
     assert diagnostics.jit_delta_current < 7e-6

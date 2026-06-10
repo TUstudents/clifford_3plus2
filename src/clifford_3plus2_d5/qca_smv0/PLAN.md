@@ -1315,3 +1315,36 @@ Verdict:
 ```text
 QCA_SMV0_STAGE41_PHYSICAL_RIGHT_PRODUCTION_FORCE_SUPPORT_PASS
 ```
+
+## Stage 42 - Physical-Right Production Local Fermion Current
+
+Pass only if:
+
+- the only upstream runtime imports are from `sim` and local `qca_smv0`
+  modules;
+- the legacy physical-right fermion current is preserved as an explicit
+  finite-difference oracle, not used as the production current;
+- the production physical-right fermion current is the analytic local
+  left-trivialized derivative of the existing physical-right streaming
+  bilinear;
+- the local current agrees with the one-site finite-difference oracle within
+  finite-difference tolerance;
+- the zero-state local current vanishes and a deterministic nonzero state
+  sources a nonzero current;
+- the production current is independent of the old `fermion_current_epsilon`
+  knob;
+- a small production tick using the local current keeps family norm drift and
+  SM/Higgs link unitarity controlled;
+- the certificate records the estimated dense finite-difference workload
+  reduction on the production smoke lattice;
+- the result is documented as a local-current production implementation
+  stage, not as a full production-map large-lattice spatial echo measurement,
+  continuum causal-cone theorem, performance benchmark, exact
+  energy-conservation theorem, timestep-convergence theorem, boundary rule, or
+  microscopic-input derivation.
+
+Verdict:
+
+```text
+QCA_SMV0_STAGE42_PHYSICAL_RIGHT_PRODUCTION_LOCAL_CURRENT_PASS
+```

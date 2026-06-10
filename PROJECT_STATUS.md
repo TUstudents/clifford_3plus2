@@ -78,7 +78,7 @@ physics policy.
 **Boundary**: BCC Weyl/Dirac kernels, BCC plaquettes, Wilson observables, and
 SO(2)/SU(2)/SU(3) force policy remain in `spacetime_qca`.
 
-## qca_smv0 — Stage 41 physical-right production local-force support
+## qca_smv0 — Stage 42 physical-right production local current
 
 **Goal**: focused simulator sidecar for the next Standard-Model QCA prototype,
 using the shared `sim` infrastructure and local `qca_smv0` kernels only.
@@ -494,6 +494,17 @@ using the shared `sim` infrastructure and local `qca_smv0` kernels only.
 - Support appears on `11` sites with radius distribution `(1, 7, 3)` over
   radii `(0, 1, 2)`.
 - Session 41 script and focused tests.
+- Local analytic physical-right BCC streaming fermion current as the production
+  current.
+- Legacy finite-difference physical-right fermion current kept as a one-site
+  oracle.
+- One-site oracle comparison: max residual `7.02e-6`, norm residual `2.22e-5`.
+- Production tick is invariant under changes to the old
+  `fermion_current_epsilon` keyword, proving the dense finite-difference
+  current knob no longer controls the tick.
+- `2 x 2 x 1` production smoke tick keeps family norm drift and SM/Higgs link
+  unitarity controlled.
+- Stage 42 script and focused tests.
 
 **Boundary**: no boundary condition, quantized scalar/gauge registers, full
 microscopic BCC derivation of the antiunitary bridge, Gauss projection, exact

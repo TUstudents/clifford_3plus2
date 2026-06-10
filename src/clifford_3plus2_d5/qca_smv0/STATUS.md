@@ -3,12 +3,12 @@
 ## Verdict
 
 ```text
-QCA_SMV0_STAGE41_PHYSICAL_RIGHT_PRODUCTION_FORCE_SUPPORT_PASS
+QCA_SMV0_STAGE42_PHYSICAL_RIGHT_PRODUCTION_LOCAL_CURRENT_PASS
 ```
 
 ## Current State
 
-Stage 41 physical-right production local-force spatial-support audit implemented on top of the Stage 1
+Stage 42 physical-right production local fermion-current replacement implemented on top of the Stage 1
 free BCC Weyl/Dirac walk, Stage 2 static gauge transport, Stage 3 pure dynamic
 gauge fields, Stage 4 local Higgs/Yukawa collision, Stage 5 FN recirculation,
 Stage 6 center-holonomy CP, Stage 7 three-family Higgs/Yukawa collision, and
@@ -30,7 +30,8 @@ audit, Stage 33 echo-Gram scale-stability audit, and Stage 34 finite-horizon
 echo-spectrum audit, Stage 35 finite-stencil locality audit, Stage 36
 dense-workload audit, Stage 37 local Wilson-force replacement, Stage 38
 local-force production-rollout smoke test, Stage 39 multi-step local-force
-recorded rollout, and Stage 40 local-force production profile.
+recorded rollout, Stage 40 local-force production profile, and Stage 41
+local-force support audit.
 
 Implemented:
 
@@ -496,6 +497,22 @@ Implemented:
 - explicit boundary: this is a local-force support measurement, not a full
   production-map large-lattice spatial echo or continuum causal-cone theorem;
 - Session 41 script;
+- local analytic physical-right BCC streaming fermion current;
+- production `sm_physical_right_fermion_left_gauge_current` now dispatches to
+  the local current while the old centered finite-difference path remains
+  available as an explicit one-site oracle;
+- one-site oracle comparison with max residual `7.02e-6` and norm residual
+  `2.22e-5`;
+- exact production-step invariance under changes to the legacy
+  `fermion_current_epsilon` keyword, proving the old finite-difference current
+  knob no longer controls the tick;
+- `2 x 2 x 1` production smoke tick with controlled family norm drift and
+  SM/Higgs link unitarity;
+- estimated dense-current workload reduction of `64x` on the production smoke
+  lattice;
+- explicit boundary: this is a local-current implementation stage, not a full
+  production-map large-lattice spatial echo or continuum causal-cone theorem;
+- Session 42 script;
 - focused tests for algebra, norm preservation, local gauge covariance, Wilson
   response, weak-link scaling, pure-gauge dynamics, Gauss covariance and
   preservation, weak-field Yang-Mills behavior, Higgs/Yukawa door structure,
@@ -520,7 +537,8 @@ Implemented:
   audit, physical-right production local-force audit, physical-right
   production local-force rollout audit, physical-right production local-force
   recorded-rollout audit, physical-right production local-force profiling
-  audit, physical-right production local-force support audit, and
+  audit, physical-right production local-force support audit, physical-right
+  production local-current audit, and
   small-momentum Weyl/Dirac behavior.
 
 Not implemented:

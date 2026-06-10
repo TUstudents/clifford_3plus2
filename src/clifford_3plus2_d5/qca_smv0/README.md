@@ -22,7 +22,7 @@ It should not be used for:
 
 ## Current State
 
-Stage 41 implements the free BCC Weyl/Dirac bulk walk, static
+Stage 42 implements the free BCC Weyl/Dirac bulk walk, static
 Standard-Model gauge-background transport, pure dynamic SM gauge fields, and a
 site-local Higgs/Yukawa collision, finite-path FN recirculation, and
 center-holonomy CP coefficients, a three-family Higgs/Yukawa collision, and
@@ -38,10 +38,11 @@ audits, an explicit inverse helper for the current production tick, a
 trajectory-level reversibility audit, a Loschmidt echo diagnostic, and a
 finite tangent-response, echo-Gram, echo-Gram scale, and echo-horizon audit
 suite, a finite-stencil locality audit, a dense-workload scaling audit, a
-local analytic Wilson staple-force replacement, and a local-force production
-rollout smoke test, a multi-step local-force recorded-rollout audit, and a
-local-force production profiling certificate, and a numerical local-force
-spatial-support audit:
+  local analytic Wilson staple-force replacement, a local analytic
+  physical-right fermion-current replacement, and a local-force production
+  rollout smoke test, a multi-step local-force recorded-rollout audit, a
+  local-force production profiling certificate, and a numerical local-force
+  spatial-support audit:
 
 ```text
 qca_smv0/
@@ -88,6 +89,7 @@ qca_smv0/
   sm_physical_right_production_local_recorded.py
   sm_physical_right_production_local_profile.py
   sm_physical_right_production_force_support.py
+  sm_physical_right_production_local_current.py
   scripts/
     session_01_bare_bcc_walk.py
     session_02_static_sm_gauge_background.py
@@ -130,6 +132,7 @@ qca_smv0/
     session_39_physical_right_production_local_recorded.py
     session_40_physical_right_production_local_profile.py
     session_41_physical_right_production_force_support.py
+    session_42_physical_right_production_local_current.py
   tests/
     test_bulk_bcc.py
     test_sm_gauge.py
@@ -170,6 +173,7 @@ qca_smv0/
     test_sm_physical_right_production_local_recorded.py
     test_sm_physical_right_production_local_profile.py
     test_sm_physical_right_production_force_support.py
+    test_sm_physical_right_production_local_current.py
 ```
 
 The implemented Weyl kernel is a two-component periodic BCC bulk walk:
@@ -984,6 +988,25 @@ Stage 41 verdict:
 QCA_SMV0_STAGE41_PHYSICAL_RIGHT_PRODUCTION_FORCE_SUPPORT_PASS
 ```
 
+Stage 42 replaces the physical-right fermion current's production path with a
+local analytic current:
+
+- keeps the old finite-difference current as a one-site oracle;
+- computes the production current as the local derivative of the same
+  physical-right streaming bilinear;
+- agrees with the finite-difference oracle at max residual `7.02e-6`;
+- verifies the production current is independent of the old
+  `fermion_current_epsilon` knob;
+- runs a `2 x 2 x 1` production smoke tick with controlled family norm drift
+  and SM/Higgs link unitarity;
+- records an estimated `64x` dense-work reduction on that smoke lattice.
+
+Stage 42 verdict:
+
+```text
+QCA_SMV0_STAGE42_PHYSICAL_RIGHT_PRODUCTION_LOCAL_CURRENT_PASS
+```
+
 The charges, `lambda`, order-one coefficients, and center-power matrices are
 simulator inputs, not BCC-bulk derivations. Quantized scalar/gauge registers,
 boundary rules, microscopic derivation of the bridge, and derivation of the
@@ -1049,5 +1072,6 @@ uv run python -m clifford_3plus2_d5.qca_smv0.scripts.session_38_physical_right_p
 uv run python -m clifford_3plus2_d5.qca_smv0.scripts.session_39_physical_right_production_local_recorded
 uv run python -m clifford_3plus2_d5.qca_smv0.scripts.session_40_physical_right_production_local_profile
 uv run python -m clifford_3plus2_d5.qca_smv0.scripts.session_41_physical_right_production_force_support
+uv run python -m clifford_3plus2_d5.qca_smv0.scripts.session_42_physical_right_production_local_current
 uv run pytest src/clifford_3plus2_d5/qca_smv0/tests -q
 ```

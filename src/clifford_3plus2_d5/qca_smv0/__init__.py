@@ -314,7 +314,9 @@ from clifford_3plus2_d5.qca_smv0.sm_physical_right_transport import (
 )
 from clifford_3plus2_d5.qca_smv0.sm_physical_right_current import (
     PhysicalRightCurrentDiagnostics,
+    sm_finite_difference_physical_right_fermion_left_gauge_current,
     sm_apply_physical_right_fermion_gauge_momentum_kick,
+    sm_local_physical_right_fermion_left_gauge_current,
     sm_physical_right_current_diagnostics,
     sm_physical_right_electric_divergence,
     sm_physical_right_fermion_gauss_constraint,
@@ -454,10 +456,14 @@ from clifford_3plus2_d5.qca_smv0.sm_physical_right_production_force_support impo
     PhysicalRightProductionForceSupportDiagnostics,
     sm_physical_right_production_force_support_diagnostics,
 )
+from clifford_3plus2_d5.qca_smv0.sm_physical_right_production_local_current import (
+    PhysicalRightProductionLocalCurrentDiagnostics,
+    sm_physical_right_production_local_current_diagnostics,
+)
 
 SIDECAR_NAME = "qca_smv0"
 SIDECAR_TITLE = "QCA_SMv0"
-SIDECAR_STATUS = "Stage 41 physical-right production force support implemented"
+SIDECAR_STATUS = "Stage 42 physical-right production local current implemented"
 
 __all__ = [
     "BCC_ANISOTROPY_DIRECTIONS",
@@ -529,6 +535,7 @@ __all__ = [
     "PhysicalRightProductionVariationalDiagnostics",
     "PhysicalRightProductionTangentDiagnostics",
     "PhysicalRightProductionWorkloadDiagnostics",
+    "PhysicalRightProductionLocalCurrentDiagnostics",
     "PhysicalRightProductionLocalForceDiagnostics",
     "PhysicalRightProductionLocalRolloutDiagnostics",
     "PhysicalRightProductionLocalRecordedDiagnostics",
@@ -661,6 +668,7 @@ __all__ = [
     "sm_fermion_higgs_backreaction_diagnostics",
     "sm_fermion_left_gauge_current",
     "sm_finite_difference_left_wilson_force",
+    "sm_finite_difference_physical_right_fermion_left_gauge_current",
     "sm_free_dirac_internal_step",
     "sm_gauge_convention_bridge_diagnostics",
     "sm_gauge_convention_generator_residuals",
@@ -709,6 +717,7 @@ __all__ = [
     "sm_left_doublet_projector",
     "sm_linearized_plaquette_field_strength",
     "sm_linearized_yang_mills_action_density",
+    "sm_local_physical_right_fermion_left_gauge_current",
     "sm_local_wilson_force",
     "sm_local_wilson_force_ad_coordinate_residual",
     "sm_local_wilson_staple",
@@ -760,6 +769,7 @@ __all__ = [
     "sm_physical_right_production_higgs_force_decomposition_residual",
     "sm_physical_right_production_link_directional_derivative_residual",
     "sm_physical_right_production_link_force_decomposition_residual",
+    "sm_physical_right_production_local_current_diagnostics",
     "sm_physical_right_production_local_force_diagnostics",
     "sm_physical_right_production_local_profile_diagnostics",
     "sm_physical_right_production_local_recorded_diagnostics",

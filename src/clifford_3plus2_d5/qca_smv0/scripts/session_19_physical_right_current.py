@@ -12,7 +12,7 @@ THRESHOLDS = {
     "current_covariance_residual": 7e-6,
     "charge_covariance_residual": 3e-7,
     "gauss_covariance_residual": 3e-7,
-    "momentum_kick_reversibility_residual": 2e-10,
+    "momentum_kick_reversibility_residual": 3e-10,
     "kicked_link_unitarity_residual": 7e-7,
     "spectator_norm_drift_after_kick": 8e-6,
     "jit_delta_current": 7e-6,

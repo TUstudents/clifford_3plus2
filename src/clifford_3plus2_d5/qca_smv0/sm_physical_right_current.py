@@ -167,13 +167,13 @@ def _generator_left_updates(links: jnp.ndarray, epsilon: float) -> tuple[jnp.nda
     return plus, minus
 
 
-def sm_physical_right_fermion_left_gauge_current(
+def sm_finite_difference_physical_right_fermion_left_gauge_current(
     state: jnp.ndarray,
     transport_links: jnp.ndarray,
     *,
     epsilon: float = 3e-2,
 ) -> jnp.ndarray:
-    """Return physical-right family current in the shared 12 coordinates."""
+    """Return the legacy finite-difference physical-right family current."""
 
     if epsilon <= 0:
         raise ValueError("epsilon must be positive")
@@ -203,6 +203,67 @@ def sm_physical_right_fermion_left_gauge_current(
         coordinate_indices[:, 4],
     ].set(derivatives)
     return current
+
+
+def sm_local_physical_right_fermion_left_gauge_current(
+    state: jnp.ndarray,
+    transport_links: jnp.ndarray,
+) -> jnp.ndarray:
+    """Return the local physical-right family current.
+
+    This is the analytic left-trivialized derivative of
+    :func:`sm_physical_right_streaming_energy_density`.  A single BCC transport
+    link only appears in the local streaming density at its target site, so the
+    current is computed link-by-link instead of by differentiating the global
+    mean energy for every coordinate.
+    """
+
+    lattice_shape = _validate_family_state(state)
+    _validate_sm_links(transport_links, lattice_shape)
+    real_dtype = jnp.real(jnp.asarray(0, dtype=transport_links.dtype)).dtype
+    physical_links = sm_physical_right_links_from_transport(transport_links)
+    generators = sm_physical_right_generators(dtype=transport_links.dtype)
+    hops = bcc_dirac_hop_matrices(dtype=state.dtype)
+    site_count = jnp.asarray(lattice_shape[0] * lattice_shape[1] * lattice_shape[2], dtype=real_dtype)
+    current = jnp.zeros((*transport_links.shape[:4], SM_GENERATOR_COUNT), dtype=real_dtype)
+
+    for index, displacement in enumerate(BCC_DISPLACEMENTS):
+        source = source_roll(state, displacement)
+        link_variations = jnp.einsum(
+            "aij,...jk->...aik",
+            generators,
+            physical_links[..., index, :, :],
+        )
+        varied_source = jnp.einsum(
+            "...aij,...sjf->...asif",
+            link_variations,
+            source,
+        )
+        varied_hopped = jnp.einsum(
+            "rs,...asif->...arif",
+            hops[index],
+            varied_source,
+        )
+        derivative = jnp.real(jnp.einsum("...rif,...arif->...a", jnp.conj(state), varied_hopped)) / site_count
+        current = current.at[..., index, :].set(derivative)
+    return current
+
+
+def sm_physical_right_fermion_left_gauge_current(
+    state: jnp.ndarray,
+    transport_links: jnp.ndarray,
+    *,
+    epsilon: float = 3e-2,
+) -> jnp.ndarray:
+    """Return the production physical-right family current.
+
+    ``epsilon`` is retained for call-site compatibility with the legacy finite
+    difference oracle, but the production current is analytic and local.
+    """
+
+    if epsilon <= 0:
+        raise ValueError("epsilon must be positive")
+    return sm_local_physical_right_fermion_left_gauge_current(state, transport_links)
 
 
 def sm_physical_right_streaming_fermion_charge_density(state: jnp.ndarray) -> jnp.ndarray:
