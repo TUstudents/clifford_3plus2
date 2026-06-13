@@ -11,6 +11,8 @@ from clifford_3plus2_d5.qca_smv0.sm_cp import (
 from clifford_3plus2_d5.qca_smv0.sm_family_higgs import (
     SM_FAMILY_INTERNAL_DIM,
     deterministic_sm_family_state,
+    sm_apply_family_fn_quark_aux_state,
+    sm_apply_family_fn_quark_door_state,
     sm_apply_family_recirculated_quark_door,
     sm_apply_family_yukawa_collision,
     sm_default_family_lepton_yukawas,
@@ -20,6 +22,7 @@ from clifford_3plus2_d5.qca_smv0.sm_family_higgs import (
     sm_family_recirculated_quark_dilations,
     sm_family_recirculated_quark_yukawas,
     sm_family_yukawa_internal_matrix,
+    sm_zero_family_fn_quark_aux_state,
 )
 from clifford_3plus2_d5.qca_smv0.sm_fn import (
     DEFAULT_FN_QUARK_CHARGES,
@@ -117,6 +120,53 @@ def test_family_quark_door_uses_finite_fn_unitary_dilation() -> None:
     assert jnp.max(jnp.abs(up_source - expected_up)) < 2e-7
     assert jnp.max(jnp.abs(down_source - expected_down)) < 2e-7
     assert jnp.max(jnp.abs(batched_down_source - expected_batched_down)) < 2e-7
+
+
+def test_family_quark_door_has_persistent_unitary_fn_aux_state() -> None:
+    higgs = sm_constant_higgs((1, 1, 1))
+    h_tilde = jnp.asarray([jnp.conj(higgs[0, 0, 0, 1]), -jnp.conj(higgs[0, 0, 0, 0])], dtype=jnp.complex64)
+    left = jnp.asarray([1.0 + 0.0j, -0.35 + 0.2j, 0.1 - 0.45j], dtype=jnp.complex64)
+    hidden = jnp.asarray([0.2 - 0.1j, -0.05 + 0.15j, 0.1 + 0.05j], dtype=jnp.complex64)
+    dilations = sm_family_recirculated_quark_dilations()
+
+    zero_aux = sm_zero_family_fn_quark_aux_state()
+    zero_aux_output = sm_apply_family_fn_quark_door_state(left, zero_aux.up, h_tilde[0], dilations.up)
+    stateless_output = sm_apply_family_recirculated_quark_door(left, h_tilde[0], dilations.up)
+    memory_output = sm_apply_family_fn_quark_door_state(left, hidden, h_tilde[0], dilations.up)
+    raw_input_norm = jnp.sum(jnp.abs(left) ** 2) + jnp.sum(jnp.abs(hidden) ** 2)
+    raw_output_norm = jnp.sum(jnp.abs(memory_output.raw_visible) ** 2) + jnp.sum(jnp.abs(memory_output.hidden) ** 2)
+
+    assert jnp.max(jnp.abs(zero_aux_output.physical_visible - stateless_output)) < 2e-7
+    assert jnp.abs(raw_output_norm - raw_input_norm) < 2e-6
+    assert jnp.linalg.norm(memory_output.physical_visible - stateless_output) > 1e-5
+
+
+def test_family_quark_aux_state_updates_both_higgs_doors() -> None:
+    higgs = sm_constant_higgs((1, 1, 1))
+    h_tilde = jnp.asarray([jnp.conj(higgs[0, 0, 0, 1]), -jnp.conj(higgs[0, 0, 0, 0])], dtype=jnp.complex64)
+    up_left = jnp.asarray([1.0 + 0.0j, -0.35 + 0.2j, 0.1 - 0.45j], dtype=jnp.complex64)
+    down_left = jnp.asarray([-0.2 + 0.3j, 0.4 - 0.1j, 0.7 + 0.0j], dtype=jnp.complex64)
+    aux = sm_zero_family_fn_quark_aux_state()
+    dilations = sm_family_recirculated_quark_dilations()
+    quark_yukawas = sm_family_recirculated_quark_yukawas()
+
+    up_source, down_source, updated_aux = sm_apply_family_fn_quark_aux_state(
+        up_left,
+        down_left,
+        h_tilde[0],
+        higgs[0, 0, 0, 1],
+        aux,
+        dilations,
+    )
+    expected_up = h_tilde[0] * (jnp.swapaxes(quark_yukawas.up, -1, -2) @ up_left)
+    expected_down = higgs[0, 0, 0, 1] * (jnp.swapaxes(quark_yukawas.down, -1, -2) @ down_left)
+
+    assert updated_aux.up.shape == (3,)
+    assert updated_aux.down.shape == (3,)
+    assert jnp.max(jnp.abs(up_source - expected_up)) < 2e-7
+    assert jnp.max(jnp.abs(down_source - expected_down)) < 2e-7
+    assert jnp.linalg.norm(updated_aux.up) > 1e-5
+    assert jnp.linalg.norm(updated_aux.down) > 1e-5
 
 
 def test_family_yukawa_collision_identity_controls_norm_and_chirality_flip() -> None:

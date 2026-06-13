@@ -81,6 +81,21 @@ class FamilyFNQuarkDilations(NamedTuple):
     down: FNUnitaryDilation
 
 
+class FamilyFNQuarkAuxState(NamedTuple):
+    """Hidden auxiliary state carried by the up/down FN quark doors."""
+
+    up: jnp.ndarray
+    down: jnp.ndarray
+
+
+class FamilyFNQuarkDoorOutput(NamedTuple):
+    """One FN door update: raw unitary output, physical source, and aux state."""
+
+    raw_visible: jnp.ndarray
+    physical_visible: jnp.ndarray
+    hidden: jnp.ndarray
+
+
 def _q_index(color: int, weak: int) -> int:
     return 2 * color + weak
 
@@ -195,6 +210,65 @@ def sm_apply_family_recirculated_quark_door(
     if higgs.ndim == 0:
         return higgs * visible
     return higgs[..., None] * visible
+
+
+def sm_zero_family_fn_quark_aux_state(batch_shape: tuple[int, ...] = ()) -> FamilyFNQuarkAuxState:
+    """Return a zero hidden auxiliary state for the up/down FN quark doors."""
+
+    shape = (*batch_shape, SM_FAMILY_DIM)
+    zeros = jnp.zeros(shape, dtype=jnp.complex64)
+    return FamilyFNQuarkAuxState(up=zeros, down=zeros)
+
+
+def sm_apply_family_fn_quark_door_state(
+    left_family_state: jnp.ndarray,
+    hidden_state: jnp.ndarray,
+    higgs_component: jnp.ndarray,
+    dilation: FNUnitaryDilation,
+) -> FamilyFNQuarkDoorOutput:
+    """Evolve one FN quark door with a persistent hidden auxiliary state.
+
+    The unitary part acts on ``[visible_left_family, hidden_aux]`` and returns
+    ``[raw_visible_right_family, updated_hidden_aux]``.  The physical visible
+    source is the normalized raw visible component multiplied by the local
+    Higgs door component.
+    """
+
+    left = jnp.asarray(left_family_state, dtype=jnp.complex64)
+    hidden = jnp.asarray(hidden_state, dtype=jnp.complex64)
+    if left.shape[-1] != SM_FAMILY_DIM or hidden.shape[-1] != SM_FAMILY_DIM:
+        raise ValueError("left_family_state and hidden_state must end with family dimension 3")
+    state = jnp.concatenate([left, hidden], axis=-1)
+    evolved = fn_apply_recirculation_collision(dilation, state)
+    raw_visible = fn_read_visible_collision_output(evolved)
+    updated_hidden = evolved[..., SM_FAMILY_DIM:]
+    higgs = jnp.asarray(higgs_component, dtype=raw_visible.dtype)
+    physical = dilation.normalization * raw_visible
+    if higgs.ndim == 0:
+        physical = higgs * physical
+    else:
+        physical = higgs[..., None] * physical
+    return FamilyFNQuarkDoorOutput(raw_visible=raw_visible, physical_visible=physical, hidden=updated_hidden)
+
+
+def sm_apply_family_fn_quark_aux_state(
+    up_left_family_state: jnp.ndarray,
+    down_left_family_state: jnp.ndarray,
+    up_higgs_component: jnp.ndarray,
+    down_higgs_component: jnp.ndarray,
+    aux_state: FamilyFNQuarkAuxState,
+    dilations: FamilyFNQuarkDilations,
+) -> tuple[jnp.ndarray, jnp.ndarray, FamilyFNQuarkAuxState]:
+    """Apply the up/down FN quark door updates and return physical sources."""
+
+    up = sm_apply_family_fn_quark_door_state(up_left_family_state, aux_state.up, up_higgs_component, dilations.up)
+    down = sm_apply_family_fn_quark_door_state(
+        down_left_family_state,
+        aux_state.down,
+        down_higgs_component,
+        dilations.down,
+    )
+    return up.physical_visible, down.physical_visible, FamilyFNQuarkAuxState(up=up.hidden, down=down.hidden)
 
 
 def deterministic_sm_family_state(lattice_shape: tuple[int, int, int]) -> jnp.ndarray:
