@@ -13,7 +13,9 @@ from clifford_3plus2_d5.qca_smv0.sm_family_higgs import (
     deterministic_sm_family_state,
     sm_apply_family_fn_quark_aux_state,
     sm_apply_family_fn_quark_door_state,
+    sm_apply_family_fn_quark_pair_path_unitary_door_state,
     sm_apply_family_fn_quark_path_source_kick,
+    sm_apply_family_fn_quark_path_unitary_collision,
     sm_apply_family_fn_quark_source_kick,
     sm_apply_family_recirculated_quark_door,
     sm_apply_family_yukawa_collision,
@@ -26,7 +28,10 @@ from clifford_3plus2_d5.qca_smv0.sm_family_higgs import (
     sm_family_higgs_yukawa_diagnostics,
     sm_family_fn_quark_path_energy_local_density,
     sm_family_fn_quark_path_higgs_force,
+    sm_family_fn_mass_spectrum_probe,
     sm_family_quark_path_readouts_from_masses_ckm,
+    sm_family_quark_sector_mass_angles,
+    sm_family_quark_sector_symbol,
     sm_family_quark_yukawas_from_path_readouts,
     sm_family_recirculated_quark_path_readouts,
     sm_family_recirculated_quark_dilations,
@@ -47,6 +52,14 @@ from clifford_3plus2_d5.qca_smv0.sm_fn import (
 from clifford_3plus2_d5.qca_smv0.sm_gauge import SM_INTERNAL_DIM
 from clifford_3plus2_d5.qca_smv0.sm_higgs import sm_constant_higgs, sm_yukawa_hermitian_residual
 from clifford_3plus2_d5.sim.state import state_norm_squared
+
+
+def _quark_path_extended_norm(state, aux_state) -> jnp.ndarray:
+    return (
+        state_norm_squared(state)
+        + jnp.real(jnp.sum(jnp.conj(aux_state.up) * aux_state.up))
+        + jnp.real(jnp.sum(jnp.conj(aux_state.down) * aux_state.down))
+    )
 
 
 def test_family_state_and_yukawa_matrix_layout() -> None:
@@ -196,6 +209,72 @@ def test_family_quark_path_readouts_from_masses_ckm_match_manual_calibration() -
     assert jnp.max(jnp.abs(recovered.down - target.down)) < 5e-7
     assert jnp.max(jnp.abs(direct.up.transfer - manual.up.transfer)) < 1e-8
     assert jnp.max(jnp.abs(direct.down.transfer - manual.down.transfer)) < 1e-8
+
+
+def test_family_fn_mass_spectrum_probe_matches_calibrated_gaps() -> None:
+    theta = jnp.asarray(0.22, dtype=jnp.float32)
+    ckm = jnp.asarray(
+        [
+            [jnp.cos(theta), jnp.sin(theta), 0.0],
+            [-jnp.sin(theta), jnp.cos(theta), 0.0],
+            [0.0, 0.0, 1.0],
+        ],
+        dtype=jnp.complex64,
+    )
+    probe = sm_family_fn_mass_spectrum_probe(
+        jnp.asarray([0.10, 0.04, 0.01], dtype=jnp.float32),
+        jnp.asarray([0.08, 0.03, 0.005], dtype=jnp.float32),
+        ckm,
+        higgs_vev=0.01,
+        step_size=0.04,
+    )
+
+    assert probe.up_gap_residual < 2e-6
+    assert probe.down_gap_residual < 2e-6
+    assert probe.ckm_abs_residual < 5e-7
+    assert probe.up_symbol_unitarity_residual < 2e-6
+    assert probe.down_symbol_unitarity_residual < 2e-6
+
+
+def test_family_fn_mass_spectrum_probe_ckm_rotation_preserves_down_gaps() -> None:
+    theta = jnp.asarray(0.24, dtype=jnp.float32)
+    ckm = jnp.asarray(
+        [
+            [jnp.cos(theta), jnp.sin(theta), 0.0],
+            [-jnp.sin(theta), jnp.cos(theta), 0.0],
+            [0.0, 0.0, 1.0],
+        ],
+        dtype=jnp.complex64,
+    )
+    up_masses = jnp.asarray([0.10, 0.04, 0.01], dtype=jnp.float32)
+    down_masses = jnp.asarray([0.08, 0.03, 0.005], dtype=jnp.float32)
+    identity_probe = sm_family_fn_mass_spectrum_probe(up_masses, down_masses, higgs_vev=0.01, step_size=0.04)
+    rotated_probe = sm_family_fn_mass_spectrum_probe(up_masses, down_masses, ckm, higgs_vev=0.01, step_size=0.04)
+
+    assert jnp.max(jnp.abs(rotated_probe.target_down_mass_angles - identity_probe.target_down_mass_angles)) < 5e-7
+    assert jnp.max(jnp.abs(rotated_probe.measured_down_mass_angles - identity_probe.measured_down_mass_angles)) < 5e-7
+    assert rotated_probe.down_gap_residual < 2e-6
+
+
+def test_family_fn_mass_spectrum_probe_zero_yukawas_have_zero_gaps() -> None:
+    zeros = jnp.zeros((3,), dtype=jnp.float32)
+    probe = sm_family_fn_mass_spectrum_probe(zeros, zeros, higgs_vev=0.01, step_size=0.04)
+
+    assert jnp.max(jnp.abs(probe.measured_up_mass_angles)) < 1e-7
+    assert jnp.max(jnp.abs(probe.measured_down_mass_angles)) < 1e-7
+    assert probe.up_gap_residual < 1e-7
+    assert probe.down_gap_residual < 1e-7
+
+
+def test_family_quark_sector_mass_angles_are_jittable() -> None:
+    yukawa = jnp.diag(jnp.asarray([0.10, 0.04, 0.01], dtype=jnp.complex64))
+    k = jnp.asarray([0.0, 0.0, 0.0], dtype=jnp.float32)
+    expected = sm_family_quark_sector_mass_angles(k, yukawa, jnp.asarray(0.1, dtype=jnp.float32), jnp.asarray(0.04, dtype=jnp.float32))
+    actual = jax.jit(sm_family_quark_sector_mass_angles)(k, yukawa, jnp.asarray(0.1, dtype=jnp.float32), jnp.asarray(0.04, dtype=jnp.float32))
+    symbol = sm_family_quark_sector_symbol(k, yukawa, jnp.asarray(0.1, dtype=jnp.float32), jnp.asarray(0.04, dtype=jnp.float32))
+
+    assert jnp.max(jnp.abs(actual - expected)) < 1e-8
+    assert jnp.max(jnp.abs(jnp.conj(symbol.T) @ symbol - jnp.eye(symbol.shape[0], dtype=symbol.dtype))) < 2e-6
 
 
 def test_family_quark_door_uses_finite_fn_unitary_dilation() -> None:
@@ -460,6 +539,93 @@ def test_family_fn_quark_path_source_kick_advances_state_from_path_source() -> N
     assert jnp.linalg.norm(tiny.state - state) < 5e-6
     assert jnp.linalg.norm(tiny.aux_state.up - aux.up) < 5e-6
     assert jnp.linalg.norm(tiny.aux_state.down - aux.down) < 5e-6
+
+
+def test_family_fn_quark_pair_path_unitary_door_preserves_local_norm() -> None:
+    readouts = sm_family_recirculated_quark_path_readouts()
+    up_dim = int(readouts.up.network.unitary.shape[0])
+    down_dim = int(readouts.down.network.unitary.shape[0])
+    left = jnp.asarray([0.6 + 0.1j, -0.2 + 0.3j, 0.4 - 0.5j], dtype=jnp.complex64)
+    up_right = jnp.asarray([-0.3 + 0.2j, 0.15 - 0.25j, 0.05 + 0.1j], dtype=jnp.complex64)
+    down_right = jnp.asarray([0.2 - 0.05j, -0.1 + 0.4j, 0.25 + 0.15j], dtype=jnp.complex64)
+    up_hidden = jnp.linspace(0.0, 0.2, up_dim, dtype=jnp.float32).astype(jnp.complex64)
+    down_hidden = (0.15j * jnp.linspace(1.0, 0.0, down_dim, dtype=jnp.float32)).astype(jnp.complex64)
+    before = (
+        jnp.vdot(left, left)
+        + jnp.vdot(up_right, up_right)
+        + jnp.vdot(down_right, down_right)
+        + jnp.vdot(up_hidden, up_hidden)
+        + jnp.vdot(down_hidden, down_hidden)
+    )
+
+    left_after, up_right_after, down_right_after, up_hidden_after, down_hidden_after = (
+        sm_apply_family_fn_quark_pair_path_unitary_door_state(
+            left,
+            up_right,
+            down_right,
+            up_hidden,
+            down_hidden,
+            0.7 + 0.1j,
+            -0.4 + 0.2j,
+            readouts,
+            step_size=0.04,
+        )
+    )
+    after = (
+        jnp.vdot(left_after, left_after)
+        + jnp.vdot(up_right_after, up_right_after)
+        + jnp.vdot(down_right_after, down_right_after)
+        + jnp.vdot(up_hidden_after, up_hidden_after)
+        + jnp.vdot(down_hidden_after, down_hidden_after)
+    )
+
+    assert jnp.abs(after - before) < 2e-5
+    assert jnp.linalg.norm(up_right_after - up_right) > 1e-4
+    assert jnp.linalg.norm(down_right_after - down_right) > 1e-4
+
+
+def test_family_fn_quark_path_unitary_collision_zero_step_is_identity() -> None:
+    lattice_shape = (1, 1, 1)
+    state = deterministic_sm_family_state(lattice_shape)
+    higgs = sm_constant_higgs(lattice_shape)
+    aux = sm_zero_family_fn_quark_path_state_aux(lattice_shape)
+
+    collision = sm_apply_family_fn_quark_path_unitary_collision(state, higgs, aux, step_size=0.0)
+
+    assert jnp.max(jnp.abs(collision.state - state)) < 1e-8
+    assert jnp.max(jnp.abs(collision.aux_state.up - aux.up)) < 1e-8
+    assert jnp.max(jnp.abs(collision.aux_state.down - aux.down)) < 1e-8
+
+
+def test_family_fn_quark_path_unitary_collision_preserves_visible_hidden_norm() -> None:
+    lattice_shape = (1, 1, 1)
+    state = deterministic_sm_family_state(lattice_shape)
+    higgs = sm_constant_higgs(lattice_shape)
+    aux = sm_zero_family_fn_quark_path_state_aux(lattice_shape)
+    before = _quark_path_extended_norm(state, aux)
+
+    collision = sm_apply_family_fn_quark_path_unitary_collision(state, higgs, aux, step_size=0.035)
+    after = _quark_path_extended_norm(collision.state, collision.aux_state)
+
+    assert jnp.abs(after - before) < 8e-5
+    assert jnp.linalg.norm(collision.state - state) > 1e-5
+    assert jnp.linalg.norm(collision.aux_state.up - aux.up) > 1e-5
+    assert jnp.linalg.norm(collision.aux_state.down - aux.down) > 1e-5
+
+
+def test_family_fn_quark_path_unitary_collision_is_not_source_kick() -> None:
+    lattice_shape = (1, 1, 1)
+    state = deterministic_sm_family_state(lattice_shape)
+    higgs = sm_constant_higgs(lattice_shape)
+    aux = sm_zero_family_fn_quark_path_state_aux(lattice_shape)
+    step_size = 0.025
+
+    collision = sm_apply_family_fn_quark_path_unitary_collision(state, higgs, aux, step_size=step_size)
+    kicked = sm_apply_family_fn_quark_path_source_kick(state, higgs, aux, step_size=step_size)
+
+    assert jnp.abs(_quark_path_extended_norm(collision.state, collision.aux_state) - _quark_path_extended_norm(state, aux)) < 8e-5
+    assert jnp.abs(_quark_path_extended_norm(kicked.state, kicked.aux_state) - _quark_path_extended_norm(state, aux)) > 1e-6
+    assert jnp.linalg.norm(collision.state - kicked.state) > 1e-5
 
 
 def test_family_yukawa_collision_identity_controls_norm_and_chirality_flip() -> None:

@@ -15,6 +15,7 @@ from typing import NamedTuple
 import jax
 import jax.numpy as jnp
 
+from clifford_3plus2_d5.qca_smv0.bulk_bcc import bcc_dirac_split_symbol
 from clifford_3plus2_d5.qca_smv0.sm_cp import (
     DEFAULT_CENTER_HOLONOMY_POWERS,
     CenterHolonomyPowers,
@@ -40,6 +41,7 @@ from clifford_3plus2_d5.qca_smv0.sm_fn import (
     fn_prepare_visible_collision_state,
     fn_read_visible_collision_output,
     fn_recirculation_collision_dilation,
+    fn_singular_masses,
     fn_unitary_dilation_residual,
     fn_visible_recirculation_pair_readout,
     fn_visible_recirculation_readout,
@@ -81,6 +83,22 @@ class FamilyHiggsYukawaDiagnostics(NamedTuple):
     norm_drift: jnp.ndarray
     chirality_flip_right_norm: jnp.ndarray
     jit_delta: jnp.ndarray
+
+
+class FamilyFNMassSpectrumProbe(NamedTuple):
+    """Calibrated FN quark gaps measured from the exact family mass symbol."""
+
+    target_yukawas: FNQuarkYukawas
+    recovered_yukawas: FNQuarkYukawas
+    target_up_mass_angles: jnp.ndarray
+    target_down_mass_angles: jnp.ndarray
+    measured_up_mass_angles: jnp.ndarray
+    measured_down_mass_angles: jnp.ndarray
+    up_gap_residual: jnp.ndarray
+    down_gap_residual: jnp.ndarray
+    ckm_abs_residual: jnp.ndarray
+    up_symbol_unitarity_residual: jnp.ndarray
+    down_symbol_unitarity_residual: jnp.ndarray
 
 
 class FamilyFNQuarkDilations(NamedTuple):
@@ -160,6 +178,13 @@ class FamilyFNQuarkPathSourceKick(NamedTuple):
 
     state: jnp.ndarray
     source: jnp.ndarray
+    aux_state: FamilyFNQuarkPathAuxState
+
+
+class FamilyFNQuarkPathUnitaryCollision(NamedTuple):
+    """One exact visible-hidden-return FN collision on quarks."""
+
+    state: jnp.ndarray
     aux_state: FamilyFNQuarkPathAuxState
 
 
@@ -476,6 +501,122 @@ def sm_apply_family_fn_quark_pair_path_door_state(
     return up_visible, down_visible, output.visible, output.up_hidden, output.down_hidden
 
 
+def _positive_sqrt_matrix(matrix: jnp.ndarray) -> jnp.ndarray:
+    """Return the positive square root of a Hermitian matrix or matrix batch."""
+
+    arr = jnp.asarray(matrix, dtype=jnp.complex64)
+    hermitian = 0.5 * (arr + jnp.swapaxes(jnp.conj(arr), -1, -2))
+    values, vectors = jnp.linalg.eigh(hermitian)
+    roots = jnp.sqrt(jnp.clip(values, min=0.0))
+    weighted = vectors * roots[..., None, :]
+    return weighted @ jnp.swapaxes(jnp.conj(vectors), -1, -2)
+
+
+def _matvec(matrix: jnp.ndarray, vector: jnp.ndarray) -> jnp.ndarray:
+    return jnp.squeeze(jnp.matmul(matrix, vector[..., None]), axis=-1)
+
+
+def _apply_contraction_coupling(
+    source_state: jnp.ndarray,
+    target_state: jnp.ndarray,
+    contraction: jnp.ndarray,
+) -> tuple[jnp.ndarray, jnp.ndarray]:
+    """Apply a Julia/Halmos coupling for ``contraction: source -> target``."""
+
+    source = jnp.asarray(source_state, dtype=jnp.complex64)
+    target = jnp.asarray(target_state, dtype=jnp.complex64)
+    block = jnp.asarray(contraction, dtype=jnp.complex64)
+    if block.shape[-1] != source.shape[-1] or block.shape[-2] != target.shape[-1]:
+        raise ValueError("contraction dimensions must match source and target states")
+    adjoint = jnp.swapaxes(jnp.conj(block), -1, -2)
+    source_identity = jnp.eye(block.shape[-1], dtype=block.dtype)
+    target_identity = jnp.eye(block.shape[-2], dtype=block.dtype)
+    source_defect = _positive_sqrt_matrix(source_identity - adjoint @ block)
+    target_defect = _positive_sqrt_matrix(target_identity - block @ adjoint)
+    new_source = _matvec(source_defect, source) - _matvec(adjoint, target)
+    new_target = _matvec(block, source) + _matvec(target_defect, target)
+    return new_source, new_target
+
+
+def _step_sqrt_mix(step_size: float | jnp.ndarray, dtype: jnp.dtype) -> jnp.ndarray:
+    real_dtype = jnp.real(jnp.asarray(0, dtype=dtype)).dtype
+    dt = jnp.asarray(step_size, dtype=real_dtype)
+    return jnp.sqrt(jnp.clip(jnp.abs(dt), 0.0, 1.0)).astype(dtype)
+
+
+def _step_sign(step_size: float | jnp.ndarray, dtype: jnp.dtype) -> jnp.ndarray:
+    real_dtype = jnp.real(jnp.asarray(0, dtype=dtype)).dtype
+    dt = jnp.asarray(step_size, dtype=real_dtype)
+    return jnp.where(dt < 0, -1.0, 1.0).astype(dtype)
+
+
+def _bounded_complex_coupling(value: jnp.ndarray, dtype: jnp.dtype) -> jnp.ndarray:
+    arr = jnp.asarray(value, dtype=dtype)
+    magnitude = jnp.abs(arr)
+    denominator = jnp.where(magnitude > 1e-12, magnitude, 1.0)
+    return jnp.tanh(magnitude).astype(dtype) * arr / denominator
+
+
+def sm_apply_family_fn_quark_pair_path_unitary_door_state(
+    left_family_state: jnp.ndarray,
+    up_right_family_state: jnp.ndarray,
+    down_right_family_state: jnp.ndarray,
+    up_hidden_state: jnp.ndarray,
+    down_hidden_state: jnp.ndarray,
+    up_higgs_component: jnp.ndarray,
+    down_higgs_component: jnp.ndarray,
+    readouts: FamilyFNQuarkPathReadouts,
+    *,
+    step_size: float,
+) -> tuple[jnp.ndarray, jnp.ndarray, jnp.ndarray, jnp.ndarray, jnp.ndarray]:
+    """Apply one exact local FN path door on visible, hidden, and return slots.
+
+    This is the constructive endpoint for the quark FN rule: the visible left
+    source, up/down hidden path memories, and up/down right return slots are
+    updated by contraction dilations.  The induced right-handed transfer is
+    first order in ``step_size`` because both entry and Higgs exit carry
+    ``sqrt(step_size)``.
+    """
+
+    left = jnp.asarray(left_family_state, dtype=jnp.complex64)
+    up_right = jnp.asarray(up_right_family_state, dtype=jnp.complex64)
+    down_right = jnp.asarray(down_right_family_state, dtype=jnp.complex64)
+    up_hidden = jnp.asarray(up_hidden_state, dtype=jnp.complex64)
+    down_hidden = jnp.asarray(down_hidden_state, dtype=jnp.complex64)
+    if left.shape[-1] != SM_FAMILY_DIM or up_right.shape[-1] != SM_FAMILY_DIM or down_right.shape[-1] != SM_FAMILY_DIM:
+        raise ValueError("visible family states must end with dimension 3")
+    up_dim = int(readouts.up.network.unitary.shape[0])
+    down_dim = int(readouts.down.network.unitary.shape[0])
+    if up_hidden.shape[-1] != up_dim:
+        raise ValueError(f"up_hidden_state must end with hidden dimension {up_dim}")
+    if down_hidden.shape[-1] != down_dim:
+        raise ValueError(f"down_hidden_state must end with hidden dimension {down_dim}")
+    if step_size == 0:
+        return left, up_right, down_right, up_hidden, down_hidden
+
+    dtype = jnp.result_type(left, up_right, down_right, up_hidden, down_hidden, up_higgs_component, down_higgs_component, 1j)
+    mix = _step_sqrt_mix(step_size, dtype)
+    step_phase = _step_sign(step_size, dtype)
+    hidden = jnp.concatenate((up_hidden.astype(dtype), down_hidden.astype(dtype)), axis=-1)
+    combined_entry = jnp.concatenate((readouts.up.entry, readouts.down.entry), axis=0).astype(dtype)
+    entry = mix * combined_entry / readouts.pair.entry_scale.astype(dtype)
+    left_after, injected = _apply_contraction_coupling(left.astype(dtype), hidden, entry)
+    injected_up = injected[..., :up_dim]
+    injected_down = injected[..., up_dim:]
+    evolved_up = _matvec(readouts.up.network.unitary.astype(dtype), injected_up)
+    evolved_down = _matvec(readouts.down.network.unitary.astype(dtype), injected_down)
+
+    up_higgs = _bounded_complex_coupling(up_higgs_component, dtype)
+    down_higgs = _bounded_complex_coupling(down_higgs_component, dtype)
+    up_exit_factor = -1j * step_phase * mix * up_higgs
+    down_exit_factor = -1j * step_phase * mix * down_higgs
+    up_exit = up_exit_factor[..., None, None] * (readouts.up.exit / readouts.up.exit_scale).astype(dtype)
+    down_exit = down_exit_factor[..., None, None] * (readouts.down.exit / readouts.down.exit_scale).astype(dtype)
+    up_hidden_after, up_right_after = _apply_contraction_coupling(evolved_up, up_right.astype(dtype), up_exit)
+    down_hidden_after, down_right_after = _apply_contraction_coupling(evolved_down, down_right.astype(dtype), down_exit)
+    return left_after, up_right_after, down_right_after, up_hidden_after, down_hidden_after
+
+
 def sm_apply_family_fn_quark_aux_state(
     up_left_family_state: jnp.ndarray,
     down_left_family_state: jnp.ndarray,
@@ -727,6 +868,75 @@ def sm_apply_family_fn_quark_path_source_kick(
     return FamilyFNQuarkPathSourceKick(state=updated, source=source.state_source, aux_state=updated_aux)
 
 
+def sm_apply_family_fn_quark_path_unitary_collision(
+    state: jnp.ndarray,
+    higgs: jnp.ndarray,
+    aux_state: FamilyFNQuarkPathAuxState | None = None,
+    readouts: FamilyFNQuarkPathReadouts | None = None,
+    *,
+    step_size: float,
+) -> FamilyFNQuarkPathUnitaryCollision:
+    """Apply the exact local quark FN path collision on visible and hidden slots.
+
+    Unlike ``sm_apply_family_fn_quark_path_source_kick``, this routine does not
+    add a source term to the visible state.  It evolves the quark doublet slot,
+    the right-handed return slots, and the persistent hidden FN paths by local
+    unitary contraction dilations.  The right-handed return is written into the
+    Dirac-beta partner spin slot, matching the spin pairing of the standard
+    family Yukawa collision.
+    """
+
+    lattice_shape = _validate_family_state(state)
+    _validate_higgs_field(higgs, lattice_shape)
+    if readouts is None:
+        readouts = sm_family_recirculated_quark_path_readouts()
+    if aux_state is None:
+        aux_state = sm_zero_family_fn_quark_path_state_aux(lattice_shape)
+    expected_prefix = (*lattice_shape, 4, 3, 2)
+    up_dim = int(readouts.up.network.unitary.shape[0])
+    down_dim = int(readouts.down.network.unitary.shape[0])
+    if aux_state.up.shape != (*expected_prefix, up_dim) or aux_state.down.shape != (*expected_prefix, down_dim):
+        raise ValueError("FN quark path aux state has incompatible shape")
+    if step_size == 0:
+        return FamilyFNQuarkPathUnitaryCollision(state=state, aux_state=aux_state)
+
+    h_tilde = sm_higgs_tilde(higgs)
+    updated = state
+    updated_up_aux = aux_state.up
+    updated_down_aux = aux_state.down
+
+    for spin in range(4):
+        target_spin = (spin + 2) % 4
+        for color in range(3):
+            for weak in range(2):
+                left = updated[..., spin, _q_index(color, weak), :]
+                up_right = updated[..., target_spin, _u_c_index(color), :]
+                down_right = updated[..., target_spin, _d_c_index(color), :]
+                left_after, up_right_after, down_right_after, up_hidden_after, down_hidden_after = (
+                    sm_apply_family_fn_quark_pair_path_unitary_door_state(
+                        left,
+                        up_right,
+                        down_right,
+                        updated_up_aux[..., spin, color, weak, :],
+                        updated_down_aux[..., spin, color, weak, :],
+                        h_tilde[..., weak],
+                        higgs[..., weak],
+                        readouts,
+                        step_size=step_size,
+                    )
+                )
+                updated = updated.at[..., spin, _q_index(color, weak), :].set(left_after.astype(state.dtype))
+                updated = updated.at[..., target_spin, _u_c_index(color), :].set(up_right_after.astype(state.dtype))
+                updated = updated.at[..., target_spin, _d_c_index(color), :].set(down_right_after.astype(state.dtype))
+                updated_up_aux = updated_up_aux.at[..., spin, color, weak, :].set(up_hidden_after)
+                updated_down_aux = updated_down_aux.at[..., spin, color, weak, :].set(down_hidden_after)
+
+    return FamilyFNQuarkPathUnitaryCollision(
+        state=updated,
+        aux_state=FamilyFNQuarkPathAuxState(up=updated_up_aux, down=updated_down_aux),
+    )
+
+
 def deterministic_sm_family_state(lattice_shape: tuple[int, int, int]) -> jnp.ndarray:
     """Return a deterministic family-extended SM Dirac state."""
 
@@ -834,7 +1044,7 @@ def _family_yukawa_cos_sin(yukawa: jnp.ndarray, step_size: float) -> tuple[jnp.n
     )
     local_norm = jnp.max(jnp.abs(yukawa), axis=(-1, -2), keepdims=True)
     identity = jnp.broadcast_to(
-        jnp.eye(SM_FAMILY_INTERNAL_DIM, dtype=yukawa.dtype),
+        jnp.eye(yukawa.shape[-1], dtype=yukawa.dtype),
         yukawa.shape,
     )
     zeros = jnp.zeros_like(yukawa)
@@ -869,6 +1079,114 @@ def sm_apply_family_yukawa_collision(
     sin_internal_action = jnp.einsum("...ij,...sj->...si", sin_internal, flat_state)
     beta_action = jnp.einsum("sr,...ri->...si", sm_dirac_beta(state.dtype), sin_internal_action)
     return (cos_action - 1j * beta_action).reshape(state.shape)
+
+
+def sm_family_quark_sector_internal_yukawa(yukawa: jnp.ndarray, higgs_scale: float | jnp.ndarray = 1.0) -> jnp.ndarray:
+    """Return the active ``Q_f <-> f_R`` family Yukawa block for one quark door."""
+
+    matrix = _validate_family_matrix(yukawa, "yukawa")
+    scale = jnp.asarray(higgs_scale, dtype=matrix.dtype)
+    zeros = jnp.zeros_like(matrix)
+    upper = jnp.concatenate((zeros, scale * matrix), axis=1)
+    lower = jnp.concatenate((jnp.swapaxes(jnp.conj(scale * matrix), -1, -2), zeros), axis=1)
+    return jnp.concatenate((upper, lower), axis=0)
+
+
+def sm_family_quark_sector_symbol(
+    k: jnp.ndarray | tuple[float, float, float],
+    yukawa: jnp.ndarray,
+    higgs_scale: float | jnp.ndarray = 1.0,
+    step_size: float | jnp.ndarray = 1.0,
+) -> jnp.ndarray:
+    """Return the exact one-sector family mass collision composed with BCC streaming."""
+
+    internal = sm_family_quark_sector_internal_yukawa(yukawa, higgs_scale).astype(jnp.complex64)
+    cos_internal, sin_internal = _family_yukawa_cos_sin(internal, step_size)
+    spin_identity = jnp.eye(4, dtype=jnp.complex64)
+    beta = sm_dirac_beta(jnp.complex64)
+    collision = (
+        jnp.einsum("sr,ij->sirj", spin_identity, cos_internal)
+        - 1j * jnp.einsum("sr,ij->sirj", beta, sin_internal)
+    ).reshape((4 * internal.shape[0], 4 * internal.shape[0]))
+    stream = jnp.kron(bcc_dirac_split_symbol(k, dtype=jnp.complex64), jnp.eye(internal.shape[0], dtype=jnp.complex64))
+    return collision @ stream
+
+
+def _matched_family_mass_angles(
+    symbol: jnp.ndarray,
+    target_angles: jnp.ndarray,
+) -> jnp.ndarray:
+    phases = jnp.sort(jnp.abs(jnp.angle(jnp.linalg.eigvals(symbol))))
+    distances = jnp.abs(phases[:, None] - target_angles[None, :])
+    return phases[jnp.argmin(distances, axis=0)]
+
+
+def sm_family_quark_sector_mass_angles(
+    k: jnp.ndarray | tuple[float, float, float],
+    yukawa: jnp.ndarray,
+    higgs_scale: float | jnp.ndarray = 1.0,
+    step_size: float | jnp.ndarray = 1.0,
+) -> jnp.ndarray:
+    """Return quasienergy gaps matched to the sector's singular mass angles."""
+
+    scale = jnp.asarray(higgs_scale, dtype=jnp.float32)
+    dt = jnp.asarray(step_size, dtype=jnp.float32)
+    target_angles = jnp.sort(dt * scale * fn_singular_masses(yukawa))
+    symbol = sm_family_quark_sector_symbol(k, yukawa, higgs_scale, step_size)
+    return _matched_family_mass_angles(symbol, target_angles)
+
+
+def sm_family_fn_mass_spectrum_probe(
+    up_masses: jnp.ndarray,
+    down_masses: jnp.ndarray,
+    ckm: jnp.ndarray | None = None,
+    *,
+    lambda_rec: float = FN_LAMBDA_WOLFENSTEIN,
+    charges: FNQuarkCharges = DEFAULT_FN_QUARK_CHARGES,
+    higgs_vev: float = 1.0,
+    step_size: float = 1.0,
+    k: tuple[float, float, float] = (0.0, 0.0, 0.0),
+) -> FamilyFNMassSpectrumProbe:
+    """Measure calibrated FN quark masses as quasienergy gaps of the exact symbol."""
+
+    target_yukawas = fn_quark_yukawas_from_masses_ckm(up_masses, down_masses, ckm)
+    readouts = sm_family_quark_path_readouts_from_masses_ckm(
+        up_masses,
+        down_masses,
+        ckm,
+        lambda_rec=lambda_rec,
+        charges=charges,
+    )
+    recovered_yukawas = sm_family_quark_yukawas_from_path_readouts(readouts)
+    higgs_scale = jnp.sqrt(jnp.asarray(higgs_vev, dtype=jnp.float32))
+    dt = jnp.asarray(step_size, dtype=jnp.float32)
+    target_up = jnp.sort(dt * higgs_scale * fn_singular_masses(recovered_yukawas.up))
+    target_down = jnp.sort(dt * higgs_scale * fn_singular_masses(recovered_yukawas.down))
+    up_symbol = sm_family_quark_sector_symbol(k, recovered_yukawas.up, higgs_scale, step_size)
+    down_symbol = sm_family_quark_sector_symbol(k, recovered_yukawas.down, higgs_scale, step_size)
+    measured_up = _matched_family_mass_angles(up_symbol, target_up)
+    measured_down = _matched_family_mass_angles(down_symbol, target_down)
+    target_ckm = fn_ckm_from_yukawas(target_yukawas.up, target_yukawas.down)
+    recovered_ckm = fn_ckm_from_yukawas(recovered_yukawas.up, recovered_yukawas.down)
+    return FamilyFNMassSpectrumProbe(
+        target_yukawas=target_yukawas,
+        recovered_yukawas=recovered_yukawas,
+        target_up_mass_angles=target_up,
+        target_down_mass_angles=target_down,
+        measured_up_mass_angles=measured_up,
+        measured_down_mass_angles=measured_down,
+        up_gap_residual=jnp.max(jnp.abs(measured_up - target_up)),
+        down_gap_residual=jnp.max(jnp.abs(measured_down - target_down)),
+        ckm_abs_residual=jnp.max(jnp.abs(jnp.abs(recovered_ckm) - jnp.abs(target_ckm))),
+        up_symbol_unitarity_residual=jnp.max(
+            jnp.abs(jnp.swapaxes(jnp.conj(up_symbol), -1, -2) @ up_symbol - jnp.eye(up_symbol.shape[0], dtype=up_symbol.dtype)),
+        ),
+        down_symbol_unitarity_residual=jnp.max(
+            jnp.abs(
+                jnp.swapaxes(jnp.conj(down_symbol), -1, -2) @ down_symbol - jnp.eye(down_symbol.shape[0], dtype=down_symbol.dtype),
+            ),
+        ),
+    )
 
 
 def sm_family_chirality_norms(state: jnp.ndarray) -> tuple[jnp.ndarray, jnp.ndarray]:
