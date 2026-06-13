@@ -31,7 +31,9 @@ from clifford_3plus2_d5.qca_smv0.sm_family_higgs import (
     sm_apply_family_yukawa_collision,
     sm_family_fn_quark_path_higgs_force,
     sm_family_quark_path_readouts_from_masses_ckm,
+    sm_family_quark_yukawas_from_path_readouts,
     sm_family_recirculated_quark_path_readouts,
+    sm_zero_family_fn_quark_path_aux_state,
     sm_zero_family_fn_quark_path_state_aux,
 )
 from clifford_3plus2_d5.qca_smv0.sm_family_sourced_tick import (
@@ -471,6 +473,70 @@ def sm_family_fn_production_sm_tick(
     )
 
 
+def sm_family_fn_unitary_production_sm_tick(
+    state: jnp.ndarray,
+    higgs: jnp.ndarray,
+    higgs_momenta: jnp.ndarray,
+    sm_links: jnp.ndarray,
+    sm_momenta: jnp.ndarray,
+    higgs_links: jnp.ndarray,
+    aux_state: FamilyFNQuarkPathAuxState | None = None,
+    readouts: FamilyFNQuarkPathReadouts | None = None,
+    *,
+    step_size: float,
+    beta: float = 1.0,
+    parameters: HiggsDynamicsParameters = DEFAULT_HIGGS_DYNAMICS_PARAMETERS,
+    lepton_yukawas: FamilyLeptonYukawas | None = None,
+    wilson_epsilon: float = 1e-3,
+    higgs_force_epsilon: float = 1e-3,
+    fermion_current_epsilon: float = 3e-2,
+) -> FamilyFNProductionSMTickOutput:
+    """Advance one production tick with FN readouts folded into a unitary collision.
+
+    This mode treats the explicit FN path network as the origin of the quark
+    Yukawa matrices, then applies the existing exact local Yukawa exponential.
+    The path auxiliary state is preserved only for output-shape compatibility.
+    """
+
+    lattice_shape = _validate_family_state(state)
+    _validate_higgs_field(higgs, lattice_shape)
+    _validate_higgs_momenta(higgs_momenta, lattice_shape)
+    _validate_sm_links(sm_links, lattice_shape)
+    _validate_sm_momenta(sm_momenta, sm_links)
+    _validate_higgs_links(higgs_links, lattice_shape)
+    if readouts is None:
+        readouts = sm_family_recirculated_quark_path_readouts()
+    if aux_state is None:
+        aux_state = sm_zero_family_fn_quark_path_aux_state((*lattice_shape, 4, 3, 2), readouts=readouts)
+
+    quark_yukawas = sm_family_quark_yukawas_from_path_readouts(readouts)
+    updated = sm_family_production_sm_tick(
+        state,
+        higgs,
+        higgs_momenta,
+        sm_links,
+        sm_momenta,
+        higgs_links,
+        step_size=step_size,
+        beta=beta,
+        parameters=parameters,
+        quark_yukawas=quark_yukawas,
+        lepton_yukawas=lepton_yukawas,
+        wilson_epsilon=wilson_epsilon,
+        higgs_force_epsilon=higgs_force_epsilon,
+        fermion_current_epsilon=fermion_current_epsilon,
+    )
+    return FamilyFNProductionSMTickOutput(
+        state=updated[0],
+        higgs=updated[1],
+        higgs_momenta=updated[2],
+        sm_links=updated[3],
+        sm_momenta=updated[4],
+        higgs_links=updated[5],
+        fn_aux_state=aux_state,
+    )
+
+
 def sm_family_fn_production_initial_state(
     lattice_shape: tuple[int, int, int] = (1, 1, 1),
 ) -> FamilyFNProductionSMTickOutput:
@@ -558,6 +624,77 @@ def sm_family_fn_production_step_from_masses_ckm(
     )
 
 
+def sm_family_fn_unitary_production_step(
+    state: FamilyFNProductionSMTickOutput,
+    *,
+    step_size: float,
+    beta: float = 1.0,
+    parameters: HiggsDynamicsParameters = DEFAULT_HIGGS_DYNAMICS_PARAMETERS,
+    readouts: FamilyFNQuarkPathReadouts | None = None,
+    lepton_yukawas: FamilyLeptonYukawas | None = None,
+    wilson_epsilon: float = 1e-3,
+    higgs_force_epsilon: float = 1e-3,
+    fermion_current_epsilon: float = 3e-2,
+) -> FamilyFNProductionSMTickOutput:
+    """Advance one FN production state using exact local Yukawa collisions."""
+
+    return sm_family_fn_unitary_production_sm_tick(
+        state.state,
+        state.higgs,
+        state.higgs_momenta,
+        state.sm_links,
+        state.sm_momenta,
+        state.higgs_links,
+        state.fn_aux_state,
+        readouts=readouts,
+        step_size=step_size,
+        beta=beta,
+        parameters=parameters,
+        lepton_yukawas=lepton_yukawas,
+        wilson_epsilon=wilson_epsilon,
+        higgs_force_epsilon=higgs_force_epsilon,
+        fermion_current_epsilon=fermion_current_epsilon,
+    )
+
+
+def sm_family_fn_unitary_production_step_from_masses_ckm(
+    state: FamilyFNProductionSMTickOutput,
+    up_masses: jnp.ndarray,
+    down_masses: jnp.ndarray,
+    ckm: jnp.ndarray | None = None,
+    *,
+    lambda_rec: float = FN_LAMBDA_WOLFENSTEIN,
+    charges: FNQuarkCharges = DEFAULT_FN_QUARK_CHARGES,
+    step_size: float,
+    beta: float = 1.0,
+    parameters: HiggsDynamicsParameters = DEFAULT_HIGGS_DYNAMICS_PARAMETERS,
+    lepton_yukawas: FamilyLeptonYukawas | None = None,
+    wilson_epsilon: float = 1e-3,
+    higgs_force_epsilon: float = 1e-3,
+    fermion_current_epsilon: float = 3e-2,
+) -> FamilyFNProductionSMTickOutput:
+    """Advance one exact-unitary FN step calibrated from masses and CKM."""
+
+    readouts = sm_family_quark_path_readouts_from_masses_ckm(
+        up_masses,
+        down_masses,
+        ckm,
+        lambda_rec=lambda_rec,
+        charges=charges,
+    )
+    return sm_family_fn_unitary_production_step(
+        state,
+        step_size=step_size,
+        beta=beta,
+        parameters=parameters,
+        readouts=readouts,
+        lepton_yukawas=lepton_yukawas,
+        wilson_epsilon=wilson_epsilon,
+        higgs_force_epsilon=higgs_force_epsilon,
+        fermion_current_epsilon=fermion_current_epsilon,
+    )
+
+
 def sm_family_fn_production_rollout(
     initial_state: FamilyFNProductionSMTickOutput,
     *,
@@ -578,6 +715,39 @@ def sm_family_fn_production_rollout(
     state = initial_state
     for _ in range(steps):
         state = sm_family_fn_production_step(
+            state,
+            step_size=step_size,
+            beta=beta,
+            parameters=parameters,
+            readouts=readouts,
+            lepton_yukawas=lepton_yukawas,
+            wilson_epsilon=wilson_epsilon,
+            higgs_force_epsilon=higgs_force_epsilon,
+            fermion_current_epsilon=fermion_current_epsilon,
+        )
+    return state
+
+
+def sm_family_fn_unitary_production_rollout(
+    initial_state: FamilyFNProductionSMTickOutput,
+    *,
+    steps: int,
+    step_size: float,
+    beta: float = 1.0,
+    parameters: HiggsDynamicsParameters = DEFAULT_HIGGS_DYNAMICS_PARAMETERS,
+    readouts: FamilyFNQuarkPathReadouts | None = None,
+    lepton_yukawas: FamilyLeptonYukawas | None = None,
+    wilson_epsilon: float = 1e-3,
+    higgs_force_epsilon: float = 1e-3,
+    fermion_current_epsilon: float = 3e-2,
+) -> FamilyFNProductionSMTickOutput:
+    """Return the final state after exact-unitary FN production ticks."""
+
+    if steps < 0:
+        raise ValueError(f"steps must be nonnegative, got {steps}")
+    state = initial_state
+    for _ in range(steps):
+        state = sm_family_fn_unitary_production_step(
             state,
             step_size=step_size,
             beta=beta,
@@ -618,6 +788,46 @@ def sm_family_fn_production_rollout_from_masses_ckm(
         charges=charges,
     )
     return sm_family_fn_production_rollout(
+        initial_state,
+        steps=steps,
+        step_size=step_size,
+        beta=beta,
+        parameters=parameters,
+        readouts=readouts,
+        lepton_yukawas=lepton_yukawas,
+        wilson_epsilon=wilson_epsilon,
+        higgs_force_epsilon=higgs_force_epsilon,
+        fermion_current_epsilon=fermion_current_epsilon,
+    )
+
+
+def sm_family_fn_unitary_production_rollout_from_masses_ckm(
+    initial_state: FamilyFNProductionSMTickOutput,
+    up_masses: jnp.ndarray,
+    down_masses: jnp.ndarray,
+    ckm: jnp.ndarray | None = None,
+    *,
+    lambda_rec: float = FN_LAMBDA_WOLFENSTEIN,
+    charges: FNQuarkCharges = DEFAULT_FN_QUARK_CHARGES,
+    steps: int,
+    step_size: float,
+    beta: float = 1.0,
+    parameters: HiggsDynamicsParameters = DEFAULT_HIGGS_DYNAMICS_PARAMETERS,
+    lepton_yukawas: FamilyLeptonYukawas | None = None,
+    wilson_epsilon: float = 1e-3,
+    higgs_force_epsilon: float = 1e-3,
+    fermion_current_epsilon: float = 3e-2,
+) -> FamilyFNProductionSMTickOutput:
+    """Run exact-unitary FN production calibrated from masses and CKM."""
+
+    readouts = sm_family_quark_path_readouts_from_masses_ckm(
+        up_masses,
+        down_masses,
+        ckm,
+        lambda_rec=lambda_rec,
+        charges=charges,
+    )
+    return sm_family_fn_unitary_production_rollout(
         initial_state,
         steps=steps,
         step_size=step_size,

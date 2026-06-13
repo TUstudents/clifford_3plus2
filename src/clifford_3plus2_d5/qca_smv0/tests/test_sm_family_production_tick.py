@@ -12,6 +12,10 @@ from clifford_3plus2_d5.qca_smv0.sm_family_production_tick import (
     sm_family_fn_production_sm_tick,
     sm_family_fn_production_step,
     sm_family_fn_production_step_from_masses_ckm,
+    sm_family_fn_unitary_production_rollout,
+    sm_family_fn_unitary_production_rollout_from_masses_ckm,
+    sm_family_fn_unitary_production_step,
+    sm_family_fn_unitary_production_step_from_masses_ckm,
     sm_apply_family_production_higgs_momentum_kick,
     sm_family_production_higgs_force,
     sm_family_production_sm_tick,
@@ -23,6 +27,7 @@ from clifford_3plus2_d5.qca_smv0.sm_family_higgs import (
     sm_family_calibrated_quark_path_readouts,
     sm_family_fn_quark_path_higgs_force,
     sm_family_quark_path_readouts_from_masses_ckm,
+    sm_family_quark_yukawas_from_path_readouts,
     sm_family_recirculated_quark_yukawas,
     sm_zero_family_fn_quark_path_state_aux,
 )
@@ -300,6 +305,36 @@ def test_fn_production_rollout_accepts_calibrated_path_readouts() -> None:
     assert jnp.linalg.norm(rollout.higgs_momenta - default_rollout.higgs_momenta) > 1e-7
 
 
+def test_fn_unitary_production_step_matches_manual_readout_yukawas() -> None:
+    initial = sm_family_fn_production_initial_state((1, 1, 1))
+    default_yukawas = sm_family_recirculated_quark_yukawas()
+    target_yukawas = FNQuarkYukawas(up=1.20 * default_yukawas.up, down=0.75 * default_yukawas.down)
+    readouts = sm_family_calibrated_quark_path_readouts(target_yukawas)
+    quark_yukawas = sm_family_quark_yukawas_from_path_readouts(readouts)
+
+    manual = sm_family_production_sm_tick(
+        initial.state,
+        initial.higgs,
+        initial.higgs_momenta,
+        initial.sm_links,
+        initial.sm_momenta,
+        initial.higgs_links,
+        step_size=0.003,
+        quark_yukawas=quark_yukawas,
+    )
+    actual = sm_family_fn_unitary_production_step(initial, step_size=0.003, readouts=readouts)
+    rollout = sm_family_fn_unitary_production_rollout(initial, steps=1, step_size=0.003, readouts=readouts)
+    source_kick = sm_family_fn_production_step(initial, step_size=0.003, readouts=readouts)
+
+    for actual_part, expected_part in zip(actual[:6], manual, strict=True):
+        assert jnp.max(jnp.abs(actual_part - expected_part)) < 1e-8
+    assert jnp.max(jnp.abs(rollout.state - actual.state)) < 1e-8
+    assert jnp.max(jnp.abs(actual.fn_aux_state.up - initial.fn_aux_state.up)) < 1e-8
+    assert jnp.max(jnp.abs(actual.fn_aux_state.down - initial.fn_aux_state.down)) < 1e-8
+    assert jnp.abs(state_norm_squared(actual.state) - state_norm_squared(initial.state)) < 5e-6
+    assert jnp.linalg.norm(actual.state - source_kick.state) > 1e-7
+
+
 def test_fn_production_from_masses_ckm_matches_manual_readouts() -> None:
     initial = sm_family_fn_production_initial_state((1, 1, 1))
     theta = jnp.asarray(0.22, dtype=jnp.float32)
@@ -332,6 +367,48 @@ def test_fn_production_from_masses_ckm_matches_manual_readouts() -> None:
         step_size=0.003,
     )
     default_rollout = sm_family_fn_production_rollout(initial, steps=1, step_size=0.003)
+
+    assert jnp.max(jnp.abs(calibrated_step.state - manual_step.state)) < 1e-8
+    assert jnp.max(jnp.abs(calibrated_step.fn_aux_state.up - manual_step.fn_aux_state.up)) < 1e-8
+    assert jnp.max(jnp.abs(calibrated_step.fn_aux_state.down - manual_step.fn_aux_state.down)) < 1e-8
+    assert jnp.max(jnp.abs(calibrated_rollout.state - manual_rollout.state)) < 1e-8
+    assert jnp.max(jnp.abs(calibrated_rollout.fn_aux_state.up - manual_rollout.fn_aux_state.up)) < 1e-8
+    assert jnp.max(jnp.abs(calibrated_rollout.fn_aux_state.down - manual_rollout.fn_aux_state.down)) < 1e-8
+    assert jnp.linalg.norm(calibrated_rollout.state - default_rollout.state) > 1e-7
+
+
+def test_fn_unitary_production_from_masses_ckm_matches_manual_readouts() -> None:
+    initial = sm_family_fn_production_initial_state((1, 1, 1))
+    theta = jnp.asarray(0.22, dtype=jnp.float32)
+    ckm = jnp.asarray(
+        [
+            [jnp.cos(theta), jnp.sin(theta), 0.0],
+            [-jnp.sin(theta), jnp.cos(theta), 0.0],
+            [0.0, 0.0, 1.0],
+        ],
+        dtype=jnp.complex64,
+    )
+    up_masses = jnp.asarray([1.0, 0.08, 0.002], dtype=jnp.float32)
+    down_masses = jnp.asarray([0.7, 0.04, 0.0015], dtype=jnp.float32)
+    readouts = sm_family_quark_path_readouts_from_masses_ckm(up_masses, down_masses, ckm)
+    manual_step = sm_family_fn_unitary_production_step(initial, step_size=0.003, readouts=readouts)
+    calibrated_step = sm_family_fn_unitary_production_step_from_masses_ckm(
+        initial,
+        up_masses,
+        down_masses,
+        ckm,
+        step_size=0.003,
+    )
+    manual_rollout = sm_family_fn_unitary_production_rollout(initial, steps=1, step_size=0.003, readouts=readouts)
+    calibrated_rollout = sm_family_fn_unitary_production_rollout_from_masses_ckm(
+        initial,
+        up_masses,
+        down_masses,
+        ckm,
+        steps=1,
+        step_size=0.003,
+    )
+    default_rollout = sm_family_fn_unitary_production_rollout(initial, steps=1, step_size=0.003)
 
     assert jnp.max(jnp.abs(calibrated_step.state - manual_step.state)) < 1e-8
     assert jnp.max(jnp.abs(calibrated_step.fn_aux_state.up - manual_step.fn_aux_state.up)) < 1e-8

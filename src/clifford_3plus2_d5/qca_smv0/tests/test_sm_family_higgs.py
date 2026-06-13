@@ -27,6 +27,7 @@ from clifford_3plus2_d5.qca_smv0.sm_family_higgs import (
     sm_family_fn_quark_path_energy_local_density,
     sm_family_fn_quark_path_higgs_force,
     sm_family_quark_path_readouts_from_masses_ckm,
+    sm_family_quark_yukawas_from_path_readouts,
     sm_family_recirculated_quark_path_readouts,
     sm_family_recirculated_quark_dilations,
     sm_family_recirculated_quark_yukawas,
@@ -187,9 +188,12 @@ def test_family_quark_path_readouts_from_masses_ckm_match_manual_calibration() -
     target = fn_quark_yukawas_from_masses_ckm(up_masses, down_masses, ckm)
     direct = sm_family_quark_path_readouts_from_masses_ckm(up_masses, down_masses, ckm)
     manual = sm_family_calibrated_quark_path_readouts(target)
+    recovered = sm_family_quark_yukawas_from_path_readouts(direct)
 
     assert jnp.max(jnp.abs(direct.up.transfer - target.up)) < 5e-7
     assert jnp.max(jnp.abs(direct.down.transfer - target.down)) < 5e-7
+    assert jnp.max(jnp.abs(recovered.up - target.up)) < 5e-7
+    assert jnp.max(jnp.abs(recovered.down - target.down)) < 5e-7
     assert jnp.max(jnp.abs(direct.up.transfer - manual.up.transfer)) < 1e-8
     assert jnp.max(jnp.abs(direct.down.transfer - manual.down.transfer)) < 1e-8
 

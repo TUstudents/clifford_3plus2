@@ -322,6 +322,19 @@ def sm_family_quark_path_readouts_from_masses_ckm(
     return sm_family_calibrated_quark_path_readouts(target, lambda_rec=lambda_rec, charges=charges)
 
 
+def sm_family_quark_yukawas_from_path_readouts(
+    readouts: FamilyFNQuarkPathReadouts | None = None,
+) -> FNQuarkYukawas:
+    """Collapse explicit FN path readouts to matrices for exact unitary collisions."""
+
+    if readouts is None:
+        readouts = sm_family_recirculated_quark_path_readouts()
+    return FNQuarkYukawas(
+        up=_validate_family_matrix(readouts.up.transfer, "readouts.up.transfer"),
+        down=_validate_family_matrix(readouts.down.transfer, "readouts.down.transfer"),
+    )
+
+
 def sm_apply_family_recirculated_quark_door(
     left_family_state: jnp.ndarray,
     higgs_component: jnp.ndarray,
