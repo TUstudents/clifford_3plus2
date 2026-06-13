@@ -5,6 +5,7 @@ import jax.numpy as jnp
 
 from clifford_3plus2_d5.qca_smv0.sm_fermion_higgs import (
     deterministic_yukawa_source_state,
+    sm_family_fn_yukawa_collision_with_higgs_kick,
     sm_apply_yukawa_higgs_momentum_kick,
     sm_family_yukawa_collision_with_higgs_kick,
     sm_fermion_higgs_backreaction_diagnostics,
@@ -13,7 +14,10 @@ from clifford_3plus2_d5.qca_smv0.sm_fermion_higgs import (
     sm_yukawa_energy_density,
     sm_yukawa_higgs_force,
 )
-from clifford_3plus2_d5.qca_smv0.sm_family_higgs import sm_family_recirculated_quark_yukawas
+from clifford_3plus2_d5.qca_smv0.sm_family_higgs import (
+    sm_family_recirculated_quark_yukawas,
+    sm_zero_family_fn_quark_state_aux,
+)
 from clifford_3plus2_d5.qca_smv0.sm_higgs import sm_constant_higgs
 from clifford_3plus2_d5.qca_smv0.sm_higgs_dynamics import (
     deterministic_higgs_momenta,
@@ -98,6 +102,61 @@ def test_family_yukawa_collision_with_higgs_kick_preserves_fermion_norm() -> Non
     assert updated_momenta.shape == momenta.shape
     assert jnp.abs(jnp.sum(jnp.abs(updated_state) ** 2) - jnp.sum(jnp.abs(state) ** 2)) < 1e-6
     assert jnp.linalg.norm(updated_momenta - momenta) > 1e-6
+
+
+def test_family_fn_yukawa_collision_with_higgs_kick_consumes_recirculation_state() -> None:
+    lattice_shape = (1, 1, 1)
+    state = deterministic_yukawa_source_state(lattice_shape)
+    higgs = sm_constant_higgs(lattice_shape)
+    momenta = deterministic_higgs_momenta(lattice_shape)
+    aux = sm_zero_family_fn_quark_state_aux(lattice_shape)
+
+    updated = sm_family_fn_yukawa_collision_with_higgs_kick(
+        state,
+        higgs,
+        momenta,
+        aux,
+        step_size=0.03,
+    )
+
+    assert updated.state.shape == state.shape
+    assert updated.higgs_momenta.shape == momenta.shape
+    assert updated.fn_quark.aux_state.up.shape == aux.up.shape
+    assert updated.fn_quark.aux_state.down.shape == aux.down.shape
+    assert jnp.linalg.norm(updated.state - state) > 1e-6
+    assert jnp.linalg.norm(updated.higgs_momenta - momenta) > 1e-6
+    assert jnp.linalg.norm(updated.fn_quark.source) > 1e-6
+    assert jnp.linalg.norm(updated.fn_quark.aux_state.up) > 1e-6
+    assert jnp.linalg.norm(updated.fn_quark.aux_state.down) > 1e-6
+
+
+def test_family_fn_yukawa_collision_responds_to_hidden_memory() -> None:
+    lattice_shape = (1, 1, 1)
+    state = deterministic_yukawa_source_state(lattice_shape)
+    higgs = sm_constant_higgs(lattice_shape)
+    momenta = deterministic_higgs_momenta(lattice_shape)
+    zero_aux = sm_zero_family_fn_quark_state_aux(lattice_shape)
+    memory = jnp.full((*lattice_shape, 4, 3, 2, 3), 0.02 + 0.01j, dtype=jnp.complex64)
+    memory_aux = type(zero_aux)(up=memory, down=-0.75j * memory)
+
+    zero_updated = sm_family_fn_yukawa_collision_with_higgs_kick(
+        state,
+        higgs,
+        momenta,
+        zero_aux,
+        step_size=0.03,
+    )
+    memory_updated = sm_family_fn_yukawa_collision_with_higgs_kick(
+        state,
+        higgs,
+        momenta,
+        memory_aux,
+        step_size=0.03,
+    )
+
+    assert jnp.linalg.norm(memory_updated.state - zero_updated.state) > 1e-6
+    assert jnp.linalg.norm(memory_updated.fn_quark.aux_state.up - zero_updated.fn_quark.aux_state.up) > 1e-6
+    assert jnp.linalg.norm(memory_updated.fn_quark.aux_state.down - zero_updated.fn_quark.aux_state.down) > 1e-6
 
 
 def test_fermion_higgs_backreaction_diagnostics_and_jit_pass_stage_thresholds() -> None:

@@ -22,6 +22,9 @@ import jax.numpy as jnp
 import jax.scipy.linalg as jsp_linalg
 
 from clifford_3plus2_d5.qca_smv0.sm_family_higgs import (
+    FamilyFNQuarkAuxState,
+    FamilyFNQuarkDilations,
+    FamilyFNQuarkSourceKick,
     FamilyLeptonYukawas,
     SM_FAMILY_DIM,
     _d_c_index,
@@ -30,8 +33,10 @@ from clifford_3plus2_d5.qca_smv0.sm_family_higgs import (
     _nu_c_index,
     _q_index,
     _u_c_index,
+    sm_apply_family_fn_quark_source_kick,
     sm_apply_family_yukawa_collision,
     sm_default_family_lepton_yukawas,
+    sm_family_recirculated_quark_dilations,
     sm_family_recirculated_quark_yukawas,
     sm_family_yukawa_internal_matrix,
 )
@@ -65,6 +70,14 @@ class FermionHiggsBackreactionDiagnostics(NamedTuple):
     source_after_collision_norm: jnp.ndarray
     jit_delta_source: jnp.ndarray
     jit_delta_kick: jnp.ndarray
+
+
+class FamilyFNYukawaCollisionOutput(NamedTuple):
+    """Combined Higgs kick and persistent FN quark source collision output."""
+
+    state: jnp.ndarray
+    higgs_momenta: jnp.ndarray
+    fn_quark: FamilyFNQuarkSourceKick
 
 
 def _validate_family_state(state: jnp.ndarray) -> tuple[int, int, int]:
@@ -294,6 +307,67 @@ def sm_family_yukawa_collision_with_higgs_kick(
         lepton_yukawas=lepton_yukawas,
     )
     return updated_state, updated_momenta
+
+
+def sm_family_fn_yukawa_collision_with_higgs_kick(
+    state: jnp.ndarray,
+    higgs: jnp.ndarray,
+    higgs_momenta: jnp.ndarray,
+    aux_state: FamilyFNQuarkAuxState | None = None,
+    dilations: FamilyFNQuarkDilations | None = None,
+    *,
+    step_size: float,
+    lepton_yukawas: FamilyLeptonYukawas | None = None,
+) -> FamilyFNYukawaCollisionOutput:
+    """Apply a Higgs kick plus persistent FN quark recirculation source.
+
+    Quarks are advanced by the explicit hidden FN source kick.  Leptons still use
+    the closed local Yukawa collision.  This is the constructive FN simulator
+    path; the older matrix-only quark collision remains available separately.
+    """
+
+    lattice_shape = _validate_family_state(state)
+    _validate_higgs_field(higgs, lattice_shape)
+    _validate_higgs_momenta(higgs_momenta, lattice_shape)
+    if dilations is None:
+        dilations = sm_family_recirculated_quark_dilations()
+    if lepton_yukawas is None:
+        lepton_yukawas = sm_default_family_lepton_yukawas()
+
+    updated_momenta = sm_apply_yukawa_higgs_momentum_kick(
+        higgs_momenta,
+        state,
+        higgs,
+        step_size=step_size,
+        lepton_yukawas=lepton_yukawas,
+    )
+    quark_step = sm_apply_family_fn_quark_source_kick(
+        state,
+        higgs,
+        aux_state=aux_state,
+        dilations=dilations,
+        step_size=step_size,
+    )
+    zero_quarks = FNQuarkYukawas(
+        up=jnp.zeros((SM_FAMILY_DIM, SM_FAMILY_DIM), dtype=state.dtype),
+        down=jnp.zeros((SM_FAMILY_DIM, SM_FAMILY_DIM), dtype=state.dtype),
+    )
+    updated_state = sm_apply_family_yukawa_collision(
+        quark_step.state,
+        higgs,
+        step_size=step_size,
+        quark_yukawas=zero_quarks,
+        lepton_yukawas=lepton_yukawas,
+    )
+    return FamilyFNYukawaCollisionOutput(
+        state=updated_state,
+        higgs_momenta=updated_momenta,
+        fn_quark=FamilyFNQuarkSourceKick(
+            state=quark_step.state,
+            source=quark_step.source,
+            aux_state=quark_step.aux_state,
+        ),
+    )
 
 
 def sm_fermion_higgs_backreaction_diagnostics() -> FermionHiggsBackreactionDiagnostics:

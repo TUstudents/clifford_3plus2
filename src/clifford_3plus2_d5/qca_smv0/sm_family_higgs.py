@@ -105,6 +105,14 @@ class FamilyFNQuarkStateSource(NamedTuple):
     aux_state: FamilyFNQuarkAuxState
 
 
+class FamilyFNQuarkSourceKick(NamedTuple):
+    """One explicit FN source kick on the visible quark state plus aux update."""
+
+    state: jnp.ndarray
+    source: jnp.ndarray
+    aux_state: FamilyFNQuarkAuxState
+
+
 def _q_index(color: int, weak: int) -> int:
     return 2 * color + weak
 
@@ -348,6 +356,37 @@ def sm_family_fn_quark_state_source(
         state_source=source,
         aux_state=FamilyFNQuarkAuxState(up=updated_up_aux, down=updated_down_aux),
     )
+
+
+def sm_apply_family_fn_quark_source_kick(
+    state: jnp.ndarray,
+    higgs: jnp.ndarray,
+    aux_state: FamilyFNQuarkAuxState | None = None,
+    dilations: FamilyFNQuarkDilations | None = None,
+    *,
+    step_size: float,
+) -> FamilyFNQuarkSourceKick:
+    """Advance the persistent FN quark doors and kick visible quark amplitudes.
+
+    This is the simulator-level recirculation step: the quark source is produced
+    by the hidden FN dilation, then inserted into the Dirac equation as
+    ``-i dt beta source``.  It is deliberately a source kick, not a claim that
+    the retarded FN bath has already been folded into one closed visible
+    exponential.
+    """
+
+    lattice_shape = _validate_family_state(state)
+    _validate_higgs_field(higgs, lattice_shape)
+    if aux_state is None:
+        aux_state = sm_zero_family_fn_quark_state_aux(lattice_shape)
+    if step_size == 0:
+        return FamilyFNQuarkSourceKick(state=state, source=jnp.zeros_like(state), aux_state=aux_state)
+
+    source = sm_family_fn_quark_state_source(state, higgs, aux_state=aux_state, dilations=dilations)
+    beta_source = jnp.einsum("sr,...rif->...sif", sm_dirac_beta(state.dtype), source.state_source)
+    dt = jnp.asarray(step_size, dtype=jnp.real(jnp.asarray(0, dtype=state.dtype)).dtype)
+    updated = state - 1j * dt * beta_source
+    return FamilyFNQuarkSourceKick(state=updated, source=source.state_source, aux_state=source.aux_state)
 
 
 def deterministic_sm_family_state(lattice_shape: tuple[int, int, int]) -> jnp.ndarray:
