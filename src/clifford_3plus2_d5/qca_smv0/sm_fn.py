@@ -67,12 +67,32 @@ class FNVisibleRecirculationReadout(NamedTuple):
     hidden_entry_defect: jnp.ndarray
 
 
+class FNVisibleRecirculationPairReadout(NamedTuple):
+    """Coupled up/down hidden-path readout sharing one visible source."""
+
+    up: FNVisibleRecirculationReadout
+    down: FNVisibleRecirculationReadout
+    entry_scale: jnp.ndarray
+    visible_entry_defect: jnp.ndarray
+    hidden_entry_defect: jnp.ndarray
+
+
 class FNPathDoorOutput(NamedTuple):
     """One persistent hidden-path readout update."""
 
     raw_visible: jnp.ndarray
     visible: jnp.ndarray
     hidden: jnp.ndarray
+
+
+class FNPairPathDoorOutput(NamedTuple):
+    """One shared-source update into two hidden FN path networks."""
+
+    up_raw_visible: jnp.ndarray
+    down_raw_visible: jnp.ndarray
+    visible: jnp.ndarray
+    up_hidden: jnp.ndarray
+    down_hidden: jnp.ndarray
 
 
 class FNUnitaryDilation(NamedTuple):
@@ -312,6 +332,33 @@ def fn_visible_recirculation_transfer(
     ).transfer
 
 
+def fn_visible_recirculation_pair_readout(
+    up: FNVisibleRecirculationReadout,
+    down: FNVisibleRecirculationReadout,
+) -> FNVisibleRecirculationPairReadout:
+    """Return one contraction-dilation entry shared by two FN path readouts."""
+
+    combined_entry = jnp.concatenate((up.entry, down.entry), axis=0)
+    singular_values = jnp.linalg.svd(combined_entry, compute_uv=False)
+    entry_scale = jnp.maximum(jnp.max(singular_values), jnp.asarray(1.0, dtype=singular_values.dtype))
+    normalized_entry = combined_entry / entry_scale.astype(jnp.complex64)
+    visible_identity = jnp.eye(SM_FAMILY_DIM, dtype=jnp.complex64)
+    hidden_identity = jnp.eye(combined_entry.shape[0], dtype=jnp.complex64)
+    visible_entry_defect = _positive_sqrt(
+        visible_identity - jnp.swapaxes(jnp.conj(normalized_entry), -1, -2) @ normalized_entry,
+    )
+    hidden_entry_defect = _positive_sqrt(
+        hidden_identity - normalized_entry @ jnp.swapaxes(jnp.conj(normalized_entry), -1, -2),
+    )
+    return FNVisibleRecirculationPairReadout(
+        up=up,
+        down=down,
+        entry_scale=entry_scale,
+        visible_entry_defect=visible_entry_defect,
+        hidden_entry_defect=hidden_entry_defect,
+    )
+
+
 def fn_zero_path_hidden_state(
     readout: FNVisibleRecirculationReadout,
     batch_shape: tuple[int, ...] = (),
@@ -359,6 +406,55 @@ def fn_apply_visible_recirculation_path_state(
     evolved = jnp.einsum("ij,...j->...i", readout.network.unitary.astype(jnp.complex64), injected)
     raw_visible = scale * jnp.einsum("ij,...j->...i", readout.exit, evolved)
     return FNPathDoorOutput(raw_visible=raw_visible, visible=visible, hidden=evolved)
+
+
+def fn_apply_visible_recirculation_pair_path_state(
+    readout: FNVisibleRecirculationPairReadout,
+    left_state: jnp.ndarray,
+    up_hidden_state: jnp.ndarray,
+    down_hidden_state: jnp.ndarray,
+) -> FNPairPathDoorOutput:
+    """Inject one visible source into coupled up/down FN path networks."""
+
+    left = jnp.asarray(left_state, dtype=jnp.complex64)
+    up_hidden = jnp.asarray(up_hidden_state, dtype=jnp.complex64)
+    down_hidden = jnp.asarray(down_hidden_state, dtype=jnp.complex64)
+    if left.shape[-1] != SM_FAMILY_DIM:
+        raise ValueError("left_state must end with family dimension 3")
+    up_dim = int(readout.up.network.unitary.shape[0])
+    down_dim = int(readout.down.network.unitary.shape[0])
+    if up_hidden.shape[-1] != up_dim:
+        raise ValueError(f"up_hidden_state must end with hidden dimension {up_dim}")
+    if down_hidden.shape[-1] != down_dim:
+        raise ValueError(f"down_hidden_state must end with hidden dimension {down_dim}")
+
+    hidden = jnp.concatenate((up_hidden, down_hidden), axis=-1)
+    combined_entry = jnp.concatenate((readout.up.entry, readout.down.entry), axis=0)
+    scale = readout.entry_scale.astype(jnp.complex64)
+    entry = combined_entry / scale
+    visible = jnp.einsum("ij,...j->...i", readout.visible_entry_defect, left) - jnp.einsum(
+        "hi,...h->...i",
+        jnp.conj(entry),
+        hidden,
+    )
+    injected = jnp.einsum("hi,...i->...h", entry, left) + jnp.einsum(
+        "hg,...g->...h",
+        readout.hidden_entry_defect,
+        hidden,
+    )
+    injected_up = injected[..., :up_dim]
+    injected_down = injected[..., up_dim:]
+    evolved_up = jnp.einsum("ij,...j->...i", readout.up.network.unitary.astype(jnp.complex64), injected_up)
+    evolved_down = jnp.einsum("ij,...j->...i", readout.down.network.unitary.astype(jnp.complex64), injected_down)
+    up_raw = scale * jnp.einsum("ij,...j->...i", readout.up.exit, evolved_up)
+    down_raw = scale * jnp.einsum("ij,...j->...i", readout.down.exit, evolved_down)
+    return FNPairPathDoorOutput(
+        up_raw_visible=up_raw,
+        down_raw_visible=down_raw,
+        visible=visible,
+        up_hidden=evolved_up,
+        down_hidden=evolved_down,
+    )
 
 
 def fn_unitary_dilation(transfer: jnp.ndarray) -> FNUnitaryDilation:

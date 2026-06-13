@@ -26,8 +26,10 @@ from clifford_3plus2_d5.qca_smv0.sm_fn import (
     FN_LAMBDA_WOLFENSTEIN,
     FNQuarkCharges,
     FNQuarkYukawas,
+    FNVisibleRecirculationPairReadout,
     FNVisibleRecirculationReadout,
     FNUnitaryDilation,
+    fn_apply_visible_recirculation_pair_path_state,
     fn_apply_visible_recirculation_path_state,
     SM_FAMILY_DIM,
     fn_apply_recirculation_collision,
@@ -36,6 +38,7 @@ from clifford_3plus2_d5.qca_smv0.sm_fn import (
     fn_read_visible_collision_output,
     fn_recirculation_collision_dilation,
     fn_unitary_dilation_residual,
+    fn_visible_recirculation_pair_readout,
     fn_visible_recirculation_readout,
     fn_visible_recirculation_transfer,
 )
@@ -96,6 +99,7 @@ class FamilyFNQuarkPathReadouts(NamedTuple):
 
     up: FNVisibleRecirculationReadout
     down: FNVisibleRecirculationReadout
+    pair: FNVisibleRecirculationPairReadout
 
 
 class FamilyFNQuarkPathAuxState(NamedTuple):
@@ -260,9 +264,12 @@ def sm_family_recirculated_quark_path_readouts(
 
     up_coeffs = sm_center_coefficients("up", powers=powers.up)
     down_coeffs = sm_center_coefficients("down", powers=powers.down)
+    up = fn_visible_recirculation_readout(lambda_rec, charges.q, charges.u, coefficients=up_coeffs)
+    down = fn_visible_recirculation_readout(lambda_rec, charges.q, charges.d, coefficients=down_coeffs)
     return FamilyFNQuarkPathReadouts(
-        up=fn_visible_recirculation_readout(lambda_rec, charges.q, charges.u, coefficients=up_coeffs),
-        down=fn_visible_recirculation_readout(lambda_rec, charges.q, charges.d, coefficients=down_coeffs),
+        up=up,
+        down=down,
+        pair=fn_visible_recirculation_pair_readout(up, down),
     )
 
 
@@ -376,6 +383,37 @@ def sm_apply_family_fn_quark_path_door_state(
     )
 
 
+def sm_apply_family_fn_quark_pair_path_door_state(
+    left_family_state: jnp.ndarray,
+    up_hidden_state: jnp.ndarray,
+    down_hidden_state: jnp.ndarray,
+    up_higgs_component: jnp.ndarray,
+    down_higgs_component: jnp.ndarray,
+    readouts: FamilyFNQuarkPathReadouts,
+) -> tuple[jnp.ndarray, jnp.ndarray, jnp.ndarray, jnp.ndarray]:
+    """Evolve one left quark door through a shared up/down FN path injection."""
+
+    output = fn_apply_visible_recirculation_pair_path_state(
+        readouts.pair,
+        left_family_state,
+        up_hidden_state,
+        down_hidden_state,
+    )
+    up_higgs = jnp.asarray(up_higgs_component, dtype=output.up_raw_visible.dtype)
+    down_higgs = jnp.asarray(down_higgs_component, dtype=output.down_raw_visible.dtype)
+    up_visible = output.up_raw_visible
+    down_visible = output.down_raw_visible
+    if up_higgs.ndim == 0:
+        up_visible = up_higgs * up_visible
+    else:
+        up_visible = up_higgs[..., None] * up_visible
+    if down_higgs.ndim == 0:
+        down_visible = down_higgs * down_visible
+    else:
+        down_visible = down_higgs[..., None] * down_visible
+    return up_visible, down_visible, output.up_hidden, output.down_hidden
+
+
 def sm_apply_family_fn_quark_aux_state(
     up_left_family_state: jnp.ndarray,
     down_left_family_state: jnp.ndarray,
@@ -429,22 +467,18 @@ def sm_family_fn_quark_path_state_source(
             down_total = jnp.zeros_like(up_total)
             for weak in range(2):
                 left = state[..., spin, _q_index(color, weak), :]
-                up = sm_apply_family_fn_quark_path_door_state(
+                up_visible, down_visible, up_hidden, down_hidden = sm_apply_family_fn_quark_pair_path_door_state(
                     left,
                     aux_state.up[..., spin, color, weak, :],
-                    h_tilde[..., weak],
-                    readouts.up,
-                )
-                down = sm_apply_family_fn_quark_path_door_state(
-                    left,
                     aux_state.down[..., spin, color, weak, :],
+                    h_tilde[..., weak],
                     higgs[..., weak],
-                    readouts.down,
+                    readouts,
                 )
-                up_total = up_total + up.physical_visible.astype(state.dtype)
-                down_total = down_total + down.physical_visible.astype(state.dtype)
-                updated_up_aux = updated_up_aux.at[..., spin, color, weak, :].set(up.hidden)
-                updated_down_aux = updated_down_aux.at[..., spin, color, weak, :].set(down.hidden)
+                up_total = up_total + up_visible.astype(state.dtype)
+                down_total = down_total + down_visible.astype(state.dtype)
+                updated_up_aux = updated_up_aux.at[..., spin, color, weak, :].set(up_hidden)
+                updated_down_aux = updated_down_aux.at[..., spin, color, weak, :].set(down_hidden)
             up_sources = up_sources.at[..., spin, color, :].set(up_total)
             down_sources = down_sources.at[..., spin, color, :].set(down_total)
             source = source.at[..., spin, _u_c_index(color), :].set(up_total)

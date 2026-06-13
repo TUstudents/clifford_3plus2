@@ -15,6 +15,7 @@ from clifford_3plus2_d5.qca_smv0.sm_fn import (
     fn_default_coefficients,
     fn_effective_yukawa,
     fn_apply_recirculation_collision,
+    fn_apply_visible_recirculation_pair_path_state,
     fn_apply_visible_recirculation_path_state,
     fn_path_transfer_amplitude,
     fn_path_transfer_residual,
@@ -32,6 +33,7 @@ from clifford_3plus2_d5.qca_smv0.sm_fn import (
     fn_prepare_visible_collision_state,
     fn_read_visible_collision_output,
     fn_recirculation_collision_dilation,
+    fn_visible_recirculation_pair_readout,
     fn_visible_recirculation_readout,
     fn_visible_recirculation_transfer,
     fn_wolfenstein_scaling,
@@ -110,6 +112,35 @@ def test_fn_persistent_path_state_reads_visible_transfer_and_memory() -> None:
     assert jnp.linalg.norm(output.hidden) > 1e-5
     assert jnp.linalg.norm(memory_output.raw_visible - output.raw_visible) > 1e-5
     assert jnp.linalg.norm(memory_output.hidden - output.hidden) > 1e-5
+
+
+def test_fn_pair_path_state_shares_one_unitary_visible_injection() -> None:
+    charges = DEFAULT_FN_QUARK_CHARGES
+    lam = FN_LAMBDA_WOLFENSTEIN
+    up = fn_visible_recirculation_readout(lam, charges.q, charges.u, coefficients=fn_default_coefficients("up"))
+    down = fn_visible_recirculation_readout(lam, charges.q, charges.d, coefficients=fn_default_coefficients("down"))
+    pair = fn_visible_recirculation_pair_readout(up, down)
+    left = jnp.asarray([0.4 - 0.1j, -0.2 + 0.3j, 0.7 + 0.0j], dtype=jnp.complex64)
+    up_hidden = fn_zero_path_hidden_state(up)
+    down_hidden = fn_zero_path_hidden_state(down)
+    output = fn_apply_visible_recirculation_pair_path_state(pair, left, up_hidden, down_hidden)
+    memory_up = jnp.full_like(up_hidden, 0.002 - 0.003j)
+    memory_down = jnp.full_like(down_hidden, -0.004 + 0.001j)
+    memory_output = fn_apply_visible_recirculation_pair_path_state(pair, left, memory_up, memory_down)
+    input_norm = jnp.sum(jnp.abs(left) ** 2) + jnp.sum(jnp.abs(memory_up) ** 2) + jnp.sum(jnp.abs(memory_down) ** 2)
+    output_norm = (
+        jnp.sum(jnp.abs(memory_output.visible) ** 2)
+        + jnp.sum(jnp.abs(memory_output.up_hidden) ** 2)
+        + jnp.sum(jnp.abs(memory_output.down_hidden) ** 2)
+    )
+
+    assert output.up_hidden.shape == up_hidden.shape
+    assert output.down_hidden.shape == down_hidden.shape
+    assert jnp.max(jnp.abs(output.up_raw_visible - jnp.swapaxes(up.transfer, -1, -2) @ left)) < 2e-7
+    assert jnp.max(jnp.abs(output.down_raw_visible - jnp.swapaxes(down.transfer, -1, -2) @ left)) < 2e-7
+    assert jnp.abs(output_norm - input_norm) < 2e-6
+    assert jnp.linalg.norm(memory_output.up_raw_visible - output.up_raw_visible) > 1e-5
+    assert jnp.linalg.norm(memory_output.down_raw_visible - output.down_raw_visible) > 1e-5
 
 
 def test_fn_visible_transfer_has_exact_unitary_dilation() -> None:
