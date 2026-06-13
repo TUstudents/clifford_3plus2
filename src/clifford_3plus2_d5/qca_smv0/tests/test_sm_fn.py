@@ -22,6 +22,7 @@ from clifford_3plus2_d5.qca_smv0.sm_fn import (
     fn_path_transfer_residual,
     fn_path_unitary,
     fn_quark_yukawa_matrices,
+    fn_quark_yukawas_from_masses_ckm,
     fn_recirculation_network,
     fn_recirculation_network_unitarity_residual,
     fn_recirculation_power_matrix,
@@ -281,6 +282,44 @@ def test_fn_quark_yukawas_generate_masses_and_ckm_from_same_matrices() -> None:
     assert up_masses[0] > up_masses[-1]
     assert down_masses[0] > down_masses[-1]
     assert fn_unitarity_residual(ckm) < 2e-6
+
+
+def test_fn_target_yukawas_from_masses_ckm_calibrate_to_recirculation() -> None:
+    charges = DEFAULT_FN_QUARK_CHARGES
+    theta = jnp.asarray(0.22, dtype=jnp.float32)
+    c = jnp.cos(theta)
+    s = jnp.sin(theta)
+    ckm_target = jnp.asarray(
+        [
+            [c, s, 0.0],
+            [-s, c, 0.0],
+            [0.0, 0.0, 1.0],
+        ],
+        dtype=jnp.complex64,
+    )
+    up_masses = jnp.asarray([1.0, 0.08, 0.002], dtype=jnp.float32)
+    down_masses = jnp.asarray([0.7, 0.04, 0.0015], dtype=jnp.float32)
+    target = fn_quark_yukawas_from_masses_ckm(up_masses, down_masses, ckm_target)
+    calibrated = fn_quark_coefficients_from_yukawas(target, lambda_rec=FN_LAMBDA_WOLFENSTEIN, charges=charges)
+    reconstructed = fn_quark_yukawa_matrices(
+        lambda_rec=FN_LAMBDA_WOLFENSTEIN,
+        charges=charges,
+        up_coefficients=calibrated.up,
+        down_coefficients=calibrated.down,
+    )
+    down_left_invariant = target.down @ jnp.swapaxes(jnp.conj(target.down), -1, -2)
+    expected_down_left_invariant = ckm_target @ jnp.diag(down_masses.astype(jnp.complex64) ** 2) @ jnp.swapaxes(
+        jnp.conj(ckm_target),
+        -1,
+        -2,
+    )
+
+    assert jnp.max(jnp.abs(fn_singular_masses(target.up) - up_masses)) < 5e-7
+    assert jnp.max(jnp.abs(fn_singular_masses(target.down) - down_masses)) < 5e-7
+    assert jnp.max(jnp.abs(down_left_invariant - expected_down_left_invariant)) < 1e-7
+    assert jnp.max(jnp.abs(jnp.abs(fn_ckm_from_yukawas(target.up, target.down)) - jnp.abs(ckm_target))) < 2e-6
+    assert jnp.max(jnp.abs(reconstructed.up - target.up)) < 5e-7
+    assert jnp.max(jnp.abs(reconstructed.down - target.down)) < 5e-7
 
 
 def test_fn_module_supports_shear_candidate_lambda_without_changing_rule() -> None:

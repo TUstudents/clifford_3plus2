@@ -160,6 +160,13 @@ def _validate_family_matrix(matrix: jnp.ndarray, name: str) -> jnp.ndarray:
     return arr
 
 
+def _validate_family_vector(vector: jnp.ndarray, name: str) -> jnp.ndarray:
+    arr = jnp.asarray(vector)
+    if arr.shape != (SM_FAMILY_DIM,):
+        raise ValueError(f"{name} must have shape (3,)")
+    return arr
+
+
 def _positive_sqrt(matrix: jnp.ndarray) -> jnp.ndarray:
     values, vectors = jnp.linalg.eigh(matrix)
     clipped = jnp.maximum(values, 0.0)
@@ -667,6 +674,29 @@ def fn_quark_coefficients_from_yukawas(
     return FNQuarkCoefficientMatrices(
         up=fn_coefficients_from_yukawa(lambda_rec, charges.q, charges.u, target_yukawas.up),
         down=fn_coefficients_from_yukawa(lambda_rec, charges.q, charges.d, target_yukawas.down),
+    )
+
+
+def fn_quark_yukawas_from_masses_ckm(
+    up_masses: jnp.ndarray,
+    down_masses: jnp.ndarray,
+    ckm: jnp.ndarray | None = None,
+) -> FNQuarkYukawas:
+    """Build target quark Yukawas from singular masses and a CKM left frame.
+
+    The convention is ``Y_u=diag(up_masses)`` and
+    ``Y_d=CKM @ diag(down_masses)``.  It is intentionally minimal: this is a
+    simulator calibration target, not a derivation of the masses or CKM matrix.
+    SVD-based CKM extraction may rephase singular-vector columns; the invariant
+    left-frame content is ``Y_d Y_d^dag = CKM diag(m_d^2) CKM^dag``.
+    """
+
+    up = _validate_family_vector(up_masses, "up_masses").astype(jnp.complex64)
+    down = _validate_family_vector(down_masses, "down_masses").astype(jnp.complex64)
+    left = jnp.eye(SM_FAMILY_DIM, dtype=jnp.complex64) if ckm is None else _validate_family_matrix(ckm, "ckm").astype(jnp.complex64)
+    return FNQuarkYukawas(
+        up=jnp.diag(up),
+        down=left @ jnp.diag(down),
     )
 
 
