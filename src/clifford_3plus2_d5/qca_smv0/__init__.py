@@ -299,8 +299,10 @@ from clifford_3plus2_d5.qca_smv0.sm_family_sourced_tick import (
     sm_family_sourced_tick_diagnostics,
 )
 from clifford_3plus2_d5.qca_smv0.sm_family_production_tick import (
+    FamilyFNProductionSMTickOutput,
     FamilyProductionSMTickDiagnostics,
     sm_apply_family_production_higgs_momentum_kick,
+    sm_family_fn_production_sm_tick,
     sm_family_production_higgs_force,
     sm_family_production_sm_tick,
     sm_family_production_tick_diagnostics,
@@ -581,6 +583,7 @@ __all__ = [
     "FamilyFNQuarkDoorOutput",
     "FamilyFNQuarkSourceKick",
     "FamilyFNQuarkStateSource",
+    "FamilyFNProductionSMTickOutput",
     "FamilyHiggsYukawaDiagnostics",
     "FamilyLeptonYukawas",
     "FamilyProductionSMTickDiagnostics",
@@ -764,6 +767,7 @@ __all__ = [
     "sm_family_streaming_energy_density",
     "sm_family_streaming_fermion_charge_density",
     "sm_family_fn_yukawa_collision_with_higgs_kick",
+    "sm_family_fn_production_sm_tick",
     "sm_family_yukawa_internal_matrix",
     "sm_family_yukawa_collision_with_higgs_kick",
     "sm_fermion_gauge_current_diagnostics",

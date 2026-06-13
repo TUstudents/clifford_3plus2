@@ -5,6 +5,7 @@ import jax.numpy as jnp
 
 from clifford_3plus2_d5.qca_smv0.sm_dynamics import deterministic_sm_momenta
 from clifford_3plus2_d5.qca_smv0.sm_family_production_tick import (
+    sm_family_fn_production_sm_tick,
     sm_apply_family_production_higgs_momentum_kick,
     sm_family_production_higgs_force,
     sm_family_production_sm_tick,
@@ -12,6 +13,7 @@ from clifford_3plus2_d5.qca_smv0.sm_family_production_tick import (
     sm_zero_family_lepton_yukawas,
     sm_zero_quark_yukawas,
 )
+from clifford_3plus2_d5.qca_smv0.sm_family_higgs import sm_zero_family_fn_quark_state_aux
 from clifford_3plus2_d5.qca_smv0.sm_family_sourced_tick import sm_family_sourced_sm_tick
 from clifford_3plus2_d5.qca_smv0.sm_fermion_higgs import deterministic_yukawa_source_state, sm_yukawa_higgs_force
 from clifford_3plus2_d5.qca_smv0.sm_gauge import (
@@ -145,6 +147,75 @@ def test_production_tick_preserves_norm_and_updates_local_yukawa_sector() -> Non
     assert jnp.linalg.norm(production[2] - stage14[2]) > 1e-6
     assert sm_link_unitarity_residual(production[3]) < 7e-7
     assert sm_higgs_link_unitarity_residual(production[5]) < 7e-7
+
+
+def test_fn_production_tick_carries_quark_recirculation_aux_state() -> None:
+    state, higgs, higgs_momenta, sm_links, sm_momenta, higgs_links = _stage15_fields()
+    aux = sm_zero_family_fn_quark_state_aux(state.shape[:3])
+
+    updated = sm_family_fn_production_sm_tick(
+        state,
+        higgs,
+        higgs_momenta,
+        sm_links,
+        sm_momenta,
+        higgs_links,
+        aux,
+        step_size=0.003,
+    )
+
+    assert updated.state.shape == state.shape
+    assert updated.higgs.shape == higgs.shape
+    assert updated.higgs_momenta.shape == higgs_momenta.shape
+    assert updated.sm_links.shape == sm_links.shape
+    assert updated.sm_momenta.shape == sm_momenta.shape
+    assert updated.higgs_links.shape == higgs_links.shape
+    assert updated.fn_aux_state.up.shape == aux.up.shape
+    assert updated.fn_aux_state.down.shape == aux.down.shape
+    assert jnp.linalg.norm(updated.state - state) > 1e-6
+    assert jnp.linalg.norm(updated.fn_aux_state.up) > 1e-6
+    assert jnp.linalg.norm(updated.fn_aux_state.down) > 1e-6
+    assert sm_link_unitarity_residual(updated.sm_links) < 7e-7
+    assert sm_higgs_link_unitarity_residual(updated.higgs_links) < 7e-7
+
+
+def test_fn_production_second_tick_depends_on_persistent_aux_memory() -> None:
+    state, higgs, higgs_momenta, sm_links, sm_momenta, higgs_links = _stage15_fields()
+    zero_aux = sm_zero_family_fn_quark_state_aux(state.shape[:3])
+    first = sm_family_fn_production_sm_tick(
+        state,
+        higgs,
+        higgs_momenta,
+        sm_links,
+        sm_momenta,
+        higgs_links,
+        zero_aux,
+        step_size=0.003,
+    )
+    with_memory = sm_family_fn_production_sm_tick(
+        first.state,
+        first.higgs,
+        first.higgs_momenta,
+        first.sm_links,
+        first.sm_momenta,
+        first.higgs_links,
+        first.fn_aux_state,
+        step_size=0.003,
+    )
+    with_reset = sm_family_fn_production_sm_tick(
+        first.state,
+        first.higgs,
+        first.higgs_momenta,
+        first.sm_links,
+        first.sm_momenta,
+        first.higgs_links,
+        zero_aux,
+        step_size=0.003,
+    )
+
+    assert jnp.linalg.norm(with_memory.state - with_reset.state) > 1e-8
+    assert jnp.linalg.norm(with_memory.fn_aux_state.up - with_reset.fn_aux_state.up) > 1e-8
+    assert jnp.linalg.norm(with_memory.fn_aux_state.down - with_reset.fn_aux_state.down) > 1e-8
 
 
 def test_family_production_tick_diagnostics_and_jit_pass_stage_thresholds() -> None:

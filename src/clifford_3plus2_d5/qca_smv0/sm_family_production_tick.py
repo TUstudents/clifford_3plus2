@@ -23,9 +23,14 @@ import jax.numpy as jnp
 from clifford_3plus2_d5.qca_smv0.sm_dynamics import deterministic_sm_momenta
 from clifford_3plus2_d5.qca_smv0.sm_family_gauge import sm_family_gauged_dirac_step
 from clifford_3plus2_d5.qca_smv0.sm_family_higgs import (
+    FamilyFNQuarkAuxState,
+    FamilyFNQuarkDilations,
     FamilyLeptonYukawas,
     SM_FAMILY_DIM,
+    sm_apply_family_fn_quark_source_kick,
     sm_apply_family_yukawa_collision,
+    sm_family_recirculated_quark_dilations,
+    sm_zero_family_fn_quark_state_aux,
 )
 from clifford_3plus2_d5.qca_smv0.sm_family_sourced_tick import (
     sm_family_sourced_link_force,
@@ -78,6 +83,18 @@ class FamilyProductionSMTickDiagnostics(NamedTuple):
     jit_delta_sm_links: jnp.ndarray
     jit_delta_sm_momenta: jnp.ndarray
     jit_delta_higgs_links: jnp.ndarray
+
+
+class FamilyFNProductionSMTickOutput(NamedTuple):
+    """One production tick with persistent FN quark recirculation memory."""
+
+    state: jnp.ndarray
+    higgs: jnp.ndarray
+    higgs_momenta: jnp.ndarray
+    sm_links: jnp.ndarray
+    sm_momenta: jnp.ndarray
+    higgs_links: jnp.ndarray
+    fn_aux_state: FamilyFNQuarkAuxState
 
 
 def _validate_family_state(state: jnp.ndarray) -> tuple[int, int, int]:
@@ -286,6 +303,138 @@ def sm_family_production_sm_tick(
         updated_sm_links,
         updated_sm_momenta,
         updated_higgs_links,
+    )
+
+
+def sm_family_fn_production_sm_tick(
+    state: jnp.ndarray,
+    higgs: jnp.ndarray,
+    higgs_momenta: jnp.ndarray,
+    sm_links: jnp.ndarray,
+    sm_momenta: jnp.ndarray,
+    higgs_links: jnp.ndarray,
+    aux_state: FamilyFNQuarkAuxState | None = None,
+    dilations: FamilyFNQuarkDilations | None = None,
+    *,
+    step_size: float,
+    beta: float = 1.0,
+    parameters: HiggsDynamicsParameters = DEFAULT_HIGGS_DYNAMICS_PARAMETERS,
+    lepton_yukawas: FamilyLeptonYukawas | None = None,
+    wilson_epsilon: float = 1e-3,
+    higgs_force_epsilon: float = 1e-3,
+    fermion_current_epsilon: float = 3e-2,
+) -> FamilyFNProductionSMTickOutput:
+    """Advance one family production tick with persistent FN quark recirculation.
+
+    Gauge transport and classical fields follow ``sm_family_production_sm_tick``.
+    The local quark Yukawa half-steps are replaced by hidden-FN source kicks that
+    carry an auxiliary memory through the tick.  Leptons still use the local
+    matrix collision, with quark matrices set to zero there to avoid double
+    counting the quark sector.
+    """
+
+    lattice_shape = _validate_family_state(state)
+    _validate_higgs_field(higgs, lattice_shape)
+    _validate_higgs_momenta(higgs_momenta, lattice_shape)
+    _validate_sm_links(sm_links, lattice_shape)
+    _validate_sm_momenta(sm_momenta, sm_links)
+    _validate_higgs_links(higgs_links, lattice_shape)
+    if aux_state is None:
+        aux_state = sm_zero_family_fn_quark_state_aux(lattice_shape)
+    if dilations is None:
+        dilations = sm_family_recirculated_quark_dilations()
+
+    dt = jnp.asarray(step_size, dtype=sm_momenta.dtype)
+    zero_quarks = sm_zero_quark_yukawas()
+    first_link_force = sm_family_sourced_link_force(
+        state,
+        higgs,
+        sm_links,
+        higgs_links,
+        beta=beta,
+        parameters=parameters,
+        wilson_epsilon=wilson_epsilon,
+        higgs_force_epsilon=higgs_force_epsilon,
+        fermion_current_epsilon=fermion_current_epsilon,
+    )
+    first_higgs_force = sm_family_production_higgs_force(
+        state,
+        higgs,
+        higgs_links,
+        parameters=parameters,
+        quark_yukawas=zero_quarks,
+        lepton_yukawas=lepton_yukawas,
+    )
+    half_sm_momenta = sm_momenta - 0.5 * dt * first_link_force
+    half_higgs_momenta = higgs_momenta + 0.5 * dt * first_higgs_force
+
+    updated_sm_links, updated_higgs_links = sm_apply_sourced_link_update(
+        sm_links,
+        higgs_links,
+        half_sm_momenta,
+        step_size=step_size,
+    )
+    updated_higgs = higgs + dt * half_higgs_momenta
+
+    first_quark = sm_apply_family_fn_quark_source_kick(
+        state,
+        higgs,
+        aux_state=aux_state,
+        dilations=dilations,
+        step_size=0.5 * step_size,
+    )
+    half_collided = sm_apply_family_yukawa_collision(
+        first_quark.state,
+        higgs,
+        step_size=0.5 * step_size,
+        quark_yukawas=zero_quarks,
+        lepton_yukawas=lepton_yukawas,
+    )
+    transported = sm_family_gauged_dirac_step(half_collided, updated_sm_links)
+    second_quark = sm_apply_family_fn_quark_source_kick(
+        transported,
+        updated_higgs,
+        aux_state=first_quark.aux_state,
+        dilations=dilations,
+        step_size=0.5 * step_size,
+    )
+    updated_state = sm_apply_family_yukawa_collision(
+        second_quark.state,
+        updated_higgs,
+        step_size=0.5 * step_size,
+        quark_yukawas=zero_quarks,
+        lepton_yukawas=lepton_yukawas,
+    )
+
+    second_link_force = sm_family_sourced_link_force(
+        updated_state,
+        updated_higgs,
+        updated_sm_links,
+        updated_higgs_links,
+        beta=beta,
+        parameters=parameters,
+        wilson_epsilon=wilson_epsilon,
+        higgs_force_epsilon=higgs_force_epsilon,
+        fermion_current_epsilon=fermion_current_epsilon,
+    )
+    second_higgs_force = sm_family_production_higgs_force(
+        updated_state,
+        updated_higgs,
+        updated_higgs_links,
+        parameters=parameters,
+        quark_yukawas=zero_quarks,
+        lepton_yukawas=lepton_yukawas,
+    )
+    updated_sm_momenta = half_sm_momenta - 0.5 * dt * second_link_force
+    updated_higgs_momenta = half_higgs_momenta + 0.5 * dt * second_higgs_force
+    return FamilyFNProductionSMTickOutput(
+        state=updated_state,
+        higgs=updated_higgs,
+        higgs_momenta=updated_higgs_momenta,
+        sm_links=updated_sm_links,
+        sm_momenta=updated_sm_momenta,
+        higgs_links=updated_higgs_links,
+        fn_aux_state=second_quark.aux_state,
     )
 
 
