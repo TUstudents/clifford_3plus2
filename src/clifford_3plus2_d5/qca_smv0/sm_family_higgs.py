@@ -96,6 +96,15 @@ class FamilyFNQuarkDoorOutput(NamedTuple):
     hidden: jnp.ndarray
 
 
+class FamilyFNQuarkStateSource(NamedTuple):
+    """FN quark source extracted from a full family state plus updated aux."""
+
+    up: jnp.ndarray
+    down: jnp.ndarray
+    state_source: jnp.ndarray
+    aux_state: FamilyFNQuarkAuxState
+
+
 def _q_index(color: int, weak: int) -> int:
     return 2 * color + weak
 
@@ -220,6 +229,12 @@ def sm_zero_family_fn_quark_aux_state(batch_shape: tuple[int, ...] = ()) -> Fami
     return FamilyFNQuarkAuxState(up=zeros, down=zeros)
 
 
+def sm_zero_family_fn_quark_state_aux(lattice_shape: tuple[int, int, int]) -> FamilyFNQuarkAuxState:
+    """Return zero FN aux channels for every site, spin, color, and weak door."""
+
+    return sm_zero_family_fn_quark_aux_state((*lattice_shape, 4, 3, 2))
+
+
 def sm_apply_family_fn_quark_door_state(
     left_family_state: jnp.ndarray,
     hidden_state: jnp.ndarray,
@@ -269,6 +284,70 @@ def sm_apply_family_fn_quark_aux_state(
         dilations.down,
     )
     return up.physical_visible, down.physical_visible, FamilyFNQuarkAuxState(up=up.hidden, down=down.hidden)
+
+
+def sm_family_fn_quark_state_source(
+    state: jnp.ndarray,
+    higgs: jnp.ndarray,
+    aux_state: FamilyFNQuarkAuxState | None = None,
+    dilations: FamilyFNQuarkDilations | None = None,
+) -> FamilyFNQuarkStateSource:
+    """Return lattice-local FN quark sources and updated hidden auxiliaries.
+
+    Each quark doublet component feeds an independent FN auxiliary channel.
+    The visible right-family returns are summed over the weak Higgs door and
+    written into a full state-shaped source on the up/down singlet slots.
+    """
+
+    lattice_shape = _validate_family_state(state)
+    _validate_higgs_field(higgs, lattice_shape)
+    if aux_state is None:
+        aux_state = sm_zero_family_fn_quark_state_aux(lattice_shape)
+    if dilations is None:
+        dilations = sm_family_recirculated_quark_dilations()
+    expected_aux_shape = (*lattice_shape, 4, 3, 2, SM_FAMILY_DIM)
+    if aux_state.up.shape != expected_aux_shape or aux_state.down.shape != expected_aux_shape:
+        raise ValueError("FN quark aux state must have shape (nx, ny, nz, 4, 3, 2, 3)")
+
+    h_tilde = sm_higgs_tilde(higgs)
+    source = jnp.zeros_like(state)
+    up_sources = jnp.zeros((*lattice_shape, 4, 3, SM_FAMILY_DIM), dtype=state.dtype)
+    down_sources = jnp.zeros_like(up_sources)
+    updated_up_aux = jnp.zeros_like(aux_state.up)
+    updated_down_aux = jnp.zeros_like(aux_state.down)
+
+    for spin in range(4):
+        for color in range(3):
+            up_total = jnp.zeros((*lattice_shape, SM_FAMILY_DIM), dtype=state.dtype)
+            down_total = jnp.zeros_like(up_total)
+            for weak in range(2):
+                left = state[..., spin, _q_index(color, weak), :]
+                up = sm_apply_family_fn_quark_door_state(
+                    left,
+                    aux_state.up[..., spin, color, weak, :],
+                    h_tilde[..., weak],
+                    dilations.up,
+                )
+                down = sm_apply_family_fn_quark_door_state(
+                    left,
+                    aux_state.down[..., spin, color, weak, :],
+                    higgs[..., weak],
+                    dilations.down,
+                )
+                up_total = up_total + up.physical_visible.astype(state.dtype)
+                down_total = down_total + down.physical_visible.astype(state.dtype)
+                updated_up_aux = updated_up_aux.at[..., spin, color, weak, :].set(up.hidden)
+                updated_down_aux = updated_down_aux.at[..., spin, color, weak, :].set(down.hidden)
+            up_sources = up_sources.at[..., spin, color, :].set(up_total)
+            down_sources = down_sources.at[..., spin, color, :].set(down_total)
+            source = source.at[..., spin, _u_c_index(color), :].set(up_total)
+            source = source.at[..., spin, _d_c_index(color), :].set(down_total)
+    return FamilyFNQuarkStateSource(
+        up=up_sources,
+        down=down_sources,
+        state_source=source,
+        aux_state=FamilyFNQuarkAuxState(up=updated_up_aux, down=updated_down_aux),
+    )
 
 
 def deterministic_sm_family_state(lattice_shape: tuple[int, int, int]) -> jnp.ndarray:

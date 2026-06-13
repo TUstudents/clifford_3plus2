@@ -16,6 +16,7 @@ from clifford_3plus2_d5.qca_smv0.sm_family_higgs import (
     sm_apply_family_recirculated_quark_door,
     sm_apply_family_yukawa_collision,
     sm_default_family_lepton_yukawas,
+    sm_family_fn_quark_state_source,
     sm_family_chirality_norms,
     sm_family_embedding_residuals,
     sm_family_higgs_yukawa_diagnostics,
@@ -23,6 +24,7 @@ from clifford_3plus2_d5.qca_smv0.sm_family_higgs import (
     sm_family_recirculated_quark_yukawas,
     sm_family_yukawa_internal_matrix,
     sm_zero_family_fn_quark_aux_state,
+    sm_zero_family_fn_quark_state_aux,
 )
 from clifford_3plus2_d5.qca_smv0.sm_fn import (
     DEFAULT_FN_QUARK_CHARGES,
@@ -167,6 +169,64 @@ def test_family_quark_aux_state_updates_both_higgs_doors() -> None:
     assert jnp.max(jnp.abs(down_source - expected_down)) < 2e-7
     assert jnp.linalg.norm(updated_aux.up) > 1e-5
     assert jnp.linalg.norm(updated_aux.down) > 1e-5
+
+
+def test_family_fn_quark_state_source_matches_matrix_door_with_zero_aux() -> None:
+    lattice_shape = (1, 1, 1)
+    state = deterministic_sm_family_state(lattice_shape)
+    higgs = sm_constant_higgs(lattice_shape)
+    aux = sm_zero_family_fn_quark_state_aux(lattice_shape)
+    source = sm_family_fn_quark_state_source(state, higgs, aux)
+    quark_yukawas = sm_family_recirculated_quark_yukawas()
+    h_tilde = jnp.asarray([jnp.conj(higgs[..., 1]), -jnp.conj(higgs[..., 0])], dtype=jnp.complex64)
+    expected_up = jnp.zeros_like(source.up)
+    expected_down = jnp.zeros_like(source.down)
+    expected_state_source = jnp.zeros_like(state)
+
+    for spin in range(4):
+        for color in range(3):
+            up_total = jnp.zeros((*lattice_shape, 3), dtype=state.dtype)
+            down_total = jnp.zeros_like(up_total)
+            for weak in range(2):
+                left = state[..., spin, 2 * color + weak, :]
+                up_total = up_total + h_tilde[weak][..., None] * jnp.einsum(
+                    "ij,...j->...i",
+                    jnp.swapaxes(quark_yukawas.up, -1, -2),
+                    left,
+                )
+                down_total = down_total + higgs[..., weak, None] * jnp.einsum(
+                    "ij,...j->...i",
+                    jnp.swapaxes(quark_yukawas.down, -1, -2),
+                    left,
+                )
+            expected_up = expected_up.at[..., spin, color, :].set(up_total)
+            expected_down = expected_down.at[..., spin, color, :].set(down_total)
+            expected_state_source = expected_state_source.at[..., spin, 6 + color, :].set(up_total)
+            expected_state_source = expected_state_source.at[..., spin, 9 + color, :].set(down_total)
+
+    assert source.aux_state.up.shape == (*lattice_shape, 4, 3, 2, 3)
+    assert source.aux_state.down.shape == (*lattice_shape, 4, 3, 2, 3)
+    assert jnp.max(jnp.abs(source.up - expected_up)) < 2e-7
+    assert jnp.max(jnp.abs(source.down - expected_down)) < 2e-7
+    assert jnp.max(jnp.abs(source.state_source - expected_state_source)) < 2e-7
+    assert jnp.linalg.norm(source.aux_state.up) > 1e-5
+    assert jnp.linalg.norm(source.aux_state.down) > 1e-5
+
+
+def test_family_fn_quark_state_source_uses_hidden_memory() -> None:
+    lattice_shape = (1, 1, 1)
+    state = deterministic_sm_family_state(lattice_shape)
+    higgs = sm_constant_higgs(lattice_shape)
+    zero_aux = sm_zero_family_fn_quark_state_aux(lattice_shape)
+    memory = jnp.full((*lattice_shape, 4, 3, 2, 3), 0.03 - 0.02j, dtype=jnp.complex64)
+    memory_aux = type(zero_aux)(up=memory, down=-0.5j * memory)
+
+    zero_source = sm_family_fn_quark_state_source(state, higgs, zero_aux)
+    memory_source = sm_family_fn_quark_state_source(state, higgs, memory_aux)
+
+    assert jnp.linalg.norm(memory_source.state_source - zero_source.state_source) > 1e-5
+    assert jnp.linalg.norm(memory_source.aux_state.up - zero_source.aux_state.up) > 1e-5
+    assert jnp.linalg.norm(memory_source.aux_state.down - zero_source.aux_state.down) > 1e-5
 
 
 def test_family_yukawa_collision_identity_controls_norm_and_chirality_flip() -> None:
