@@ -354,12 +354,18 @@ def test_family_fn_quark_path_source_kick_advances_state_from_path_source() -> N
         ),
         source.state_source,
     )
-    expected = source.state_remainder - 1j * step_size * beta_source
+    expected = state + step_size * (source.state_remainder - state) - 1j * step_size * beta_source
+    expected_up_aux = aux.up + step_size * (source.aux_state.up - aux.up)
+    expected_down_aux = aux.down + step_size * (source.aux_state.down - aux.down)
+    tiny = sm_apply_family_fn_quark_path_source_kick(state, higgs, aux, step_size=1e-6)
 
     assert jnp.max(jnp.abs(kicked.source - source.state_source)) < 2e-7
     assert jnp.max(jnp.abs(kicked.state - expected)) < 2e-7
-    assert jnp.max(jnp.abs(kicked.aux_state.up - source.aux_state.up)) < 2e-7
-    assert jnp.max(jnp.abs(kicked.aux_state.down - source.aux_state.down)) < 2e-7
+    assert jnp.max(jnp.abs(kicked.aux_state.up - expected_up_aux)) < 2e-7
+    assert jnp.max(jnp.abs(kicked.aux_state.down - expected_down_aux)) < 2e-7
+    assert jnp.linalg.norm(tiny.state - state) < 5e-6
+    assert jnp.linalg.norm(tiny.aux_state.up - aux.up) < 5e-6
+    assert jnp.linalg.norm(tiny.aux_state.down - aux.down) < 5e-6
 
 
 def test_family_yukawa_collision_identity_controls_norm_and_chirality_flip() -> None:

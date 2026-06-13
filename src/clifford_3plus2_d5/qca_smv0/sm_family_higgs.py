@@ -656,8 +656,14 @@ def sm_apply_family_fn_quark_path_source_kick(
     source = sm_family_fn_quark_path_state_source(state, higgs, aux_state=aux_state, readouts=readouts)
     beta_source = jnp.einsum("sr,...rif->...sif", sm_dirac_beta(state.dtype), source.state_source)
     dt = jnp.asarray(step_size, dtype=jnp.real(jnp.asarray(0, dtype=state.dtype)).dtype)
-    updated = source.state_remainder - 1j * dt * beta_source
-    return FamilyFNQuarkPathSourceKick(state=updated, source=source.state_source, aux_state=source.aux_state)
+    mix = jnp.clip(dt, -1.0, 1.0)
+    updated_base = state + mix * (source.state_remainder - state)
+    updated_aux = FamilyFNQuarkPathAuxState(
+        up=aux_state.up + mix * (source.aux_state.up - aux_state.up),
+        down=aux_state.down + mix * (source.aux_state.down - aux_state.down),
+    )
+    updated = updated_base - 1j * dt * beta_source
+    return FamilyFNQuarkPathSourceKick(state=updated, source=source.state_source, aux_state=updated_aux)
 
 
 def deterministic_sm_family_state(lattice_shape: tuple[int, int, int]) -> jnp.ndarray:
