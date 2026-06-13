@@ -99,10 +99,14 @@ def test_fn_persistent_path_state_reads_visible_transfer_and_memory() -> None:
     expected = jnp.swapaxes(readout.transfer, -1, -2) @ left
     memory = jnp.full_like(hidden, 0.01 - 0.02j)
     memory_output = fn_apply_visible_recirculation_path_state(readout, left, memory)
+    input_norm = jnp.sum(jnp.abs(left) ** 2) + jnp.sum(jnp.abs(memory) ** 2)
+    output_norm = jnp.sum(jnp.abs(memory_output.visible) ** 2) + jnp.sum(jnp.abs(memory_output.hidden) ** 2)
 
     assert hidden.shape == (45,)
+    assert output.visible.shape == left.shape
     assert output.hidden.shape == hidden.shape
     assert jnp.max(jnp.abs(output.raw_visible - expected)) < 2e-7
+    assert jnp.abs(output_norm - input_norm) < 2e-6
     assert jnp.linalg.norm(output.hidden) > 1e-5
     assert jnp.linalg.norm(memory_output.raw_visible - output.raw_visible) > 1e-5
     assert jnp.linalg.norm(memory_output.hidden - output.hidden) > 1e-5

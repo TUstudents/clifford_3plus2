@@ -62,12 +62,16 @@ class FNVisibleRecirculationReadout(NamedTuple):
     entry: jnp.ndarray
     exit: jnp.ndarray
     transfer: jnp.ndarray
+    entry_scale: jnp.ndarray
+    visible_entry_defect: jnp.ndarray
+    hidden_entry_defect: jnp.ndarray
 
 
 class FNPathDoorOutput(NamedTuple):
     """One persistent hidden-path readout update."""
 
     raw_visible: jnp.ndarray
+    visible: jnp.ndarray
     hidden: jnp.ndarray
 
 
@@ -269,11 +273,25 @@ def fn_visible_recirculation_readout(
             entry = entry.at[source, left_family].set(1.0 + 0.0j)
             exit_map = exit_map.at[right_family, sink].set(coeffs[left_family, right_family])
     right_by_left = exit_map @ network.unitary.astype(jnp.complex64) @ entry
+    singular_values = jnp.linalg.svd(entry, compute_uv=False)
+    entry_scale = jnp.maximum(jnp.max(singular_values), jnp.asarray(1.0, dtype=singular_values.dtype))
+    normalized_entry = entry / entry_scale.astype(jnp.complex64)
+    visible_identity = jnp.eye(SM_FAMILY_DIM, dtype=jnp.complex64)
+    hidden_identity = jnp.eye(hidden_dim, dtype=jnp.complex64)
+    visible_entry_defect = _positive_sqrt(
+        visible_identity - jnp.swapaxes(jnp.conj(normalized_entry), -1, -2) @ normalized_entry,
+    )
+    hidden_entry_defect = _positive_sqrt(
+        hidden_identity - normalized_entry @ jnp.swapaxes(jnp.conj(normalized_entry), -1, -2),
+    )
     return FNVisibleRecirculationReadout(
         network=network,
         entry=entry,
         exit=exit_map,
         transfer=jnp.swapaxes(right_by_left, -1, -2),
+        entry_scale=entry_scale,
+        visible_entry_defect=visible_entry_defect,
+        hidden_entry_defect=hidden_entry_defect,
     )
 
 
@@ -312,9 +330,11 @@ def fn_apply_visible_recirculation_path_state(
     """Inject a visible family vector into the explicit FN path network.
 
     The hidden network is the direct sum of the length ``Q_i+R_j`` beam-splitter
-    chains.  With zero hidden memory, the visible readout is exactly
-    ``readout.transfer.T @ left_state``; with nonzero hidden memory it carries
-    retarded recirculation history forward.
+    chains.  Visible injection is a contraction-dilation beam splitter, so
+    ``||left||^2+||hidden||^2`` is preserved by the visible/hidden injection and
+    hidden path evolution.  The exposed ``raw_visible`` readout is rescaled by
+    the entry norm, keeping the zero-memory transfer equal to
+    ``readout.transfer.T @ left_state``.
     """
 
     left = jnp.asarray(left_state, dtype=jnp.complex64)
@@ -324,10 +344,21 @@ def fn_apply_visible_recirculation_path_state(
     hidden_dim = int(readout.network.unitary.shape[0])
     if hidden.shape[-1] != hidden_dim:
         raise ValueError(f"hidden_state must end with hidden dimension {hidden_dim}")
-    injected = hidden + jnp.einsum("ij,...j->...i", readout.entry, left)
+    scale = readout.entry_scale.astype(jnp.complex64)
+    entry = readout.entry / scale
+    visible = jnp.einsum("ij,...j->...i", readout.visible_entry_defect, left) - jnp.einsum(
+        "hi,...h->...i",
+        jnp.conj(entry),
+        hidden,
+    )
+    injected = jnp.einsum("hi,...i->...h", entry, left) + jnp.einsum(
+        "hg,...g->...h",
+        readout.hidden_entry_defect,
+        hidden,
+    )
     evolved = jnp.einsum("ij,...j->...i", readout.network.unitary.astype(jnp.complex64), injected)
-    raw_visible = jnp.einsum("ij,...j->...i", readout.exit, evolved)
-    return FNPathDoorOutput(raw_visible=raw_visible, hidden=evolved)
+    raw_visible = scale * jnp.einsum("ij,...j->...i", readout.exit, evolved)
+    return FNPathDoorOutput(raw_visible=raw_visible, visible=visible, hidden=evolved)
 
 
 def fn_unitary_dilation(transfer: jnp.ndarray) -> FNUnitaryDilation:
