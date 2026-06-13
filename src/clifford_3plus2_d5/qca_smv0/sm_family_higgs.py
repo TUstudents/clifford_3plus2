@@ -36,6 +36,7 @@ from clifford_3plus2_d5.qca_smv0.sm_fn import (
     fn_apply_recirculation_collision,
     fn_ckm_from_yukawas,
     fn_quark_coefficients_from_yukawas,
+    fn_quark_yukawas_from_masses_ckm,
     fn_prepare_visible_collision_state,
     fn_read_visible_collision_output,
     fn_recirculation_collision_dilation,
@@ -305,6 +306,20 @@ def sm_family_calibrated_quark_path_readouts(
         charges=charges,
         coefficients=coefficients,
     )
+
+
+def sm_family_quark_path_readouts_from_masses_ckm(
+    up_masses: jnp.ndarray,
+    down_masses: jnp.ndarray,
+    ckm: jnp.ndarray | None = None,
+    *,
+    lambda_rec: float = FN_LAMBDA_WOLFENSTEIN,
+    charges: FNQuarkCharges = DEFAULT_FN_QUARK_CHARGES,
+) -> FamilyFNQuarkPathReadouts:
+    """Return live FN path readouts calibrated from masses and CKM input."""
+
+    target = fn_quark_yukawas_from_masses_ckm(up_masses, down_masses, ckm)
+    return sm_family_calibrated_quark_path_readouts(target, lambda_rec=lambda_rec, charges=charges)
 
 
 def sm_apply_family_recirculated_quark_door(

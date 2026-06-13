@@ -26,6 +26,7 @@ from clifford_3plus2_d5.qca_smv0.sm_family_higgs import (
     sm_family_higgs_yukawa_diagnostics,
     sm_family_fn_quark_path_energy_local_density,
     sm_family_fn_quark_path_higgs_force,
+    sm_family_quark_path_readouts_from_masses_ckm,
     sm_family_recirculated_quark_path_readouts,
     sm_family_recirculated_quark_dilations,
     sm_family_recirculated_quark_yukawas,
@@ -38,6 +39,7 @@ from clifford_3plus2_d5.qca_smv0.sm_fn import (
     DEFAULT_FN_QUARK_CHARGES,
     FN_LAMBDA_WOLFENSTEIN,
     FNQuarkYukawas,
+    fn_quark_yukawas_from_masses_ckm,
     fn_unitary_dilation_residual,
     fn_visible_recirculation_transfer,
 )
@@ -168,6 +170,28 @@ def test_family_calibrated_quark_path_readouts_reproduce_target_yukawas() -> Non
     assert jnp.max(jnp.abs(readouts.down.transfer - target.down)) < 1e-7
     assert jnp.max(jnp.abs(source.up - expected_up)) < 2e-7
     assert jnp.max(jnp.abs(source.down - expected_down)) < 2e-7
+
+
+def test_family_quark_path_readouts_from_masses_ckm_match_manual_calibration() -> None:
+    theta = jnp.asarray(0.22, dtype=jnp.float32)
+    ckm = jnp.asarray(
+        [
+            [jnp.cos(theta), jnp.sin(theta), 0.0],
+            [-jnp.sin(theta), jnp.cos(theta), 0.0],
+            [0.0, 0.0, 1.0],
+        ],
+        dtype=jnp.complex64,
+    )
+    up_masses = jnp.asarray([1.0, 0.08, 0.002], dtype=jnp.float32)
+    down_masses = jnp.asarray([0.7, 0.04, 0.0015], dtype=jnp.float32)
+    target = fn_quark_yukawas_from_masses_ckm(up_masses, down_masses, ckm)
+    direct = sm_family_quark_path_readouts_from_masses_ckm(up_masses, down_masses, ckm)
+    manual = sm_family_calibrated_quark_path_readouts(target)
+
+    assert jnp.max(jnp.abs(direct.up.transfer - target.up)) < 5e-7
+    assert jnp.max(jnp.abs(direct.down.transfer - target.down)) < 5e-7
+    assert jnp.max(jnp.abs(direct.up.transfer - manual.up.transfer)) < 1e-8
+    assert jnp.max(jnp.abs(direct.down.transfer - manual.down.transfer)) < 1e-8
 
 
 def test_family_quark_door_uses_finite_fn_unitary_dilation() -> None:
