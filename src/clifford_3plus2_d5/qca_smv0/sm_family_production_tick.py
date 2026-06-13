@@ -44,9 +44,11 @@ from clifford_3plus2_d5.qca_smv0.sm_fermion_higgs import deterministic_yukawa_so
 from clifford_3plus2_d5.qca_smv0.sm_fn import (
     DEFAULT_FN_QUARK_CHARGES,
     FN_LAMBDA_WOLFENSTEIN,
+    FNQuarkCoefficientMatrices,
     FNQuarkCharges,
     FNQuarkYukawas,
     fn_ckm_from_yukawas,
+    fn_quark_coefficients_from_yukawas,
     fn_quark_yukawas_from_masses_ckm,
     fn_singular_masses,
 )
@@ -135,6 +137,24 @@ class FamilyFNProductionConfig(NamedTuple):
     readouts: FamilyFNQuarkPathReadouts
     target_yukawas: FNQuarkYukawas
     recovered_yukawas: FNQuarkYukawas
+
+
+class FamilyFNPhenomenologyReport(NamedTuple):
+    """Mass/CKM reconstruction and coefficient-quality report for FN production."""
+
+    target_yukawas: FNQuarkYukawas
+    recovered_yukawas: FNQuarkYukawas
+    coefficients: FNQuarkCoefficientMatrices
+    up_mass_residual: jnp.ndarray
+    down_mass_residual: jnp.ndarray
+    ckm_abs_residual: jnp.ndarray
+    coefficient_magnitude_min: jnp.ndarray
+    coefficient_magnitude_max: jnp.ndarray
+    coefficient_magnitude_mean: jnp.ndarray
+    coefficient_order_one_distance: jnp.ndarray
+    coefficients_are_finite: jnp.ndarray
+    coefficients_are_nonzero: jnp.ndarray
+    coefficients_are_order_one: jnp.ndarray
 
 
 def _validate_family_state(state: jnp.ndarray) -> tuple[int, int, int]:
@@ -612,6 +632,67 @@ def sm_family_fn_configure_production(
         readouts=readouts,
         target_yukawas=target_yukawas,
         recovered_yukawas=sm_family_quark_yukawas_from_path_readouts(readouts),
+    )
+
+
+def _coefficient_quality(
+    coefficients: FNQuarkCoefficientMatrices,
+) -> tuple[jnp.ndarray, jnp.ndarray, jnp.ndarray, jnp.ndarray, jnp.ndarray, jnp.ndarray, jnp.ndarray]:
+    coefficient_abs = jnp.concatenate((jnp.ravel(jnp.abs(coefficients.up)), jnp.ravel(jnp.abs(coefficients.down))))
+    nonzero_mask = coefficient_abs > 1e-30
+    nonzero_abs = jnp.where(nonzero_mask, coefficient_abs, jnp.inf)
+    supported_abs = jnp.where(nonzero_mask, coefficient_abs, 1.0)
+    coefficient_min = jnp.where(jnp.any(nonzero_mask), jnp.min(nonzero_abs), 0.0)
+    coefficient_max = jnp.max(coefficient_abs)
+    coefficient_mean = jnp.mean(coefficient_abs)
+    order_distance = jnp.max(jnp.abs(jnp.log(jnp.clip(supported_abs, min=1e-30))))
+    finite = jnp.all(jnp.isfinite(coefficient_abs))
+    nonzero = jnp.all(nonzero_mask)
+    order_one = finite & jnp.any(nonzero_mask) & jnp.all((~nonzero_mask) | ((coefficient_abs >= 0.1) & (coefficient_abs <= 10.0)))
+    return coefficient_min, coefficient_max, coefficient_mean, order_distance, finite, nonzero, order_one
+
+
+def sm_family_fn_phenomenology_report(
+    up_masses: jnp.ndarray,
+    down_masses: jnp.ndarray,
+    ckm: jnp.ndarray | None = None,
+    *,
+    lambda_rec: float = FN_LAMBDA_WOLFENSTEIN,
+    charges: FNQuarkCharges = DEFAULT_FN_QUARK_CHARGES,
+) -> FamilyFNPhenomenologyReport:
+    """Report calibrated FN reconstruction quality and coefficient scale."""
+
+    config = sm_family_fn_configure_production(
+        up_masses,
+        down_masses,
+        ckm,
+        lambda_rec=lambda_rec,
+        charges=charges,
+    )
+    coefficients = fn_quark_coefficients_from_yukawas(
+        config.target_yukawas,
+        lambda_rec=lambda_rec,
+        charges=charges,
+    )
+    target_ckm = fn_ckm_from_yukawas(config.target_yukawas.up, config.target_yukawas.down)
+    recovered_ckm = fn_ckm_from_yukawas(config.recovered_yukawas.up, config.recovered_yukawas.down)
+    coefficient_min, coefficient_max, coefficient_mean, order_distance, finite, nonzero, order_one = _coefficient_quality(coefficients)
+    return FamilyFNPhenomenologyReport(
+        target_yukawas=config.target_yukawas,
+        recovered_yukawas=config.recovered_yukawas,
+        coefficients=coefficients,
+        up_mass_residual=jnp.max(jnp.abs(fn_singular_masses(config.recovered_yukawas.up) - fn_singular_masses(config.target_yukawas.up))),
+        down_mass_residual=jnp.max(
+            jnp.abs(fn_singular_masses(config.recovered_yukawas.down) - fn_singular_masses(config.target_yukawas.down)),
+        ),
+        ckm_abs_residual=jnp.max(jnp.abs(jnp.abs(recovered_ckm) - jnp.abs(target_ckm))),
+        coefficient_magnitude_min=coefficient_min,
+        coefficient_magnitude_max=coefficient_max,
+        coefficient_magnitude_mean=coefficient_mean,
+        coefficient_order_one_distance=order_distance,
+        coefficients_are_finite=finite,
+        coefficients_are_nonzero=nonzero,
+        coefficients_are_order_one=order_one,
     )
 
 

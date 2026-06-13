@@ -7,6 +7,7 @@ from clifford_3plus2_d5.qca_smv0.sm_dynamics import deterministic_sm_momenta
 from clifford_3plus2_d5.qca_smv0.sm_family_production_tick import (
     sm_family_fn_production_initial_state,
     sm_family_fn_production_higgs_force,
+    sm_family_fn_phenomenology_report,
     sm_family_fn_production_rollout,
     sm_family_fn_production_rollout_from_masses_ckm,
     sm_family_fn_production_sm_tick,
@@ -34,7 +35,7 @@ from clifford_3plus2_d5.qca_smv0.sm_family_higgs import (
     sm_family_recirculated_quark_yukawas,
     sm_zero_family_fn_quark_path_state_aux,
 )
-from clifford_3plus2_d5.qca_smv0.sm_fn import FNQuarkYukawas
+from clifford_3plus2_d5.qca_smv0.sm_fn import FNQuarkYukawas, fn_quark_coefficients_from_yukawas
 from clifford_3plus2_d5.qca_smv0.sm_family_sourced_tick import sm_family_sourced_sm_tick
 from clifford_3plus2_d5.qca_smv0.sm_fermion_higgs import deterministic_yukawa_source_state, sm_yukawa_higgs_force
 from clifford_3plus2_d5.qca_smv0.sm_gauge import (
@@ -436,6 +437,57 @@ def test_fn_run_production_api_matches_manual_readout_rollout() -> None:
     assert jnp.max(jnp.abs(actual.higgs_links - manual.higgs_links)) < 1e-8
     assert jnp.max(jnp.abs(actual.fn_aux_state.up - manual.fn_aux_state.up)) < 1e-8
     assert jnp.max(jnp.abs(actual.fn_aux_state.down - manual.fn_aux_state.down)) < 1e-8
+
+
+def test_fn_phenomenology_report_recovers_masses_ckm_and_coefficients() -> None:
+    theta = jnp.asarray(0.22, dtype=jnp.float32)
+    ckm = jnp.asarray(
+        [
+            [jnp.cos(theta), jnp.sin(theta), 0.0],
+            [-jnp.sin(theta), jnp.cos(theta), 0.0],
+            [0.0, 0.0, 1.0],
+        ],
+        dtype=jnp.complex64,
+    )
+    up_masses = jnp.asarray([1.0, 0.08, 0.002], dtype=jnp.float32)
+    down_masses = jnp.asarray([0.7, 0.04, 0.0015], dtype=jnp.float32)
+
+    report = sm_family_fn_phenomenology_report(up_masses, down_masses, ckm)
+    expected_coefficients = fn_quark_coefficients_from_yukawas(report.target_yukawas)
+
+    assert report.up_mass_residual < 5e-7
+    assert report.down_mass_residual < 5e-7
+    assert report.ckm_abs_residual < 5e-7
+    assert jnp.max(jnp.abs(report.coefficients.up - expected_coefficients.up)) < 1e-8
+    assert jnp.max(jnp.abs(report.coefficients.down - expected_coefficients.down)) < 1e-8
+    assert report.coefficients_are_finite
+    assert report.coefficient_magnitude_max > 0
+
+
+def test_fn_phenomenology_report_identifies_order_one_coefficients_on_fn_scaled_masses() -> None:
+    lambda_rec = 0.225
+    up_masses = jnp.asarray([lambda_rec**8, lambda_rec**4, 1.0], dtype=jnp.float32)
+    down_masses = jnp.asarray([lambda_rec**4, lambda_rec**2, 1.0], dtype=jnp.float32)
+
+    report = sm_family_fn_phenomenology_report(up_masses, down_masses, lambda_rec=lambda_rec)
+
+    assert report.coefficients_are_finite
+    assert not report.coefficients_are_nonzero
+    assert report.coefficients_are_order_one
+    assert jnp.abs(report.coefficient_magnitude_min - 1.0) < 1e-6
+    assert jnp.abs(report.coefficient_magnitude_max - 1.0) < 1e-6
+    assert report.coefficient_order_one_distance < 1e-6
+
+
+def test_fn_phenomenology_report_flags_extreme_non_order_one_coefficients() -> None:
+    up_masses = jnp.asarray([1.0, 0.08, 0.002], dtype=jnp.float32)
+    down_masses = jnp.asarray([0.7, 0.04, 0.0015], dtype=jnp.float32)
+
+    report = sm_family_fn_phenomenology_report(up_masses, down_masses, lambda_rec=0.05)
+
+    assert report.coefficients_are_finite
+    assert report.coefficient_magnitude_max > 10.0
+    assert not report.coefficients_are_order_one
 
 
 def test_fn_unitary_production_from_masses_ckm_matches_manual_readouts() -> None:
