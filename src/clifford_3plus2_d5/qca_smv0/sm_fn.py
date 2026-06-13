@@ -46,6 +46,13 @@ class FNQuarkYukawas(NamedTuple):
     down: jnp.ndarray
 
 
+class FNQuarkCoefficientMatrices(NamedTuple):
+    """Order-one up/down coefficient matrices multiplying FN path transfers."""
+
+    up: jnp.ndarray
+    down: jnp.ndarray
+
+
 class FNRecirculationNetwork(NamedTuple):
     """Direct-sum unitary hidden path network for one FN Yukawa sector."""
 
@@ -627,6 +634,39 @@ def fn_effective_yukawa(
         left_charges,
         right_charges,
         coefficients=coefficients,
+    )
+
+
+def fn_coefficients_from_yukawa(
+    lambda_rec: float | jnp.ndarray,
+    left_charges: tuple[int, int, int],
+    right_charges: tuple[int, int, int],
+    target_yukawa: jnp.ndarray,
+) -> jnp.ndarray:
+    """Return coefficients ``c_ij`` for ``Y_ij=c_ij A_ij``.
+
+    ``A_ij`` is not a power table inserted by hand: it is the source-to-sink
+    transfer measured from the explicit hidden FN path network.  This function
+    is the simulator calibration bridge: measured or user-specified Yukawas can
+    be represented as FN recirculation plus order-one local return weights.
+    """
+
+    target = _validate_family_matrix(target_yukawa, "target_yukawa").astype(jnp.complex64)
+    transfer = fn_recirculation_power_matrix(lambda_rec, left_charges, right_charges).astype(jnp.complex64)
+    return target / transfer
+
+
+def fn_quark_coefficients_from_yukawas(
+    target_yukawas: FNQuarkYukawas,
+    *,
+    lambda_rec: float = FN_LAMBDA_WOLFENSTEIN,
+    charges: FNQuarkCharges = DEFAULT_FN_QUARK_CHARGES,
+) -> FNQuarkCoefficientMatrices:
+    """Calibrate up/down FN coefficient matrices from target quark Yukawas."""
+
+    return FNQuarkCoefficientMatrices(
+        up=fn_coefficients_from_yukawa(lambda_rec, charges.q, charges.u, target_yukawas.up),
+        down=fn_coefficients_from_yukawa(lambda_rec, charges.q, charges.d, target_yukawas.down),
     )
 
 

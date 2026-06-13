@@ -12,6 +12,7 @@ from clifford_3plus2_d5.qca_smv0.sm_fn import (
     fn_beam_splitter_unitarity_residual,
     fn_charge_exponents,
     fn_ckm_from_yukawas,
+    fn_coefficients_from_yukawa,
     fn_default_coefficients,
     fn_effective_yukawa,
     fn_apply_recirculation_collision,
@@ -25,6 +26,7 @@ from clifford_3plus2_d5.qca_smv0.sm_fn import (
     fn_recirculation_network_unitarity_residual,
     fn_recirculation_power_matrix,
     fn_recirculation_transfer_matrix,
+    fn_quark_coefficients_from_yukawas,
     fn_singular_masses,
     fn_unitarity_residual,
     fn_unitary_dilation,
@@ -212,6 +214,46 @@ def test_fn_effective_yukawa_is_coefficients_times_recirculation_powers() -> Non
 
     assert y.shape == (SM_FAMILY_DIM, SM_FAMILY_DIM)
     assert jnp.max(jnp.abs(y - expected)) < 1e-10
+
+
+def test_fn_target_yukawa_calibrates_order_one_coefficients_on_path_transfers() -> None:
+    charges = DEFAULT_FN_QUARK_CHARGES
+    target_coeffs = jnp.asarray(
+        [
+            [1.0 + 0.2j, 0.8 - 0.1j, -1.1 + 0.4j],
+            [1.3 - 0.3j, -0.9 + 0.2j, 0.7 + 0.5j],
+            [0.6 + 0.1j, -1.2 - 0.2j, 1.1 - 0.4j],
+        ],
+        dtype=jnp.complex64,
+    )
+    target = fn_effective_yukawa(
+        FN_LAMBDA_WOLFENSTEIN,
+        charges.q,
+        charges.u,
+        coefficients=target_coeffs,
+    )
+    calibrated = fn_coefficients_from_yukawa(FN_LAMBDA_WOLFENSTEIN, charges.q, charges.u, target)
+    reconstructed = fn_effective_yukawa(
+        FN_LAMBDA_WOLFENSTEIN,
+        charges.q,
+        charges.u,
+        coefficients=calibrated,
+    )
+    quark_coeffs = fn_quark_coefficients_from_yukawas(
+        fn_quark_yukawa_matrices(
+            lambda_rec=FN_LAMBDA_WOLFENSTEIN,
+            charges=charges,
+            up_coefficients=target_coeffs,
+            down_coefficients=fn_default_coefficients("down"),
+        ),
+        lambda_rec=FN_LAMBDA_WOLFENSTEIN,
+        charges=charges,
+    )
+
+    assert jnp.max(jnp.abs(calibrated - target_coeffs)) < 1e-5
+    assert jnp.max(jnp.abs(reconstructed - target)) < 1e-8
+    assert jnp.max(jnp.abs(quark_coeffs.up - target_coeffs)) < 1e-5
+    assert jnp.max(jnp.abs(quark_coeffs.down - fn_default_coefficients("down"))) < 1e-5
 
 
 def test_fn_diagonal_scalings_and_wolfenstein_left_frame_scaling() -> None:
