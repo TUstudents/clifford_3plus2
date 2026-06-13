@@ -147,6 +147,7 @@ class FamilyFNQuarkPathStateSource(NamedTuple):
 
     up: jnp.ndarray
     down: jnp.ndarray
+    state_remainder: jnp.ndarray
     state_source: jnp.ndarray
     aux_state: FamilyFNQuarkPathAuxState
 
@@ -390,7 +391,7 @@ def sm_apply_family_fn_quark_pair_path_door_state(
     up_higgs_component: jnp.ndarray,
     down_higgs_component: jnp.ndarray,
     readouts: FamilyFNQuarkPathReadouts,
-) -> tuple[jnp.ndarray, jnp.ndarray, jnp.ndarray, jnp.ndarray]:
+) -> tuple[jnp.ndarray, jnp.ndarray, jnp.ndarray, jnp.ndarray, jnp.ndarray]:
     """Evolve one left quark door through a shared up/down FN path injection."""
 
     output = fn_apply_visible_recirculation_pair_path_state(
@@ -411,7 +412,7 @@ def sm_apply_family_fn_quark_pair_path_door_state(
         down_visible = down_higgs * down_visible
     else:
         down_visible = down_higgs[..., None] * down_visible
-    return up_visible, down_visible, output.up_hidden, output.down_hidden
+    return up_visible, down_visible, output.visible, output.up_hidden, output.down_hidden
 
 
 def sm_apply_family_fn_quark_aux_state(
@@ -456,6 +457,7 @@ def sm_family_fn_quark_path_state_source(
 
     h_tilde = sm_higgs_tilde(higgs)
     source = jnp.zeros_like(state)
+    state_remainder = state
     up_sources = jnp.zeros((*lattice_shape, 4, 3, SM_FAMILY_DIM), dtype=state.dtype)
     down_sources = jnp.zeros_like(up_sources)
     updated_up_aux = jnp.zeros_like(aux_state.up)
@@ -467,16 +469,21 @@ def sm_family_fn_quark_path_state_source(
             down_total = jnp.zeros_like(up_total)
             for weak in range(2):
                 left = state[..., spin, _q_index(color, weak), :]
-                up_visible, down_visible, up_hidden, down_hidden = sm_apply_family_fn_quark_pair_path_door_state(
-                    left,
-                    aux_state.up[..., spin, color, weak, :],
-                    aux_state.down[..., spin, color, weak, :],
-                    h_tilde[..., weak],
-                    higgs[..., weak],
-                    readouts,
+                up_visible, down_visible, left_remainder, up_hidden, down_hidden = (
+                    sm_apply_family_fn_quark_pair_path_door_state(
+                        left,
+                        aux_state.up[..., spin, color, weak, :],
+                        aux_state.down[..., spin, color, weak, :],
+                        h_tilde[..., weak],
+                        higgs[..., weak],
+                        readouts,
+                    )
                 )
                 up_total = up_total + up_visible.astype(state.dtype)
                 down_total = down_total + down_visible.astype(state.dtype)
+                state_remainder = state_remainder.at[..., spin, _q_index(color, weak), :].set(
+                    left_remainder.astype(state.dtype),
+                )
                 updated_up_aux = updated_up_aux.at[..., spin, color, weak, :].set(up_hidden)
                 updated_down_aux = updated_down_aux.at[..., spin, color, weak, :].set(down_hidden)
             up_sources = up_sources.at[..., spin, color, :].set(up_total)
@@ -486,6 +493,7 @@ def sm_family_fn_quark_path_state_source(
     return FamilyFNQuarkPathStateSource(
         up=up_sources,
         down=down_sources,
+        state_remainder=state_remainder,
         state_source=source,
         aux_state=FamilyFNQuarkPathAuxState(up=updated_up_aux, down=updated_down_aux),
     )
@@ -648,7 +656,7 @@ def sm_apply_family_fn_quark_path_source_kick(
     source = sm_family_fn_quark_path_state_source(state, higgs, aux_state=aux_state, readouts=readouts)
     beta_source = jnp.einsum("sr,...rif->...sif", sm_dirac_beta(state.dtype), source.state_source)
     dt = jnp.asarray(step_size, dtype=jnp.real(jnp.asarray(0, dtype=state.dtype)).dtype)
-    updated = state - 1j * dt * beta_source
+    updated = source.state_remainder - 1j * dt * beta_source
     return FamilyFNQuarkPathSourceKick(state=updated, source=source.state_source, aux_state=source.aux_state)
 
 

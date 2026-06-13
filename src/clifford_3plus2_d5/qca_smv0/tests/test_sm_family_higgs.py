@@ -249,9 +249,11 @@ def test_family_fn_quark_path_source_matches_matrix_door_with_zero_aux() -> None
     assert readouts.down.network.unitary.shape == (27, 27)
     assert source.aux_state.up.shape == (*lattice_shape, 4, 3, 2, 45)
     assert source.aux_state.down.shape == (*lattice_shape, 4, 3, 2, 27)
+    assert source.state_remainder.shape == state.shape
     assert jnp.max(jnp.abs(source.up - matrix_source.up)) < 2e-7
     assert jnp.max(jnp.abs(source.down - matrix_source.down)) < 2e-7
     assert jnp.max(jnp.abs(source.state_source - matrix_source.state_source)) < 2e-7
+    assert jnp.linalg.norm(source.state_remainder - state) > 1e-5
     assert jnp.linalg.norm(source.aux_state.up) > 1e-5
     assert jnp.linalg.norm(source.aux_state.down) > 1e-5
 
@@ -352,7 +354,7 @@ def test_family_fn_quark_path_source_kick_advances_state_from_path_source() -> N
         ),
         source.state_source,
     )
-    expected = state - 1j * step_size * beta_source
+    expected = source.state_remainder - 1j * step_size * beta_source
 
     assert jnp.max(jnp.abs(kicked.source - source.state_source)) < 2e-7
     assert jnp.max(jnp.abs(kicked.state - expected)) < 2e-7
