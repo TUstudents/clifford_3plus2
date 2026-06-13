@@ -21,8 +21,10 @@ from clifford_3plus2_d5.qca_smv0.sm_family_production_tick import (
     sm_family_production_higgs_force,
     sm_family_production_sm_tick,
     sm_family_production_tick_diagnostics,
+    sm_family_fn_configure_production,
     sm_zero_family_lepton_yukawas,
     sm_zero_quark_yukawas,
+    sm_family_fn_run_production,
 )
 from clifford_3plus2_d5.qca_smv0.sm_family_higgs import (
     sm_family_calibrated_quark_path_readouts,
@@ -375,6 +377,65 @@ def test_fn_production_from_masses_ckm_matches_manual_readouts() -> None:
     assert jnp.max(jnp.abs(calibrated_rollout.fn_aux_state.up - manual_rollout.fn_aux_state.up)) < 1e-8
     assert jnp.max(jnp.abs(calibrated_rollout.fn_aux_state.down - manual_rollout.fn_aux_state.down)) < 1e-8
     assert jnp.linalg.norm(calibrated_rollout.state - default_rollout.state) > 1e-7
+
+
+def test_fn_configure_production_recovers_target_yukawas() -> None:
+    theta = jnp.asarray(0.22, dtype=jnp.float32)
+    ckm = jnp.asarray(
+        [
+            [jnp.cos(theta), jnp.sin(theta), 0.0],
+            [-jnp.sin(theta), jnp.cos(theta), 0.0],
+            [0.0, 0.0, 1.0],
+        ],
+        dtype=jnp.complex64,
+    )
+    up_masses = jnp.asarray([1.0, 0.08, 0.002], dtype=jnp.float32)
+    down_masses = jnp.asarray([0.7, 0.04, 0.0015], dtype=jnp.float32)
+
+    config = sm_family_fn_configure_production(up_masses, down_masses, ckm)
+
+    assert jnp.max(jnp.abs(config.recovered_yukawas.up - config.target_yukawas.up)) < 5e-7
+    assert jnp.max(jnp.abs(config.recovered_yukawas.down - config.target_yukawas.down)) < 5e-7
+
+
+def test_fn_run_production_api_matches_manual_readout_rollout() -> None:
+    initial = sm_family_fn_production_initial_state((1, 1, 1))
+    theta = jnp.asarray(0.22, dtype=jnp.float32)
+    ckm = jnp.asarray(
+        [
+            [jnp.cos(theta), jnp.sin(theta), 0.0],
+            [-jnp.sin(theta), jnp.cos(theta), 0.0],
+            [0.0, 0.0, 1.0],
+        ],
+        dtype=jnp.complex64,
+    )
+    up_masses = jnp.asarray([1.0, 0.08, 0.002], dtype=jnp.float32)
+    down_masses = jnp.asarray([0.7, 0.04, 0.0015], dtype=jnp.float32)
+    config = sm_family_fn_configure_production(up_masses, down_masses, ckm)
+
+    manual = sm_family_fn_production_rollout(
+        initial,
+        steps=1,
+        step_size=0.003,
+        readouts=config.readouts,
+    )
+    actual = sm_family_fn_run_production(
+        initial,
+        up_masses,
+        down_masses,
+        ckm,
+        steps=1,
+        step_size=0.003,
+    )
+
+    assert jnp.max(jnp.abs(actual.state - manual.state)) < 1e-8
+    assert jnp.max(jnp.abs(actual.higgs - manual.higgs)) < 1e-8
+    assert jnp.max(jnp.abs(actual.higgs_momenta - manual.higgs_momenta)) < 1e-8
+    assert jnp.max(jnp.abs(actual.sm_links - manual.sm_links)) < 1e-8
+    assert jnp.max(jnp.abs(actual.sm_momenta - manual.sm_momenta)) < 1e-8
+    assert jnp.max(jnp.abs(actual.higgs_links - manual.higgs_links)) < 1e-8
+    assert jnp.max(jnp.abs(actual.fn_aux_state.up - manual.fn_aux_state.up)) < 1e-8
+    assert jnp.max(jnp.abs(actual.fn_aux_state.down - manual.fn_aux_state.down)) < 1e-8
 
 
 def test_fn_unitary_production_from_masses_ckm_matches_manual_readouts() -> None:

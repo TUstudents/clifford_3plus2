@@ -129,6 +129,14 @@ class FamilyFNCalibratedProductionRun(NamedTuple):
     recovered_yukawas: FNQuarkYukawas
 
 
+class FamilyFNProductionConfig(NamedTuple):
+    """Mass/CKM-calibrated FN production configuration."""
+
+    readouts: FamilyFNQuarkPathReadouts
+    target_yukawas: FNQuarkYukawas
+    recovered_yukawas: FNQuarkYukawas
+
+
 def _validate_family_state(state: jnp.ndarray) -> tuple[int, int, int]:
     if state.ndim != 6 or state.shape[-3:] != (4, SM_INTERNAL_DIM, SM_FAMILY_DIM):
         raise ValueError("family SM Dirac state must have shape (nx, ny, nz, 4, 32, 3)")
@@ -582,6 +590,31 @@ def sm_family_fn_production_initial_state(
     )
 
 
+def sm_family_fn_configure_production(
+    up_masses: jnp.ndarray,
+    down_masses: jnp.ndarray,
+    ckm: jnp.ndarray | None = None,
+    *,
+    lambda_rec: float = FN_LAMBDA_WOLFENSTEIN,
+    charges: FNQuarkCharges = DEFAULT_FN_QUARK_CHARGES,
+) -> FamilyFNProductionConfig:
+    """Configure FN production directly from masses, CKM, lambda, and charges."""
+
+    target_yukawas = fn_quark_yukawas_from_masses_ckm(up_masses, down_masses, ckm)
+    readouts = sm_family_quark_path_readouts_from_masses_ckm(
+        up_masses,
+        down_masses,
+        ckm,
+        lambda_rec=lambda_rec,
+        charges=charges,
+    )
+    return FamilyFNProductionConfig(
+        readouts=readouts,
+        target_yukawas=target_yukawas,
+        recovered_yukawas=sm_family_quark_yukawas_from_path_readouts(readouts),
+    )
+
+
 def sm_family_fn_production_step(
     state: FamilyFNProductionSMTickOutput,
     *,
@@ -809,7 +842,7 @@ def sm_family_fn_production_rollout_from_masses_ckm(
 ) -> FamilyFNProductionSMTickOutput:
     """Run FN production calibrated directly from masses and CKM."""
 
-    readouts = sm_family_quark_path_readouts_from_masses_ckm(
+    config = sm_family_fn_configure_production(
         up_masses,
         down_masses,
         ckm,
@@ -822,7 +855,47 @@ def sm_family_fn_production_rollout_from_masses_ckm(
         step_size=step_size,
         beta=beta,
         parameters=parameters,
-        readouts=readouts,
+        readouts=config.readouts,
+        lepton_yukawas=lepton_yukawas,
+        wilson_epsilon=wilson_epsilon,
+        higgs_force_epsilon=higgs_force_epsilon,
+        fermion_current_epsilon=fermion_current_epsilon,
+    )
+
+
+def sm_family_fn_run_production(
+    initial_state: FamilyFNProductionSMTickOutput,
+    up_masses: jnp.ndarray,
+    down_masses: jnp.ndarray,
+    ckm: jnp.ndarray | None = None,
+    *,
+    lambda_rec: float = FN_LAMBDA_WOLFENSTEIN,
+    charges: FNQuarkCharges = DEFAULT_FN_QUARK_CHARGES,
+    steps: int,
+    step_size: float,
+    beta: float = 1.0,
+    parameters: HiggsDynamicsParameters = DEFAULT_HIGGS_DYNAMICS_PARAMETERS,
+    lepton_yukawas: FamilyLeptonYukawas | None = None,
+    wilson_epsilon: float = 1e-3,
+    higgs_force_epsilon: float = 1e-3,
+    fermion_current_epsilon: float = 3e-2,
+) -> FamilyFNProductionSMTickOutput:
+    """Run optimized FN production from calibrated quark masses and CKM input."""
+
+    config = sm_family_fn_configure_production(
+        up_masses,
+        down_masses,
+        ckm,
+        lambda_rec=lambda_rec,
+        charges=charges,
+    )
+    return sm_family_fn_production_rollout(
+        initial_state,
+        steps=steps,
+        step_size=step_size,
+        beta=beta,
+        parameters=parameters,
+        readouts=config.readouts,
         lepton_yukawas=lepton_yukawas,
         wilson_epsilon=wilson_epsilon,
         higgs_force_epsilon=higgs_force_epsilon,
