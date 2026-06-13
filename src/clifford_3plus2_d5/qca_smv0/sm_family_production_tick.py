@@ -29,6 +29,7 @@ from clifford_3plus2_d5.qca_smv0.sm_family_higgs import (
     SM_FAMILY_DIM,
     sm_apply_family_fn_quark_path_source_kick,
     sm_apply_family_yukawa_collision,
+    sm_family_fn_quark_path_higgs_force,
     sm_family_recirculated_quark_path_readouts,
     sm_zero_family_fn_quark_path_state_aux,
 )
@@ -172,6 +173,32 @@ def sm_family_production_higgs_force(
         quark_yukawas=quark_yukawas,
         lepton_yukawas=lepton_yukawas,
     )
+
+
+def sm_family_fn_production_higgs_force(
+    state: jnp.ndarray,
+    higgs: jnp.ndarray,
+    higgs_links: jnp.ndarray,
+    aux_state: FamilyFNQuarkPathAuxState | None = None,
+    readouts: FamilyFNQuarkPathReadouts | None = None,
+    *,
+    parameters: HiggsDynamicsParameters = DEFAULT_HIGGS_DYNAMICS_PARAMETERS,
+    lepton_yukawas: FamilyLeptonYukawas | None = None,
+) -> jnp.ndarray:
+    """Return Higgs force with quark FN paths plus matrix lepton Yukawas."""
+
+    lattice_shape = _validate_family_state(state)
+    _validate_higgs_field(higgs, lattice_shape)
+    _validate_higgs_links(higgs_links, lattice_shape)
+    zero_quarks = sm_zero_quark_yukawas()
+    return sm_family_production_higgs_force(
+        state,
+        higgs,
+        higgs_links,
+        parameters=parameters,
+        quark_yukawas=zero_quarks,
+        lepton_yukawas=lepton_yukawas,
+    ) + sm_family_fn_quark_path_higgs_force(state, higgs, aux_state=aux_state, readouts=readouts)
 
 
 def sm_apply_family_production_higgs_momentum_kick(
@@ -364,7 +391,7 @@ def sm_family_fn_production_sm_tick(
         parameters=parameters,
         quark_yukawas=zero_quarks,
         lepton_yukawas=lepton_yukawas,
-    )
+    ) + sm_family_fn_quark_path_higgs_force(state, higgs, aux_state=aux_state, readouts=readouts)
     half_sm_momenta = sm_momenta - 0.5 * dt * first_link_force
     half_higgs_momenta = higgs_momenta + 0.5 * dt * first_higgs_force
 
@@ -424,6 +451,11 @@ def sm_family_fn_production_sm_tick(
         parameters=parameters,
         quark_yukawas=zero_quarks,
         lepton_yukawas=lepton_yukawas,
+    ) + sm_family_fn_quark_path_higgs_force(
+        updated_state,
+        updated_higgs,
+        aux_state=second_quark.aux_state,
+        readouts=readouts,
     )
     updated_sm_momenta = half_sm_momenta - 0.5 * dt * second_link_force
     updated_higgs_momenta = half_higgs_momenta + 0.5 * dt * second_higgs_force

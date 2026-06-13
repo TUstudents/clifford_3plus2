@@ -23,6 +23,8 @@ from clifford_3plus2_d5.qca_smv0.sm_family_higgs import (
     sm_family_chirality_norms,
     sm_family_embedding_residuals,
     sm_family_higgs_yukawa_diagnostics,
+    sm_family_fn_quark_path_energy_local_density,
+    sm_family_fn_quark_path_higgs_force,
     sm_family_recirculated_quark_path_readouts,
     sm_family_recirculated_quark_dilations,
     sm_family_recirculated_quark_yukawas,
@@ -270,6 +272,28 @@ def test_family_fn_quark_path_source_uses_hidden_path_memory() -> None:
     assert jnp.linalg.norm(memory_source.state_source - zero_source.state_source) > 1e-5
     assert jnp.linalg.norm(memory_source.aux_state.up - zero_source.aux_state.up) > 1e-5
     assert jnp.linalg.norm(memory_source.aux_state.down - zero_source.aux_state.down) > 1e-5
+
+
+def test_family_fn_quark_path_higgs_force_uses_recirculated_source() -> None:
+    lattice_shape = (1, 1, 1)
+    state = jnp.zeros((*lattice_shape, 4, SM_INTERNAL_DIM, 3), dtype=jnp.complex64)
+    state = state.at[0, 0, 0, 0, 0, 0].set(0.8 + 0.1j)
+    state = state.at[0, 0, 0, 2, 6, 1].set(-0.35 + 0.45j)
+    state = state.at[0, 0, 0, 1, 3, 1].set(0.55 - 0.2j)
+    state = state.at[0, 0, 0, 3, 10, 2].set(0.4 + 0.3j)
+    higgs = sm_constant_higgs(lattice_shape)
+    aux = sm_zero_family_fn_quark_path_state_aux(lattice_shape)
+    zero_state = jnp.zeros_like(state)
+
+    density = sm_family_fn_quark_path_energy_local_density(state, higgs, aux)
+    force = sm_family_fn_quark_path_higgs_force(state, higgs, aux)
+    zero_force = sm_family_fn_quark_path_higgs_force(zero_state, higgs, aux)
+
+    assert density.shape == lattice_shape
+    assert force.shape == higgs.shape
+    assert jnp.linalg.norm(density) > 1e-7
+    assert jnp.linalg.norm(force) > 1e-7
+    assert jnp.linalg.norm(zero_force) < 1e-8
 
 
 def test_family_fn_quark_source_kick_advances_state_from_persistent_source() -> None:

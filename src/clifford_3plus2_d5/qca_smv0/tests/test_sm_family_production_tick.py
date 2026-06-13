@@ -6,6 +6,7 @@ import jax.numpy as jnp
 from clifford_3plus2_d5.qca_smv0.sm_dynamics import deterministic_sm_momenta
 from clifford_3plus2_d5.qca_smv0.sm_family_production_tick import (
     sm_family_fn_production_initial_state,
+    sm_family_fn_production_higgs_force,
     sm_family_fn_production_rollout,
     sm_family_fn_production_sm_tick,
     sm_family_fn_production_step,
@@ -16,7 +17,10 @@ from clifford_3plus2_d5.qca_smv0.sm_family_production_tick import (
     sm_zero_family_lepton_yukawas,
     sm_zero_quark_yukawas,
 )
-from clifford_3plus2_d5.qca_smv0.sm_family_higgs import sm_zero_family_fn_quark_path_state_aux
+from clifford_3plus2_d5.qca_smv0.sm_family_higgs import (
+    sm_family_fn_quark_path_higgs_force,
+    sm_zero_family_fn_quark_path_state_aux,
+)
 from clifford_3plus2_d5.qca_smv0.sm_family_sourced_tick import sm_family_sourced_sm_tick
 from clifford_3plus2_d5.qca_smv0.sm_fermion_higgs import deterministic_yukawa_source_state, sm_yukawa_higgs_force
 from clifford_3plus2_d5.qca_smv0.sm_gauge import (
@@ -84,6 +88,32 @@ def test_production_higgs_force_adds_yukawa_source() -> None:
 
     assert jnp.max(jnp.abs(production_force - expected_force)) < 1e-7
     assert jnp.linalg.norm(sm_yukawa_higgs_force(state, higgs)) > 1e-4
+
+
+def test_fn_production_higgs_force_includes_recirculated_quark_paths() -> None:
+    state, higgs, _, _, _, higgs_links = _stage15_fields()
+    aux = sm_zero_family_fn_quark_path_state_aux(state.shape[:3])
+    zero_quarks = sm_zero_quark_yukawas()
+    zero_leptons = sm_zero_family_lepton_yukawas()
+
+    baseline = sm_family_production_higgs_force(
+        state,
+        higgs,
+        higgs_links,
+        quark_yukawas=zero_quarks,
+        lepton_yukawas=zero_leptons,
+    )
+    quark_force = sm_family_fn_quark_path_higgs_force(state, higgs, aux)
+    combined = sm_family_fn_production_higgs_force(
+        state,
+        higgs,
+        higgs_links,
+        aux,
+        lepton_yukawas=zero_leptons,
+    )
+
+    assert jnp.linalg.norm(quark_force) > 1e-7
+    assert jnp.max(jnp.abs(combined - baseline - quark_force)) < 2e-7
 
 
 def test_zero_state_vacuum_has_zero_yukawa_source() -> None:
