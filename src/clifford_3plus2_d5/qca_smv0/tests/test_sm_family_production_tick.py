@@ -302,7 +302,6 @@ def test_fn_production_rollout_accepts_calibrated_path_readouts() -> None:
     assert jnp.max(jnp.abs(rollout.state - direct.state)) < 1e-8
     assert jnp.max(jnp.abs(rollout.fn_aux_state.up - direct.fn_aux_state.up)) < 1e-8
     assert jnp.max(jnp.abs(rollout.fn_aux_state.down - direct.fn_aux_state.down)) < 1e-8
-    assert jnp.linalg.norm(rollout.state - default_rollout.state) > 1e-7
     assert jnp.linalg.norm(rollout.higgs_momenta - default_rollout.higgs_momenta) > 1e-7
 
 

@@ -900,40 +900,66 @@ def sm_apply_family_fn_quark_path_unitary_collision(
     if step_size == 0:
         return FamilyFNQuarkPathUnitaryCollision(state=state, aux_state=aux_state)
 
+    q_indices = jnp.arange(6)
+    up_indices = jnp.arange(6, 9)
+    down_indices = jnp.arange(9, 12)
+    target_spins = jnp.asarray([2, 3, 0, 1])
     h_tilde = sm_higgs_tilde(higgs)
-    updated = state
-    updated_up_aux = aux_state.up
-    updated_down_aux = aux_state.down
+    q_slots = jnp.take(state, q_indices, axis=-2).reshape((*lattice_shape, 4, 3, 2, SM_FAMILY_DIM))
+    up_slots = jnp.take(state, up_indices, axis=-2)
+    down_slots = jnp.take(state, down_indices, axis=-2)
+    up_right_by_source_spin = jnp.take(up_slots, target_spins, axis=3)
+    down_right_by_source_spin = jnp.take(down_slots, target_spins, axis=3)
 
-    for spin in range(4):
-        target_spin = (spin + 2) % 4
-        for color in range(3):
-            for weak in range(2):
-                left = updated[..., spin, _q_index(color, weak), :]
-                up_right = updated[..., target_spin, _u_c_index(color), :]
-                down_right = updated[..., target_spin, _d_c_index(color), :]
-                left_after, up_right_after, down_right_after, up_hidden_after, down_hidden_after = (
-                    sm_apply_family_fn_quark_pair_path_unitary_door_state(
-                        left,
-                        up_right,
-                        down_right,
-                        updated_up_aux[..., spin, color, weak, :],
-                        updated_down_aux[..., spin, color, weak, :],
-                        h_tilde[..., weak],
-                        higgs[..., weak],
-                        readouts,
-                        step_size=step_size,
-                    )
-                )
-                updated = updated.at[..., spin, _q_index(color, weak), :].set(left_after.astype(state.dtype))
-                updated = updated.at[..., target_spin, _u_c_index(color), :].set(up_right_after.astype(state.dtype))
-                updated = updated.at[..., target_spin, _d_c_index(color), :].set(down_right_after.astype(state.dtype))
-                updated_up_aux = updated_up_aux.at[..., spin, color, weak, :].set(up_hidden_after)
-                updated_down_aux = updated_down_aux.at[..., spin, color, weak, :].set(down_hidden_after)
+    q_by_weak = jnp.moveaxis(q_slots, -2, 0)
+    up_aux_by_weak = jnp.moveaxis(aux_state.up, -2, 0)
+    down_aux_by_weak = jnp.moveaxis(aux_state.down, -2, 0)
+    up_higgs_by_weak = jnp.moveaxis(h_tilde, -1, 0)
+    down_higgs_by_weak = jnp.moveaxis(higgs, -1, 0)
+
+    def weak_step(
+        carry: tuple[jnp.ndarray, jnp.ndarray],
+        inputs: tuple[jnp.ndarray, jnp.ndarray, jnp.ndarray, jnp.ndarray, jnp.ndarray],
+    ) -> tuple[tuple[jnp.ndarray, jnp.ndarray], tuple[jnp.ndarray, jnp.ndarray, jnp.ndarray]]:
+        up_right, down_right = carry
+        left, up_hidden, down_hidden, up_higgs, down_higgs = inputs
+        left_after, up_right_after, down_right_after, up_hidden_after, down_hidden_after = (
+            sm_apply_family_fn_quark_pair_path_unitary_door_state(
+                left,
+                up_right,
+                down_right,
+                up_hidden,
+                down_hidden,
+                up_higgs[..., None, None],
+                down_higgs[..., None, None],
+                readouts,
+                step_size=step_size,
+            )
+        )
+        return (up_right_after, down_right_after), (left_after, up_hidden_after, down_hidden_after)
+
+    (up_right_after_by_source_spin, down_right_after_by_source_spin), (
+        q_after_by_weak,
+        up_aux_after_by_weak,
+        down_aux_after_by_weak,
+    ) = jax.lax.scan(
+        weak_step,
+        (up_right_by_source_spin, down_right_by_source_spin),
+        (q_by_weak, up_aux_by_weak, down_aux_by_weak, up_higgs_by_weak, down_higgs_by_weak),
+    )
+
+    q_after = jnp.moveaxis(q_after_by_weak, 0, -2).reshape((*lattice_shape, 4, 6, SM_FAMILY_DIM))
+    up_aux_after = jnp.moveaxis(up_aux_after_by_weak, 0, -2)
+    down_aux_after = jnp.moveaxis(down_aux_after_by_weak, 0, -2)
+    up_after = jnp.take(up_right_after_by_source_spin, target_spins, axis=3)
+    down_after = jnp.take(down_right_after_by_source_spin, target_spins, axis=3)
+    updated = state.at[..., q_indices, :].set(q_after.astype(state.dtype))
+    updated = updated.at[..., up_indices, :].set(up_after.astype(state.dtype))
+    updated = updated.at[..., down_indices, :].set(down_after.astype(state.dtype))
 
     return FamilyFNQuarkPathUnitaryCollision(
         state=updated,
-        aux_state=FamilyFNQuarkPathAuxState(up=updated_up_aux, down=updated_down_aux),
+        aux_state=FamilyFNQuarkPathAuxState(up=up_aux_after, down=down_aux_after),
     )
 
 

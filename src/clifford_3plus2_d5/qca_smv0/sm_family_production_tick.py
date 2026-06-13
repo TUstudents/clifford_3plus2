@@ -27,7 +27,7 @@ from clifford_3plus2_d5.qca_smv0.sm_family_higgs import (
     FamilyFNQuarkPathReadouts,
     FamilyLeptonYukawas,
     SM_FAMILY_DIM,
-    sm_apply_family_fn_quark_path_source_kick,
+    sm_apply_family_fn_quark_path_unitary_collision,
     sm_apply_family_yukawa_collision,
     sm_family_fn_quark_path_higgs_force,
     sm_family_quark_path_readouts_from_masses_ckm,
@@ -385,10 +385,11 @@ def sm_family_fn_production_sm_tick(
     """Advance one family production tick with persistent FN quark recirculation.
 
     Gauge transport and classical fields follow ``sm_family_production_sm_tick``.
-    The local quark Yukawa half-steps are replaced by hidden-FN source kicks that
-    carry an auxiliary memory through the tick.  Leptons still use the local
-    matrix collision, with quark matrices set to zero there to avoid double
-    counting the quark sector.
+    The local quark Yukawa half-steps are replaced by the vectorized exact
+    hidden-FN path collision, so the visible quark slots, right-handed return
+    slots, and auxiliary memory are advanced as one local unitary door.  Leptons
+    still use the local matrix collision, with quark matrices set to zero there
+    to avoid double counting the quark sector.
     """
 
     lattice_shape = _validate_family_state(state)
@@ -434,7 +435,7 @@ def sm_family_fn_production_sm_tick(
     )
     updated_higgs = higgs + dt * half_higgs_momenta
 
-    first_quark = sm_apply_family_fn_quark_path_source_kick(
+    first_quark = sm_apply_family_fn_quark_path_unitary_collision(
         state,
         higgs,
         aux_state=aux_state,
@@ -449,7 +450,7 @@ def sm_family_fn_production_sm_tick(
         lepton_yukawas=lepton_yukawas,
     )
     transported = sm_family_gauged_dirac_step(half_collided, updated_sm_links)
-    second_quark = sm_apply_family_fn_quark_path_source_kick(
+    second_quark = sm_apply_family_fn_quark_path_unitary_collision(
         transported,
         updated_higgs,
         aux_state=first_quark.aux_state,

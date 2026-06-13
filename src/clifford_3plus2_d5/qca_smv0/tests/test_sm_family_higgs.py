@@ -50,7 +50,7 @@ from clifford_3plus2_d5.qca_smv0.sm_fn import (
     fn_visible_recirculation_transfer,
 )
 from clifford_3plus2_d5.qca_smv0.sm_gauge import SM_INTERNAL_DIM
-from clifford_3plus2_d5.qca_smv0.sm_higgs import sm_constant_higgs, sm_yukawa_hermitian_residual
+from clifford_3plus2_d5.qca_smv0.sm_higgs import sm_constant_higgs, sm_higgs_tilde, sm_yukawa_hermitian_residual
 from clifford_3plus2_d5.sim.state import state_norm_squared
 
 
@@ -60,6 +60,51 @@ def _quark_path_extended_norm(state, aux_state) -> jnp.ndarray:
         + jnp.real(jnp.sum(jnp.conj(aux_state.up) * aux_state.up))
         + jnp.real(jnp.sum(jnp.conj(aux_state.down) * aux_state.down))
     )
+
+
+def _nonzero_quark_path_aux(lattice_shape):
+    zero_aux = sm_zero_family_fn_quark_path_state_aux(lattice_shape)
+    up_data = jnp.arange(zero_aux.up.size, dtype=jnp.float32).reshape(zero_aux.up.shape)
+    down_data = jnp.arange(zero_aux.down.size, dtype=jnp.float32).reshape(zero_aux.down.shape)
+    up_scale = jnp.maximum(jnp.asarray(zero_aux.up.size, dtype=jnp.float32), 1.0)
+    down_scale = jnp.maximum(jnp.asarray(zero_aux.down.size, dtype=jnp.float32), 1.0)
+    return type(zero_aux)(
+        up=(0.003 * up_data / up_scale + 0.002j).astype(jnp.complex64),
+        down=(-0.002 * down_data / down_scale + 0.001j).astype(jnp.complex64),
+    )
+
+
+def _loop_quark_path_unitary_collision_reference(state, higgs, aux_state, readouts, step_size):
+    h_tilde = sm_higgs_tilde(higgs)
+    updated = state
+    updated_up_aux = aux_state.up
+    updated_down_aux = aux_state.down
+    for spin in range(4):
+        target_spin = (spin + 2) % 4
+        for color in range(3):
+            for weak in range(2):
+                left = updated[..., spin, 2 * color + weak, :]
+                up_right = updated[..., target_spin, 6 + color, :]
+                down_right = updated[..., target_spin, 9 + color, :]
+                left_after, up_right_after, down_right_after, up_hidden_after, down_hidden_after = (
+                    sm_apply_family_fn_quark_pair_path_unitary_door_state(
+                        left,
+                        up_right,
+                        down_right,
+                        updated_up_aux[..., spin, color, weak, :],
+                        updated_down_aux[..., spin, color, weak, :],
+                        h_tilde[..., weak],
+                        higgs[..., weak],
+                        readouts,
+                        step_size=step_size,
+                    )
+                )
+                updated = updated.at[..., spin, 2 * color + weak, :].set(left_after.astype(state.dtype))
+                updated = updated.at[..., target_spin, 6 + color, :].set(up_right_after.astype(state.dtype))
+                updated = updated.at[..., target_spin, 9 + color, :].set(down_right_after.astype(state.dtype))
+                updated_up_aux = updated_up_aux.at[..., spin, color, weak, :].set(up_hidden_after)
+                updated_down_aux = updated_down_aux.at[..., spin, color, weak, :].set(down_hidden_after)
+    return updated, type(aux_state)(up=updated_up_aux, down=updated_down_aux)
 
 
 def test_family_state_and_yukawa_matrix_layout() -> None:
@@ -597,6 +642,34 @@ def test_family_fn_quark_path_unitary_collision_zero_step_is_identity() -> None:
     assert jnp.max(jnp.abs(collision.aux_state.down - aux.down)) < 1e-8
 
 
+def test_family_fn_quark_path_unitary_collision_matches_loop_reference() -> None:
+    lattice_shape = (1, 1, 1)
+    state = deterministic_sm_family_state(lattice_shape)
+    higgs = sm_constant_higgs(lattice_shape)
+    aux = _nonzero_quark_path_aux(lattice_shape)
+    readouts = sm_family_recirculated_quark_path_readouts()
+    step_size = 0.025
+
+    expected_state, expected_aux = _loop_quark_path_unitary_collision_reference(
+        state,
+        higgs,
+        aux,
+        readouts,
+        step_size,
+    )
+    actual = sm_apply_family_fn_quark_path_unitary_collision(
+        state,
+        higgs,
+        aux,
+        readouts,
+        step_size=step_size,
+    )
+
+    assert jnp.max(jnp.abs(actual.state - expected_state)) < 2e-6
+    assert jnp.max(jnp.abs(actual.aux_state.up - expected_aux.up)) < 2e-6
+    assert jnp.max(jnp.abs(actual.aux_state.down - expected_aux.down)) < 2e-6
+
+
 def test_family_fn_quark_path_unitary_collision_preserves_visible_hidden_norm() -> None:
     lattice_shape = (1, 1, 1)
     state = deterministic_sm_family_state(lattice_shape)
@@ -611,6 +684,28 @@ def test_family_fn_quark_path_unitary_collision_preserves_visible_hidden_norm() 
     assert jnp.linalg.norm(collision.state - state) > 1e-5
     assert jnp.linalg.norm(collision.aux_state.up - aux.up) > 1e-5
     assert jnp.linalg.norm(collision.aux_state.down - aux.down) > 1e-5
+
+
+def test_family_fn_quark_path_unitary_collision_is_jittable() -> None:
+    lattice_shape = (1, 1, 1)
+    state = deterministic_sm_family_state(lattice_shape)
+    higgs = sm_constant_higgs(lattice_shape)
+    aux = _nonzero_quark_path_aux(lattice_shape)
+
+    def apply_collision(local_state, local_higgs, local_aux):
+        return sm_apply_family_fn_quark_path_unitary_collision(
+            local_state,
+            local_higgs,
+            local_aux,
+            step_size=0.025,
+        )
+
+    expected = apply_collision(state, higgs, aux)
+    actual = jax.jit(apply_collision)(state, higgs, aux)
+
+    assert jnp.max(jnp.abs(actual.state - expected.state)) < 1e-7
+    assert jnp.max(jnp.abs(actual.aux_state.up - expected.aux_state.up)) < 1e-7
+    assert jnp.max(jnp.abs(actual.aux_state.down - expected.aux_state.down)) < 1e-7
 
 
 def test_family_fn_quark_path_unitary_collision_is_not_source_kick() -> None:
