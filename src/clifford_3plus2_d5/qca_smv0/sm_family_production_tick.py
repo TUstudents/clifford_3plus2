@@ -30,6 +30,7 @@ from clifford_3plus2_d5.qca_smv0.sm_family_higgs import (
     sm_apply_family_fn_quark_path_source_kick,
     sm_apply_family_yukawa_collision,
     sm_family_fn_quark_path_higgs_force,
+    sm_family_quark_path_readouts_from_masses_ckm,
     sm_family_recirculated_quark_path_readouts,
     sm_zero_family_fn_quark_path_state_aux,
 )
@@ -38,7 +39,7 @@ from clifford_3plus2_d5.qca_smv0.sm_family_sourced_tick import (
     sm_family_sourced_sm_tick,
 )
 from clifford_3plus2_d5.qca_smv0.sm_fermion_higgs import deterministic_yukawa_source_state, sm_yukawa_higgs_force
-from clifford_3plus2_d5.qca_smv0.sm_fn import FNQuarkYukawas
+from clifford_3plus2_d5.qca_smv0.sm_fn import DEFAULT_FN_QUARK_CHARGES, FN_LAMBDA_WOLFENSTEIN, FNQuarkCharges, FNQuarkYukawas
 from clifford_3plus2_d5.qca_smv0.sm_gauge import (
     SM_GENERATOR_COUNT,
     SM_INTERNAL_DIM,
@@ -519,6 +520,44 @@ def sm_family_fn_production_step(
     )
 
 
+def sm_family_fn_production_step_from_masses_ckm(
+    state: FamilyFNProductionSMTickOutput,
+    up_masses: jnp.ndarray,
+    down_masses: jnp.ndarray,
+    ckm: jnp.ndarray | None = None,
+    *,
+    lambda_rec: float = FN_LAMBDA_WOLFENSTEIN,
+    charges: FNQuarkCharges = DEFAULT_FN_QUARK_CHARGES,
+    step_size: float,
+    beta: float = 1.0,
+    parameters: HiggsDynamicsParameters = DEFAULT_HIGGS_DYNAMICS_PARAMETERS,
+    lepton_yukawas: FamilyLeptonYukawas | None = None,
+    wilson_epsilon: float = 1e-3,
+    higgs_force_epsilon: float = 1e-3,
+    fermion_current_epsilon: float = 3e-2,
+) -> FamilyFNProductionSMTickOutput:
+    """Advance one FN production step calibrated from masses and CKM."""
+
+    readouts = sm_family_quark_path_readouts_from_masses_ckm(
+        up_masses,
+        down_masses,
+        ckm,
+        lambda_rec=lambda_rec,
+        charges=charges,
+    )
+    return sm_family_fn_production_step(
+        state,
+        step_size=step_size,
+        beta=beta,
+        parameters=parameters,
+        readouts=readouts,
+        lepton_yukawas=lepton_yukawas,
+        wilson_epsilon=wilson_epsilon,
+        higgs_force_epsilon=higgs_force_epsilon,
+        fermion_current_epsilon=fermion_current_epsilon,
+    )
+
+
 def sm_family_fn_production_rollout(
     initial_state: FamilyFNProductionSMTickOutput,
     *,
@@ -550,6 +589,46 @@ def sm_family_fn_production_rollout(
             fermion_current_epsilon=fermion_current_epsilon,
         )
     return state
+
+
+def sm_family_fn_production_rollout_from_masses_ckm(
+    initial_state: FamilyFNProductionSMTickOutput,
+    up_masses: jnp.ndarray,
+    down_masses: jnp.ndarray,
+    ckm: jnp.ndarray | None = None,
+    *,
+    lambda_rec: float = FN_LAMBDA_WOLFENSTEIN,
+    charges: FNQuarkCharges = DEFAULT_FN_QUARK_CHARGES,
+    steps: int,
+    step_size: float,
+    beta: float = 1.0,
+    parameters: HiggsDynamicsParameters = DEFAULT_HIGGS_DYNAMICS_PARAMETERS,
+    lepton_yukawas: FamilyLeptonYukawas | None = None,
+    wilson_epsilon: float = 1e-3,
+    higgs_force_epsilon: float = 1e-3,
+    fermion_current_epsilon: float = 3e-2,
+) -> FamilyFNProductionSMTickOutput:
+    """Run FN production calibrated directly from masses and CKM."""
+
+    readouts = sm_family_quark_path_readouts_from_masses_ckm(
+        up_masses,
+        down_masses,
+        ckm,
+        lambda_rec=lambda_rec,
+        charges=charges,
+    )
+    return sm_family_fn_production_rollout(
+        initial_state,
+        steps=steps,
+        step_size=step_size,
+        beta=beta,
+        parameters=parameters,
+        readouts=readouts,
+        lepton_yukawas=lepton_yukawas,
+        wilson_epsilon=wilson_epsilon,
+        higgs_force_epsilon=higgs_force_epsilon,
+        fermion_current_epsilon=fermion_current_epsilon,
+    )
 
 
 def sm_family_production_tick_diagnostics() -> FamilyProductionSMTickDiagnostics:
