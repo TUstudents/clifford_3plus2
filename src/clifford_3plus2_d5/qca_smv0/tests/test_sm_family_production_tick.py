@@ -18,9 +18,12 @@ from clifford_3plus2_d5.qca_smv0.sm_family_production_tick import (
     sm_zero_quark_yukawas,
 )
 from clifford_3plus2_d5.qca_smv0.sm_family_higgs import (
+    sm_family_calibrated_quark_path_readouts,
     sm_family_fn_quark_path_higgs_force,
+    sm_family_recirculated_quark_yukawas,
     sm_zero_family_fn_quark_path_state_aux,
 )
+from clifford_3plus2_d5.qca_smv0.sm_fn import FNQuarkYukawas
 from clifford_3plus2_d5.qca_smv0.sm_family_sourced_tick import sm_family_sourced_sm_tick
 from clifford_3plus2_d5.qca_smv0.sm_fermion_higgs import deterministic_yukawa_source_state, sm_yukawa_higgs_force
 from clifford_3plus2_d5.qca_smv0.sm_gauge import (
@@ -276,6 +279,22 @@ def test_fn_production_rollout_iterates_tick_with_aux_memory() -> None:
     assert jnp.linalg.norm(two_rollout.fn_aux_state.down) > 1e-6
     assert jnp.linalg.norm(two_rollout.fn_aux_state.up - one_rollout.fn_aux_state.up) > 1e-6
     assert jnp.linalg.norm(two_rollout.fn_aux_state.down - one_rollout.fn_aux_state.down) > 1e-6
+
+
+def test_fn_production_rollout_accepts_calibrated_path_readouts() -> None:
+    initial = sm_family_fn_production_initial_state((1, 1, 1))
+    default_yukawas = sm_family_recirculated_quark_yukawas()
+    target_yukawas = FNQuarkYukawas(up=1.35 * default_yukawas.up, down=0.70 * default_yukawas.down)
+    readouts = sm_family_calibrated_quark_path_readouts(target_yukawas)
+    direct = sm_family_fn_production_step(initial, step_size=0.003, readouts=readouts)
+    rollout = sm_family_fn_production_rollout(initial, steps=1, step_size=0.003, readouts=readouts)
+    default_rollout = sm_family_fn_production_rollout(initial, steps=1, step_size=0.003)
+
+    assert jnp.max(jnp.abs(rollout.state - direct.state)) < 1e-8
+    assert jnp.max(jnp.abs(rollout.fn_aux_state.up - direct.fn_aux_state.up)) < 1e-8
+    assert jnp.max(jnp.abs(rollout.fn_aux_state.down - direct.fn_aux_state.down)) < 1e-8
+    assert jnp.linalg.norm(rollout.state - default_rollout.state) > 1e-7
+    assert jnp.linalg.norm(rollout.higgs_momenta - default_rollout.higgs_momenta) > 1e-7
 
 
 def test_family_production_tick_diagnostics_and_jit_pass_stage_thresholds() -> None:
