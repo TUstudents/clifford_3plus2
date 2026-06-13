@@ -18,6 +18,7 @@ from clifford_3plus2_d5.qca_smv0.sm_family_higgs import (
     sm_apply_family_recirculated_quark_door,
     sm_apply_family_yukawa_collision,
     sm_default_family_lepton_yukawas,
+    sm_family_calibrated_quark_path_readouts,
     sm_family_fn_quark_path_state_source,
     sm_family_fn_quark_state_source,
     sm_family_chirality_norms,
@@ -36,6 +37,7 @@ from clifford_3plus2_d5.qca_smv0.sm_family_higgs import (
 from clifford_3plus2_d5.qca_smv0.sm_fn import (
     DEFAULT_FN_QUARK_CHARGES,
     FN_LAMBDA_WOLFENSTEIN,
+    FNQuarkYukawas,
     fn_unitary_dilation_residual,
     fn_visible_recirculation_transfer,
 )
@@ -102,6 +104,70 @@ def test_family_quark_source_is_fn_recirculation_readout() -> None:
     assert quark_embedding < 2e-7
     assert wrong_door < 1e-7
     assert ckm_embedding < 3e-6
+
+
+def test_family_calibrated_quark_path_readouts_reproduce_target_yukawas() -> None:
+    lattice_shape = (1, 1, 1)
+    state = deterministic_sm_family_state(lattice_shape)
+    higgs = sm_constant_higgs(lattice_shape)
+    h_tilde = jnp.asarray([jnp.conj(higgs[..., 1]), -jnp.conj(higgs[..., 0])], dtype=jnp.complex64)
+    target = FNQuarkYukawas(
+        up=jnp.asarray(
+            [
+                [0.9 + 0.1j, -0.8 + 0.2j, 1.1 - 0.1j],
+                [1.2 - 0.3j, 0.7 + 0.4j, -0.9 + 0.2j],
+                [0.6 + 0.5j, -1.0 - 0.1j, 1.3 + 0.0j],
+            ],
+            dtype=jnp.complex64,
+        )
+        * fn_visible_recirculation_transfer(
+            FN_LAMBDA_WOLFENSTEIN,
+            DEFAULT_FN_QUARK_CHARGES.q,
+            DEFAULT_FN_QUARK_CHARGES.u,
+        ),
+        down=jnp.asarray(
+            [
+                [1.0 - 0.2j, 0.9 + 0.1j, -0.7 + 0.3j],
+                [1.1 + 0.0j, -0.8 - 0.2j, 0.6 + 0.4j],
+                [0.75 - 0.25j, 1.2 + 0.2j, -1.1 + 0.1j],
+            ],
+            dtype=jnp.complex64,
+        )
+        * fn_visible_recirculation_transfer(
+            FN_LAMBDA_WOLFENSTEIN,
+            DEFAULT_FN_QUARK_CHARGES.q,
+            DEFAULT_FN_QUARK_CHARGES.d,
+        ),
+    )
+    readouts = sm_family_calibrated_quark_path_readouts(target)
+    aux = sm_zero_family_fn_quark_path_state_aux(lattice_shape)
+    source = sm_family_fn_quark_path_state_source(state, higgs, aux, readouts)
+    expected_up = jnp.zeros_like(source.up)
+    expected_down = jnp.zeros_like(source.down)
+
+    for spin in range(4):
+        for color in range(3):
+            up_total = jnp.zeros((*lattice_shape, 3), dtype=state.dtype)
+            down_total = jnp.zeros_like(up_total)
+            for weak in range(2):
+                left = state[..., spin, 2 * color + weak, :]
+                up_total = up_total + h_tilde[weak][..., None] * jnp.einsum(
+                    "ij,...j->...i",
+                    jnp.swapaxes(target.up, -1, -2),
+                    left,
+                )
+                down_total = down_total + higgs[..., weak, None] * jnp.einsum(
+                    "ij,...j->...i",
+                    jnp.swapaxes(target.down, -1, -2),
+                    left,
+                )
+            expected_up = expected_up.at[..., spin, color, :].set(up_total)
+            expected_down = expected_down.at[..., spin, color, :].set(down_total)
+
+    assert jnp.max(jnp.abs(readouts.up.transfer - target.up)) < 1e-7
+    assert jnp.max(jnp.abs(readouts.down.transfer - target.down)) < 1e-7
+    assert jnp.max(jnp.abs(source.up - expected_up)) < 2e-7
+    assert jnp.max(jnp.abs(source.down - expected_down)) < 2e-7
 
 
 def test_family_quark_door_uses_finite_fn_unitary_dilation() -> None:

@@ -24,6 +24,7 @@ from clifford_3plus2_d5.qca_smv0.sm_cp import (
 from clifford_3plus2_d5.qca_smv0.sm_fn import (
     DEFAULT_FN_QUARK_CHARGES,
     FN_LAMBDA_WOLFENSTEIN,
+    FNQuarkCoefficientMatrices,
     FNQuarkCharges,
     FNQuarkYukawas,
     FNVisibleRecirculationPairReadout,
@@ -34,6 +35,7 @@ from clifford_3plus2_d5.qca_smv0.sm_fn import (
     SM_FAMILY_DIM,
     fn_apply_recirculation_collision,
     fn_ckm_from_yukawas,
+    fn_quark_coefficients_from_yukawas,
     fn_prepare_visible_collision_state,
     fn_read_visible_collision_output,
     fn_recirculation_collision_dilation,
@@ -218,11 +220,27 @@ def sm_default_family_lepton_yukawas() -> FamilyLeptonYukawas:
     )
 
 
+def _sm_family_quark_coefficients(
+    powers: CenterHolonomyPowers,
+    coefficients: FNQuarkCoefficientMatrices | None,
+) -> FNQuarkCoefficientMatrices:
+    if coefficients is not None:
+        return FNQuarkCoefficientMatrices(
+            up=_validate_family_matrix(coefficients.up, "coefficients.up"),
+            down=_validate_family_matrix(coefficients.down, "coefficients.down"),
+        )
+    return FNQuarkCoefficientMatrices(
+        up=sm_center_coefficients("up", powers=powers.up),
+        down=sm_center_coefficients("down", powers=powers.down),
+    )
+
+
 def sm_family_recirculated_quark_yukawas(
     *,
     lambda_rec: float = FN_LAMBDA_WOLFENSTEIN,
     charges: FNQuarkCharges = DEFAULT_FN_QUARK_CHARGES,
     powers: CenterHolonomyPowers = DEFAULT_CENTER_HOLONOMY_POWERS,
+    coefficients: FNQuarkCoefficientMatrices | None = None,
 ) -> FNQuarkYukawas:
     """Return the quark matrices consumed by the family Higgs collision.
 
@@ -231,11 +249,10 @@ def sm_family_recirculated_quark_yukawas(
     measured from the explicit hidden recirculation paths.
     """
 
-    up_coeffs = sm_center_coefficients("up", powers=powers.up)
-    down_coeffs = sm_center_coefficients("down", powers=powers.down)
+    coeffs = _sm_family_quark_coefficients(powers, coefficients)
     return FNQuarkYukawas(
-        up=fn_visible_recirculation_transfer(lambda_rec, charges.q, charges.u, coefficients=up_coeffs),
-        down=fn_visible_recirculation_transfer(lambda_rec, charges.q, charges.d, coefficients=down_coeffs),
+        up=fn_visible_recirculation_transfer(lambda_rec, charges.q, charges.u, coefficients=coeffs.up),
+        down=fn_visible_recirculation_transfer(lambda_rec, charges.q, charges.d, coefficients=coeffs.down),
     )
 
 
@@ -244,14 +261,14 @@ def sm_family_recirculated_quark_dilations(
     lambda_rec: float = FN_LAMBDA_WOLFENSTEIN,
     charges: FNQuarkCharges = DEFAULT_FN_QUARK_CHARGES,
     powers: CenterHolonomyPowers = DEFAULT_CENTER_HOLONOMY_POWERS,
+    coefficients: FNQuarkCoefficientMatrices | None = None,
 ) -> FamilyFNQuarkDilations:
     """Return finite unitary FN collision dilations for the quark doors."""
 
-    up_coeffs = sm_center_coefficients("up", powers=powers.up)
-    down_coeffs = sm_center_coefficients("down", powers=powers.down)
+    coeffs = _sm_family_quark_coefficients(powers, coefficients)
     return FamilyFNQuarkDilations(
-        up=fn_recirculation_collision_dilation(lambda_rec, charges.q, charges.u, coefficients=up_coeffs),
-        down=fn_recirculation_collision_dilation(lambda_rec, charges.q, charges.d, coefficients=down_coeffs),
+        up=fn_recirculation_collision_dilation(lambda_rec, charges.q, charges.u, coefficients=coeffs.up),
+        down=fn_recirculation_collision_dilation(lambda_rec, charges.q, charges.d, coefficients=coeffs.down),
     )
 
 
@@ -260,17 +277,33 @@ def sm_family_recirculated_quark_path_readouts(
     lambda_rec: float = FN_LAMBDA_WOLFENSTEIN,
     charges: FNQuarkCharges = DEFAULT_FN_QUARK_CHARGES,
     powers: CenterHolonomyPowers = DEFAULT_CENTER_HOLONOMY_POWERS,
+    coefficients: FNQuarkCoefficientMatrices | None = None,
 ) -> FamilyFNQuarkPathReadouts:
     """Return explicit hidden-path FN readouts for quark Higgs doors."""
 
-    up_coeffs = sm_center_coefficients("up", powers=powers.up)
-    down_coeffs = sm_center_coefficients("down", powers=powers.down)
-    up = fn_visible_recirculation_readout(lambda_rec, charges.q, charges.u, coefficients=up_coeffs)
-    down = fn_visible_recirculation_readout(lambda_rec, charges.q, charges.d, coefficients=down_coeffs)
+    coeffs = _sm_family_quark_coefficients(powers, coefficients)
+    up = fn_visible_recirculation_readout(lambda_rec, charges.q, charges.u, coefficients=coeffs.up)
+    down = fn_visible_recirculation_readout(lambda_rec, charges.q, charges.d, coefficients=coeffs.down)
     return FamilyFNQuarkPathReadouts(
         up=up,
         down=down,
         pair=fn_visible_recirculation_pair_readout(up, down),
+    )
+
+
+def sm_family_calibrated_quark_path_readouts(
+    target_yukawas: FNQuarkYukawas,
+    *,
+    lambda_rec: float = FN_LAMBDA_WOLFENSTEIN,
+    charges: FNQuarkCharges = DEFAULT_FN_QUARK_CHARGES,
+) -> FamilyFNQuarkPathReadouts:
+    """Return live FN path readouts calibrated to target quark Yukawas."""
+
+    coefficients = fn_quark_coefficients_from_yukawas(target_yukawas, lambda_rec=lambda_rec, charges=charges)
+    return sm_family_recirculated_quark_path_readouts(
+        lambda_rec=lambda_rec,
+        charges=charges,
+        coefficients=coefficients,
     )
 
 
