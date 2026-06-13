@@ -102,10 +102,15 @@ def test_fn_persistent_path_state_reads_visible_transfer_and_memory() -> None:
     memory = jnp.full_like(hidden, 0.01 - 0.02j)
     memory_output = fn_apply_visible_recirculation_path_state(readout, left, memory)
     input_norm = jnp.sum(jnp.abs(left) ** 2) + jnp.sum(jnp.abs(memory) ** 2)
-    output_norm = jnp.sum(jnp.abs(memory_output.visible) ** 2) + jnp.sum(jnp.abs(memory_output.hidden) ** 2)
+    output_norm = (
+        jnp.sum(jnp.abs(memory_output.visible) ** 2)
+        + jnp.sum(jnp.abs(memory_output.return_visible) ** 2)
+        + jnp.sum(jnp.abs(memory_output.hidden) ** 2)
+    )
 
     assert hidden.shape == (45,)
     assert output.visible.shape == left.shape
+    assert output.return_visible.shape == left.shape
     assert output.hidden.shape == hidden.shape
     assert jnp.max(jnp.abs(output.raw_visible - expected)) < 2e-7
     assert jnp.abs(output_norm - input_norm) < 2e-6
@@ -130,10 +135,14 @@ def test_fn_pair_path_state_shares_one_unitary_visible_injection() -> None:
     input_norm = jnp.sum(jnp.abs(left) ** 2) + jnp.sum(jnp.abs(memory_up) ** 2) + jnp.sum(jnp.abs(memory_down) ** 2)
     output_norm = (
         jnp.sum(jnp.abs(memory_output.visible) ** 2)
+        + jnp.sum(jnp.abs(memory_output.up_return_visible) ** 2)
+        + jnp.sum(jnp.abs(memory_output.down_return_visible) ** 2)
         + jnp.sum(jnp.abs(memory_output.up_hidden) ** 2)
         + jnp.sum(jnp.abs(memory_output.down_hidden) ** 2)
     )
 
+    assert output.up_return_visible.shape == left.shape
+    assert output.down_return_visible.shape == left.shape
     assert output.up_hidden.shape == up_hidden.shape
     assert output.down_hidden.shape == down_hidden.shape
     assert jnp.max(jnp.abs(output.up_raw_visible - jnp.swapaxes(up.transfer, -1, -2) @ left)) < 2e-7

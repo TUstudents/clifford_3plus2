@@ -63,8 +63,10 @@ class FNVisibleRecirculationReadout(NamedTuple):
     exit: jnp.ndarray
     transfer: jnp.ndarray
     entry_scale: jnp.ndarray
+    exit_scale: jnp.ndarray
     visible_entry_defect: jnp.ndarray
     hidden_entry_defect: jnp.ndarray
+    hidden_exit_defect: jnp.ndarray
 
 
 class FNVisibleRecirculationPairReadout(NamedTuple):
@@ -81,6 +83,7 @@ class FNPathDoorOutput(NamedTuple):
     """One persistent hidden-path readout update."""
 
     raw_visible: jnp.ndarray
+    return_visible: jnp.ndarray
     visible: jnp.ndarray
     hidden: jnp.ndarray
 
@@ -90,6 +93,8 @@ class FNPairPathDoorOutput(NamedTuple):
 
     up_raw_visible: jnp.ndarray
     down_raw_visible: jnp.ndarray
+    up_return_visible: jnp.ndarray
+    down_return_visible: jnp.ndarray
     visible: jnp.ndarray
     up_hidden: jnp.ndarray
     down_hidden: jnp.ndarray
@@ -304,14 +309,22 @@ def fn_visible_recirculation_readout(
     hidden_entry_defect = _positive_sqrt(
         hidden_identity - normalized_entry @ jnp.swapaxes(jnp.conj(normalized_entry), -1, -2),
     )
+    exit_singular_values = jnp.linalg.svd(exit_map, compute_uv=False)
+    exit_scale = jnp.maximum(jnp.max(exit_singular_values), jnp.asarray(1.0, dtype=exit_singular_values.dtype))
+    normalized_exit = exit_map / exit_scale.astype(jnp.complex64)
+    hidden_exit_defect = _positive_sqrt(
+        hidden_identity - jnp.swapaxes(jnp.conj(normalized_exit), -1, -2) @ normalized_exit,
+    )
     return FNVisibleRecirculationReadout(
         network=network,
         entry=entry,
         exit=exit_map,
         transfer=jnp.swapaxes(right_by_left, -1, -2),
         entry_scale=entry_scale,
+        exit_scale=exit_scale,
         visible_entry_defect=visible_entry_defect,
         hidden_entry_defect=hidden_entry_defect,
+        hidden_exit_defect=hidden_exit_defect,
     )
 
 
@@ -379,8 +392,10 @@ def fn_apply_visible_recirculation_path_state(
     The hidden network is the direct sum of the length ``Q_i+R_j`` beam-splitter
     chains.  Visible injection is a contraction-dilation beam splitter, so
     ``||left||^2+||hidden||^2`` is preserved by the visible/hidden injection and
-    hidden path evolution.  The exposed ``raw_visible`` readout is rescaled by
-    the entry norm, keeping the zero-memory transfer equal to
+    hidden path evolution.  Hidden return uses a second contraction-dilation,
+    so the exposed output depletes hidden sink amplitude instead of copying it.
+    The exposed ``raw_visible`` readout is rescaled by entry and exit norms,
+    keeping the zero-memory transfer equal to
     ``readout.transfer.T @ left_state``.
     """
 
@@ -404,8 +419,17 @@ def fn_apply_visible_recirculation_path_state(
         hidden,
     )
     evolved = jnp.einsum("ij,...j->...i", readout.network.unitary.astype(jnp.complex64), injected)
-    raw_visible = scale * jnp.einsum("ij,...j->...i", readout.exit, evolved)
-    return FNPathDoorOutput(raw_visible=raw_visible, visible=visible, hidden=evolved)
+    exit_scale = readout.exit_scale.astype(jnp.complex64)
+    normalized_exit = readout.exit / exit_scale
+    return_visible = jnp.einsum("ij,...j->...i", normalized_exit, evolved)
+    raw_visible = scale * exit_scale * return_visible
+    hidden_after_return = jnp.einsum("ij,...j->...i", readout.hidden_exit_defect, evolved)
+    return FNPathDoorOutput(
+        raw_visible=raw_visible,
+        return_visible=return_visible,
+        visible=visible,
+        hidden=hidden_after_return,
+    )
 
 
 def fn_apply_visible_recirculation_pair_path_state(
@@ -446,14 +470,22 @@ def fn_apply_visible_recirculation_pair_path_state(
     injected_down = injected[..., up_dim:]
     evolved_up = jnp.einsum("ij,...j->...i", readout.up.network.unitary.astype(jnp.complex64), injected_up)
     evolved_down = jnp.einsum("ij,...j->...i", readout.down.network.unitary.astype(jnp.complex64), injected_down)
-    up_raw = scale * jnp.einsum("ij,...j->...i", readout.up.exit, evolved_up)
-    down_raw = scale * jnp.einsum("ij,...j->...i", readout.down.exit, evolved_down)
+    up_exit_scale = readout.up.exit_scale.astype(jnp.complex64)
+    down_exit_scale = readout.down.exit_scale.astype(jnp.complex64)
+    up_return = jnp.einsum("ij,...j->...i", readout.up.exit / up_exit_scale, evolved_up)
+    down_return = jnp.einsum("ij,...j->...i", readout.down.exit / down_exit_scale, evolved_down)
+    up_hidden_after_return = jnp.einsum("ij,...j->...i", readout.up.hidden_exit_defect, evolved_up)
+    down_hidden_after_return = jnp.einsum("ij,...j->...i", readout.down.hidden_exit_defect, evolved_down)
+    up_raw = scale * up_exit_scale * up_return
+    down_raw = scale * down_exit_scale * down_return
     return FNPairPathDoorOutput(
         up_raw_visible=up_raw,
         down_raw_visible=down_raw,
+        up_return_visible=up_return,
+        down_return_visible=down_return,
         visible=visible,
-        up_hidden=evolved_up,
-        down_hidden=evolved_down,
+        up_hidden=up_hidden_after_return,
+        down_hidden=down_hidden_after_return,
     )
 
 
