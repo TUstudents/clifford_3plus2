@@ -23,14 +23,14 @@ import jax.numpy as jnp
 from clifford_3plus2_d5.qca_smv0.sm_dynamics import deterministic_sm_momenta
 from clifford_3plus2_d5.qca_smv0.sm_family_gauge import sm_family_gauged_dirac_step
 from clifford_3plus2_d5.qca_smv0.sm_family_higgs import (
-    FamilyFNQuarkAuxState,
-    FamilyFNQuarkDilations,
+    FamilyFNQuarkPathAuxState,
+    FamilyFNQuarkPathReadouts,
     FamilyLeptonYukawas,
     SM_FAMILY_DIM,
-    sm_apply_family_fn_quark_source_kick,
+    sm_apply_family_fn_quark_path_source_kick,
     sm_apply_family_yukawa_collision,
-    sm_family_recirculated_quark_dilations,
-    sm_zero_family_fn_quark_state_aux,
+    sm_family_recirculated_quark_path_readouts,
+    sm_zero_family_fn_quark_path_state_aux,
 )
 from clifford_3plus2_d5.qca_smv0.sm_family_sourced_tick import (
     sm_family_sourced_link_force,
@@ -94,7 +94,7 @@ class FamilyFNProductionSMTickOutput(NamedTuple):
     sm_links: jnp.ndarray
     sm_momenta: jnp.ndarray
     higgs_links: jnp.ndarray
-    fn_aux_state: FamilyFNQuarkAuxState
+    fn_aux_state: FamilyFNQuarkPathAuxState
 
 
 def _validate_family_state(state: jnp.ndarray) -> tuple[int, int, int]:
@@ -313,8 +313,8 @@ def sm_family_fn_production_sm_tick(
     sm_links: jnp.ndarray,
     sm_momenta: jnp.ndarray,
     higgs_links: jnp.ndarray,
-    aux_state: FamilyFNQuarkAuxState | None = None,
-    dilations: FamilyFNQuarkDilations | None = None,
+    aux_state: FamilyFNQuarkPathAuxState | None = None,
+    readouts: FamilyFNQuarkPathReadouts | None = None,
     *,
     step_size: float,
     beta: float = 1.0,
@@ -340,9 +340,9 @@ def sm_family_fn_production_sm_tick(
     _validate_sm_momenta(sm_momenta, sm_links)
     _validate_higgs_links(higgs_links, lattice_shape)
     if aux_state is None:
-        aux_state = sm_zero_family_fn_quark_state_aux(lattice_shape)
-    if dilations is None:
-        dilations = sm_family_recirculated_quark_dilations()
+        aux_state = sm_zero_family_fn_quark_path_state_aux(lattice_shape)
+    if readouts is None:
+        readouts = sm_family_recirculated_quark_path_readouts()
 
     dt = jnp.asarray(step_size, dtype=sm_momenta.dtype)
     zero_quarks = sm_zero_quark_yukawas()
@@ -376,11 +376,11 @@ def sm_family_fn_production_sm_tick(
     )
     updated_higgs = higgs + dt * half_higgs_momenta
 
-    first_quark = sm_apply_family_fn_quark_source_kick(
+    first_quark = sm_apply_family_fn_quark_path_source_kick(
         state,
         higgs,
         aux_state=aux_state,
-        dilations=dilations,
+        readouts=readouts,
         step_size=0.5 * step_size,
     )
     half_collided = sm_apply_family_yukawa_collision(
@@ -391,11 +391,11 @@ def sm_family_fn_production_sm_tick(
         lepton_yukawas=lepton_yukawas,
     )
     transported = sm_family_gauged_dirac_step(half_collided, updated_sm_links)
-    second_quark = sm_apply_family_fn_quark_source_kick(
+    second_quark = sm_apply_family_fn_quark_path_source_kick(
         transported,
         updated_higgs,
         aux_state=first_quark.aux_state,
-        dilations=dilations,
+        readouts=readouts,
         step_size=0.5 * step_size,
     )
     updated_state = sm_apply_family_yukawa_collision(
@@ -450,7 +450,7 @@ def sm_family_fn_production_initial_state(
         sm_links=sm_link_field_from_algebra(deterministic_sm_link_theta(lattice_shape, scale=0.25)),
         sm_momenta=deterministic_sm_momenta(lattice_shape),
         higgs_links=sm_higgs_link_field_from_algebra(deterministic_higgs_theta(lattice_shape, scale=0.08)),
-        fn_aux_state=sm_zero_family_fn_quark_state_aux(lattice_shape),
+        fn_aux_state=sm_zero_family_fn_quark_path_state_aux(lattice_shape),
     )
 
 

@@ -13,18 +13,22 @@ from clifford_3plus2_d5.qca_smv0.sm_family_higgs import (
     deterministic_sm_family_state,
     sm_apply_family_fn_quark_aux_state,
     sm_apply_family_fn_quark_door_state,
+    sm_apply_family_fn_quark_path_source_kick,
     sm_apply_family_fn_quark_source_kick,
     sm_apply_family_recirculated_quark_door,
     sm_apply_family_yukawa_collision,
     sm_default_family_lepton_yukawas,
+    sm_family_fn_quark_path_state_source,
     sm_family_fn_quark_state_source,
     sm_family_chirality_norms,
     sm_family_embedding_residuals,
     sm_family_higgs_yukawa_diagnostics,
+    sm_family_recirculated_quark_path_readouts,
     sm_family_recirculated_quark_dilations,
     sm_family_recirculated_quark_yukawas,
     sm_family_yukawa_internal_matrix,
     sm_zero_family_fn_quark_aux_state,
+    sm_zero_family_fn_quark_path_state_aux,
     sm_zero_family_fn_quark_state_aux,
 )
 from clifford_3plus2_d5.qca_smv0.sm_fn import (
@@ -230,6 +234,44 @@ def test_family_fn_quark_state_source_uses_hidden_memory() -> None:
     assert jnp.linalg.norm(memory_source.aux_state.down - zero_source.aux_state.down) > 1e-5
 
 
+def test_family_fn_quark_path_source_matches_matrix_door_with_zero_aux() -> None:
+    lattice_shape = (1, 1, 1)
+    state = deterministic_sm_family_state(lattice_shape)
+    higgs = sm_constant_higgs(lattice_shape)
+    readouts = sm_family_recirculated_quark_path_readouts()
+    aux = sm_zero_family_fn_quark_path_state_aux(lattice_shape)
+    source = sm_family_fn_quark_path_state_source(state, higgs, aux, readouts)
+    matrix_source = sm_family_fn_quark_state_source(state, higgs, sm_zero_family_fn_quark_state_aux(lattice_shape))
+
+    assert readouts.up.network.unitary.shape == (45, 45)
+    assert readouts.down.network.unitary.shape == (27, 27)
+    assert source.aux_state.up.shape == (*lattice_shape, 4, 3, 2, 45)
+    assert source.aux_state.down.shape == (*lattice_shape, 4, 3, 2, 27)
+    assert jnp.max(jnp.abs(source.up - matrix_source.up)) < 2e-7
+    assert jnp.max(jnp.abs(source.down - matrix_source.down)) < 2e-7
+    assert jnp.max(jnp.abs(source.state_source - matrix_source.state_source)) < 2e-7
+    assert jnp.linalg.norm(source.aux_state.up) > 1e-5
+    assert jnp.linalg.norm(source.aux_state.down) > 1e-5
+
+
+def test_family_fn_quark_path_source_uses_hidden_path_memory() -> None:
+    lattice_shape = (1, 1, 1)
+    state = deterministic_sm_family_state(lattice_shape)
+    higgs = sm_constant_higgs(lattice_shape)
+    zero_aux = sm_zero_family_fn_quark_path_state_aux(lattice_shape)
+    memory_aux = type(zero_aux)(
+        up=jnp.full_like(zero_aux.up, 0.005 - 0.003j),
+        down=jnp.full_like(zero_aux.down, -0.004 + 0.002j),
+    )
+
+    zero_source = sm_family_fn_quark_path_state_source(state, higgs, zero_aux)
+    memory_source = sm_family_fn_quark_path_state_source(state, higgs, memory_aux)
+
+    assert jnp.linalg.norm(memory_source.state_source - zero_source.state_source) > 1e-5
+    assert jnp.linalg.norm(memory_source.aux_state.up - zero_source.aux_state.up) > 1e-5
+    assert jnp.linalg.norm(memory_source.aux_state.down - zero_source.aux_state.down) > 1e-5
+
+
 def test_family_fn_quark_source_kick_advances_state_from_persistent_source() -> None:
     lattice_shape = (1, 1, 1)
     state = deterministic_sm_family_state(lattice_shape)
@@ -267,6 +309,31 @@ def test_family_fn_quark_source_kick_zero_step_is_identity() -> None:
     assert jnp.linalg.norm(kicked.source) < 1e-8
     assert jnp.max(jnp.abs(kicked.aux_state.up - aux.up)) < 1e-8
     assert jnp.max(jnp.abs(kicked.aux_state.down - aux.down)) < 1e-8
+
+
+def test_family_fn_quark_path_source_kick_advances_state_from_path_source() -> None:
+    lattice_shape = (1, 1, 1)
+    state = deterministic_sm_family_state(lattice_shape)
+    higgs = sm_constant_higgs(lattice_shape)
+    aux = sm_zero_family_fn_quark_path_state_aux(lattice_shape)
+    step_size = 0.025
+
+    source = sm_family_fn_quark_path_state_source(state, higgs, aux)
+    kicked = sm_apply_family_fn_quark_path_source_kick(state, higgs, aux, step_size=step_size)
+    beta_source = jnp.einsum(
+        "sr,...rif->...sif",
+        jnp.asarray(
+            [[0, 0, 1, 0], [0, 0, 0, 1], [1, 0, 0, 0], [0, 1, 0, 0]],
+            dtype=state.dtype,
+        ),
+        source.state_source,
+    )
+    expected = state - 1j * step_size * beta_source
+
+    assert jnp.max(jnp.abs(kicked.source - source.state_source)) < 2e-7
+    assert jnp.max(jnp.abs(kicked.state - expected)) < 2e-7
+    assert jnp.max(jnp.abs(kicked.aux_state.up - source.aux_state.up)) < 2e-7
+    assert jnp.max(jnp.abs(kicked.aux_state.down - source.aux_state.down)) < 2e-7
 
 
 def test_family_yukawa_collision_identity_controls_norm_and_chirality_flip() -> None:

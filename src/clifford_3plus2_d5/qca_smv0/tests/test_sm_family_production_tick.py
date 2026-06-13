@@ -16,7 +16,7 @@ from clifford_3plus2_d5.qca_smv0.sm_family_production_tick import (
     sm_zero_family_lepton_yukawas,
     sm_zero_quark_yukawas,
 )
-from clifford_3plus2_d5.qca_smv0.sm_family_higgs import sm_zero_family_fn_quark_state_aux
+from clifford_3plus2_d5.qca_smv0.sm_family_higgs import sm_zero_family_fn_quark_path_state_aux
 from clifford_3plus2_d5.qca_smv0.sm_family_sourced_tick import sm_family_sourced_sm_tick
 from clifford_3plus2_d5.qca_smv0.sm_fermion_higgs import deterministic_yukawa_source_state, sm_yukawa_higgs_force
 from clifford_3plus2_d5.qca_smv0.sm_gauge import (
@@ -154,7 +154,7 @@ def test_production_tick_preserves_norm_and_updates_local_yukawa_sector() -> Non
 
 def test_fn_production_tick_carries_quark_recirculation_aux_state() -> None:
     state, higgs, higgs_momenta, sm_links, sm_momenta, higgs_links = _stage15_fields()
-    aux = sm_zero_family_fn_quark_state_aux(state.shape[:3])
+    aux = sm_zero_family_fn_quark_path_state_aux(state.shape[:3])
 
     updated = sm_family_fn_production_sm_tick(
         state,
@@ -184,7 +184,7 @@ def test_fn_production_tick_carries_quark_recirculation_aux_state() -> None:
 
 def test_fn_production_second_tick_depends_on_persistent_aux_memory() -> None:
     state, higgs, higgs_momenta, sm_links, sm_momenta, higgs_links = _stage15_fields()
-    zero_aux = sm_zero_family_fn_quark_state_aux(state.shape[:3])
+    zero_aux = sm_zero_family_fn_quark_path_state_aux(state.shape[:3])
     first = sm_family_fn_production_sm_tick(
         state,
         higgs,

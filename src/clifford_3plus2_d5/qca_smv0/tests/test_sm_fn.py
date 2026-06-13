@@ -15,6 +15,7 @@ from clifford_3plus2_d5.qca_smv0.sm_fn import (
     fn_default_coefficients,
     fn_effective_yukawa,
     fn_apply_recirculation_collision,
+    fn_apply_visible_recirculation_path_state,
     fn_path_transfer_amplitude,
     fn_path_transfer_residual,
     fn_path_unitary,
@@ -27,6 +28,7 @@ from clifford_3plus2_d5.qca_smv0.sm_fn import (
     fn_unitarity_residual,
     fn_unitary_dilation,
     fn_unitary_dilation_residual,
+    fn_zero_path_hidden_state,
     fn_prepare_visible_collision_state,
     fn_read_visible_collision_output,
     fn_recirculation_collision_dilation,
@@ -84,6 +86,26 @@ def test_fn_visible_hidden_visible_readout_generates_yukawa_transfer() -> None:
     assert readout.transfer.shape == (3, 3)
     assert jnp.max(jnp.abs(readout.transfer - expected)) < 1e-10
     assert jnp.max(jnp.abs(fn_visible_recirculation_transfer(lam, charges.q, charges.d, coefficients=coeffs) - expected)) < 1e-10
+
+
+def test_fn_persistent_path_state_reads_visible_transfer_and_memory() -> None:
+    charges = DEFAULT_FN_QUARK_CHARGES
+    lam = FN_LAMBDA_WOLFENSTEIN
+    coeffs = fn_default_coefficients("up")
+    readout = fn_visible_recirculation_readout(lam, charges.q, charges.u, coefficients=coeffs)
+    left = jnp.asarray([1.0 + 0.0j, -0.5 + 0.25j, 0.2 - 0.4j], dtype=jnp.complex64)
+    hidden = fn_zero_path_hidden_state(readout)
+    output = fn_apply_visible_recirculation_path_state(readout, left, hidden)
+    expected = jnp.swapaxes(readout.transfer, -1, -2) @ left
+    memory = jnp.full_like(hidden, 0.01 - 0.02j)
+    memory_output = fn_apply_visible_recirculation_path_state(readout, left, memory)
+
+    assert hidden.shape == (45,)
+    assert output.hidden.shape == hidden.shape
+    assert jnp.max(jnp.abs(output.raw_visible - expected)) < 2e-7
+    assert jnp.linalg.norm(output.hidden) > 1e-5
+    assert jnp.linalg.norm(memory_output.raw_visible - output.raw_visible) > 1e-5
+    assert jnp.linalg.norm(memory_output.hidden - output.hidden) > 1e-5
 
 
 def test_fn_visible_transfer_has_exact_unitary_dilation() -> None:

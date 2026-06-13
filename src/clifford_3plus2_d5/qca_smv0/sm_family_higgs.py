@@ -26,7 +26,9 @@ from clifford_3plus2_d5.qca_smv0.sm_fn import (
     FN_LAMBDA_WOLFENSTEIN,
     FNQuarkCharges,
     FNQuarkYukawas,
+    FNVisibleRecirculationReadout,
     FNUnitaryDilation,
+    fn_apply_visible_recirculation_path_state,
     SM_FAMILY_DIM,
     fn_apply_recirculation_collision,
     fn_ckm_from_yukawas,
@@ -34,6 +36,7 @@ from clifford_3plus2_d5.qca_smv0.sm_fn import (
     fn_read_visible_collision_output,
     fn_recirculation_collision_dilation,
     fn_unitary_dilation_residual,
+    fn_visible_recirculation_readout,
     fn_visible_recirculation_transfer,
 )
 from clifford_3plus2_d5.qca_smv0.sm_gauge import SM_CHIRAL16_DIM, SM_INTERNAL_DIM, deterministic_sm_state
@@ -88,6 +91,20 @@ class FamilyFNQuarkAuxState(NamedTuple):
     down: jnp.ndarray
 
 
+class FamilyFNQuarkPathReadouts(NamedTuple):
+    """Explicit hidden-path FN readouts for the up/down quark Higgs doors."""
+
+    up: FNVisibleRecirculationReadout
+    down: FNVisibleRecirculationReadout
+
+
+class FamilyFNQuarkPathAuxState(NamedTuple):
+    """Persistent hidden states on the explicit up/down FN path networks."""
+
+    up: jnp.ndarray
+    down: jnp.ndarray
+
+
 class FamilyFNQuarkDoorOutput(NamedTuple):
     """One FN door update: raw unitary output, physical source, and aux state."""
 
@@ -111,6 +128,31 @@ class FamilyFNQuarkSourceKick(NamedTuple):
     state: jnp.ndarray
     source: jnp.ndarray
     aux_state: FamilyFNQuarkAuxState
+
+
+class FamilyFNQuarkPathDoorOutput(NamedTuple):
+    """One explicit path-network FN door update."""
+
+    raw_visible: jnp.ndarray
+    physical_visible: jnp.ndarray
+    hidden: jnp.ndarray
+
+
+class FamilyFNQuarkPathStateSource(NamedTuple):
+    """FN quark source extracted from explicit path-network memory."""
+
+    up: jnp.ndarray
+    down: jnp.ndarray
+    state_source: jnp.ndarray
+    aux_state: FamilyFNQuarkPathAuxState
+
+
+class FamilyFNQuarkPathSourceKick(NamedTuple):
+    """One explicit path-network source kick on visible quarks plus aux update."""
+
+    state: jnp.ndarray
+    source: jnp.ndarray
+    aux_state: FamilyFNQuarkPathAuxState
 
 
 def _q_index(color: int, weak: int) -> int:
@@ -208,6 +250,22 @@ def sm_family_recirculated_quark_dilations(
     )
 
 
+def sm_family_recirculated_quark_path_readouts(
+    *,
+    lambda_rec: float = FN_LAMBDA_WOLFENSTEIN,
+    charges: FNQuarkCharges = DEFAULT_FN_QUARK_CHARGES,
+    powers: CenterHolonomyPowers = DEFAULT_CENTER_HOLONOMY_POWERS,
+) -> FamilyFNQuarkPathReadouts:
+    """Return explicit hidden-path FN readouts for quark Higgs doors."""
+
+    up_coeffs = sm_center_coefficients("up", powers=powers.up)
+    down_coeffs = sm_center_coefficients("down", powers=powers.down)
+    return FamilyFNQuarkPathReadouts(
+        up=fn_visible_recirculation_readout(lambda_rec, charges.q, charges.u, coefficients=up_coeffs),
+        down=fn_visible_recirculation_readout(lambda_rec, charges.q, charges.d, coefficients=down_coeffs),
+    )
+
+
 def sm_apply_family_recirculated_quark_door(
     left_family_state: jnp.ndarray,
     higgs_component: jnp.ndarray,
@@ -243,6 +301,28 @@ def sm_zero_family_fn_quark_state_aux(lattice_shape: tuple[int, int, int]) -> Fa
     return sm_zero_family_fn_quark_aux_state((*lattice_shape, 4, 3, 2))
 
 
+def sm_zero_family_fn_quark_path_aux_state(
+    batch_shape: tuple[int, ...] = (),
+    readouts: FamilyFNQuarkPathReadouts | None = None,
+) -> FamilyFNQuarkPathAuxState:
+    """Return zero hidden path states for the up/down FN quark doors."""
+
+    if readouts is None:
+        readouts = sm_family_recirculated_quark_path_readouts()
+    up_dim = int(readouts.up.network.unitary.shape[0])
+    down_dim = int(readouts.down.network.unitary.shape[0])
+    return FamilyFNQuarkPathAuxState(
+        up=jnp.zeros((*batch_shape, up_dim), dtype=jnp.complex64),
+        down=jnp.zeros((*batch_shape, down_dim), dtype=jnp.complex64),
+    )
+
+
+def sm_zero_family_fn_quark_path_state_aux(lattice_shape: tuple[int, int, int]) -> FamilyFNQuarkPathAuxState:
+    """Return zero explicit FN path states for every site/spin/color/weak door."""
+
+    return sm_zero_family_fn_quark_path_aux_state((*lattice_shape, 4, 3, 2))
+
+
 def sm_apply_family_fn_quark_door_state(
     left_family_state: jnp.ndarray,
     hidden_state: jnp.ndarray,
@@ -274,6 +354,28 @@ def sm_apply_family_fn_quark_door_state(
     return FamilyFNQuarkDoorOutput(raw_visible=raw_visible, physical_visible=physical, hidden=updated_hidden)
 
 
+def sm_apply_family_fn_quark_path_door_state(
+    left_family_state: jnp.ndarray,
+    hidden_state: jnp.ndarray,
+    higgs_component: jnp.ndarray,
+    readout: FNVisibleRecirculationReadout,
+) -> FamilyFNQuarkPathDoorOutput:
+    """Evolve one quark door through the explicit FN path network."""
+
+    output = fn_apply_visible_recirculation_path_state(readout, left_family_state, hidden_state)
+    higgs = jnp.asarray(higgs_component, dtype=output.raw_visible.dtype)
+    physical = output.raw_visible
+    if higgs.ndim == 0:
+        physical = higgs * physical
+    else:
+        physical = higgs[..., None] * physical
+    return FamilyFNQuarkPathDoorOutput(
+        raw_visible=output.raw_visible,
+        physical_visible=physical,
+        hidden=output.hidden,
+    )
+
+
 def sm_apply_family_fn_quark_aux_state(
     up_left_family_state: jnp.ndarray,
     down_left_family_state: jnp.ndarray,
@@ -292,6 +394,67 @@ def sm_apply_family_fn_quark_aux_state(
         dilations.down,
     )
     return up.physical_visible, down.physical_visible, FamilyFNQuarkAuxState(up=up.hidden, down=down.hidden)
+
+
+def sm_family_fn_quark_path_state_source(
+    state: jnp.ndarray,
+    higgs: jnp.ndarray,
+    aux_state: FamilyFNQuarkPathAuxState | None = None,
+    readouts: FamilyFNQuarkPathReadouts | None = None,
+) -> FamilyFNQuarkPathStateSource:
+    """Return lattice-local quark sources from explicit FN path-network memory."""
+
+    lattice_shape = _validate_family_state(state)
+    _validate_higgs_field(higgs, lattice_shape)
+    if readouts is None:
+        readouts = sm_family_recirculated_quark_path_readouts()
+    if aux_state is None:
+        aux_state = sm_zero_family_fn_quark_path_state_aux(lattice_shape)
+    expected_prefix = (*lattice_shape, 4, 3, 2)
+    up_dim = int(readouts.up.network.unitary.shape[0])
+    down_dim = int(readouts.down.network.unitary.shape[0])
+    if aux_state.up.shape != (*expected_prefix, up_dim) or aux_state.down.shape != (*expected_prefix, down_dim):
+        raise ValueError("FN quark path aux state has incompatible shape")
+
+    h_tilde = sm_higgs_tilde(higgs)
+    source = jnp.zeros_like(state)
+    up_sources = jnp.zeros((*lattice_shape, 4, 3, SM_FAMILY_DIM), dtype=state.dtype)
+    down_sources = jnp.zeros_like(up_sources)
+    updated_up_aux = jnp.zeros_like(aux_state.up)
+    updated_down_aux = jnp.zeros_like(aux_state.down)
+
+    for spin in range(4):
+        for color in range(3):
+            up_total = jnp.zeros((*lattice_shape, SM_FAMILY_DIM), dtype=state.dtype)
+            down_total = jnp.zeros_like(up_total)
+            for weak in range(2):
+                left = state[..., spin, _q_index(color, weak), :]
+                up = sm_apply_family_fn_quark_path_door_state(
+                    left,
+                    aux_state.up[..., spin, color, weak, :],
+                    h_tilde[..., weak],
+                    readouts.up,
+                )
+                down = sm_apply_family_fn_quark_path_door_state(
+                    left,
+                    aux_state.down[..., spin, color, weak, :],
+                    higgs[..., weak],
+                    readouts.down,
+                )
+                up_total = up_total + up.physical_visible.astype(state.dtype)
+                down_total = down_total + down.physical_visible.astype(state.dtype)
+                updated_up_aux = updated_up_aux.at[..., spin, color, weak, :].set(up.hidden)
+                updated_down_aux = updated_down_aux.at[..., spin, color, weak, :].set(down.hidden)
+            up_sources = up_sources.at[..., spin, color, :].set(up_total)
+            down_sources = down_sources.at[..., spin, color, :].set(down_total)
+            source = source.at[..., spin, _u_c_index(color), :].set(up_total)
+            source = source.at[..., spin, _d_c_index(color), :].set(down_total)
+    return FamilyFNQuarkPathStateSource(
+        up=up_sources,
+        down=down_sources,
+        state_source=source,
+        aux_state=FamilyFNQuarkPathAuxState(up=updated_up_aux, down=updated_down_aux),
+    )
 
 
 def sm_family_fn_quark_state_source(
@@ -387,6 +550,30 @@ def sm_apply_family_fn_quark_source_kick(
     dt = jnp.asarray(step_size, dtype=jnp.real(jnp.asarray(0, dtype=state.dtype)).dtype)
     updated = state - 1j * dt * beta_source
     return FamilyFNQuarkSourceKick(state=updated, source=source.state_source, aux_state=source.aux_state)
+
+
+def sm_apply_family_fn_quark_path_source_kick(
+    state: jnp.ndarray,
+    higgs: jnp.ndarray,
+    aux_state: FamilyFNQuarkPathAuxState | None = None,
+    readouts: FamilyFNQuarkPathReadouts | None = None,
+    *,
+    step_size: float,
+) -> FamilyFNQuarkPathSourceKick:
+    """Kick visible quarks using the explicit FN path-network source."""
+
+    lattice_shape = _validate_family_state(state)
+    _validate_higgs_field(higgs, lattice_shape)
+    if aux_state is None:
+        aux_state = sm_zero_family_fn_quark_path_state_aux(lattice_shape)
+    if step_size == 0:
+        return FamilyFNQuarkPathSourceKick(state=state, source=jnp.zeros_like(state), aux_state=aux_state)
+
+    source = sm_family_fn_quark_path_state_source(state, higgs, aux_state=aux_state, readouts=readouts)
+    beta_source = jnp.einsum("sr,...rif->...sif", sm_dirac_beta(state.dtype), source.state_source)
+    dt = jnp.asarray(step_size, dtype=jnp.real(jnp.asarray(0, dtype=state.dtype)).dtype)
+    updated = state - 1j * dt * beta_source
+    return FamilyFNQuarkPathSourceKick(state=updated, source=source.state_source, aux_state=source.aux_state)
 
 
 def deterministic_sm_family_state(lattice_shape: tuple[int, int, int]) -> jnp.ndarray:

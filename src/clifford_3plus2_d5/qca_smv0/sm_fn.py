@@ -64,6 +64,13 @@ class FNVisibleRecirculationReadout(NamedTuple):
     transfer: jnp.ndarray
 
 
+class FNPathDoorOutput(NamedTuple):
+    """One persistent hidden-path readout update."""
+
+    raw_visible: jnp.ndarray
+    hidden: jnp.ndarray
+
+
 class FNUnitaryDilation(NamedTuple):
     """Exact unitary dilation of a visible FN transfer contraction."""
 
@@ -285,6 +292,42 @@ def fn_visible_recirculation_transfer(
         right_charges,
         coefficients=coefficients,
     ).transfer
+
+
+def fn_zero_path_hidden_state(
+    readout: FNVisibleRecirculationReadout,
+    batch_shape: tuple[int, ...] = (),
+) -> jnp.ndarray:
+    """Return a zero hidden state for one explicit FN path network."""
+
+    hidden_dim = int(readout.network.unitary.shape[0])
+    return jnp.zeros((*batch_shape, hidden_dim), dtype=jnp.complex64)
+
+
+def fn_apply_visible_recirculation_path_state(
+    readout: FNVisibleRecirculationReadout,
+    left_state: jnp.ndarray,
+    hidden_state: jnp.ndarray,
+) -> FNPathDoorOutput:
+    """Inject a visible family vector into the explicit FN path network.
+
+    The hidden network is the direct sum of the length ``Q_i+R_j`` beam-splitter
+    chains.  With zero hidden memory, the visible readout is exactly
+    ``readout.transfer.T @ left_state``; with nonzero hidden memory it carries
+    retarded recirculation history forward.
+    """
+
+    left = jnp.asarray(left_state, dtype=jnp.complex64)
+    hidden = jnp.asarray(hidden_state, dtype=jnp.complex64)
+    if left.shape[-1] != SM_FAMILY_DIM:
+        raise ValueError("left_state must end with family dimension 3")
+    hidden_dim = int(readout.network.unitary.shape[0])
+    if hidden.shape[-1] != hidden_dim:
+        raise ValueError(f"hidden_state must end with hidden dimension {hidden_dim}")
+    injected = hidden + jnp.einsum("ij,...j->...i", readout.entry, left)
+    evolved = jnp.einsum("ij,...j->...i", readout.network.unitary.astype(jnp.complex64), injected)
+    raw_visible = jnp.einsum("ij,...j->...i", readout.exit, evolved)
+    return FNPathDoorOutput(raw_visible=raw_visible, hidden=evolved)
 
 
 def fn_unitary_dilation(transfer: jnp.ndarray) -> FNUnitaryDilation:
