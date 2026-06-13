@@ -438,6 +438,84 @@ def sm_family_fn_production_sm_tick(
     )
 
 
+def sm_family_fn_production_initial_state(
+    lattice_shape: tuple[int, int, int] = (1, 1, 1),
+) -> FamilyFNProductionSMTickOutput:
+    """Return a deterministic FN production rollout state with empty aux."""
+
+    return FamilyFNProductionSMTickOutput(
+        state=deterministic_yukawa_source_state(lattice_shape),
+        higgs=deterministic_higgs_field(lattice_shape),
+        higgs_momenta=deterministic_higgs_momenta(lattice_shape),
+        sm_links=sm_link_field_from_algebra(deterministic_sm_link_theta(lattice_shape, scale=0.25)),
+        sm_momenta=deterministic_sm_momenta(lattice_shape),
+        higgs_links=sm_higgs_link_field_from_algebra(deterministic_higgs_theta(lattice_shape, scale=0.08)),
+        fn_aux_state=sm_zero_family_fn_quark_state_aux(lattice_shape),
+    )
+
+
+def sm_family_fn_production_step(
+    state: FamilyFNProductionSMTickOutput,
+    *,
+    step_size: float,
+    beta: float = 1.0,
+    parameters: HiggsDynamicsParameters = DEFAULT_HIGGS_DYNAMICS_PARAMETERS,
+    lepton_yukawas: FamilyLeptonYukawas | None = None,
+    wilson_epsilon: float = 1e-3,
+    higgs_force_epsilon: float = 1e-3,
+    fermion_current_epsilon: float = 3e-2,
+) -> FamilyFNProductionSMTickOutput:
+    """Advance one FN production rollout state."""
+
+    return sm_family_fn_production_sm_tick(
+        state.state,
+        state.higgs,
+        state.higgs_momenta,
+        state.sm_links,
+        state.sm_momenta,
+        state.higgs_links,
+        state.fn_aux_state,
+        step_size=step_size,
+        beta=beta,
+        parameters=parameters,
+        lepton_yukawas=lepton_yukawas,
+        wilson_epsilon=wilson_epsilon,
+        higgs_force_epsilon=higgs_force_epsilon,
+        fermion_current_epsilon=fermion_current_epsilon,
+    )
+
+
+def sm_family_fn_production_rollout(
+    initial_state: FamilyFNProductionSMTickOutput,
+    *,
+    steps: int,
+    step_size: float,
+    beta: float = 1.0,
+    parameters: HiggsDynamicsParameters = DEFAULT_HIGGS_DYNAMICS_PARAMETERS,
+    lepton_yukawas: FamilyLeptonYukawas | None = None,
+    wilson_epsilon: float = 1e-3,
+    higgs_force_epsilon: float = 1e-3,
+    fermion_current_epsilon: float = 3e-2,
+) -> FamilyFNProductionSMTickOutput:
+    """Return the final state after ``steps`` FN-memory production ticks."""
+
+    if steps < 0:
+        raise ValueError(f"steps must be nonnegative, got {steps}")
+    state = initial_state
+    for _ in range(steps):
+        state = sm_family_fn_production_step(
+            state,
+            step_size=step_size,
+            beta=beta,
+            parameters=parameters,
+            lepton_yukawas=lepton_yukawas,
+            wilson_epsilon=wilson_epsilon,
+            higgs_force_epsilon=higgs_force_epsilon,
+            fermion_current_epsilon=fermion_current_epsilon,
+        )
+    return state
+
+
 def sm_family_production_tick_diagnostics() -> FamilyProductionSMTickDiagnostics:
     """Return focused Stage 15 full family production diagnostics."""
 

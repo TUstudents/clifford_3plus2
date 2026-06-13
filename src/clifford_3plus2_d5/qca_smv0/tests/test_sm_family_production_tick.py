@@ -5,7 +5,10 @@ import jax.numpy as jnp
 
 from clifford_3plus2_d5.qca_smv0.sm_dynamics import deterministic_sm_momenta
 from clifford_3plus2_d5.qca_smv0.sm_family_production_tick import (
+    sm_family_fn_production_initial_state,
+    sm_family_fn_production_rollout,
     sm_family_fn_production_sm_tick,
+    sm_family_fn_production_step,
     sm_apply_family_production_higgs_momentum_kick,
     sm_family_production_higgs_force,
     sm_family_production_sm_tick,
@@ -216,6 +219,33 @@ def test_fn_production_second_tick_depends_on_persistent_aux_memory() -> None:
     assert jnp.linalg.norm(with_memory.state - with_reset.state) > 1e-8
     assert jnp.linalg.norm(with_memory.fn_aux_state.up - with_reset.fn_aux_state.up) > 1e-8
     assert jnp.linalg.norm(with_memory.fn_aux_state.down - with_reset.fn_aux_state.down) > 1e-8
+
+
+def test_fn_production_rollout_iterates_tick_with_aux_memory() -> None:
+    initial = sm_family_fn_production_initial_state((1, 1, 1))
+    one_direct = sm_family_fn_production_step(initial, step_size=0.003)
+    one_rollout = sm_family_fn_production_rollout(initial, steps=1, step_size=0.003)
+    two_direct = sm_family_fn_production_step(one_direct, step_size=0.003)
+    two_rollout = sm_family_fn_production_rollout(initial, steps=2, step_size=0.003)
+    zero_rollout = sm_family_fn_production_rollout(initial, steps=0, step_size=0.003)
+
+    for actual, expected in (
+        (one_rollout, one_direct),
+        (two_rollout, two_direct),
+        (zero_rollout, initial),
+    ):
+        assert jnp.max(jnp.abs(actual.state - expected.state)) < 1e-8
+        assert jnp.max(jnp.abs(actual.higgs - expected.higgs)) < 1e-8
+        assert jnp.max(jnp.abs(actual.higgs_momenta - expected.higgs_momenta)) < 1e-8
+        assert jnp.max(jnp.abs(actual.sm_links - expected.sm_links)) < 1e-8
+        assert jnp.max(jnp.abs(actual.sm_momenta - expected.sm_momenta)) < 1e-8
+        assert jnp.max(jnp.abs(actual.higgs_links - expected.higgs_links)) < 1e-8
+        assert jnp.max(jnp.abs(actual.fn_aux_state.up - expected.fn_aux_state.up)) < 1e-8
+        assert jnp.max(jnp.abs(actual.fn_aux_state.down - expected.fn_aux_state.down)) < 1e-8
+    assert jnp.linalg.norm(two_rollout.fn_aux_state.up) > 1e-6
+    assert jnp.linalg.norm(two_rollout.fn_aux_state.down) > 1e-6
+    assert jnp.linalg.norm(two_rollout.fn_aux_state.up - one_rollout.fn_aux_state.up) > 1e-6
+    assert jnp.linalg.norm(two_rollout.fn_aux_state.down - one_rollout.fn_aux_state.down) > 1e-6
 
 
 def test_family_production_tick_diagnostics_and_jit_pass_stage_thresholds() -> None:
