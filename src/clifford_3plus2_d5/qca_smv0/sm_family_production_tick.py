@@ -41,7 +41,15 @@ from clifford_3plus2_d5.qca_smv0.sm_family_sourced_tick import (
     sm_family_sourced_sm_tick,
 )
 from clifford_3plus2_d5.qca_smv0.sm_fermion_higgs import deterministic_yukawa_source_state, sm_yukawa_higgs_force
-from clifford_3plus2_d5.qca_smv0.sm_fn import DEFAULT_FN_QUARK_CHARGES, FN_LAMBDA_WOLFENSTEIN, FNQuarkCharges, FNQuarkYukawas
+from clifford_3plus2_d5.qca_smv0.sm_fn import (
+    DEFAULT_FN_QUARK_CHARGES,
+    FN_LAMBDA_WOLFENSTEIN,
+    FNQuarkCharges,
+    FNQuarkYukawas,
+    fn_ckm_from_yukawas,
+    fn_quark_yukawas_from_masses_ckm,
+    fn_singular_masses,
+)
 from clifford_3plus2_d5.qca_smv0.sm_gauge import (
     SM_GENERATOR_COUNT,
     SM_INTERNAL_DIM,
@@ -99,6 +107,26 @@ class FamilyFNProductionSMTickOutput(NamedTuple):
     sm_momenta: jnp.ndarray
     higgs_links: jnp.ndarray
     fn_aux_state: FamilyFNQuarkPathAuxState
+
+
+class FamilyFNCalibratedProductionDiagnostics(NamedTuple):
+    """Reconstruction and rollout diagnostics for calibrated FN production."""
+
+    yukawa_residual: jnp.ndarray
+    up_mass_residual: jnp.ndarray
+    down_mass_residual: jnp.ndarray
+    ckm_abs_residual: jnp.ndarray
+    state_norm_drift: jnp.ndarray
+    calibrated_default_state_delta_norm: jnp.ndarray
+
+
+class FamilyFNCalibratedProductionRun(NamedTuple):
+    """One calibrated exact-unitary FN production run and its diagnostics."""
+
+    output: FamilyFNProductionSMTickOutput
+    diagnostics: FamilyFNCalibratedProductionDiagnostics
+    target_yukawas: FNQuarkYukawas
+    recovered_yukawas: FNQuarkYukawas
 
 
 def _validate_family_state(state: jnp.ndarray) -> tuple[int, int, int]:
@@ -838,6 +866,80 @@ def sm_family_fn_unitary_production_rollout_from_masses_ckm(
         wilson_epsilon=wilson_epsilon,
         higgs_force_epsilon=higgs_force_epsilon,
         fermion_current_epsilon=fermion_current_epsilon,
+    )
+
+
+def sm_family_fn_calibrated_unitary_production_run(
+    initial_state: FamilyFNProductionSMTickOutput,
+    up_masses: jnp.ndarray,
+    down_masses: jnp.ndarray,
+    ckm: jnp.ndarray | None = None,
+    *,
+    lambda_rec: float = FN_LAMBDA_WOLFENSTEIN,
+    charges: FNQuarkCharges = DEFAULT_FN_QUARK_CHARGES,
+    steps: int,
+    step_size: float,
+    beta: float = 1.0,
+    parameters: HiggsDynamicsParameters = DEFAULT_HIGGS_DYNAMICS_PARAMETERS,
+    lepton_yukawas: FamilyLeptonYukawas | None = None,
+    wilson_epsilon: float = 1e-3,
+    higgs_force_epsilon: float = 1e-3,
+    fermion_current_epsilon: float = 3e-2,
+) -> FamilyFNCalibratedProductionRun:
+    """Run exact-unitary FN production and report calibration diagnostics."""
+
+    target_yukawas = fn_quark_yukawas_from_masses_ckm(up_masses, down_masses, ckm)
+    readouts = sm_family_quark_path_readouts_from_masses_ckm(
+        up_masses,
+        down_masses,
+        ckm,
+        lambda_rec=lambda_rec,
+        charges=charges,
+    )
+    recovered_yukawas = sm_family_quark_yukawas_from_path_readouts(readouts)
+    output = sm_family_fn_unitary_production_rollout(
+        initial_state,
+        steps=steps,
+        step_size=step_size,
+        beta=beta,
+        parameters=parameters,
+        readouts=readouts,
+        lepton_yukawas=lepton_yukawas,
+        wilson_epsilon=wilson_epsilon,
+        higgs_force_epsilon=higgs_force_epsilon,
+        fermion_current_epsilon=fermion_current_epsilon,
+    )
+    default_output = sm_family_fn_unitary_production_rollout(
+        initial_state,
+        steps=steps,
+        step_size=step_size,
+        beta=beta,
+        parameters=parameters,
+        lepton_yukawas=lepton_yukawas,
+        wilson_epsilon=wilson_epsilon,
+        higgs_force_epsilon=higgs_force_epsilon,
+        fermion_current_epsilon=fermion_current_epsilon,
+    )
+    target_ckm = fn_ckm_from_yukawas(target_yukawas.up, target_yukawas.down)
+    recovered_ckm = fn_ckm_from_yukawas(recovered_yukawas.up, recovered_yukawas.down)
+    diagnostics = FamilyFNCalibratedProductionDiagnostics(
+        yukawa_residual=jnp.maximum(
+            jnp.max(jnp.abs(recovered_yukawas.up - target_yukawas.up)),
+            jnp.max(jnp.abs(recovered_yukawas.down - target_yukawas.down)),
+        ),
+        up_mass_residual=jnp.max(jnp.abs(fn_singular_masses(recovered_yukawas.up) - fn_singular_masses(target_yukawas.up))),
+        down_mass_residual=jnp.max(
+            jnp.abs(fn_singular_masses(recovered_yukawas.down) - fn_singular_masses(target_yukawas.down)),
+        ),
+        ckm_abs_residual=jnp.max(jnp.abs(jnp.abs(recovered_ckm) - jnp.abs(target_ckm))),
+        state_norm_drift=jnp.abs(state_norm_squared(output.state) - state_norm_squared(initial_state.state)),
+        calibrated_default_state_delta_norm=jnp.linalg.norm(output.state - default_output.state),
+    )
+    return FamilyFNCalibratedProductionRun(
+        output=output,
+        diagnostics=diagnostics,
+        target_yukawas=target_yukawas,
+        recovered_yukawas=recovered_yukawas,
     )
 
 

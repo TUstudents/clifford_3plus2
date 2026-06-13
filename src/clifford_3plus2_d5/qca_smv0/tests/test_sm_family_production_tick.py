@@ -12,6 +12,7 @@ from clifford_3plus2_d5.qca_smv0.sm_family_production_tick import (
     sm_family_fn_production_sm_tick,
     sm_family_fn_production_step,
     sm_family_fn_production_step_from_masses_ckm,
+    sm_family_fn_calibrated_unitary_production_run,
     sm_family_fn_unitary_production_rollout,
     sm_family_fn_unitary_production_rollout_from_masses_ckm,
     sm_family_fn_unitary_production_step,
@@ -417,6 +418,41 @@ def test_fn_unitary_production_from_masses_ckm_matches_manual_readouts() -> None
     assert jnp.max(jnp.abs(calibrated_rollout.fn_aux_state.up - manual_rollout.fn_aux_state.up)) < 1e-8
     assert jnp.max(jnp.abs(calibrated_rollout.fn_aux_state.down - manual_rollout.fn_aux_state.down)) < 1e-8
     assert jnp.linalg.norm(calibrated_rollout.state - default_rollout.state) > 1e-7
+
+
+def test_fn_calibrated_unitary_production_run_reports_reconstruction_diagnostics() -> None:
+    initial = sm_family_fn_production_initial_state((1, 1, 1))
+    theta = jnp.asarray(0.22, dtype=jnp.float32)
+    ckm = jnp.asarray(
+        [
+            [jnp.cos(theta), jnp.sin(theta), 0.0],
+            [-jnp.sin(theta), jnp.cos(theta), 0.0],
+            [0.0, 0.0, 1.0],
+        ],
+        dtype=jnp.complex64,
+    )
+    up_masses = jnp.asarray([1.0, 0.08, 0.002], dtype=jnp.float32)
+    down_masses = jnp.asarray([0.7, 0.04, 0.0015], dtype=jnp.float32)
+    readouts = sm_family_quark_path_readouts_from_masses_ckm(up_masses, down_masses, ckm)
+    manual = sm_family_fn_unitary_production_rollout(initial, steps=1, step_size=0.003, readouts=readouts)
+    run = sm_family_fn_calibrated_unitary_production_run(
+        initial,
+        up_masses,
+        down_masses,
+        ckm,
+        steps=1,
+        step_size=0.003,
+    )
+
+    assert jnp.max(jnp.abs(run.output.state - manual.state)) < 1e-8
+    assert jnp.max(jnp.abs(run.recovered_yukawas.up - run.target_yukawas.up)) < 5e-7
+    assert jnp.max(jnp.abs(run.recovered_yukawas.down - run.target_yukawas.down)) < 5e-7
+    assert run.diagnostics.yukawa_residual < 5e-7
+    assert run.diagnostics.up_mass_residual < 5e-7
+    assert run.diagnostics.down_mass_residual < 5e-7
+    assert run.diagnostics.ckm_abs_residual < 5e-7
+    assert run.diagnostics.state_norm_drift < 5e-6
+    assert run.diagnostics.calibrated_default_state_delta_norm > 1e-7
 
 
 def test_family_production_tick_diagnostics_and_jit_pass_stage_thresholds() -> None:
