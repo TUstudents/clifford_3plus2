@@ -18,6 +18,7 @@ from clifford_3plus2_d5.qca_smv0.sm_fn import (
     DEFAULT_FN_QUARK_CHARGES,
     FN_LAMBDA_WOLFENSTEIN,
     FNQuarkCharges,
+    FNQuarkCoefficientMatrices,
     FNQuarkYukawas,
     SM_FAMILY_DIM,
     fn_ckm_from_yukawas,
@@ -53,6 +54,17 @@ class CenterCPDiagnostics(NamedTuple):
     real_control_jarlskog_abs: jnp.ndarray
     commutator_cp_abs: jnp.ndarray
     jit_delta: jnp.ndarray
+
+
+class CenterCPCoefficientFactorization(NamedTuple):
+    """Projection of calibrated FN coefficients onto center-holonomy phases."""
+
+    magnitudes: FNQuarkCoefficientMatrices
+    center_powers: CenterHolonomyPowers
+    center_phases: FNQuarkCoefficientMatrices
+    reconstructed_coefficients: FNQuarkCoefficientMatrices
+    coefficient_residual: jnp.ndarray
+    phase_residual: jnp.ndarray
 
 
 DEFAULT_CENTER_HOLONOMY_POWERS = CenterHolonomyPowers()
@@ -111,6 +123,48 @@ def sm_center_coefficients(
     if powers is None:
         powers = DEFAULT_CENTER_HOLONOMY_POWERS.up if kind == "up" else DEFAULT_CENTER_HOLONOMY_POWERS.down
     return base.astype(jnp.complex64) * sm_center_holonomy_phases(powers)
+
+
+def _factor_matrix_to_center_phases(matrix: jnp.ndarray) -> tuple[jnp.ndarray, jnp.ndarray, jnp.ndarray, jnp.ndarray, jnp.ndarray, jnp.ndarray]:
+    coeffs = _validate_family_matrix(matrix, "coefficients").astype(jnp.complex64)
+    magnitudes = jnp.abs(coeffs)
+    nonzero = magnitudes > 1e-30
+    safe_magnitudes = jnp.where(nonzero, magnitudes, 1.0)
+    normalized = jnp.where(nonzero, coeffs / safe_magnitudes, 1.0 + 0.0j)
+    centers = (SM_COLOR_CENTER_OMEGA ** jnp.arange(SM_COLOR_CENTER_ORDER, dtype=jnp.int32)).astype(jnp.complex64)
+    distances = jnp.abs(normalized[..., None] - centers)
+    powers = jnp.where(nonzero, jnp.argmin(distances, axis=-1), 0).astype(jnp.int32)
+    phases = sm_center_holonomy_phases(powers)
+    reconstructed = magnitudes.astype(jnp.complex64) * phases
+    coefficient_residual = jnp.max(jnp.abs(reconstructed - coeffs))
+    phase_residual = jnp.max(jnp.where(nonzero, jnp.abs(normalized - phases), 0.0))
+    return magnitudes, powers, phases, reconstructed, coefficient_residual, phase_residual
+
+
+def sm_factor_coefficients_to_center_phases(
+    coefficients: FNQuarkCoefficientMatrices,
+) -> CenterCPCoefficientFactorization:
+    """Factor calibrated FN coefficients as magnitude times nearest center phase.
+
+    This is the constrained CP readout used by the simulator mode: arbitrary
+    calibrated coefficient phases are projected to the nearest element of the
+    ``SU(3)`` center while their magnitudes are kept fixed.
+    """
+
+    up_magnitudes, up_powers, up_phases, up_reconstructed, up_coefficient_residual, up_phase_residual = _factor_matrix_to_center_phases(
+        coefficients.up,
+    )
+    down_magnitudes, down_powers, down_phases, down_reconstructed, down_coefficient_residual, down_phase_residual = (
+        _factor_matrix_to_center_phases(coefficients.down)
+    )
+    return CenterCPCoefficientFactorization(
+        magnitudes=FNQuarkCoefficientMatrices(up=up_magnitudes, down=down_magnitudes),
+        center_powers=CenterHolonomyPowers(up=up_powers, down=down_powers),
+        center_phases=FNQuarkCoefficientMatrices(up=up_phases, down=down_phases),
+        reconstructed_coefficients=FNQuarkCoefficientMatrices(up=up_reconstructed, down=down_reconstructed),
+        coefficient_residual=jnp.maximum(up_coefficient_residual, down_coefficient_residual),
+        phase_residual=jnp.maximum(up_phase_residual, down_phase_residual),
+    )
 
 
 def sm_center_cp_quark_yukawas(

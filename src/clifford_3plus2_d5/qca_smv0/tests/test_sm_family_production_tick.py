@@ -5,6 +5,10 @@ import jax.numpy as jnp
 
 from clifford_3plus2_d5.qca_smv0.sm_dynamics import deterministic_sm_momenta
 from clifford_3plus2_d5.qca_smv0.sm_family_production_tick import (
+    sm_family_fn_configure_center_cp_production,
+    sm_family_fn_configure_production,
+    sm_family_fn_run_center_cp_production,
+    sm_family_fn_run_production,
     sm_family_fn_production_initial_state,
     sm_family_fn_production_higgs_force,
     sm_family_fn_phenomenology_report,
@@ -22,10 +26,8 @@ from clifford_3plus2_d5.qca_smv0.sm_family_production_tick import (
     sm_family_production_higgs_force,
     sm_family_production_sm_tick,
     sm_family_production_tick_diagnostics,
-    sm_family_fn_configure_production,
     sm_zero_family_lepton_yukawas,
     sm_zero_quark_yukawas,
-    sm_family_fn_run_production,
 )
 from clifford_3plus2_d5.qca_smv0.sm_family_higgs import (
     sm_family_calibrated_quark_path_readouts,
@@ -435,6 +437,77 @@ def test_fn_run_production_api_matches_manual_readout_rollout() -> None:
     assert jnp.max(jnp.abs(actual.sm_links - manual.sm_links)) < 1e-8
     assert jnp.max(jnp.abs(actual.sm_momenta - manual.sm_momenta)) < 1e-8
     assert jnp.max(jnp.abs(actual.higgs_links - manual.higgs_links)) < 1e-8
+    assert jnp.max(jnp.abs(actual.fn_aux_state.up - manual.fn_aux_state.up)) < 1e-8
+    assert jnp.max(jnp.abs(actual.fn_aux_state.down - manual.fn_aux_state.down)) < 1e-8
+
+
+def test_center_cp_config_preserves_coefficient_magnitudes_and_reports_phase_projection() -> None:
+    theta = jnp.asarray(0.22, dtype=jnp.float32)
+    delta = jnp.asarray(0.37, dtype=jnp.float32)
+    ckm = jnp.asarray(
+        [
+            [jnp.cos(theta), jnp.sin(theta) * jnp.exp(1j * delta), 0.0],
+            [-jnp.sin(theta) * jnp.exp(-1j * delta), jnp.cos(theta), 0.0],
+            [0.0, 0.0, 1.0],
+        ],
+        dtype=jnp.complex64,
+    )
+    up_masses = jnp.asarray([1.0, 0.08, 0.002], dtype=jnp.float32)
+    down_masses = jnp.asarray([0.7, 0.04, 0.0015], dtype=jnp.float32)
+
+    config = sm_family_fn_configure_center_cp_production(up_masses, down_masses, ckm)
+    calibrated_coefficients = fn_quark_coefficients_from_yukawas(config.calibrated_config.target_yukawas)
+    recovered_center_coefficients = fn_quark_coefficients_from_yukawas(config.center_config.recovered_yukawas)
+    up_recovery_scale = jnp.maximum(1.0, jnp.abs(config.factorization.reconstructed_coefficients.up))
+    down_recovery_scale = jnp.maximum(1.0, jnp.abs(config.factorization.reconstructed_coefficients.down))
+
+    assert jnp.max(jnp.abs(jnp.abs(config.factorization.reconstructed_coefficients.up) - jnp.abs(calibrated_coefficients.up))) < 3e-6
+    assert (
+        jnp.max(jnp.abs(jnp.abs(config.factorization.reconstructed_coefficients.down) - jnp.abs(calibrated_coefficients.down)))
+        < 3e-6
+    )
+    assert jnp.max(jnp.abs(recovered_center_coefficients.up - config.factorization.reconstructed_coefficients.up) / up_recovery_scale) < 3e-6
+    assert (
+        jnp.max(jnp.abs(recovered_center_coefficients.down - config.factorization.reconstructed_coefficients.down) / down_recovery_scale) < 3e-6
+    )
+    assert config.factorization.coefficient_residual > 0.01
+    assert config.factorization.phase_residual > 0.01
+    assert jnp.max(jnp.abs(config.center_config.recovered_yukawas.down - config.center_config.target_yukawas.down)) > 0.001
+
+
+def test_center_cp_run_production_api_matches_manual_center_readout_rollout() -> None:
+    initial = sm_family_fn_production_initial_state((1, 1, 1))
+    theta = jnp.asarray(0.22, dtype=jnp.float32)
+    delta = jnp.asarray(0.37, dtype=jnp.float32)
+    ckm = jnp.asarray(
+        [
+            [jnp.cos(theta), jnp.sin(theta) * jnp.exp(1j * delta), 0.0],
+            [-jnp.sin(theta) * jnp.exp(-1j * delta), jnp.cos(theta), 0.0],
+            [0.0, 0.0, 1.0],
+        ],
+        dtype=jnp.complex64,
+    )
+    up_masses = jnp.asarray([1.0, 0.08, 0.002], dtype=jnp.float32)
+    down_masses = jnp.asarray([0.7, 0.04, 0.0015], dtype=jnp.float32)
+    config = sm_family_fn_configure_center_cp_production(up_masses, down_masses, ckm)
+
+    manual = sm_family_fn_production_rollout(
+        initial,
+        steps=1,
+        step_size=0.003,
+        readouts=config.center_config.readouts,
+    )
+    actual = sm_family_fn_run_center_cp_production(
+        initial,
+        up_masses,
+        down_masses,
+        ckm,
+        steps=1,
+        step_size=0.003,
+    )
+
+    assert jnp.max(jnp.abs(actual.state - manual.state)) < 1e-8
+    assert jnp.max(jnp.abs(actual.higgs_momenta - manual.higgs_momenta)) < 1e-8
     assert jnp.max(jnp.abs(actual.fn_aux_state.up - manual.fn_aux_state.up)) < 1e-8
     assert jnp.max(jnp.abs(actual.fn_aux_state.down - manual.fn_aux_state.down)) < 1e-8
 

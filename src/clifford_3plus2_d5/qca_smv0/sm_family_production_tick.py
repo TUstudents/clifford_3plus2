@@ -20,6 +20,7 @@ from typing import NamedTuple
 import jax
 import jax.numpy as jnp
 
+from clifford_3plus2_d5.qca_smv0.sm_cp import CenterCPCoefficientFactorization, sm_factor_coefficients_to_center_phases
 from clifford_3plus2_d5.qca_smv0.sm_dynamics import deterministic_sm_momenta
 from clifford_3plus2_d5.qca_smv0.sm_family_gauge import sm_family_gauged_dirac_step
 from clifford_3plus2_d5.qca_smv0.sm_family_higgs import (
@@ -155,6 +156,14 @@ class FamilyFNPhenomenologyReport(NamedTuple):
     coefficients_are_finite: jnp.ndarray
     coefficients_are_nonzero: jnp.ndarray
     coefficients_are_order_one: jnp.ndarray
+
+
+class FamilyFNCenterCPProductionConfig(NamedTuple):
+    """Calibrated production plus its center-holonomy CP projection."""
+
+    calibrated_config: FamilyFNProductionConfig
+    center_config: FamilyFNProductionConfig
+    factorization: CenterCPCoefficientFactorization
 
 
 def _validate_family_state(state: jnp.ndarray) -> tuple[int, int, int]:
@@ -696,6 +705,46 @@ def sm_family_fn_phenomenology_report(
     )
 
 
+def sm_family_fn_configure_center_cp_production(
+    up_masses: jnp.ndarray,
+    down_masses: jnp.ndarray,
+    ckm: jnp.ndarray | None = None,
+    *,
+    lambda_rec: float = FN_LAMBDA_WOLFENSTEIN,
+    charges: FNQuarkCharges = DEFAULT_FN_QUARK_CHARGES,
+) -> FamilyFNCenterCPProductionConfig:
+    """Configure FN production with calibrated coefficients projected to center phases."""
+
+    calibrated_config = sm_family_fn_configure_production(
+        up_masses,
+        down_masses,
+        ckm,
+        lambda_rec=lambda_rec,
+        charges=charges,
+    )
+    calibrated_coefficients = fn_quark_coefficients_from_yukawas(
+        calibrated_config.target_yukawas,
+        lambda_rec=lambda_rec,
+        charges=charges,
+    )
+    factorization = sm_factor_coefficients_to_center_phases(calibrated_coefficients)
+    center_readouts = sm_family_recirculated_quark_path_readouts(
+        lambda_rec=lambda_rec,
+        charges=charges,
+        coefficients=factorization.reconstructed_coefficients,
+    )
+    center_config = FamilyFNProductionConfig(
+        readouts=center_readouts,
+        target_yukawas=calibrated_config.target_yukawas,
+        recovered_yukawas=sm_family_quark_yukawas_from_path_readouts(center_readouts),
+    )
+    return FamilyFNCenterCPProductionConfig(
+        calibrated_config=calibrated_config,
+        center_config=center_config,
+        factorization=factorization,
+    )
+
+
 def sm_family_fn_production_step(
     state: FamilyFNProductionSMTickOutput,
     *,
@@ -977,6 +1026,46 @@ def sm_family_fn_run_production(
         beta=beta,
         parameters=parameters,
         readouts=config.readouts,
+        lepton_yukawas=lepton_yukawas,
+        wilson_epsilon=wilson_epsilon,
+        higgs_force_epsilon=higgs_force_epsilon,
+        fermion_current_epsilon=fermion_current_epsilon,
+    )
+
+
+def sm_family_fn_run_center_cp_production(
+    initial_state: FamilyFNProductionSMTickOutput,
+    up_masses: jnp.ndarray,
+    down_masses: jnp.ndarray,
+    ckm: jnp.ndarray | None = None,
+    *,
+    lambda_rec: float = FN_LAMBDA_WOLFENSTEIN,
+    charges: FNQuarkCharges = DEFAULT_FN_QUARK_CHARGES,
+    steps: int,
+    step_size: float,
+    beta: float = 1.0,
+    parameters: HiggsDynamicsParameters = DEFAULT_HIGGS_DYNAMICS_PARAMETERS,
+    lepton_yukawas: FamilyLeptonYukawas | None = None,
+    wilson_epsilon: float = 1e-3,
+    higgs_force_epsilon: float = 1e-3,
+    fermion_current_epsilon: float = 3e-2,
+) -> FamilyFNProductionSMTickOutput:
+    """Run FN production with calibrated coefficients constrained to center phases."""
+
+    config = sm_family_fn_configure_center_cp_production(
+        up_masses,
+        down_masses,
+        ckm,
+        lambda_rec=lambda_rec,
+        charges=charges,
+    )
+    return sm_family_fn_production_rollout(
+        initial_state,
+        steps=steps,
+        step_size=step_size,
+        beta=beta,
+        parameters=parameters,
+        readouts=config.center_config.readouts,
         lepton_yukawas=lepton_yukawas,
         wilson_epsilon=wilson_epsilon,
         higgs_force_epsilon=higgs_force_epsilon,
