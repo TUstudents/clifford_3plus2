@@ -5,6 +5,7 @@ import jax.numpy as jnp
 
 from clifford_3plus2_d5.qca_smv0.sm_dynamics import deterministic_sm_momenta
 from clifford_3plus2_d5.qca_smv0.sm_family_production_tick import (
+    sm_family_fn_center_cp_phenomenology_report,
     sm_family_fn_configure_center_cp_production,
     sm_family_fn_configure_production,
     sm_family_fn_run_center_cp_production,
@@ -65,6 +66,26 @@ def _stage15_fields(lattice_shape: tuple[int, int, int] = (1, 1, 1)):
     sm_momenta = deterministic_sm_momenta(lattice_shape)
     higgs_links = sm_higgs_link_field_from_algebra(deterministic_higgs_theta(lattice_shape, scale=0.08))
     return state, higgs, higgs_momenta, sm_links, sm_momenta, higgs_links
+
+
+def _benchmark_complex_ckm() -> jnp.ndarray:
+    s12 = jnp.asarray(0.22, dtype=jnp.float32)
+    s23 = jnp.asarray(0.04, dtype=jnp.float32)
+    s13 = jnp.asarray(0.0035, dtype=jnp.float32)
+    delta = jnp.asarray(1.2, dtype=jnp.float32)
+    c12 = jnp.sqrt(1.0 - s12 * s12)
+    c23 = jnp.sqrt(1.0 - s23 * s23)
+    c13 = jnp.sqrt(1.0 - s13 * s13)
+    exp_pos = jnp.exp(1j * delta)
+    exp_neg = jnp.exp(-1j * delta)
+    return jnp.asarray(
+        [
+            [c12 * c13, s12 * c13, s13 * exp_neg],
+            [-s12 * c23 - c12 * s23 * s13 * exp_pos, c12 * c23 - s12 * s23 * s13 * exp_pos, s23 * c13],
+            [s12 * s23 - c12 * c23 * s13 * exp_pos, -c12 * s23 - s12 * c23 * s13 * exp_pos, c23 * c13],
+        ],
+        dtype=jnp.complex64,
+    )
 
 
 def test_zero_yukawas_reduce_production_tick_to_stage14_tick() -> None:
@@ -510,6 +531,29 @@ def test_center_cp_run_production_api_matches_manual_center_readout_rollout() ->
     assert jnp.max(jnp.abs(actual.higgs_momenta - manual.higgs_momenta)) < 1e-8
     assert jnp.max(jnp.abs(actual.fn_aux_state.up - manual.fn_aux_state.up)) < 1e-8
     assert jnp.max(jnp.abs(actual.fn_aux_state.down - manual.fn_aux_state.down)) < 1e-8
+
+
+def test_center_cp_phenomenology_report_compares_exact_nearest_and_searched() -> None:
+    up_masses = jnp.asarray([1.0, 0.08, 0.002], dtype=jnp.float32)
+    down_masses = jnp.asarray([0.7, 0.04, 0.0015], dtype=jnp.float32)
+
+    report = sm_family_fn_center_cp_phenomenology_report(
+        up_masses,
+        down_masses,
+        _benchmark_complex_ckm(),
+        max_search_sweeps=1,
+    )
+
+    assert report.exact_report.up_mass_residual < 5e-7
+    assert report.exact_report.down_mass_residual < 5e-7
+    assert report.exact_report.ckm_abs_residual < 5e-7
+    assert jnp.abs(report.target_jarlskog) > 1e-7
+    assert jnp.abs(report.exact_jarlskog - report.target_jarlskog) < 1e-7
+    assert report.search.best_residuals.objective <= report.search.initial_residuals.objective + 1e-7
+    assert report.search.best_residuals.jarlskog_relative_residual <= report.search.initial_residuals.objective + 1e-7
+    assert jnp.max(jnp.abs(report.searched_config.recovered_yukawas.down - report.nearest_config.center_config.target_yukawas.down)) > 0.0
+    assert report.searched_coefficient_magnitude_max > 0
+    assert jnp.isfinite(report.searched_coefficient_order_one_distance)
 
 
 def test_fn_phenomenology_report_recovers_masses_ckm_and_coefficients() -> None:

@@ -15,6 +15,7 @@ from clifford_3plus2_d5.qca_smv0.sm_cp import (
     sm_center_power_matrix,
     sm_ckm_jarlskog,
     sm_factor_coefficients_to_center_phases,
+    sm_search_center_cp_powers,
     sm_quark_antiquark_mass_residual,
     sm_yukawa_commutator_cp_trace,
 )
@@ -98,6 +99,36 @@ def test_factor_coefficients_to_center_phases_preserves_magnitudes_and_reports_p
     assert factorization.center_powers.down[1, 0] == 0
     assert sm_center_phase_closure_residual(factorization.center_phases.up) < 1e-6
     assert sm_center_phase_closure_residual(factorization.center_phases.down) < 1e-6
+
+
+def test_search_center_cp_powers_never_worsens_nearest_projection() -> None:
+    up = jnp.asarray(
+        [
+            [1.0, 0.8 * jnp.exp(0.31j), 1.2 * jnp.exp(-0.77j)],
+            [0.9 * jnp.exp(1.1j), 1.1, 0.7 * jnp.exp(-1.4j)],
+            [1.3 * jnp.exp(2.0j), 0.95 * jnp.exp(-2.2j), 1.0],
+        ],
+        dtype=jnp.complex64,
+    )
+    down = jnp.asarray(
+        [
+            [0.9 * jnp.exp(-0.4j), 1.2, 0.8 * jnp.exp(1.5j)],
+            [1.0, 0.85 * jnp.exp(-1.8j), 1.15 * jnp.exp(0.9j)],
+            [1.1 * jnp.exp(2.4j), 0.7, 0.95 * jnp.exp(-2.8j)],
+        ],
+        dtype=jnp.complex64,
+    )
+    coefficients = FNQuarkCoefficientMatrices(up=up, down=down)
+    target = fn_quark_yukawa_matrices(up_coefficients=up, down_coefficients=down)
+
+    search = sm_search_center_cp_powers(coefficients, target, max_sweeps=1)
+
+    assert search.best_residuals.objective <= search.initial_residuals.objective + 1e-7
+    assert search.best_residuals.ckm_abs_residual <= search.initial_residuals.objective + 1e-7
+    assert sm_center_phase_closure_residual(search.best_factorization.center_phases.up) < 1e-6
+    assert sm_center_phase_closure_residual(search.best_factorization.center_phases.down) < 1e-6
+    assert jnp.isfinite(search.best_residuals.jarlskog_relative_residual)
+    assert search.sweeps_completed >= 1
 
 
 def test_antiparticle_conjugation_preserves_singular_masses() -> None:

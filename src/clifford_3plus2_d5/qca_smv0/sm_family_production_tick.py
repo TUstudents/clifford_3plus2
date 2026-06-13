@@ -20,7 +20,13 @@ from typing import NamedTuple
 import jax
 import jax.numpy as jnp
 
-from clifford_3plus2_d5.qca_smv0.sm_cp import CenterCPCoefficientFactorization, sm_factor_coefficients_to_center_phases
+from clifford_3plus2_d5.qca_smv0.sm_cp import (
+    CenterCPCoefficientFactorization,
+    CenterCPCoefficientSearchResult,
+    sm_ckm_jarlskog,
+    sm_factor_coefficients_to_center_phases,
+    sm_search_center_cp_powers,
+)
 from clifford_3plus2_d5.qca_smv0.sm_dynamics import deterministic_sm_momenta
 from clifford_3plus2_d5.qca_smv0.sm_family_gauge import sm_family_gauged_dirac_step
 from clifford_3plus2_d5.qca_smv0.sm_family_higgs import (
@@ -164,6 +170,28 @@ class FamilyFNCenterCPProductionConfig(NamedTuple):
     calibrated_config: FamilyFNProductionConfig
     center_config: FamilyFNProductionConfig
     factorization: CenterCPCoefficientFactorization
+
+
+class FamilyFNCenterCPPhenomenologyReport(NamedTuple):
+    """Exact-FN versus center-holonomy CP phenomenology comparison."""
+
+    exact_report: FamilyFNPhenomenologyReport
+    nearest_config: FamilyFNCenterCPProductionConfig
+    searched_config: FamilyFNProductionConfig
+    search: CenterCPCoefficientSearchResult
+    target_ckm: jnp.ndarray
+    exact_ckm: jnp.ndarray
+    nearest_ckm: jnp.ndarray
+    searched_ckm: jnp.ndarray
+    target_jarlskog: jnp.ndarray
+    exact_jarlskog: jnp.ndarray
+    nearest_jarlskog: jnp.ndarray
+    searched_jarlskog: jnp.ndarray
+    searched_coefficient_magnitude_min: jnp.ndarray
+    searched_coefficient_magnitude_max: jnp.ndarray
+    searched_coefficient_magnitude_mean: jnp.ndarray
+    searched_coefficient_order_one_distance: jnp.ndarray
+    searched_coefficients_are_order_one: jnp.ndarray
 
 
 def _validate_family_state(state: jnp.ndarray) -> tuple[int, int, int]:
@@ -742,6 +770,76 @@ def sm_family_fn_configure_center_cp_production(
         calibrated_config=calibrated_config,
         center_config=center_config,
         factorization=factorization,
+    )
+
+
+def sm_family_fn_center_cp_phenomenology_report(
+    up_masses: jnp.ndarray,
+    down_masses: jnp.ndarray,
+    ckm: jnp.ndarray | None = None,
+    *,
+    lambda_rec: float = FN_LAMBDA_WOLFENSTEIN,
+    charges: FNQuarkCharges = DEFAULT_FN_QUARK_CHARGES,
+    max_search_sweeps: int = 2,
+) -> FamilyFNCenterCPPhenomenologyReport:
+    """Compare exact calibrated FN with nearest and searched center-CP readouts."""
+
+    exact_report = sm_family_fn_phenomenology_report(
+        up_masses,
+        down_masses,
+        ckm,
+        lambda_rec=lambda_rec,
+        charges=charges,
+    )
+    nearest_config = sm_family_fn_configure_center_cp_production(
+        up_masses,
+        down_masses,
+        ckm,
+        lambda_rec=lambda_rec,
+        charges=charges,
+    )
+    search = sm_search_center_cp_powers(
+        exact_report.coefficients,
+        exact_report.target_yukawas,
+        lambda_rec=lambda_rec,
+        charges=charges,
+        max_sweeps=max_search_sweeps,
+    )
+    searched_readouts = sm_family_recirculated_quark_path_readouts(
+        lambda_rec=lambda_rec,
+        charges=charges,
+        coefficients=search.best_factorization.reconstructed_coefficients,
+    )
+    searched_config = FamilyFNProductionConfig(
+        readouts=searched_readouts,
+        target_yukawas=exact_report.target_yukawas,
+        recovered_yukawas=sm_family_quark_yukawas_from_path_readouts(searched_readouts),
+    )
+    target_ckm = fn_ckm_from_yukawas(exact_report.target_yukawas.up, exact_report.target_yukawas.down)
+    exact_ckm = fn_ckm_from_yukawas(exact_report.recovered_yukawas.up, exact_report.recovered_yukawas.down)
+    nearest_ckm = fn_ckm_from_yukawas(nearest_config.center_config.recovered_yukawas.up, nearest_config.center_config.recovered_yukawas.down)
+    searched_ckm = fn_ckm_from_yukawas(searched_config.recovered_yukawas.up, searched_config.recovered_yukawas.down)
+    coefficient_min, coefficient_max, coefficient_mean, order_distance, finite, _, order_one = _coefficient_quality(
+        search.best_factorization.reconstructed_coefficients,
+    )
+    return FamilyFNCenterCPPhenomenologyReport(
+        exact_report=exact_report,
+        nearest_config=nearest_config,
+        searched_config=searched_config,
+        search=search,
+        target_ckm=target_ckm,
+        exact_ckm=exact_ckm,
+        nearest_ckm=nearest_ckm,
+        searched_ckm=searched_ckm,
+        target_jarlskog=sm_ckm_jarlskog(target_ckm),
+        exact_jarlskog=sm_ckm_jarlskog(exact_ckm),
+        nearest_jarlskog=sm_ckm_jarlskog(nearest_ckm),
+        searched_jarlskog=sm_ckm_jarlskog(searched_ckm),
+        searched_coefficient_magnitude_min=coefficient_min,
+        searched_coefficient_magnitude_max=coefficient_max,
+        searched_coefficient_magnitude_mean=coefficient_mean,
+        searched_coefficient_order_one_distance=order_distance,
+        searched_coefficients_are_order_one=finite & order_one,
     )
 
 
