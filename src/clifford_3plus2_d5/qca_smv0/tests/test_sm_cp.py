@@ -7,10 +7,12 @@ import jax.numpy as jnp
 
 from clifford_3plus2_d5.qca_smv0.sm_cp import (
     DEFAULT_CENTER_HOLONOMY_POWERS,
+    SM_COLOR_CENTER_OMEGA,
     SM_COLOR_CENTER_ORDER,
     VERDICT_CENTER_HOLONOMY_POWERS,
     CenterCPInputVariation,
     CenterCPTextureSeed,
+    sm_analyze_verdict_center_powers,
     sm_center_coefficients,
     sm_center_cp_diagnostics,
     sm_center_cp_order_one_coefficients,
@@ -22,6 +24,8 @@ from clifford_3plus2_d5.qca_smv0.sm_cp import (
     sm_center_phase_closure_residual,
     sm_center_phase_unit_modulus_residual,
     sm_center_power_matrix,
+    sm_center_power_plaquette_fluxes,
+    sm_center_power_rank_mod3,
     sm_ckm_jarlskog,
     sm_factor_coefficients_to_center_phases,
     sm_fit_center_cp_order_one_magnitudes,
@@ -54,6 +58,55 @@ def test_center_power_matrix_reduces_modulo_center_order() -> None:
     reduced = sm_center_power_matrix(powers)
 
     assert jnp.array_equal(reduced, jnp.asarray([[0, 1, 2], [0, 1, 2], [2, 1, 0]], dtype=jnp.int32))
+
+
+def test_verdict_center_powers_have_low_complexity_z3_flux_structure() -> None:
+    analysis = sm_analyze_verdict_center_powers()
+
+    assert analysis.up.rank_mod3 == 3
+    assert analysis.down.rank_mod3 == 3
+    assert not analysis.up.is_pure_coboundary
+    assert not analysis.down.is_pure_coboundary
+    assert analysis.up.is_single_flux_defect
+    assert analysis.down.elementary_flux_nonzero_count == 2
+
+    assert jnp.array_equal(
+        analysis.up.coboundary,
+        jnp.asarray([[2, 1, 1], [1, 0, 0], [0, 2, 2]], dtype=jnp.int32),
+    )
+    assert jnp.array_equal(
+        analysis.up.curvature,
+        jnp.asarray([[0, 0, 0], [0, 0, 0], [0, 0, 1]], dtype=jnp.int32),
+    )
+    assert jnp.array_equal(
+        analysis.up.elementary_fluxes,
+        jnp.asarray([[0, 0], [0, 1]], dtype=jnp.int32),
+    )
+    assert jnp.array_equal(
+        analysis.down.elementary_fluxes,
+        jnp.asarray([[1, 0], [0, 1]], dtype=jnp.int32),
+    )
+    assert jnp.allclose(analysis.up.elementary_wilson_phases, SM_COLOR_CENTER_OMEGA ** analysis.up.elementary_fluxes)
+
+
+def test_verdict_down_minus_up_is_rank_one_first_column_center_defect() -> None:
+    analysis = sm_analyze_verdict_center_powers()
+
+    assert jnp.array_equal(
+        analysis.down_minus_up.powers,
+        jnp.asarray([[2, 0, 0], [1, 0, 0], [1, 0, 0]], dtype=jnp.int32),
+    )
+    assert sm_center_power_rank_mod3(analysis.down_minus_up.powers) == 1
+    assert analysis.down_minus_up.rank_mod3 == 1
+    assert analysis.relative_is_rank_one
+    assert analysis.relative_is_single_column_defect
+    assert analysis.relative_nonzero_row_count == 3
+    assert analysis.relative_nonzero_column_count == 1
+    assert jnp.array_equal(analysis.relative_nonzero_columns, jnp.asarray([True, False, False]))
+    assert jnp.array_equal(
+        sm_center_power_plaquette_fluxes(analysis.down_minus_up.powers),
+        jnp.asarray([[1, 0], [0, 0]], dtype=jnp.int32),
+    )
 
 
 def test_center_coefficients_preserve_order_one_magnitudes() -> None:

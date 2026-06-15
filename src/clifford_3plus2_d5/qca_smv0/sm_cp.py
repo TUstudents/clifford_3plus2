@@ -53,6 +53,38 @@ class CenterHolonomyPowers(NamedTuple):
     down: tuple[tuple[int, int, int], tuple[int, int, int], tuple[int, int, int]] = DEFAULT_DOWN_CENTER_POWERS
 
 
+class CenterPowerMatrixAnalysis(NamedTuple):
+    """Gauge-invariant ``Z3`` structure of one center-power matrix."""
+
+    powers: jnp.ndarray
+    rank_mod3: int
+    base_power: int
+    row_gradient: jnp.ndarray
+    column_gradient: jnp.ndarray
+    coboundary: jnp.ndarray
+    curvature: jnp.ndarray
+    elementary_fluxes: jnp.ndarray
+    elementary_wilson_phases: jnp.ndarray
+    curvature_nonzero_count: int
+    elementary_flux_nonzero_count: int
+    is_pure_coboundary: bool
+    is_single_flux_defect: bool
+
+
+class CenterPowerPairAnalysis(NamedTuple):
+    """Relative ``Z3`` structure of the fitted up/down center powers."""
+
+    up: CenterPowerMatrixAnalysis
+    down: CenterPowerMatrixAnalysis
+    down_minus_up: CenterPowerMatrixAnalysis
+    relative_nonzero_rows: jnp.ndarray
+    relative_nonzero_columns: jnp.ndarray
+    relative_nonzero_row_count: int
+    relative_nonzero_column_count: int
+    relative_is_rank_one: bool
+    relative_is_single_column_defect: bool
+
+
 class CenterCPDiagnostics(NamedTuple):
     """Focused diagnostics for Stage 6 center-holonomy CP."""
 
@@ -226,6 +258,130 @@ def sm_center_power_matrix(
     if arr.shape != (SM_FAMILY_DIM, SM_FAMILY_DIM):
         raise ValueError("center powers must have shape (3,3)")
     return jnp.mod(arr, SM_COLOR_CENTER_ORDER)
+
+
+def sm_center_power_rank_mod3(
+    powers: tuple[tuple[int, int, int], tuple[int, int, int], tuple[int, int, int]] | jnp.ndarray,
+) -> int:
+    """Return the rank of a center-power matrix over the finite field ``Z3``."""
+
+    matrix = [[int(value) % SM_COLOR_CENTER_ORDER for value in row] for row in sm_center_power_matrix(powers).tolist()]
+    rank = 0
+    rows = len(matrix)
+    cols = len(matrix[0])
+    for col in range(cols):
+        pivot = None
+        for row in range(rank, rows):
+            if matrix[row][col] % SM_COLOR_CENTER_ORDER:
+                pivot = row
+                break
+        if pivot is None:
+            continue
+        matrix[rank], matrix[pivot] = matrix[pivot], matrix[rank]
+        inverse = 1 if matrix[rank][col] == 1 else 2
+        matrix[rank] = [(inverse * value) % SM_COLOR_CENTER_ORDER for value in matrix[rank]]
+        for row in range(rows):
+            if row == rank:
+                continue
+            factor = matrix[row][col] % SM_COLOR_CENTER_ORDER
+            if factor:
+                matrix[row] = [
+                    (matrix[row][entry] - factor * matrix[rank][entry]) % SM_COLOR_CENTER_ORDER
+                    for entry in range(cols)
+                ]
+        rank += 1
+        if rank == rows:
+            break
+    return rank
+
+
+def sm_center_power_coboundary(
+    powers: tuple[tuple[int, int, int], tuple[int, int, int], tuple[int, int, int]] | jnp.ndarray,
+) -> tuple[int, jnp.ndarray, jnp.ndarray, jnp.ndarray, jnp.ndarray]:
+    """Split center powers into anchored row/column coboundary plus curvature.
+
+    A removable family rephasing has the form ``base + r_i + c_j`` over ``Z3``.
+    The returned curvature is the invariant remainder after subtracting that
+    anchored row/column part.
+    """
+
+    matrix = sm_center_power_matrix(powers)
+    base = int(matrix[0, 0].item())
+    row_gradient = jnp.mod(matrix[:, 0] - base, SM_COLOR_CENTER_ORDER)
+    column_gradient = jnp.mod(matrix[0, :] - base, SM_COLOR_CENTER_ORDER)
+    coboundary = jnp.mod(
+        base + row_gradient[:, None] + column_gradient[None, :],
+        SM_COLOR_CENTER_ORDER,
+    )
+    curvature = jnp.mod(matrix - coboundary, SM_COLOR_CENTER_ORDER)
+    return base, row_gradient, column_gradient, coboundary, curvature
+
+
+def sm_center_power_plaquette_fluxes(
+    powers: tuple[tuple[int, int, int], tuple[int, int, int], tuple[int, int, int]] | jnp.ndarray,
+) -> jnp.ndarray:
+    """Return oriented elementary plaquette fluxes of a ``3x3`` power matrix."""
+
+    matrix = sm_center_power_matrix(powers)
+    fluxes = matrix[:-1, :-1] - matrix[1:, :-1] - matrix[:-1, 1:] + matrix[1:, 1:]
+    return jnp.mod(fluxes, SM_COLOR_CENTER_ORDER)
+
+
+def sm_analyze_center_power_matrix(
+    powers: tuple[tuple[int, int, int], tuple[int, int, int], tuple[int, int, int]] | jnp.ndarray,
+) -> CenterPowerMatrixAnalysis:
+    """Analyze one fitted color-center power matrix as a ``Z3`` lattice field."""
+
+    matrix = sm_center_power_matrix(powers)
+    base, row_gradient, column_gradient, coboundary, curvature = sm_center_power_coboundary(matrix)
+    elementary_fluxes = sm_center_power_plaquette_fluxes(matrix)
+    curvature_nonzero_count = int(jnp.count_nonzero(curvature).item())
+    elementary_flux_nonzero_count = int(jnp.count_nonzero(elementary_fluxes).item())
+    return CenterPowerMatrixAnalysis(
+        powers=matrix,
+        rank_mod3=sm_center_power_rank_mod3(matrix),
+        base_power=base,
+        row_gradient=row_gradient,
+        column_gradient=column_gradient,
+        coboundary=coboundary,
+        curvature=curvature,
+        elementary_fluxes=elementary_fluxes,
+        elementary_wilson_phases=(SM_COLOR_CENTER_OMEGA ** elementary_fluxes).astype(jnp.complex64),
+        curvature_nonzero_count=curvature_nonzero_count,
+        elementary_flux_nonzero_count=elementary_flux_nonzero_count,
+        is_pure_coboundary=curvature_nonzero_count == 0 and elementary_flux_nonzero_count == 0,
+        is_single_flux_defect=elementary_flux_nonzero_count == 1,
+    )
+
+
+def sm_analyze_center_power_pair(powers: CenterHolonomyPowers) -> CenterPowerPairAnalysis:
+    """Analyze the fitted up/down center powers and their relative defect."""
+
+    up = sm_analyze_center_power_matrix(powers.up)
+    down = sm_analyze_center_power_matrix(powers.down)
+    relative_matrix = jnp.mod(down.powers - up.powers, SM_COLOR_CENTER_ORDER)
+    relative = sm_analyze_center_power_matrix(relative_matrix)
+    relative_nonzero_rows = jnp.any(relative_matrix != 0, axis=1)
+    relative_nonzero_columns = jnp.any(relative_matrix != 0, axis=0)
+    relative_nonzero_row_count = int(jnp.count_nonzero(relative_nonzero_rows).item())
+    relative_nonzero_column_count = int(jnp.count_nonzero(relative_nonzero_columns).item())
+    return CenterPowerPairAnalysis(
+        up=up,
+        down=down,
+        down_minus_up=relative,
+        relative_nonzero_rows=relative_nonzero_rows,
+        relative_nonzero_columns=relative_nonzero_columns,
+        relative_nonzero_row_count=relative_nonzero_row_count,
+        relative_nonzero_column_count=relative_nonzero_column_count,
+        relative_is_rank_one=relative.rank_mod3 == 1,
+        relative_is_single_column_defect=relative.rank_mod3 == 1 and relative_nonzero_column_count == 1,
+    )
+
+
+def sm_analyze_verdict_center_powers() -> CenterPowerPairAnalysis:
+    """Return the ``Z3`` structure of the successful fitted center powers."""
+
+    return sm_analyze_center_power_pair(VERDICT_CENTER_HOLONOMY_POWERS)
 
 
 def sm_center_holonomy_phases(

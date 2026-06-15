@@ -33,6 +33,9 @@ Physics verdict:
   robustness sweep: the frozen magnitudes are not universal, but the same
   discrete center powers remain viable after bounded order-one magnitude refits
   across realistic mass, CKM, and lambda variations.
+- [`FN_CENTER_POWER_STRUCTURE.md`](FN_CENTER_POWER_STRUCTURE.md) decomposes the
+  successful `Z3` center-power tables into row/column coboundaries, invariant
+  plaquette fluxes, and the rank-one relative down/up center defect.
 
 Stage 49 implements the free BCC Weyl/Dirac bulk walk, static
 Standard-Model gauge-background transport, pure dynamic SM gauge fields, and a
