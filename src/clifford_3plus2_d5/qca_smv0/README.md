@@ -48,6 +48,12 @@ Simulator front door:
   masses, CKM, FN charges, and the generated center-CP Wilson powers.  This is
   the constructive simulator path; dynamic gauge/Higgs field evolution remains
   in the heavier production-tick modules.
+- [`QCA_SMv0_CARRIER.md`](QCA_SMv0_CARRIER.md) records the actual simulator
+  carrier and fibre dimensions: free Dirac `(4)`, SM internal `(4*32)`, and
+  three-family SM `(4*32*3)`.
+- `scripts/phenomenology_rollout.py` is the single compact benchmark command:
+  it calibrates from quark masses/CKM, builds the center-CP FN Higgs collision,
+  and runs a short QCA field rollout.
 
 Stage 49 implements the free BCC Weyl/Dirac bulk walk, static
 Standard-Model gauge-background transport, pure dynamic SM gauge fields, and a
