@@ -24,6 +24,7 @@ from clifford_3plus2_d5.qca_smv0.sm_fn import (
     fn_ckm_from_yukawas,
     fn_default_coefficients,
     fn_effective_yukawa,
+    fn_quark_coefficients_from_yukawas,
     fn_quark_yukawa_matrices,
     fn_singular_masses,
     fn_unitarity_residual,
@@ -33,6 +34,8 @@ SM_COLOR_CENTER_ORDER = 3
 SM_COLOR_CENTER_OMEGA = jnp.exp(2j * jnp.pi / SM_COLOR_CENTER_ORDER)
 DEFAULT_UP_CENTER_POWERS = ((0, 1, 0), (2, 0, 1), (1, 2, 0))
 DEFAULT_DOWN_CENTER_POWERS = ((0, 0, 1), (1, 0, 2), (2, 1, 0))
+VERDICT_UP_CENTER_POWERS = ((2, 1, 1), (1, 0, 0), (0, 2, 0))
+VERDICT_DOWN_CENTER_POWERS = ((1, 1, 1), (2, 0, 0), (1, 2, 0))
 
 
 class CenterHolonomyPowers(NamedTuple):
@@ -76,6 +79,16 @@ class CenterCPObjectiveWeights(NamedTuple):
     jarlskog: float = 1.0
 
 
+class CenterCPOrderOneFitWeights(NamedTuple):
+    """Weights for bounded order-one center-CP texture fitting."""
+
+    up_mass_log: float = 1.0
+    down_mass_log: float = 1.0
+    ckm_abs: float = 200.0
+    jarlskog: float = 5.0
+    magnitude_log: float = 0.002
+
+
 class CenterCPResidualBreakdown(NamedTuple):
     """Residuals for one center-holonomy coefficient assignment."""
 
@@ -89,6 +102,31 @@ class CenterCPResidualBreakdown(NamedTuple):
     target_jarlskog: jnp.ndarray
 
 
+class CenterCPOrderOneFitResiduals(NamedTuple):
+    """Physics residuals for an order-one center-phase FN texture."""
+
+    objective: jnp.ndarray
+    up_mass_log_rms: jnp.ndarray
+    down_mass_log_rms: jnp.ndarray
+    ckm_abs_residual: jnp.ndarray
+    jarlskog_relative_residual: jnp.ndarray
+    candidate_jarlskog: jnp.ndarray
+    target_jarlskog: jnp.ndarray
+    magnitude_min: jnp.ndarray
+    magnitude_max: jnp.ndarray
+    magnitude_mean: jnp.ndarray
+
+
+class CenterCPOrderOneTextureFit(NamedTuple):
+    """Bounded-magnitude fit for one discrete center-power texture."""
+
+    factorization: CenterCPCoefficientFactorization
+    residuals: CenterCPOrderOneFitResiduals
+    steps_completed: int
+    learning_rate: float
+    magnitude_bounds: tuple[float, float]
+
+
 class CenterCPCoefficientSearchResult(NamedTuple):
     """Coordinate-descent search result over discrete center powers."""
 
@@ -100,7 +138,12 @@ class CenterCPCoefficientSearchResult(NamedTuple):
 
 
 DEFAULT_CENTER_HOLONOMY_POWERS = CenterHolonomyPowers()
+VERDICT_CENTER_HOLONOMY_POWERS = CenterHolonomyPowers(
+    up=VERDICT_UP_CENTER_POWERS,
+    down=VERDICT_DOWN_CENTER_POWERS,
+)
 DEFAULT_CENTER_CP_OBJECTIVE_WEIGHTS = CenterCPObjectiveWeights()
+DEFAULT_CENTER_CP_ORDER_ONE_FIT_WEIGHTS = CenterCPOrderOneFitWeights()
 
 
 def _validate_family_matrix(matrix: jnp.ndarray, name: str) -> jnp.ndarray:
@@ -289,6 +332,177 @@ def sm_center_cp_residual_breakdown(
         yukawa_relative_residual=yukawa,
         candidate_jarlskog=candidate_jarlskog,
         target_jarlskog=target_jarlskog,
+    )
+
+
+def sm_center_cp_order_one_coefficients(
+    magnitudes: FNQuarkCoefficientMatrices,
+    *,
+    powers: CenterHolonomyPowers = VERDICT_CENTER_HOLONOMY_POWERS,
+) -> FNQuarkCoefficientMatrices:
+    """Return bounded-magnitude coefficients with discrete center phases."""
+
+    up_magnitudes = _validate_family_matrix(magnitudes.up, "magnitudes.up").astype(jnp.float32)
+    down_magnitudes = _validate_family_matrix(magnitudes.down, "magnitudes.down").astype(jnp.float32)
+    return FNQuarkCoefficientMatrices(
+        up=up_magnitudes.astype(jnp.complex64) * sm_center_holonomy_phases(powers.up),
+        down=down_magnitudes.astype(jnp.complex64) * sm_center_holonomy_phases(powers.down),
+    )
+
+
+def _center_cp_order_one_magnitude_stats(coefficients: FNQuarkCoefficientMatrices) -> tuple[jnp.ndarray, jnp.ndarray, jnp.ndarray]:
+    magnitudes = jnp.concatenate((jnp.ravel(jnp.abs(coefficients.up)), jnp.ravel(jnp.abs(coefficients.down))))
+    return jnp.min(magnitudes), jnp.max(magnitudes), jnp.mean(magnitudes)
+
+
+def sm_center_cp_order_one_fit_residuals(
+    coefficients: FNQuarkCoefficientMatrices,
+    target_yukawas: FNQuarkYukawas,
+    *,
+    lambda_rec: float = FN_LAMBDA_WOLFENSTEIN,
+    charges: FNQuarkCharges = DEFAULT_FN_QUARK_CHARGES,
+    weights: CenterCPOrderOneFitWeights = DEFAULT_CENTER_CP_ORDER_ONE_FIT_WEIGHTS,
+) -> CenterCPOrderOneFitResiduals:
+    """Return mass, CKM, and CP residuals for a bounded center-phase texture."""
+
+    candidate_yukawas = _center_cp_yukawas_from_coefficients(coefficients, lambda_rec=lambda_rec, charges=charges)
+    target_up_masses = jnp.maximum(fn_singular_masses(target_yukawas.up), 1e-30)
+    target_down_masses = jnp.maximum(fn_singular_masses(target_yukawas.down), 1e-30)
+    candidate_up_masses = jnp.maximum(fn_singular_masses(candidate_yukawas.up), 1e-30)
+    candidate_down_masses = jnp.maximum(fn_singular_masses(candidate_yukawas.down), 1e-30)
+    target_ckm = fn_ckm_from_yukawas(target_yukawas.up, target_yukawas.down)
+    candidate_ckm = fn_ckm_from_yukawas(candidate_yukawas.up, candidate_yukawas.down)
+    target_jarlskog = sm_ckm_jarlskog(target_ckm)
+    candidate_jarlskog = sm_ckm_jarlskog(candidate_ckm)
+    up_log_rms = jnp.sqrt(jnp.mean(jnp.square(jnp.log(candidate_up_masses / target_up_masses))))
+    down_log_rms = jnp.sqrt(jnp.mean(jnp.square(jnp.log(candidate_down_masses / target_down_masses))))
+    ckm_delta = jnp.abs(candidate_ckm) - jnp.abs(target_ckm)
+    ckm_abs = jnp.max(jnp.abs(ckm_delta))
+    jarlskog_relative = jnp.abs(candidate_jarlskog - target_jarlskog) / jnp.maximum(jnp.abs(target_jarlskog), 1e-12)
+    magnitude_min, magnitude_max, magnitude_mean = _center_cp_order_one_magnitude_stats(coefficients)
+    log_magnitudes = jnp.log(jnp.maximum(jnp.abs(jnp.concatenate((jnp.ravel(coefficients.up), jnp.ravel(coefficients.down)))), 1e-30))
+    objective = (
+        jnp.asarray(weights.up_mass_log, dtype=jnp.float32) * up_log_rms**2
+        + jnp.asarray(weights.down_mass_log, dtype=jnp.float32) * down_log_rms**2
+        + jnp.asarray(weights.ckm_abs, dtype=jnp.float32) * jnp.mean(jnp.square(ckm_delta))
+        + jnp.asarray(weights.jarlskog, dtype=jnp.float32) * jarlskog_relative**2
+        + jnp.asarray(weights.magnitude_log, dtype=jnp.float32) * jnp.mean(jnp.square(log_magnitudes))
+    )
+    return CenterCPOrderOneFitResiduals(
+        objective=objective,
+        up_mass_log_rms=up_log_rms,
+        down_mass_log_rms=down_log_rms,
+        ckm_abs_residual=ckm_abs,
+        jarlskog_relative_residual=jarlskog_relative,
+        candidate_jarlskog=candidate_jarlskog,
+        target_jarlskog=target_jarlskog,
+        magnitude_min=magnitude_min,
+        magnitude_max=magnitude_max,
+        magnitude_mean=magnitude_mean,
+    )
+
+
+def _validate_magnitude_bounds(bounds: tuple[float, float]) -> tuple[jnp.ndarray, jnp.ndarray]:
+    low, high = bounds
+    if low <= 0.0 or high <= low:
+        raise ValueError("magnitude_bounds must satisfy 0 < low < high")
+    return jnp.log(jnp.asarray(low, dtype=jnp.float32)), jnp.log(jnp.asarray(high, dtype=jnp.float32))
+
+
+def _bounded_magnitudes_from_raw(raw: jnp.ndarray, magnitude_bounds: tuple[float, float]) -> FNQuarkCoefficientMatrices:
+    log_low, log_high = _validate_magnitude_bounds(magnitude_bounds)
+    logs = log_low + jax.nn.sigmoid(jnp.asarray(raw, dtype=jnp.float32)) * (log_high - log_low)
+    mags = jnp.exp(logs).reshape((2, SM_FAMILY_DIM, SM_FAMILY_DIM))
+    return FNQuarkCoefficientMatrices(up=mags[0], down=mags[1])
+
+
+def _raw_from_magnitudes(magnitudes: FNQuarkCoefficientMatrices, magnitude_bounds: tuple[float, float]) -> jnp.ndarray:
+    log_low, log_high = _validate_magnitude_bounds(magnitude_bounds)
+    stacked = jnp.stack(
+        (
+            _validate_family_matrix(magnitudes.up, "initial_magnitudes.up").astype(jnp.float32),
+            _validate_family_matrix(magnitudes.down, "initial_magnitudes.down").astype(jnp.float32),
+        ),
+    )
+    scaled = (jnp.log(jnp.clip(stacked, min=jnp.exp(log_low), max=jnp.exp(log_high))) - log_low) / (log_high - log_low)
+    clipped = jnp.clip(scaled, 1e-6, 1.0 - 1e-6)
+    return jnp.log(clipped / (1.0 - clipped)).reshape((-1,))
+
+
+def sm_fit_center_cp_order_one_magnitudes(
+    target_yukawas: FNQuarkYukawas,
+    *,
+    powers: CenterHolonomyPowers = VERDICT_CENTER_HOLONOMY_POWERS,
+    initial_magnitudes: FNQuarkCoefficientMatrices | None = None,
+    lambda_rec: float = FN_LAMBDA_WOLFENSTEIN,
+    charges: FNQuarkCharges = DEFAULT_FN_QUARK_CHARGES,
+    magnitude_bounds: tuple[float, float] = (0.1, 10.0),
+    weights: CenterCPOrderOneFitWeights = DEFAULT_CENTER_CP_ORDER_ONE_FIT_WEIGHTS,
+    steps: int = 600,
+    learning_rate: float = 0.035,
+) -> CenterCPOrderOneTextureFit:
+    """Fit order-one magnitudes for fixed discrete center powers.
+
+    This is the production form of the quark-flavor existence test: powers are
+    restricted to the ``SU(3)_c`` center, magnitudes are bounded in an explicit
+    order-one interval, and the objective compares singular masses, CKM moduli,
+    and the CP-odd Jarlskog invariant.
+    """
+
+    if steps < 0:
+        raise ValueError("steps must be nonnegative")
+    _validate_magnitude_bounds(magnitude_bounds)
+    if initial_magnitudes is None:
+        raw = jnp.zeros((2 * SM_FAMILY_DIM * SM_FAMILY_DIM,), dtype=jnp.float32)
+    else:
+        raw = _raw_from_magnitudes(initial_magnitudes, magnitude_bounds)
+
+    def coefficients_from_raw(raw_values: jnp.ndarray) -> tuple[FNQuarkCoefficientMatrices, FNQuarkCoefficientMatrices]:
+        magnitudes = _bounded_magnitudes_from_raw(raw_values, magnitude_bounds)
+        return magnitudes, sm_center_cp_order_one_coefficients(magnitudes, powers=powers)
+
+    def loss(raw_values: jnp.ndarray) -> jnp.ndarray:
+        _, coefficients = coefficients_from_raw(raw_values)
+        return sm_center_cp_order_one_fit_residuals(
+            coefficients,
+            target_yukawas,
+            lambda_rec=lambda_rec,
+            charges=charges,
+            weights=weights,
+        ).objective
+
+    value_and_grad = jax.jit(jax.value_and_grad(loss))
+    beta1 = jnp.asarray(0.9, dtype=jnp.float32)
+    beta2 = jnp.asarray(0.999, dtype=jnp.float32)
+    eps = jnp.asarray(1e-8, dtype=jnp.float32)
+    step_size = jnp.asarray(learning_rate, dtype=jnp.float32)
+    first_moment = jnp.zeros_like(raw)
+    second_moment = jnp.zeros_like(raw)
+    for step in range(steps):
+        _, grad = value_and_grad(raw)
+        first_moment = beta1 * first_moment + (1.0 - beta1) * grad
+        second_moment = beta2 * second_moment + (1.0 - beta2) * jnp.square(grad)
+        step_count = jnp.asarray(step + 1, dtype=jnp.float32)
+        first_hat = first_moment / (1.0 - beta1**step_count)
+        second_hat = second_moment / (1.0 - beta2**step_count)
+        raw = raw - step_size * first_hat / (jnp.sqrt(second_hat) + eps)
+
+    magnitudes, coefficients = coefficients_from_raw(raw)
+    reference = fn_quark_coefficients_from_yukawas(target_yukawas, lambda_rec=lambda_rec, charges=charges)
+    factorization = _factor_coefficients_with_center_powers(reference, magnitudes, powers)
+    residuals = sm_center_cp_order_one_fit_residuals(
+        coefficients,
+        target_yukawas,
+        lambda_rec=lambda_rec,
+        charges=charges,
+        weights=weights,
+    )
+    return CenterCPOrderOneTextureFit(
+        factorization=factorization,
+        residuals=residuals,
+        steps_completed=steps,
+        learning_rate=learning_rate,
+        magnitude_bounds=magnitude_bounds,
     )
 
 

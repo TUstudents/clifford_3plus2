@@ -22,6 +22,14 @@ It should not be used for:
 
 ## Current State
 
+Physics verdict:
+
+- [`FN_CENTER_CP_VERDICT.md`](FN_CENTER_CP_VERDICT.md) records the current
+  quark-flavor result: a constructive FN recirculation texture with order-one
+  magnitudes and discrete `SU(3)_c` center phases fits quark masses, CKM
+  moduli, and Jarlskog at percent-or-better accuracy for the default charge
+  assignment.
+
 Stage 49 implements the free BCC Weyl/Dirac bulk walk, static
 Standard-Model gauge-background transport, pure dynamic SM gauge fields, and a
 site-local Higgs/Yukawa collision, explicit hidden-network FN recirculation, and
