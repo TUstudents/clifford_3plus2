@@ -1576,3 +1576,31 @@ Verdict:
 ```text
 QCA_SMV0_STAGE49_PHYSICAL_RIGHT_PRODUCTION_PROJECTED_ROLLOUT_PASS
 ```
+
+## Stage 50 - Compact Field-QCA Rollout Runner
+
+Pass only if:
+
+- a production-facing `sm_run_qca_rollout(config, initial_state, steps)` helper
+  exists;
+- the helper supports free BCC Dirac states, SM-internal states with optional
+  static gauge links, and family SM-internal states with optional local
+  Higgs/FN collision;
+- the update order is BCC/gauge streaming followed by optional site-local
+  Higgs/FN collision;
+- the runner records norm and density observables without invoking the heavy
+  dynamic production-tick machinery;
+- center-CP quark Yukawas can be supplied through the generated Wilson-rule
+  powers;
+- a calibrated constructor builds a rollout config from quark masses, CKM,
+  FN charges, and the center-CP phenomenology layer;
+- focused tests cover free rollout, identity-gauge rollout, center-CP
+  Higgs/FN collision, and calibrated masses/CKM configuration;
+- no claim is made that the compact runner evolves dynamic gauge or Higgs
+  fields; those remain in the heavier production-tick modules.
+
+Verdict:
+
+```text
+QCA_SMV0_STAGE50_COMPACT_ROLLOUT_RUNNER_PASS
+```

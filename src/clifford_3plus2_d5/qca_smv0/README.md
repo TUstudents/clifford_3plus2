@@ -35,7 +35,19 @@ Physics verdict:
   across realistic mass, CKM, and lambda variations.
 - [`FN_CENTER_POWER_STRUCTURE.md`](FN_CENTER_POWER_STRUCTURE.md) decomposes the
   successful `Z3` center-power tables into row/column coboundaries, invariant
-  plaquette fluxes, and the rank-one relative down/up center defect.
+  plaquette fluxes, and the rank-one relative down/up center defect.  The same
+  note records the current minimal Wilson-rule candidate that regenerates those
+  powers.
+
+Simulator front door:
+
+- `sm_run_qca_rollout(...)` is the compact production-facing field-QCA runner.
+  It composes BCC streaming, optional static SM gauge links, optional local
+  Higgs/FN collision, center-CP quark Yukawas, and norm/density observables.
+- `sm_qca_rollout_config_from_masses_ckm(...)` builds a rollout config from
+  masses, CKM, FN charges, and the generated center-CP Wilson powers.  This is
+  the constructive simulator path; dynamic gauge/Higgs field evolution remains
+  in the heavier production-tick modules.
 
 Stage 49 implements the free BCC Weyl/Dirac bulk walk, static
 Standard-Model gauge-background transport, pure dynamic SM gauge fields, and a
