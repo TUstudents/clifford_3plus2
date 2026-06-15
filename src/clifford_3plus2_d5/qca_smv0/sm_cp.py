@@ -25,6 +25,7 @@ from clifford_3plus2_d5.qca_smv0.sm_fn import (
     fn_default_coefficients,
     fn_effective_yukawa,
     fn_quark_coefficients_from_yukawas,
+    fn_quark_yukawas_from_masses_ckm,
     fn_quark_yukawa_matrices,
     fn_singular_masses,
     fn_unitarity_residual,
@@ -36,6 +37,13 @@ DEFAULT_UP_CENTER_POWERS = ((0, 1, 0), (2, 0, 1), (1, 2, 0))
 DEFAULT_DOWN_CENTER_POWERS = ((0, 0, 1), (1, 0, 2), (2, 1, 0))
 VERDICT_UP_CENTER_POWERS = ((2, 1, 1), (1, 0, 0), (0, 2, 0))
 VERDICT_DOWN_CENTER_POWERS = ((1, 1, 1), (2, 0, 0), (1, 2, 0))
+ZERO_CENTER_POWERS = ((0, 0, 0), (0, 0, 0), (0, 0, 0))
+VERDICT_UP_MAGNITUDES = ((1.272654, 0.785760, 1.852192), (0.785760, 1.272654, 0.458693), (3.961016, 3.418301, 0.987706))
+VERDICT_DOWN_MAGNITUDES = (
+    (0.351990, 0.316821, 0.601507),
+    (0.574091, 0.565377, 0.295292),
+    (1.404124, 0.883492, 0.344245),
+)
 
 
 class CenterHolonomyPowers(NamedTuple):
@@ -89,6 +97,17 @@ class CenterCPOrderOneFitWeights(NamedTuple):
     magnitude_log: float = 0.002
 
 
+class CenterCPPhenomenologyThresholds(NamedTuple):
+    """Pass/fail thresholds for the compact center-CP phenomenology verdict."""
+
+    up_mass_log_rms: float = 0.02
+    down_mass_log_rms: float = 0.02
+    ckm_abs: float = 0.01
+    jarlskog_relative: float = 0.05
+    magnitude_min: float = 0.1
+    magnitude_max: float = 10.0
+
+
 class CenterCPResidualBreakdown(NamedTuple):
     """Residuals for one center-holonomy coefficient assignment."""
 
@@ -127,6 +146,50 @@ class CenterCPOrderOneTextureFit(NamedTuple):
     magnitude_bounds: tuple[float, float]
 
 
+class CenterCPTextureSeed(NamedTuple):
+    """One candidate center-power texture and optional magnitude warm start."""
+
+    powers: CenterHolonomyPowers
+    initial_magnitudes: FNQuarkCoefficientMatrices | None = None
+    label: str = ""
+
+
+class CenterCPPhenomenologyVerdict(NamedTuple):
+    """Compact quark flavor verdict for one FN center-CP fit."""
+
+    fit: CenterCPOrderOneTextureFit
+    target_yukawas: FNQuarkYukawas
+    selected_powers: CenterHolonomyPowers
+    selected_label: str
+    charges: FNQuarkCharges
+    lambda_rec: float
+    passed: bool
+    status: str
+    failure_reasons: tuple[str, ...]
+
+
+class CenterCPInputVariation(NamedTuple):
+    """Deterministic benchmark variation for robustness scans."""
+
+    up_scale: tuple[float, float, float] = (1.0, 1.0, 1.0)
+    down_scale: tuple[float, float, float] = (1.0, 1.0, 1.0)
+    ckm: jnp.ndarray | None = None
+    lambda_rec: float | None = None
+    label: str = "baseline"
+
+
+class CenterCPRobustnessReport(NamedTuple):
+    """Robustness summary over input variations and charge choices."""
+
+    verdicts: tuple[CenterCPPhenomenologyVerdict, ...]
+    pass_count: int
+    total_count: int
+    pass_fraction: float
+    all_passed: bool
+    best_objective: jnp.ndarray
+    worst_objective: jnp.ndarray
+
+
 class CenterCPCoefficientSearchResult(NamedTuple):
     """Coordinate-descent search result over discrete center powers."""
 
@@ -144,6 +207,7 @@ VERDICT_CENTER_HOLONOMY_POWERS = CenterHolonomyPowers(
 )
 DEFAULT_CENTER_CP_OBJECTIVE_WEIGHTS = CenterCPObjectiveWeights()
 DEFAULT_CENTER_CP_ORDER_ONE_FIT_WEIGHTS = CenterCPOrderOneFitWeights()
+DEFAULT_CENTER_CP_PHENOMENOLOGY_THRESHOLDS = CenterCPPhenomenologyThresholds()
 
 
 def _validate_family_matrix(matrix: jnp.ndarray, name: str) -> jnp.ndarray:
@@ -409,6 +473,37 @@ def _validate_magnitude_bounds(bounds: tuple[float, float]) -> tuple[jnp.ndarray
     return jnp.log(jnp.asarray(low, dtype=jnp.float32)), jnp.log(jnp.asarray(high, dtype=jnp.float32))
 
 
+def sm_center_cp_verdict_magnitudes() -> FNQuarkCoefficientMatrices:
+    """Return the order-one magnitudes from the first successful verdict fit."""
+
+    return FNQuarkCoefficientMatrices(
+        up=jnp.asarray(VERDICT_UP_MAGNITUDES, dtype=jnp.float32),
+        down=jnp.asarray(VERDICT_DOWN_MAGNITUDES, dtype=jnp.float32),
+    )
+
+
+def sm_default_center_cp_texture_seeds() -> tuple[CenterCPTextureSeed, ...]:
+    """Return production candidate seeds for compact center-CP phenomenology."""
+
+    return (
+        CenterCPTextureSeed(
+            powers=VERDICT_CENTER_HOLONOMY_POWERS,
+            initial_magnitudes=sm_center_cp_verdict_magnitudes(),
+            label="verdict",
+        ),
+        CenterCPTextureSeed(
+            powers=DEFAULT_CENTER_HOLONOMY_POWERS,
+            initial_magnitudes=None,
+            label="default",
+        ),
+        CenterCPTextureSeed(
+            powers=CenterHolonomyPowers(up=ZERO_CENTER_POWERS, down=ZERO_CENTER_POWERS),
+            initial_magnitudes=None,
+            label="all_zero",
+        ),
+    )
+
+
 def _bounded_magnitudes_from_raw(raw: jnp.ndarray, magnitude_bounds: tuple[float, float]) -> FNQuarkCoefficientMatrices:
     log_low, log_high = _validate_magnitude_bounds(magnitude_bounds)
     logs = log_low + jax.nn.sigmoid(jnp.asarray(raw, dtype=jnp.float32)) * (log_high - log_low)
@@ -503,6 +598,144 @@ def sm_fit_center_cp_order_one_magnitudes(
         steps_completed=steps,
         learning_rate=learning_rate,
         magnitude_bounds=magnitude_bounds,
+    )
+
+
+def _center_cp_verdict_failures(
+    residuals: CenterCPOrderOneFitResiduals,
+    thresholds: CenterCPPhenomenologyThresholds,
+) -> tuple[str, ...]:
+    failures = []
+    if float(residuals.up_mass_log_rms) > thresholds.up_mass_log_rms:
+        failures.append("up_mass")
+    if float(residuals.down_mass_log_rms) > thresholds.down_mass_log_rms:
+        failures.append("down_mass")
+    if float(residuals.ckm_abs_residual) > thresholds.ckm_abs:
+        failures.append("ckm")
+    if float(residuals.jarlskog_relative_residual) > thresholds.jarlskog_relative:
+        failures.append("jarlskog")
+    if float(residuals.magnitude_min) < thresholds.magnitude_min:
+        failures.append("magnitude_min")
+    if float(residuals.magnitude_max) > thresholds.magnitude_max:
+        failures.append("magnitude_max")
+    return tuple(failures)
+
+
+def sm_center_cp_phenomenology_verdict(
+    up_masses: jnp.ndarray,
+    down_masses: jnp.ndarray,
+    ckm: jnp.ndarray,
+    *,
+    lambda_rec: float = FN_LAMBDA_WOLFENSTEIN,
+    charges: FNQuarkCharges = DEFAULT_FN_QUARK_CHARGES,
+    candidate_seeds: tuple[CenterCPTextureSeed, ...] | None = None,
+    magnitude_bounds: tuple[float, float] = (0.1, 10.0),
+    thresholds: CenterCPPhenomenologyThresholds = DEFAULT_CENTER_CP_PHENOMENOLOGY_THRESHOLDS,
+    weights: CenterCPOrderOneFitWeights = DEFAULT_CENTER_CP_ORDER_ONE_FIT_WEIGHTS,
+    steps: int = 200,
+    learning_rate: float = 0.035,
+) -> CenterCPPhenomenologyVerdict:
+    """Fit a compact FN center-CP quark flavor verdict from masses and CKM.
+
+    The selected texture is the candidate seed whose bounded-magnitude fit has
+    the smallest physics objective.  The returned pass/fail status is based on
+    explicit mass, CKM, Jarlskog, and coefficient-magnitude thresholds.
+    """
+
+    seeds = sm_default_center_cp_texture_seeds() if candidate_seeds is None else candidate_seeds
+    if not seeds:
+        raise ValueError("candidate_seeds must contain at least one texture")
+    target = fn_quark_yukawas_from_masses_ckm(up_masses, down_masses, ckm)
+    best_fit: CenterCPOrderOneTextureFit | None = None
+    best_seed: CenterCPTextureSeed | None = None
+    for seed in seeds:
+        fit = sm_fit_center_cp_order_one_magnitudes(
+            target,
+            powers=seed.powers,
+            initial_magnitudes=seed.initial_magnitudes,
+            lambda_rec=lambda_rec,
+            charges=charges,
+            magnitude_bounds=magnitude_bounds,
+            weights=weights,
+            steps=steps,
+            learning_rate=learning_rate,
+        )
+        if best_fit is None or float(fit.residuals.objective) < float(best_fit.residuals.objective):
+            best_fit = fit
+            best_seed = seed
+    if best_fit is None or best_seed is None:
+        raise RuntimeError("center-CP verdict fitting failed to produce a candidate")
+    failures = _center_cp_verdict_failures(best_fit.residuals, thresholds)
+    passed = len(failures) == 0
+    return CenterCPPhenomenologyVerdict(
+        fit=best_fit,
+        target_yukawas=target,
+        selected_powers=best_fit.factorization.center_powers,
+        selected_label=best_seed.label,
+        charges=charges,
+        lambda_rec=lambda_rec,
+        passed=passed,
+        status="pass" if passed else "fail",
+        failure_reasons=failures,
+    )
+
+
+def sm_center_cp_robustness_scan(
+    up_masses: jnp.ndarray,
+    down_masses: jnp.ndarray,
+    ckm: jnp.ndarray,
+    *,
+    lambda_rec: float = FN_LAMBDA_WOLFENSTEIN,
+    charges_options: tuple[FNQuarkCharges, ...] = (DEFAULT_FN_QUARK_CHARGES,),
+    variations: tuple[CenterCPInputVariation, ...] = (CenterCPInputVariation(),),
+    candidate_seeds: tuple[CenterCPTextureSeed, ...] | None = None,
+    magnitude_bounds: tuple[float, float] = (0.1, 10.0),
+    thresholds: CenterCPPhenomenologyThresholds = DEFAULT_CENTER_CP_PHENOMENOLOGY_THRESHOLDS,
+    weights: CenterCPOrderOneFitWeights = DEFAULT_CENTER_CP_ORDER_ONE_FIT_WEIGHTS,
+    steps: int = 200,
+    learning_rate: float = 0.035,
+) -> CenterCPRobustnessReport:
+    """Run the compact verdict over input variations and charge choices."""
+
+    if not charges_options:
+        raise ValueError("charges_options must contain at least one charge assignment")
+    if not variations:
+        raise ValueError("variations must contain at least one case")
+    base_up = jnp.asarray(up_masses, dtype=jnp.float32)
+    base_down = jnp.asarray(down_masses, dtype=jnp.float32)
+    verdicts = []
+    for variation in variations:
+        varied_up = base_up * jnp.asarray(variation.up_scale, dtype=jnp.float32)
+        varied_down = base_down * jnp.asarray(variation.down_scale, dtype=jnp.float32)
+        varied_ckm = ckm if variation.ckm is None else variation.ckm
+        varied_lambda = lambda_rec if variation.lambda_rec is None else variation.lambda_rec
+        for charges in charges_options:
+            verdicts.append(
+                sm_center_cp_phenomenology_verdict(
+                    varied_up,
+                    varied_down,
+                    varied_ckm,
+                    lambda_rec=varied_lambda,
+                    charges=charges,
+                    candidate_seeds=candidate_seeds,
+                    magnitude_bounds=magnitude_bounds,
+                    thresholds=thresholds,
+                    weights=weights,
+                    steps=steps,
+                    learning_rate=learning_rate,
+                ),
+            )
+    objectives = jnp.asarray([verdict.fit.residuals.objective for verdict in verdicts], dtype=jnp.float32)
+    pass_count = sum(1 for verdict in verdicts if verdict.passed)
+    total_count = len(verdicts)
+    return CenterCPRobustnessReport(
+        verdicts=tuple(verdicts),
+        pass_count=pass_count,
+        total_count=total_count,
+        pass_fraction=pass_count / total_count,
+        all_passed=pass_count == total_count,
+        best_objective=jnp.min(objectives),
+        worst_objective=jnp.max(objectives),
     )
 
 

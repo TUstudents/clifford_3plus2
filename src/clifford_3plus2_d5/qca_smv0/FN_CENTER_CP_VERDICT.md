@@ -2,6 +2,12 @@
 
 Status: first constructive yes-candidate.
 
+Follow-up robustness sweep:
+
+```text
+FN_CENTER_CP_ROBUSTNESS.md
+```
+
 Question:
 
 > Can quark flavor be modeled as Froggatt-Nielsen recirculation with order-one
@@ -31,6 +37,8 @@ The reproducible API entry points are:
 sm_center_cp_order_one_coefficients(...)
 sm_center_cp_order_one_fit_residuals(...)
 sm_fit_center_cp_order_one_magnitudes(...)
+sm_center_cp_phenomenology_verdict(...)
+sm_center_cp_robustness_scan(...)
 ```
 
 The focused test coverage is in `tests/test_sm_cp.py`.

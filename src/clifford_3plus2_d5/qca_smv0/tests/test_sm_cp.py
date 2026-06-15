@@ -9,11 +9,15 @@ from clifford_3plus2_d5.qca_smv0.sm_cp import (
     DEFAULT_CENTER_HOLONOMY_POWERS,
     SM_COLOR_CENTER_ORDER,
     VERDICT_CENTER_HOLONOMY_POWERS,
+    CenterCPInputVariation,
+    CenterCPTextureSeed,
     sm_center_coefficients,
     sm_center_cp_diagnostics,
     sm_center_cp_order_one_coefficients,
     sm_center_cp_order_one_fit_residuals,
+    sm_center_cp_phenomenology_verdict,
     sm_center_cp_quark_yukawas,
+    sm_center_cp_robustness_scan,
     sm_center_holonomy_phases,
     sm_center_phase_closure_residual,
     sm_center_phase_unit_modulus_residual,
@@ -227,6 +231,66 @@ def test_order_one_center_cp_fit_optimizes_bounded_magnitudes() -> None:
     assert fit.residuals.magnitude_max <= 10.0
     assert sm_center_phase_closure_residual(fit.factorization.center_phases.up) < 1e-6
     assert sm_center_phase_closure_residual(fit.factorization.center_phases.down) < 1e-6
+
+
+def test_center_cp_phenomenology_verdict_reports_pass_status() -> None:
+    up_masses, down_masses, ckm, lambda_rec = _pdg_2025_quark_benchmark()
+    seed = CenterCPTextureSeed(
+        powers=VERDICT_CENTER_HOLONOMY_POWERS,
+        initial_magnitudes=_verdict_magnitudes(),
+        label="verdict",
+    )
+
+    verdict = sm_center_cp_phenomenology_verdict(
+        up_masses,
+        down_masses,
+        ckm,
+        lambda_rec=lambda_rec,
+        candidate_seeds=(seed,),
+        steps=0,
+    )
+
+    assert verdict.passed
+    assert verdict.status == "pass"
+    assert verdict.failure_reasons == ()
+    assert verdict.selected_label == "verdict"
+    assert verdict.fit.residuals.magnitude_min > 0.1
+    assert verdict.fit.residuals.magnitude_max < 10.0
+    assert verdict.fit.residuals.ckm_abs_residual < 0.0025
+
+
+def test_center_cp_robustness_scan_aggregates_input_variations() -> None:
+    up_masses, down_masses, ckm, lambda_rec = _pdg_2025_quark_benchmark()
+    seed = CenterCPTextureSeed(
+        powers=VERDICT_CENTER_HOLONOMY_POWERS,
+        initial_magnitudes=_verdict_magnitudes(),
+        label="verdict",
+    )
+    variations = (
+        CenterCPInputVariation(label="baseline"),
+        CenterCPInputVariation(
+            up_scale=(1.02, 0.99, 1.0),
+            down_scale=(0.98, 1.02, 1.0),
+            lambda_rec=lambda_rec * 1.001,
+            label="small_wiggle",
+        ),
+    )
+
+    report = sm_center_cp_robustness_scan(
+        up_masses,
+        down_masses,
+        ckm,
+        lambda_rec=lambda_rec,
+        variations=variations,
+        candidate_seeds=(seed,),
+        steps=0,
+    )
+
+    assert report.total_count == 2
+    assert report.pass_count == 2
+    assert report.pass_fraction == 1.0
+    assert report.all_passed
+    assert report.worst_objective >= report.best_objective
 
 
 def test_antiparticle_conjugation_preserves_singular_masses() -> None:

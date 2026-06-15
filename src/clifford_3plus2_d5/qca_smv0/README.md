@@ -29,6 +29,10 @@ Physics verdict:
   magnitudes and discrete `SU(3)_c` center phases fits quark masses, CKM
   moduli, and Jarlskog at percent-or-better accuracy for the default charge
   assignment.
+- [`FN_CENTER_CP_ROBUSTNESS.md`](FN_CENTER_CP_ROBUSTNESS.md) records the
+  robustness sweep: the frozen magnitudes are not universal, but the same
+  discrete center powers remain viable after bounded order-one magnitude refits
+  across realistic mass, CKM, and lambda variations.
 
 Stage 49 implements the free BCC Weyl/Dirac bulk walk, static
 Standard-Model gauge-background transport, pure dynamic SM gauge fields, and a
