@@ -14,6 +14,7 @@ from clifford_3plus2_d5.qca_smv0.sm_cp import (
     CenterCPTextureSeed,
     sm_analyze_verdict_center_powers,
     sm_center_coefficients,
+    sm_center_powers_from_wilson_flux_rule,
     sm_center_cp_diagnostics,
     sm_center_cp_order_one_coefficients,
     sm_center_cp_order_one_fit_residuals,
@@ -27,9 +28,11 @@ from clifford_3plus2_d5.qca_smv0.sm_cp import (
     sm_center_power_plaquette_fluxes,
     sm_center_power_rank_mod3,
     sm_ckm_jarlskog,
+    sm_default_center_cp_texture_seeds,
     sm_factor_coefficients_to_center_phases,
     sm_fit_center_cp_order_one_magnitudes,
     sm_search_center_cp_powers,
+    sm_verdict_center_power_path_rule_diagnostics,
     sm_quark_antiquark_mass_residual,
     sm_yukawa_commutator_cp_trace,
 )
@@ -107,6 +110,67 @@ def test_verdict_down_minus_up_is_rank_one_first_column_center_defect() -> None:
         sm_center_power_plaquette_fluxes(analysis.down_minus_up.powers),
         jnp.asarray([[1, 0], [0, 0]], dtype=jnp.int32),
     )
+
+
+def test_wilson_flux_rule_generates_verdict_center_powers_and_rejects_controls() -> None:
+    diagnostics = sm_verdict_center_power_path_rule_diagnostics()
+
+    assert diagnostics.equals_verdict
+    assert diagnostics.up_equals_verdict
+    assert diagnostics.down_equals_verdict
+    assert diagnostics.generated_powers == VERDICT_CENTER_HOLONOMY_POWERS
+    assert diagnostics.generated_analysis.up.is_single_flux_defect
+    assert diagnostics.generated_analysis.relative_is_single_column_defect
+    assert diagnostics.controls_rejected
+
+    controls = {control.label: control for control in diagnostics.controls}
+    assert set(controls) == {
+        "pure_coboundary",
+        "wrong_plaquette_flux",
+        "row_defect_instead_of_column",
+        "cusp_style_flag_bilinear",
+        "all_zero",
+    }
+    assert not controls["pure_coboundary"].analysis.up.elementary_flux_nonzero_count
+    assert not controls["wrong_plaquette_flux"].equals_verdict
+    assert not controls["row_defect_instead_of_column"].relative_defect_matches_verdict
+    assert not controls["cusp_style_flag_bilinear"].equals_verdict
+    assert not controls["all_zero"].analysis.up.rank_mod3
+
+
+def test_wilson_flux_rule_seed_passes_existing_center_cp_verdict() -> None:
+    up_masses, down_masses, ckm, lambda_rec = _pdg_2025_quark_benchmark()
+    seed = CenterCPTextureSeed(
+        powers=sm_center_powers_from_wilson_flux_rule(),
+        initial_magnitudes=_verdict_magnitudes(),
+        label="wilson_flux_rule",
+    )
+
+    verdict = sm_center_cp_phenomenology_verdict(
+        up_masses,
+        down_masses,
+        ckm,
+        lambda_rec=lambda_rec,
+        candidate_seeds=(seed,),
+        steps=0,
+    )
+
+    assert verdict.passed
+    assert verdict.selected_label == "wilson_flux_rule"
+    assert jnp.array_equal(sm_center_power_matrix(verdict.selected_powers.up), sm_center_power_matrix(VERDICT_CENTER_HOLONOMY_POWERS.up))
+    assert jnp.array_equal(
+        sm_center_power_matrix(verdict.selected_powers.down),
+        sm_center_power_matrix(VERDICT_CENTER_HOLONOMY_POWERS.down),
+    )
+    assert verdict.fit.residuals.ckm_abs_residual < 0.0025
+
+
+def test_default_center_cp_seeds_include_generated_wilson_rule() -> None:
+    seeds = sm_default_center_cp_texture_seeds()
+
+    assert seeds[0].label == "wilson_flux_rule"
+    assert seeds[0].powers == VERDICT_CENTER_HOLONOMY_POWERS
+    assert seeds[1].label == "verdict"
 
 
 def test_center_coefficients_preserve_order_one_magnitudes() -> None:

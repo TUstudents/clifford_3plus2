@@ -44,6 +44,12 @@ VERDICT_DOWN_MAGNITUDES = (
     (0.574091, 0.565377, 0.295292),
     (1.404124, 0.883492, 0.344245),
 )
+DEFAULT_WILSON_RULE_BASE_POWER = 2
+DEFAULT_WILSON_RULE_ROW_GRADIENT = (0, 2, 1)
+DEFAULT_WILSON_RULE_COLUMN_GRADIENT = (0, 2, 2)
+DEFAULT_WILSON_RULE_UP_PLAQUETTE_FLUXES = ((0, 0), (0, 1))
+DEFAULT_WILSON_RULE_DOWN_DEFECT_COLUMN = 0
+DEFAULT_WILSON_RULE_DOWN_COLUMN_DEFECT = (2, 1, 1)
 
 
 class CenterHolonomyPowers(NamedTuple):
@@ -83,6 +89,30 @@ class CenterPowerPairAnalysis(NamedTuple):
     relative_nonzero_column_count: int
     relative_is_rank_one: bool
     relative_is_single_column_defect: bool
+
+
+class CenterPowerRuleControlDiagnostic(NamedTuple):
+    """One rejected control for a proposed Wilson-center path rule."""
+
+    label: str
+    powers: CenterHolonomyPowers
+    analysis: CenterPowerPairAnalysis
+    equals_verdict: bool
+    up_flux_matches_verdict: bool
+    relative_defect_matches_verdict: bool
+
+
+class CenterPowerWilsonRuleDiagnostics(NamedTuple):
+    """Diagnostics for generating verdict powers from a minimal Wilson rule."""
+
+    generated_powers: CenterHolonomyPowers
+    generated_analysis: CenterPowerPairAnalysis
+    verdict_analysis: CenterPowerPairAnalysis
+    equals_verdict: bool
+    up_equals_verdict: bool
+    down_equals_verdict: bool
+    controls: tuple[CenterPowerRuleControlDiagnostic, ...]
+    controls_rejected: bool
 
 
 class CenterCPDiagnostics(NamedTuple):
@@ -384,6 +414,191 @@ def sm_analyze_verdict_center_powers() -> CenterPowerPairAnalysis:
     return sm_analyze_center_power_pair(VERDICT_CENTER_HOLONOMY_POWERS)
 
 
+def _center_power_tuple(matrix: jnp.ndarray) -> tuple[tuple[int, int, int], tuple[int, int, int], tuple[int, int, int]]:
+    reduced = sm_center_power_matrix(matrix)
+    return tuple(tuple(int(value) for value in row) for row in reduced.tolist())  # type: ignore[return-value]
+
+
+def _center_power_coboundary_from_gradients(
+    base_power: int,
+    row_gradient: tuple[int, int, int],
+    column_gradient: tuple[int, int, int],
+) -> jnp.ndarray:
+    rows = jnp.asarray(row_gradient, dtype=jnp.int32)
+    cols = jnp.asarray(column_gradient, dtype=jnp.int32)
+    return jnp.mod(base_power + rows[:, None] + cols[None, :], SM_COLOR_CENTER_ORDER)
+
+
+def _center_power_add_plaquette_fluxes(
+    powers: jnp.ndarray,
+    plaquette_fluxes: tuple[tuple[int, int], tuple[int, int]],
+) -> jnp.ndarray:
+    matrix = sm_center_power_matrix(powers)
+    fluxes = jnp.asarray(plaquette_fluxes, dtype=jnp.int32)
+    if fluxes.shape != (SM_FAMILY_DIM - 1, SM_FAMILY_DIM - 1):
+        raise ValueError("plaquette_fluxes must have shape (2,2)")
+    for row in range(SM_FAMILY_DIM - 1):
+        for col in range(SM_FAMILY_DIM - 1):
+            matrix = matrix.at[row + 1 :, col + 1 :].add(fluxes[row, col])
+    return jnp.mod(matrix, SM_COLOR_CENTER_ORDER)
+
+
+def _center_power_add_column_defect(
+    powers: jnp.ndarray,
+    *,
+    column: int,
+    defect: tuple[int, int, int],
+) -> jnp.ndarray:
+    if column not in (0, 1, 2):
+        raise ValueError("column defect index must be 0, 1, or 2")
+    matrix = sm_center_power_matrix(powers)
+    column_defect = jnp.asarray(defect, dtype=jnp.int32)
+    if column_defect.shape != (SM_FAMILY_DIM,):
+        raise ValueError("column defect must have length 3")
+    return jnp.mod(matrix.at[:, column].add(column_defect), SM_COLOR_CENTER_ORDER)
+
+
+def _center_power_add_row_defect(
+    powers: jnp.ndarray,
+    *,
+    row: int,
+    defect: tuple[int, int, int],
+) -> jnp.ndarray:
+    if row not in (0, 1, 2):
+        raise ValueError("row defect index must be 0, 1, or 2")
+    matrix = sm_center_power_matrix(powers)
+    row_defect = jnp.asarray(defect, dtype=jnp.int32)
+    if row_defect.shape != (SM_FAMILY_DIM,):
+        raise ValueError("row defect must have length 3")
+    return jnp.mod(matrix.at[row, :].add(row_defect), SM_COLOR_CENTER_ORDER)
+
+
+def sm_center_powers_from_wilson_flux_rule(
+    *,
+    base_power: int = DEFAULT_WILSON_RULE_BASE_POWER,
+    row_gradient: tuple[int, int, int] = DEFAULT_WILSON_RULE_ROW_GRADIENT,
+    column_gradient: tuple[int, int, int] = DEFAULT_WILSON_RULE_COLUMN_GRADIENT,
+    up_plaquette_fluxes: tuple[tuple[int, int], tuple[int, int]] = DEFAULT_WILSON_RULE_UP_PLAQUETTE_FLUXES,
+    down_defect_column: int = DEFAULT_WILSON_RULE_DOWN_DEFECT_COLUMN,
+    down_column_defect: tuple[int, int, int] = DEFAULT_WILSON_RULE_DOWN_COLUMN_DEFECT,
+) -> CenterHolonomyPowers:
+    """Generate center powers from one plaquette flux plus one column defect.
+
+    The row/column gradients are the removable rephasing background.  The
+    invariant content is the up plaquette flux and the relative down-sector
+    column-local Wilson insertion.
+    """
+
+    coboundary = _center_power_coboundary_from_gradients(base_power, row_gradient, column_gradient)
+    up = _center_power_add_plaquette_fluxes(coboundary, up_plaquette_fluxes)
+    down = _center_power_add_column_defect(
+        up,
+        column=down_defect_column,
+        defect=down_column_defect,
+    )
+    return CenterHolonomyPowers(up=_center_power_tuple(up), down=_center_power_tuple(down))
+
+
+def _center_powers_equal(left: CenterHolonomyPowers, right: CenterHolonomyPowers) -> bool:
+    return bool(
+        jnp.array_equal(sm_center_power_matrix(left.up), sm_center_power_matrix(right.up))
+        and jnp.array_equal(sm_center_power_matrix(left.down), sm_center_power_matrix(right.down))
+    )
+
+
+def _center_power_control_diagnostic(
+    label: str,
+    powers: CenterHolonomyPowers,
+    verdict: CenterPowerPairAnalysis,
+) -> CenterPowerRuleControlDiagnostic:
+    analysis = sm_analyze_center_power_pair(powers)
+    return CenterPowerRuleControlDiagnostic(
+        label=label,
+        powers=powers,
+        analysis=analysis,
+        equals_verdict=_center_powers_equal(powers, VERDICT_CENTER_HOLONOMY_POWERS),
+        up_flux_matches_verdict=bool(jnp.array_equal(analysis.up.elementary_fluxes, verdict.up.elementary_fluxes)),
+        relative_defect_matches_verdict=bool(
+            jnp.array_equal(analysis.down_minus_up.powers, verdict.down_minus_up.powers)
+        ),
+    )
+
+
+def sm_center_power_wilson_rule_controls() -> tuple[CenterPowerRuleControlDiagnostic, ...]:
+    """Return nearby center-power controls for the Wilson flux rule."""
+
+    verdict = sm_analyze_verdict_center_powers()
+    coboundary = _center_power_coboundary_from_gradients(
+        DEFAULT_WILSON_RULE_BASE_POWER,
+        DEFAULT_WILSON_RULE_ROW_GRADIENT,
+        DEFAULT_WILSON_RULE_COLUMN_GRADIENT,
+    )
+    pure_coboundary = CenterHolonomyPowers(
+        up=_center_power_tuple(coboundary),
+        down=_center_power_tuple(coboundary),
+    )
+    wrong_flux_up = _center_power_add_plaquette_fluxes(coboundary, ((1, 0), (0, 0)))
+    wrong_flux = CenterHolonomyPowers(
+        up=_center_power_tuple(wrong_flux_up),
+        down=_center_power_tuple(
+            _center_power_add_column_defect(
+                wrong_flux_up,
+                column=DEFAULT_WILSON_RULE_DOWN_DEFECT_COLUMN,
+                defect=DEFAULT_WILSON_RULE_DOWN_COLUMN_DEFECT,
+            )
+        ),
+    )
+    generated = sm_center_powers_from_wilson_flux_rule()
+    row_defect_down = _center_power_add_row_defect(
+        sm_center_power_matrix(generated.up),
+        row=0,
+        defect=DEFAULT_WILSON_RULE_DOWN_COLUMN_DEFECT,
+    )
+    row_defect = CenterHolonomyPowers(
+        up=generated.up,
+        down=_center_power_tuple(row_defect_down),
+    )
+    cusp_style = CenterHolonomyPowers(
+        up=((0, 1, 2), (1, 0, 1), (2, 1, 0)),
+        down=((0, 0, 0), (0, 1, 2), (0, 2, 1)),
+    )
+    all_zero = CenterHolonomyPowers(up=ZERO_CENTER_POWERS, down=ZERO_CENTER_POWERS)
+    controls = (
+        ("pure_coboundary", pure_coboundary),
+        ("wrong_plaquette_flux", wrong_flux),
+        ("row_defect_instead_of_column", row_defect),
+        ("cusp_style_flag_bilinear", cusp_style),
+        ("all_zero", all_zero),
+    )
+    return tuple(_center_power_control_diagnostic(label, powers, verdict) for label, powers in controls)
+
+
+def sm_verdict_center_power_path_rule_diagnostics() -> CenterPowerWilsonRuleDiagnostics:
+    """Return diagnostics for the minimal Wilson rule that generates the verdict powers."""
+
+    generated = sm_center_powers_from_wilson_flux_rule()
+    generated_analysis = sm_analyze_center_power_pair(generated)
+    verdict_analysis = sm_analyze_verdict_center_powers()
+    controls = sm_center_power_wilson_rule_controls()
+    return CenterPowerWilsonRuleDiagnostics(
+        generated_powers=generated,
+        generated_analysis=generated_analysis,
+        verdict_analysis=verdict_analysis,
+        equals_verdict=_center_powers_equal(generated, VERDICT_CENTER_HOLONOMY_POWERS),
+        up_equals_verdict=bool(
+            jnp.array_equal(sm_center_power_matrix(generated.up), sm_center_power_matrix(VERDICT_CENTER_HOLONOMY_POWERS.up))
+        ),
+        down_equals_verdict=bool(
+            jnp.array_equal(
+                sm_center_power_matrix(generated.down),
+                sm_center_power_matrix(VERDICT_CENTER_HOLONOMY_POWERS.down),
+            )
+        ),
+        controls=controls,
+        controls_rejected=all(not control.equals_verdict for control in controls),
+    )
+
+
 def sm_center_holonomy_phases(
     powers: tuple[tuple[int, int, int], tuple[int, int, int], tuple[int, int, int]] | jnp.ndarray,
 ) -> jnp.ndarray:
@@ -642,6 +857,11 @@ def sm_default_center_cp_texture_seeds() -> tuple[CenterCPTextureSeed, ...]:
     """Return production candidate seeds for compact center-CP phenomenology."""
 
     return (
+        CenterCPTextureSeed(
+            powers=sm_center_powers_from_wilson_flux_rule(),
+            initial_magnitudes=sm_center_cp_verdict_magnitudes(),
+            label="wilson_flux_rule",
+        ),
         CenterCPTextureSeed(
             powers=VERDICT_CENTER_HOLONOMY_POWERS,
             initial_magnitudes=sm_center_cp_verdict_magnitudes(),

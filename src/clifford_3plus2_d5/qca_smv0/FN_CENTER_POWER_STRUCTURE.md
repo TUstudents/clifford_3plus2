@@ -19,6 +19,8 @@ n_d = [[1, 1, 1],
 
 All arithmetic below is over `Z3`.  The helper
 `sm_analyze_verdict_center_powers()` computes the decomposition.
+The helper `sm_center_powers_from_wilson_flux_rule()` reconstructs the same
+tables from the low-complexity Wilson-rule ansatz described below.
 
 ## Decomposition
 
@@ -91,12 +93,39 @@ They have a low-complexity structure:
 - Equivalently, the up/down pair is governed by one shared background and one
   simple relative Wilson-center insertion.
 
-This is a credible target for a future color-holonomy/FN path rule: derive the
-lower-right flux and the first-column down insertion from closed recirculation
-paths.  It is not yet a derivation.  Until such a path rule is built, the honest
-status is:
+## Minimal Wilson Rule
+
+The current constructive rule is:
 
 ```text
-low-complexity empirical Z3 Wilson pattern, not arbitrary fit data,
+1. choose the row/column coboundary gauge background;
+2. insert one up-sector Wilson plaquette flux at the lower-right plaquette;
+3. insert one down-sector relative Wilson line on the first right-handed column.
+```
+
+In code this is
+
+```text
+sm_center_powers_from_wilson_flux_rule()
+```
+
+and it returns exactly `VERDICT_CENTER_HOLONOMY_POWERS`.  Nearby controls are
+rejected by `sm_verdict_center_power_path_rule_diagnostics()`:
+
+- pure row/column coboundary has no invariant flux;
+- the same flux in the wrong plaquette does not reproduce the verdict;
+- a row defect does not reproduce the first-column relative defect;
+- the older CUSP-style flag/bilinear powers are a different structure;
+- the all-zero control carries no CP structure.
+
+This upgrades the status from "empirical table" to "minimal Wilson-center path
+rule candidate."  It is still not a derivation from bare BCC dynamics.  The next
+hard problem is deriving the lower-right plaquette flux and the first-column
+down insertion from microscopic closed recirculation paths.
+
+The honest status is now:
+
+```text
+minimal Z3 Wilson-rule candidate, not arbitrary fit data,
 but still awaiting microscopic color-holonomy derivation.
 ```
