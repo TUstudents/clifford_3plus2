@@ -53,7 +53,33 @@ Simulator front door:
   three-family SM `(4*32*3)`.
 - `scripts/phenomenology_rollout.py` is the single compact benchmark command:
   it calibrates from quark masses/CKM, builds the center-CP FN Higgs collision,
-  and runs a short QCA field rollout.
+  and runs a short QCA field rollout.  Its production default is
+  `--collision-mode fn_dilation`, which evolves explicit hidden FN path slots;
+  `--collision-mode effective_yukawa` is retained as a comparison control.
+
+Example:
+
+```bash
+uv run python src/clifford_3plus2_d5/qca_smv0/scripts/phenomenology_rollout.py \
+  --scale-label MZ \
+  --up-masses 0.00127,0.62,170.0 \
+  --down-masses 0.0029,0.055,2.86 \
+  --mass-mode absolute \
+  --ckm-angles 0.22501,0.04183,0.003732,1.147 \
+  --lambda 0.22501 \
+  --q-charges 3,2,0 \
+  --u-charges 5,2,0 \
+  --d-charges 1,0,0 \
+  --collision-mode fn_dilation \
+  --output json
+```
+
+The same command accepts `--config path/to/config.json`, with CLI flags
+overriding matching JSON fields.  The output includes center-CP residuals,
+order-one coefficient magnitudes, center-power tables, and QCA norm/density
+rollout diagnostics.  In `fn_dilation` mode, visible norm can flow into hidden
+FN path memory; the conserved check is therefore `extended_norm_drift`, not
+visible `norm_drift`.
 
 Stage 49 implements the free BCC Weyl/Dirac bulk walk, static
 Standard-Model gauge-background transport, pure dynamic SM gauge fields, and a
