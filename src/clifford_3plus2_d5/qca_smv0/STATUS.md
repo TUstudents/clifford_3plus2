@@ -53,7 +53,8 @@ Implemented:
 - four-component massless Dirac assembly from opposite-chirality Weyl blocks;
 - Dirac hop-completeness, symbol-unitarity, norm, dispersion, and JIT tests;
 - Session 01 script;
-- local 32-component SM internal carrier;
+- local 32-component simulator SM internal register: a doubled practical
+  presentation of the Spin(10) chiral `C^16` one-generation carrier;
 - anti-Hermitian `SU(3)_c x SU(2)_L x U(1)_Y` generator basis;
 - static BCC SM link fields with shape `(nx, ny, nz, 8, 32, 32)`;
 - local state/link gauge transformations;
@@ -78,7 +79,8 @@ Implemented:
 - local Higgs doublet fields with shape `(nx, ny, nz, 2)`;
 - constant unitary-gauge Higgs helper `H=(0,v/sqrt(2))`;
 - conjugate Higgs helper `H_tilde=i sigma_2 H^*`;
-- Hermitian one-generation Yukawa matrix on the 32-component SM carrier;
+- Hermitian one-generation Yukawa matrix on the 32-component simulator SM
+  register;
 - unitary-gauge SM door audit: `H_tilde` opens up/neutrino couplings and `H`
   opens down/electron couplings;
 - exact site-local unitary collision `exp(-i step_size beta Y(H))`;
@@ -91,7 +93,8 @@ Implemented:
 - local two-state unitary beam splitter for one recirculation step;
 - finite hidden-path unitary chains whose endpoint transfer is `lambda^n`;
 - explicit direct-sum hidden unitary networks with one path for every
-  `L_i -> R_j` entry;
+  `L_i -> R_j` entry, used as exact FN recirculation reference dilations rather
+  than as the production local fibre;
 - FN power matrices measured from hidden-network source-to-sink transfer
   amplitudes rather than inserted as bare power tables;
 - visible-hidden-visible readout maps from left-family channels through the
@@ -120,7 +123,8 @@ Implemented:
 - nonzero CP-odd commutator trace for center-decorated Yukawas;
 - Session 06 script;
 - family-extended fermion state layout `(nx, ny, nz, 4, 32, 3)`;
-- local internal/family dimension `96`;
+- simulator internal/family dimension `32 x 3 = 96` before the separate
+  four-component spacetime Dirac spin axis;
 - default quark Yukawa source built from center-holonomy coefficients feeding
   the visible-hidden-visible FN recirculation readout;
 - finite FN unitary dilations for the up/down quark Higgs doors, exposing the
@@ -254,7 +258,7 @@ Implemented:
 - exact charge-conjugation relation for right-singlet hypercharge;
 - nonzero full generator difference and nonzero sorted-hypercharge spectral
   mismatch proving there is no unitary similarity on the fixed 32-component
-  carrier;
+  simulator register;
 - physical Yukawa-door energy covariance and transport-convention
   non-invariance controls;
 - JIT audits for the gauge-convention energy residuals;

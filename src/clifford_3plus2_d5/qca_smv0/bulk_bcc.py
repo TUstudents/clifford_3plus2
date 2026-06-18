@@ -70,6 +70,12 @@ def _validate_dirac_state(state: jnp.ndarray) -> tuple[int, int, int]:
     return int(state.shape[0]), int(state.shape[1]), int(state.shape[2])
 
 
+def _validate_dirac_spin_axis_state(state: jnp.ndarray) -> tuple[int, int, int]:
+    if state.ndim < 4 or state.shape[3] != BCC_DIRAC_SPIN_DIM:
+        raise ValueError("Dirac spin-axis state must have shape (nx, ny, nz, 4, ...)")
+    return int(state.shape[0]), int(state.shape[1]), int(state.shape[2])
+
+
 def _validate_chirality(chirality: int) -> None:
     if chirality not in (-1, 1):
         raise ValueError("chirality must be +1 or -1")
@@ -306,6 +312,32 @@ def bcc_dirac_hop_matrices(*, dtype: Any = DEFAULT_COMPLEX_DTYPE) -> jnp.ndarray
     return jnp.stack([_block_diag_2x2(left[index], right[index]) for index in range(len(BCC_DISPLACEMENTS))])
 
 
+def _dirac_axis_projector(projectors: jnp.ndarray, axis: int, sign: int) -> jnp.ndarray:
+    left = _projector_for_sign(projectors, axis, sign)
+    right = _projector_for_sign(projectors, axis, -sign)
+    return _block_diag_2x2(left, right)
+
+
+def bcc_dirac_axis_projectors(*, dtype: Any = DEFAULT_COMPLEX_DTYPE) -> jnp.ndarray:
+    """Return chirality-blocked Dirac axis projectors with shape ``(3,2,4,4)``."""
+
+    dtype = np.dtype(dtype)
+    projectors = bcc_axis_projectors(dtype=dtype)
+    return jnp.stack(
+        [
+            jnp.stack(
+                (
+                    _dirac_axis_projector(projectors, axis, -1),
+                    _dirac_axis_projector(projectors, axis, 1),
+                ),
+                axis=0,
+            )
+            for axis in range(3)
+        ],
+        axis=0,
+    )
+
+
 def bcc_dirac_hop_completeness_residual(*, dtype: Any = DEFAULT_COMPLEX_DTYPE) -> jnp.ndarray:
     """Return ``max_abs(sum_h D_h^dagger D_h - I_4)`` for Dirac hops."""
 
@@ -333,13 +365,51 @@ def bcc_dirac_symbol_unitarity_residual(k: Any, *, dtype: Any = DEFAULT_COMPLEX_
     return jnp.max(jnp.abs(jnp.conj(symbol.T) @ symbol - identity))
 
 
+def bcc_dirac_spin_axis_step(state: jnp.ndarray) -> jnp.ndarray:
+    """Apply the free Dirac BCC step with spin axis 3 and spectator axes."""
+
+    lattice_shape = _validate_dirac_spin_axis_state(state)
+    tail_size = int(np.prod(state.shape[4:], dtype=np.int64))
+    hops = bcc_dirac_hop_matrices(dtype=state.dtype)
+    out = jnp.zeros((*lattice_shape, BCC_DIRAC_SPIN_DIM, tail_size), dtype=state.dtype)
+    for index, displacement in enumerate(BCC_DISPLACEMENTS):
+        source = source_roll(state, displacement).reshape((*lattice_shape, BCC_DIRAC_SPIN_DIM, tail_size))
+        out = out + jnp.einsum("rs,...sf->...rf", hops[index], source)
+    return out.reshape(state.shape)
+
+
+def _axis_displacement(axis: int, sign: int) -> tuple[int, int, int]:
+    return tuple(sign if index == axis else 0 for index in range(3))  # type: ignore[return-value]
+
+
+def _bcc_dirac_split_axis_step(state: jnp.ndarray, axis: int, projectors: jnp.ndarray) -> jnp.ndarray:
+    lattice_shape = _validate_dirac_spin_axis_state(state)
+    tail_size = int(np.prod(state.shape[4:], dtype=np.int64))
+    out = jnp.zeros((*lattice_shape, BCC_DIRAC_SPIN_DIM, tail_size), dtype=state.dtype)
+    for sign_index, sign in enumerate((-1, 1)):
+        source = source_roll(state, _axis_displacement(axis, sign)).reshape(
+            (*lattice_shape, BCC_DIRAC_SPIN_DIM, tail_size),
+        )
+        out = out + jnp.einsum("rs,...sf->...rf", projectors[axis, sign_index], source)
+    return out.reshape(state.shape)
+
+
+def bcc_dirac_split_axis_step(state: jnp.ndarray) -> jnp.ndarray:
+    """Apply the free Dirac BCC split-step product with spectator axes."""
+
+    _validate_dirac_spin_axis_state(state)
+    projectors = bcc_dirac_axis_projectors(dtype=state.dtype)
+    stepped = state
+    for axis in (2, 1, 0):
+        stepped = _bcc_dirac_split_axis_step(stepped, axis, projectors)
+    return stepped
+
+
 def bcc_dirac_step(state: jnp.ndarray) -> jnp.ndarray:
     """Apply the free massless Dirac BCC step to ``(nx,ny,nz,4)`` states."""
 
     _validate_dirac_state(state)
-    left = bcc_weyl_step(state[..., :2], chirality=1)
-    right = bcc_weyl_step(state[..., 2:], chirality=-1)
-    return jnp.concatenate((left, right), axis=-1)
+    return bcc_dirac_spin_axis_step(state)
 
 
 def bcc_dirac_norm_drift(state: jnp.ndarray) -> jnp.ndarray:

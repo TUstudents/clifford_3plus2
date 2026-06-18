@@ -44,18 +44,27 @@ Simulator front door:
 - `sm_run_qca_rollout(...)` is the compact production-facing field-QCA runner.
   It composes BCC streaming, optional static SM gauge links, optional local
   Higgs/FN collision, center-CP quark Yukawas, and norm/density observables.
+  The rollout uses a persistent `QCASMState` and `jax.lax.scan`, so visible
+  fields and, only in exact reference mode, hidden FN path memory evolve as one
+  JAX carry.
 - `sm_qca_rollout_config_from_masses_ckm(...)` builds a rollout config from
   masses, CKM, FN charges, and the generated center-CP Wilson powers.  This is
   the constructive simulator path; dynamic gauge/Higgs field evolution remains
   in the heavier production-tick modules.
 - [`QCA_SMv0_CARRIER.md`](QCA_SMv0_CARRIER.md) records the actual simulator
-  carrier and fibre dimensions: free Dirac `(4)`, SM internal `(4*32)`, and
-  three-family SM `(4*32*3)`.
+  carrier and fibre dimensions.  The compact theory carrier is the Spin(10)
+  chiral `C^16`; the current field simulator uses a pragmatic state layout
+  `Dirac 4 * simulator-internal 32 * family 3 = 384` complex amplitudes per
+  site.  Exact FN path memory is a reference dilation, not part of the physical
+  Standard-Model fibre.
 - `scripts/phenomenology_rollout.py` is the single compact benchmark command:
   it calibrates from quark masses/CKM, builds the center-CP FN Higgs collision,
-  and runs a short QCA field rollout.  Its production default is
+  and runs a short QCA field rollout.  Use
+  `--collision-mode effective_yukawa` for production-scale runs; it uses the
+  compressed local Yukawa collision.  The exact reference path is
   `--collision-mode fn_dilation`, which evolves explicit hidden FN path slots;
-  `--collision-mode effective_yukawa` is retained as a comparison control.
+  `--collision-mode both` reports the two side by side from the same calibrated
+  input.
 
 Example:
 
@@ -70,7 +79,9 @@ uv run python src/clifford_3plus2_d5/qca_smv0/scripts/phenomenology_rollout.py \
   --q-charges 3,2,0 \
   --u-charges 5,2,0 \
   --d-charges 1,0,0 \
-  --collision-mode fn_dilation \
+  --collision-mode effective_yukawa \
+  --memory-budget-gib 24 \
+  --memory-policy auto \
   --output json
 ```
 
@@ -79,7 +90,62 @@ overriding matching JSON fields.  The output includes center-CP residuals,
 order-one coefficient magnitudes, center-power tables, and QCA norm/density
 rollout diagnostics.  In `fn_dilation` mode, visible norm can flow into hidden
 FN path memory; the conserved check is therefore `extended_norm_drift`, not
-visible `norm_drift`.
+visible `norm_drift`.  The rollout reports both carried-state memory and the
+selected config/cache arrays resident on the hot path.  The total runtime byte
+estimate is the number used for GPU budget decisions.  In `both` mode the JSON
+output contains one rollout for exact hidden-path FN, one rollout for compressed
+FN, and a memory comparison; this is the recommended validation/comparison path.
+Add `--memory-budget-gib` with `--memory-policy fail` to reject oversized exact
+recirculation before allocation, or `--memory-policy auto` to select compressed
+FN when exact `fn_dilation` exceeds the declared runtime memory budget.  Add
+`--stream-mode split_axis` when XLA temporary buffers, rather than carried state
+arrays, are the limiting GPU-memory pressure.
+
+For hot-path scaling, use the focused benchmark:
+
+```bash
+uv run python src/clifford_3plus2_d5/qca_smv0/scripts/benchmark_fn_dilation_rollout.py \
+  --lattice-shape 4,4,4 \
+  --lattice-shape 8,4,4 \
+  --steps 8 \
+  --repeats 5 \
+  --memory-budget-gib 24 \
+  --collision-mode both \
+  --output json
+```
+
+This JITs the same production rollout, separates first-call compile/run latency
+from repeated execution latency, and reports the carried visible/hidden memory
+plus selected config/cache arrays.  Repeating `--lattice-shape` sweeps multiple
+sizes in one command.  Benchmark runs perform post-JIT warmup repeats and report
+both mean and median runtime; use the median when the accelerator runtime emits
+occasional delayed-kernel outliers.  Non-dry runs also include XLA compiled
+executable memory analysis when the backend exposes it, including argument,
+output, alias, and temporary buffer bytes.
+Use `--collision-mode both` to compare exact hidden-path `fn_dilation` against
+the compressed `effective_yukawa` production path on the same lattice/config;
+the output reports memory saved and the exact/compressed memory ratio per shape.
+`--memory-budget-gib` reports a conservative max-site and cubic-lattice estimate
+from the runtime byte estimate; XLA temporaries and compile-time buffers may
+require additional headroom.  Each requested lattice shape also gets a
+`memory_budget_fit` verdict with the budget fraction and byte margin, so
+oversized runs are visible before allocation/JIT.  Density history is disabled
+in the benchmark path by default, and benchmark configs use the lean rollout
+mode that measures only initial/final observables so per-step reductions do not
+dominate hot-path timing.  Add `--dry-run` to compute the same memory estimates
+without allocating the lattice state or JIT-compiling the rollout.
+When compiled memory analysis is available, non-dry benchmark runs also include
+`compiled_memory_budget_fit`, which checks XLA's device runtime size floor
+against the same budget and is the stricter signal for temporary-buffer pressure.
+Add `--donate-state` to test whether XLA can alias the input state buffer to the
+final-state output; the benchmark then chains repeated runs through the previous
+final state so donated buffers are not reused.  The free-streaming kernel is
+selectable with `--stream-mode hop_sum|split_axis`: `hop_sum` is the fast
+eight-hop default, while `split_axis` applies the same BCC product as three
+axis substeps and is intended as a lower-temporary-memory fallback.  Add
+`--rollout-output state` to benchmark the pure state-evolution kernel without
+observable-history outputs; use the default `diagnostic` mode when norm drift is
+part of the measurement.
 
 Stage 49 implements the free BCC Weyl/Dirac bulk walk, static
 Standard-Model gauge-background transport, pure dynamic SM gauge fields, and a
@@ -291,8 +357,11 @@ Stage 1 also includes:
 
 Stage 2 adds a static background gauge layer:
 
-- a local 32-component internal SM carrier: one left-handed chiral-16 label set
-  duplicated across the four-component Dirac spin block;
+- a local 32-component simulator SM internal register: a pragmatic doubled
+  presentation of one left-handed chiral-16 label set.  The compact physical
+  one-generation carrier remains Spin(10) chiral `C^16`; the separate
+  four-component Dirac axis is spacetime spin for BCC transport and
+  chirality-flipping collisions;
 - local anti-Hermitian `SU(3)_c x SU(2)_L x U(1)_Y` generators;
 - finite BCC edge links with shape `(nx, ny, nz, 8, 32, 32)`;
 - a gauge-covariant Dirac BCC step through those static links;
@@ -355,7 +424,8 @@ Stage 5 adds FN recirculation paths:
 - empirical Wolfenstein mode and shear-candidate mode for `lambda`;
 - finite local beam-splitter chains whose endpoint transfer is `lambda^n`;
 - explicit direct-sum hidden unitary networks with one path for every
-  `L_i -> R_j` entry;
+  `L_i -> R_j` entry, used as an exact recirculation reference rather than as
+  the production local fibre;
 - FN power matrices measured from hidden-network source-to-sink transfers;
 - visible-hidden-visible readout maps that send left-family channels through
   the hidden recirculation network into right-family channels;
@@ -397,7 +467,8 @@ QCA_SMV0_STAGE6_CENTER_HOLONOMY_CP_PASS
 Stage 7 adds a three-family Higgs/Yukawa collision:
 
 - family-extended fermion states with shape `(nx, ny, nz, 4, 32, 3)`;
-- local internal/family dimension `96`;
+- simulator internal/family dimension `32 x 3 = 96` before the separate Dirac
+  spin axis;
 - default quark Yukawa source built from center-holonomy coefficients feeding
   the Stage 5 visible-hidden-visible FN recirculation readout;
 - finite FN unitary dilations for the up/down quark Higgs doors, with exposed

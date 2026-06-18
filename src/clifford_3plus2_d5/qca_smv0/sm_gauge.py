@@ -4,9 +4,11 @@ This module intentionally owns its local implementation surface.  It imports
 only generic simulator helpers from :mod:`clifford_3plus2_d5.sim` and the
 Stage 1 BCC bulk walk from :mod:`clifford_3plus2_d5.qca_smv0`.
 
-The internal carrier is a pragmatic simulator convention: one SM chiral-16
-label set, duplicated to a 32-component internal register.  The hypercharges
-use the left-handed chiral convention
+The internal register is a pragmatic simulator convention: one SM chiral-16
+label set is represented in a doubled 32-component complex simulation basis.
+The compact theory-side carrier is Spin(10) chiral C^16; the simulator's
+``SM_INTERNAL_DIM = 32`` is not a new irreducible internal matter fibre.  The
+hypercharges use the left-handed chiral convention
 
 ``Q, u^c, d^c, L, e^c, nu^c = 1/6, -2/3, 1/3, -1/2, 1, 0``.
 """
@@ -21,7 +23,12 @@ import jax.numpy as jnp
 import jax.scipy.linalg as jsp_linalg
 import numpy as np
 
-from clifford_3plus2_d5.qca_smv0.bulk_bcc import BCC_DISPLACEMENTS, bcc_dirac_hop_matrices
+from clifford_3plus2_d5.qca_smv0.bulk_bcc import (
+    BCC_DISPLACEMENTS,
+    bcc_dirac_hop_matrices,
+    bcc_dirac_spin_axis_step,
+    bcc_dirac_split_axis_step,
+)
 from clifford_3plus2_d5.sim.backend import DEFAULT_COMPLEX_DTYPE
 from clifford_3plus2_d5.sim.lattice import source_roll
 from clifford_3plus2_d5.sim.links import jax_identity_link_field, jax_transform_link_field, validate_link_field
@@ -196,6 +203,14 @@ def _validate_sm_state(state: jnp.ndarray) -> tuple[int, int, int]:
     return int(state.shape[0]), int(state.shape[1]), int(state.shape[2])
 
 
+def _validate_sm_family_state(state: jnp.ndarray) -> tuple[int, int, int]:
+    if state.ndim != 6 or state.shape[-3:-1] != (4, SM_INTERNAL_DIM):
+        raise ValueError("family SM Dirac state must have shape (nx, ny, nz, 4, 32, nf)")
+    if state.shape[-1] <= 0:
+        raise ValueError("family SM Dirac state must have at least one family")
+    return int(state.shape[0]), int(state.shape[1]), int(state.shape[2])
+
+
 def _validate_sm_links(links: jnp.ndarray, lattice_shape: tuple[int, int, int] | None = None) -> None:
     validate_link_field(links, edge_count=8)
     if links.ndim != 6 or links.shape[3:] != (8, SM_INTERNAL_DIM, SM_INTERNAL_DIM):
@@ -301,12 +316,42 @@ def sm_free_dirac_internal_step(state: jnp.ndarray) -> jnp.ndarray:
     """Apply the free BCC Dirac step independently to every internal component."""
 
     _validate_sm_state(state)
+    return bcc_dirac_spin_axis_step(state)
+
+
+def sm_free_dirac_internal_split_axis_step(state: jnp.ndarray) -> jnp.ndarray:
+    """Apply the free split-axis BCC Dirac step to SM internal fields."""
+
+    _validate_sm_state(state)
+    return bcc_dirac_split_axis_step(state)
+
+
+def sm_gauged_family_dirac_step(state: jnp.ndarray, links: jnp.ndarray) -> jnp.ndarray:
+    """Apply one SM-linked Dirac BCC step with a spectator family axis."""
+
+    lattice_shape = _validate_sm_family_state(state)
+    _validate_sm_links(links, lattice_shape)
     hops = bcc_dirac_hop_matrices(dtype=state.dtype)
     out = jnp.zeros_like(state)
     for index, displacement in enumerate(BCC_DISPLACEMENTS):
         source = source_roll(state, displacement)
-        out = out + jnp.einsum("rs,...sd->...rd", hops[index], source)
+        linked = jnp.einsum("...ab,...sbf->...saf", links[..., index, :, :], source)
+        out = out + jnp.einsum("rs,...saf->...raf", hops[index], linked)
     return out
+
+
+def sm_free_dirac_family_step(state: jnp.ndarray) -> jnp.ndarray:
+    """Apply the free BCC Dirac step with internal and family spectator axes."""
+
+    _validate_sm_family_state(state)
+    return bcc_dirac_spin_axis_step(state)
+
+
+def sm_free_dirac_family_split_axis_step(state: jnp.ndarray) -> jnp.ndarray:
+    """Apply the free split-axis BCC Dirac step with a spectator family axis."""
+
+    _validate_sm_family_state(state)
+    return bcc_dirac_split_axis_step(state)
 
 
 def sm_gauged_norm_drift(state: jnp.ndarray, links: jnp.ndarray) -> jnp.ndarray:

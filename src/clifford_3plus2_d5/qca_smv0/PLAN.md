@@ -63,8 +63,10 @@ Pass only if:
 
 - the only upstream runtime imports are from `sim` and local `qca_smv0`
   modules;
-- the internal register has shape `32`, interpreted as one SM chiral-16 label
-  set duplicated over the Dirac spin block;
+- the simulator internal register has shape `32`, interpreted as a doubled
+  practical representation of one SM chiral-16 label set.  The compact
+  theory-side one-generation matter carrier is Spin(10) chiral `C^16`; the
+  separate Dirac axis is spacetime spin for BCC transport;
 - local anti-Hermitian `SU(3)_c x SU(2)_L x U(1)_Y` generators are explicit;
 - finite static BCC links have shape `(nx, ny, nz, 8, 32, 32)`;
 - link exponentiation produces unitary matrices;
@@ -238,7 +240,8 @@ Pass only if:
 - the only upstream runtime imports are from `sim` and local `qca_smv0`
   modules;
 - the family-extended fermion state has shape `(nx, ny, nz, 4, 32, 3)`;
-- the local internal/family register has dimension `32 x 3 = 96`;
+- the local simulator internal/family register has dimension `32 x 3 = 96`
+  before the separate four-component spacetime Dirac spin axis;
 - the Stage 5/6 generated quark Yukawa matrices are embedded into the local
   Higgs/Yukawa matrix, not re-entered as scalars;
 - the default quark Yukawa source is explicitly reconstructed from

@@ -2,8 +2,9 @@
 
 Stage 7 embeds the Stage 5/6 generated flavor matrices into the local
 Higgs/Yukawa collision.  The state layout is
-``(nx, ny, nz, 4, 32, 3)``: Dirac spin, one SM chiral-16 carrier duplicated as
-in Stage 2, and an explicit three-family register.  The collision flattens the
+``(nx, ny, nz, 4, 32, 3)``: spacetime Dirac spin, the Stage 2 doubled
+32-component simulator representation of one SM chiral-16 label set, and an
+explicit three-family register.  The collision flattens the
 ``32 x 3`` internal/family register, applies the exact unitary
 ``exp(-i step_size beta Y(H))``, then reshapes back.
 """
@@ -67,6 +68,19 @@ class FamilyLeptonYukawas(NamedTuple):
     electron: jnp.ndarray
 
 
+class FamilyYukawaCollisionCache(NamedTuple):
+    """Precomputed exact family Yukawa collision functions."""
+
+    cos_internal: jnp.ndarray
+    sin_internal: jnp.ndarray
+    block_indices: jnp.ndarray | None = None
+    block_inverse_indices: jnp.ndarray | None = None
+    cos_blocks: jnp.ndarray | None = None
+    sin_blocks: jnp.ndarray | None = None
+    internal_pair_indices: jnp.ndarray | None = None
+    internal_inverse_indices: jnp.ndarray | None = None
+
+
 class FamilyHiggsYukawaDiagnostics(NamedTuple):
     """Focused diagnostics for Stage 7 three-family Higgs/Yukawa collision."""
 
@@ -128,6 +142,13 @@ class FamilyFNQuarkPathAuxState(NamedTuple):
 
     up: jnp.ndarray
     down: jnp.ndarray
+
+
+class FamilyFNQuarkPathHiddenDims(NamedTuple):
+    """Hidden dimensions for the explicit up/down FN path networks."""
+
+    up: int
+    down: int
 
 
 class FamilyFNQuarkDoorOutput(NamedTuple):
@@ -258,6 +279,22 @@ def _sm_family_quark_coefficients(
     return FNQuarkCoefficientMatrices(
         up=sm_center_coefficients("up", powers=powers.up),
         down=sm_center_coefficients("down", powers=powers.down),
+    )
+
+
+def _fn_recirculation_hidden_dim(left_charges: tuple[int, int, int], right_charges: tuple[int, int, int]) -> int:
+    return sum(int(left) + int(right) + 1 for left in left_charges for right in right_charges)
+
+
+def sm_family_quark_path_hidden_dims(
+    *,
+    charges: FNQuarkCharges = DEFAULT_FN_QUARK_CHARGES,
+) -> FamilyFNQuarkPathHiddenDims:
+    """Return exact hidden dimensions without constructing FN path unitaries."""
+
+    return FamilyFNQuarkPathHiddenDims(
+        up=_fn_recirculation_hidden_dim(charges.q, charges.u),
+        down=_fn_recirculation_hidden_dim(charges.q, charges.d),
     )
 
 
@@ -900,14 +937,11 @@ def sm_apply_family_fn_quark_path_unitary_collision(
     if step_size == 0:
         return FamilyFNQuarkPathUnitaryCollision(state=state, aux_state=aux_state)
 
-    q_indices = jnp.arange(6)
-    up_indices = jnp.arange(6, 9)
-    down_indices = jnp.arange(9, 12)
     target_spins = jnp.asarray([2, 3, 0, 1])
     h_tilde = sm_higgs_tilde(higgs)
-    q_slots = jnp.take(state, q_indices, axis=-2).reshape((*lattice_shape, 4, 3, 2, SM_FAMILY_DIM))
-    up_slots = jnp.take(state, up_indices, axis=-2)
-    down_slots = jnp.take(state, down_indices, axis=-2)
+    q_slots = state[..., :6, :].reshape((*lattice_shape, 4, 3, 2, SM_FAMILY_DIM))
+    up_slots = state[..., 6:9, :]
+    down_slots = state[..., 9:12, :]
     up_right_by_source_spin = jnp.take(up_slots, target_spins, axis=3)
     down_right_by_source_spin = jnp.take(down_slots, target_spins, axis=3)
 
@@ -953,9 +987,11 @@ def sm_apply_family_fn_quark_path_unitary_collision(
     down_aux_after = jnp.moveaxis(down_aux_after_by_weak, 0, -2)
     up_after = jnp.take(up_right_after_by_source_spin, target_spins, axis=3)
     down_after = jnp.take(down_right_after_by_source_spin, target_spins, axis=3)
-    updated = state.at[..., q_indices, :].set(q_after.astype(state.dtype))
-    updated = updated.at[..., up_indices, :].set(up_after.astype(state.dtype))
-    updated = updated.at[..., down_indices, :].set(down_after.astype(state.dtype))
+    quark_after = jnp.concatenate(
+        (q_after.astype(state.dtype), up_after.astype(state.dtype), down_after.astype(state.dtype)),
+        axis=-2,
+    )
+    updated = jnp.concatenate((quark_after, state[..., 12:, :]), axis=-2)
 
     return FamilyFNQuarkPathUnitaryCollision(
         state=updated,
@@ -1050,6 +1086,35 @@ def sm_family_extract_block(matrix: jnp.ndarray, left_internal: int, right_inter
     return matrix[..., left_indices[:, None], right_indices[None, :]]
 
 
+def _family_pair_block_indices(left_internal: int, right_internal: int) -> list[int]:
+    return [
+        *[_family_flat_index(left_internal, family) for family in range(SM_FAMILY_DIM)],
+        *[_family_flat_index(right_internal, family) for family in range(SM_FAMILY_DIM)],
+    ]
+
+
+def _unitary_gauge_yukawa_internal_pairs() -> list[tuple[int, int]]:
+    pairs = []
+    for copy_offset in (0, SM_CHIRAL16_DIM):
+        for color in range(3):
+            pairs.append((copy_offset + _q_index(color, 0), copy_offset + _u_c_index(color)))
+            pairs.append((copy_offset + _q_index(color, 1), copy_offset + _d_c_index(color)))
+        pairs.append((copy_offset + _l_index(0), copy_offset + _nu_c_index()))
+        pairs.append((copy_offset + _l_index(1), copy_offset + _e_c_index()))
+    return pairs
+
+
+def _unitary_gauge_yukawa_internal_pair_indices() -> jnp.ndarray:
+    return jnp.asarray(_unitary_gauge_yukawa_internal_pairs(), dtype=jnp.int32)
+
+
+def _unitary_gauge_yukawa_block_indices() -> jnp.ndarray:
+    blocks = []
+    for left, right in _unitary_gauge_yukawa_internal_pairs():
+        blocks.append(_family_pair_block_indices(left, right))
+    return jnp.asarray(blocks, dtype=jnp.int32)
+
+
 def _hermitian_function(matrix: jnp.ndarray, fn) -> jnp.ndarray:
     flat = matrix.reshape((-1, matrix.shape[-2], matrix.shape[-1]))
 
@@ -1079,6 +1144,18 @@ def _family_yukawa_cos_sin(yukawa: jnp.ndarray, step_size: float) -> tuple[jnp.n
     return cos_internal, sin_internal
 
 
+def _dirac_beta_swap_internal(action: jnp.ndarray) -> jnp.ndarray:
+    """Apply beta to arrays with shape ``(..., spin, internal)``."""
+
+    return jnp.concatenate((action[..., 2:, :], action[..., :2, :]), axis=-2)
+
+
+def _dirac_beta_swap_block(action: jnp.ndarray) -> jnp.ndarray:
+    """Apply beta to arrays with shape ``(..., spin, block, internal)``."""
+
+    return jnp.concatenate((action[..., 2:, :, :], action[..., :2, :, :]), axis=-3)
+
+
 def sm_apply_family_yukawa_collision(
     state: jnp.ndarray,
     higgs: jnp.ndarray,
@@ -1103,7 +1180,111 @@ def sm_apply_family_yukawa_collision(
     cos_internal, sin_internal = _family_yukawa_cos_sin(yukawa, step_size)
     cos_action = jnp.einsum("...ij,...sj->...si", cos_internal, flat_state)
     sin_internal_action = jnp.einsum("...ij,...sj->...si", sin_internal, flat_state)
-    beta_action = jnp.einsum("sr,...ri->...si", sm_dirac_beta(state.dtype), sin_internal_action)
+    beta_action = _dirac_beta_swap_internal(sin_internal_action)
+    return (cos_action - 1j * beta_action).reshape(state.shape)
+
+
+def sm_family_yukawa_collision_cache(
+    higgs: jnp.ndarray,
+    *,
+    step_size: float,
+    quark_yukawas: FNQuarkYukawas | None = None,
+    lepton_yukawas: FamilyLeptonYukawas | None = None,
+    assume_uniform: bool = False,
+    use_unitary_gauge_blocks: bool = False,
+) -> FamilyYukawaCollisionCache:
+    """Precompute the exact local Yukawa collision functions.
+
+    With ``assume_uniform=True``, only the first lattice site is used.  This is
+    the production path for constant-Higgs rollout configs and avoids carrying a
+    full spatial field of identical ``96 x 96`` collision functions.
+    """
+
+    _validate_higgs_field(higgs)
+    local_higgs = higgs[:1, :1, :1] if assume_uniform else higgs
+    yukawa = sm_family_yukawa_internal_matrix(
+        local_higgs,
+        quark_yukawas=quark_yukawas,
+        lepton_yukawas=lepton_yukawas,
+    ).astype(jnp.complex64)
+    cos_internal, sin_internal = _family_yukawa_cos_sin(yukawa, step_size)
+    if assume_uniform:
+        cos_internal = cos_internal[0, 0, 0]
+        sin_internal = sin_internal[0, 0, 0]
+    if assume_uniform and use_unitary_gauge_blocks:
+        block_indices = _unitary_gauge_yukawa_block_indices()
+        flat_block_indices = block_indices.reshape(-1)
+        internal_pair_indices = _unitary_gauge_yukawa_internal_pair_indices()
+        flat_internal_indices = internal_pair_indices.reshape(-1)
+        cos_blocks = cos_internal[block_indices[:, :, None], block_indices[:, None, :]]
+        sin_blocks = sin_internal[block_indices[:, :, None], block_indices[:, None, :]]
+        return FamilyYukawaCollisionCache(
+            cos_internal=jnp.zeros((0, 0), dtype=cos_internal.dtype),
+            sin_internal=jnp.zeros((0, 0), dtype=sin_internal.dtype),
+            block_indices=block_indices,
+            block_inverse_indices=jnp.argsort(flat_block_indices),
+            cos_blocks=cos_blocks,
+            sin_blocks=sin_blocks,
+            internal_pair_indices=internal_pair_indices,
+            internal_inverse_indices=jnp.argsort(flat_internal_indices),
+        )
+    return FamilyYukawaCollisionCache(cos_internal=cos_internal, sin_internal=sin_internal)
+
+
+def sm_apply_family_yukawa_collision_from_cache(
+    state: jnp.ndarray,
+    cache: FamilyYukawaCollisionCache,
+) -> jnp.ndarray:
+    """Apply a precomputed exact family Yukawa collision."""
+
+    lattice_shape = _validate_family_state(state)
+    flat_state = state.reshape((*lattice_shape, 4, SM_FAMILY_INTERNAL_DIM))
+    if (
+        cache.internal_pair_indices is not None
+        and cache.internal_inverse_indices is not None
+        and cache.cos_blocks is not None
+        and cache.sin_blocks is not None
+    ):
+        internal_order = cache.internal_pair_indices.reshape(-1)
+        ordered_state = jnp.take(state, internal_order, axis=-2)
+        block_count = int(cache.cos_blocks.shape[0])
+        block_state = ordered_state.reshape((*lattice_shape, 4, block_count, 2, SM_FAMILY_DIM)).reshape(
+            (*lattice_shape, 4, block_count, 2 * SM_FAMILY_DIM),
+        )
+        cos_blocks = jnp.asarray(cache.cos_blocks, dtype=state.dtype)
+        sin_blocks = jnp.asarray(cache.sin_blocks, dtype=state.dtype)
+        cos_action = jnp.einsum("bij,...sbj->...sbi", cos_blocks, block_state)
+        sin_action = jnp.einsum("bij,...sbj->...sbi", sin_blocks, block_state)
+        beta_action = _dirac_beta_swap_block(sin_action)
+        block_output = cos_action - 1j * beta_action
+        ordered_internal = block_output.reshape((*lattice_shape, 4, 2 * block_count, SM_FAMILY_DIM))
+        return jnp.take(ordered_internal, cache.internal_inverse_indices, axis=-2)
+    if (
+        cache.block_indices is not None
+        and cache.block_inverse_indices is not None
+        and cache.cos_blocks is not None
+        and cache.sin_blocks is not None
+    ):
+        block_state = jnp.take(flat_state, cache.block_indices, axis=-1)
+        cos_blocks = jnp.asarray(cache.cos_blocks, dtype=state.dtype)
+        sin_blocks = jnp.asarray(cache.sin_blocks, dtype=state.dtype)
+        cos_action = jnp.einsum("bij,...sbj->...sbi", cos_blocks, block_state)
+        sin_action = jnp.einsum("bij,...sbj->...sbi", sin_blocks, block_state)
+        beta_action = _dirac_beta_swap_block(sin_action)
+        block_output = cos_action - 1j * beta_action
+        ordered = block_output.reshape((*lattice_shape, 4, SM_FAMILY_INTERNAL_DIM))
+        return jnp.take(ordered, cache.block_inverse_indices, axis=-1).reshape(state.shape)
+    cos_internal = jnp.asarray(cache.cos_internal, dtype=state.dtype)
+    sin_internal = jnp.asarray(cache.sin_internal, dtype=state.dtype)
+    if cos_internal.shape == (SM_FAMILY_INTERNAL_DIM, SM_FAMILY_INTERNAL_DIM):
+        cos_action = jnp.einsum("ij,...sj->...si", cos_internal, flat_state)
+        sin_internal_action = jnp.einsum("ij,...sj->...si", sin_internal, flat_state)
+    else:
+        if cos_internal.shape != (*lattice_shape, SM_FAMILY_INTERNAL_DIM, SM_FAMILY_INTERNAL_DIM):
+            raise ValueError("cached Yukawa collision has incompatible shape")
+        cos_action = jnp.einsum("...ij,...sj->...si", cos_internal, flat_state)
+        sin_internal_action = jnp.einsum("...ij,...sj->...si", sin_internal, flat_state)
+    beta_action = _dirac_beta_swap_internal(sin_internal_action)
     return (cos_action - 1j * beta_action).reshape(state.shape)
 
 

@@ -10,6 +10,8 @@ from clifford_3plus2_d5.qca_smv0.bulk_bcc import (
     bcc_dirac_hop_completeness_residual,
     bcc_dirac_hop_matrices,
     bcc_dirac_split_symbol,
+    bcc_dirac_split_axis_step,
+    bcc_dirac_spin_axis_step,
     bcc_dirac_step,
     bcc_dirac_symbol_unitarity_residual,
     bcc_hop_completeness_residual,
@@ -145,6 +147,28 @@ def test_bcc_dirac_step_preserves_norm_on_periodic_lattice() -> None:
 
     assert updated.shape == state.shape
     assert jnp.abs(drift) < 2e-5
+
+
+def test_bcc_dirac_spin_axis_step_matches_independent_spectator_steps() -> None:
+    key = jax.random.PRNGKey(404)
+    shape = (2, 2, 2, 4, 3)
+    real = jax.random.normal(key, shape, dtype=jnp.float32)
+    imag = jax.random.normal(jax.random.fold_in(key, 1), shape, dtype=jnp.float32)
+    state = (real + 1j * imag).astype(jnp.complex64)
+
+    expected = jnp.stack([bcc_dirac_step(state[..., spectator]) for spectator in range(shape[-1])], axis=-1)
+
+    assert jnp.max(jnp.abs(bcc_dirac_spin_axis_step(state) - expected)) < 1e-6
+
+
+def test_bcc_dirac_split_axis_step_matches_hop_sum_with_spectators() -> None:
+    key = jax.random.PRNGKey(405)
+    shape = (2, 2, 2, 4, 3)
+    real = jax.random.normal(key, shape, dtype=jnp.float32)
+    imag = jax.random.normal(jax.random.fold_in(key, 1), shape, dtype=jnp.float32)
+    state = (real + 1j * imag).astype(jnp.complex64)
+
+    assert jnp.max(jnp.abs(bcc_dirac_split_axis_step(state) - bcc_dirac_spin_axis_step(state))) < 2e-6
 
 
 def test_bcc_dirac_step_is_jittable() -> None:

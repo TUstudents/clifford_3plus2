@@ -3,8 +3,13 @@
 Stage 5 implements FN powers as finite hidden recirculation paths.  The module
 does not claim to derive the charges or the attenuation parameter: both are
 explicit simulator inputs.  What is implemented here is the constructive local
-rule that a path of length ``n`` contributes the amplitude ``lambda**n`` through
-a product of two-state unitary beam-splitter gates.
+reference rule that a path of length ``n`` contributes the amplitude
+``lambda**n`` through a product of two-state unitary beam-splitter gates.
+
+The explicit path network is a unitary verifier for the recirculation picture,
+not the production per-site Standard-Model fibre.  Production rollouts should
+prefer the compressed effective Yukawa collision unless the exact dilation is
+being validated.
 """
 
 from __future__ import annotations

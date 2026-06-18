@@ -4,7 +4,29 @@ QCA_SMv0 is the constructive simulator layer.  Its carrier is the local
 Standard-Model charge register used by the field update, not the full theory
 claim about the microscopic Clifford substrate.
 
-## Actual Simulator Fibre
+## Physical Fibre Versus Simulator Register
+
+The compact theory-side one-generation matter carrier is the Spin(10) chiral
+spinor
+
+```text
+complex 16 = Q_L(3*2) + u^c(3) + d^c(3) + L_L(2) + e^c(1) + nu^c(1).
+```
+
+In the real Clifford/Pati-Salam sidecars this same object is represented as a
+real chiral-16 block of dimension `32`, together with a compatible complex
+structure `J`:
+
+```text
+R^32 with J  ==  C^16.
+```
+
+That is the compact internal matter fibre.  The QCA_SMv0 arrays are a
+simulation register built around that carrier, with extra axes for spacetime
+Dirac streaming and family.  These axes should not be counted as new internal
+Spin(10) degrees of freedom.
+
+## Actual Simulator Layout
 
 The current production-facing field states use these layouts:
 
@@ -25,8 +47,11 @@ three-family SM field:
   local fibre dimension = 4 * 32 * 3 = 384
 ```
 
-So the simulator's internal charge fibre is `SM_INTERNAL_DIM = 32`.
-With family included, the non-Dirac internal fibre is `32 * 3 = 96`.
+Here `SM_INTERNAL_DIM = 32` is the simulator's complex internal register.  It is
+not the minimal irreducible Spin(10) matter fibre.  It is a pragmatic doubled
+presentation of the one-generation chiral-16 label set used by the current
+local gauge/Yukawa conventions.  With family included, the non-Dirac simulator
+register is `32 * 3 = 96`.
 
 The axes have separate jobs:
 
@@ -35,32 +60,78 @@ spatial axes:
   BCC lattice sites
 
 dirac axis:
-  split-step BCC/Weyl/Dirac streaming
+  spacetime Weyl/Dirac streaming and chirality-flipping mass collision
 
 internal axis:
-  Standard-Model-like gauge representation register
+  one-generation SM/Spin(10)-derived charge register in the simulator basis
 
 family axis:
   Froggatt-Nielsen / recirculation matrices
 ```
 
-Gauge links act on the 32-dimensional internal register.  The BCC streaming
-acts on the Dirac axis and spatial sites.  The local Higgs/FN collision acts
-site-locally on the Dirac, internal, and family axes.
+Gauge links act on the 32-dimensional internal simulator register.  The BCC
+streaming acts on the Dirac axis and spatial sites.  The local Higgs/FN
+collision acts site-locally on the Dirac, internal, and family axes.
+
+The `4` in the field layout is ordinary spacetime Dirac spin:
+
+```text
+Dirac 4 = left Weyl 2 + right Weyl 2.
+```
+
+It is not the Spin(10) internal spinor.  The internal Spin(10)-side matter
+content is the chiral `16`; the spacetime Dirac axis is present because the
+simulator implements BCC transport and local Higgs/Yukawa chirality flips.
 
 ## Not Complex 10
 
 This carrier is not `complex 10`.
 
-The theory-side Clifford/Pati-Salam carrier used in the lepton work is better
-thought of as a chiral Clifford block: real dimension 32, or complex dimension
-16 after choosing a compatible complex structure.  That object is the cleaner
-candidate for a minimal one-generation matter carrier.
+The Spin(10) vector `10` is not a Standard-Model generation.  It is useful for
+vector data, Clifford generators, and sometimes Higgs representations, but the
+matter generation is the Spin(10) chiral spinor `16`.
+
+The theory-side Clifford/Pati-Salam carrier used in the lepton work is the
+chiral Clifford block: real dimension 32, or complex dimension 16 after
+choosing a compatible complex structure.  That object is the cleaner candidate
+for a minimal one-generation matter carrier.
 
 QCA_SMv0 currently uses an expanded simulator register with 32 complex
 components for the internal gauge-charge axis.  This is a pragmatic field
 layout for exact local update rules, not a claim that the microscopic minimal
 carrier is a 32-complex-dimensional irreducible representation.
+
+## FN Recirculation Is Not The Physical Fibre
+
+The explicit `fn_dilation` path networks are reference dilations.  They prove
+that a Froggatt-Nielsen factor can be realized by a finite local unitary path:
+
+```text
+path length n  ->  endpoint amplitude lambda^n.
+```
+
+For the default quark charges, the exact pair-path reference network has hidden
+dimensions
+
+```text
+up hidden paths:   sum_ij (Q_i + U_j + 1) = 45
+down hidden paths: sum_ij (Q_i + D_j + 1) = 27
+```
+
+and those slots are replicated over the visible spin/color/weak doors in the
+exact validation path.  That large auxiliary space is not the local
+Standard-Model fibre.  It is a verifier for the recirculation interpretation.
+
+The production path is the compressed effective Yukawa collision:
+
+```text
+Y_ij = c_ij lambda^(Q_i + R_j),
+U_Y = exp(-i step_size beta Y(H)).
+```
+
+A future dynamic recirculation backend should use shared charge ladders or
+clock registers, not one independent hidden path for every matrix entry copied
+into every spacetime cell.
 
 ## Relation To Sidecars
 
@@ -89,8 +160,14 @@ carrier is a 32-complex-dimensional irreducible representation.
 ## Current Honest Status
 
 QCA_SMv0 has a working expanded carrier and a compact rollout runner.  The
-remaining bridge is conceptual and architectural: decide whether the expanded
-32-complex internal register should be compressed back into the minimal
-Clifford chiral-16 carrier, or kept as the practical simulation basis with a
-documented adapter to the Clifford carrier.
+current production-facing fibre is compact at the field level:
 
+```text
+Dirac 4 * simulator-internal 32 * family 3 = 384 complex amplitudes per site.
+```
+
+The exact hidden FN dilation is intentionally outside that fibre and should be
+used as a reference/validation mode.  The remaining bridge is architectural:
+either compress the simulator internal register back to the minimal Clifford
+`C^16` carrier, or keep the practical `32`-complex basis with a documented
+adapter to the Clifford carrier.
