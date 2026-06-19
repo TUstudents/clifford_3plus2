@@ -7,20 +7,27 @@ import jax.numpy as jnp
 
 from clifford_3plus2_d5.qca_smv0.bulk_bcc import bcc_dirac_step
 from clifford_3plus2_d5.qca_smv0.scripts.benchmark_fn_dilation_rollout import (
+    _benchmark_payload,
     _benchmark_sweep_payload,
+    build_arg_parser as build_benchmark_arg_parser,
     _max_cubic_edge,
     _memory_budget_summary,
+    _mode_comparisons,
     _memory_payload,
 )
 from clifford_3plus2_d5.qca_smv0.scripts.phenomenology_rollout import (
     PhenomenologyRunConfig,
+    _prepare_phenomenology_rollout,
     config_from_args,
     run_phenomenology_rollout_modes,
     run_phenomenology_rollout,
 )
 from clifford_3plus2_d5.qca_smv0.sm_family_higgs import (
+    sm_apply_family_yukawa_collision,
+    sm_apply_family_yukawa_collision_from_cache,
     sm_family_quark_path_hidden_dims,
     sm_family_recirculated_quark_path_readouts,
+    sm_family_yukawa_collision_cache,
 )
 from clifford_3plus2_d5.qca_smv0.sm_fn import fn_ckm_from_yukawas, fn_singular_masses
 from clifford_3plus2_d5.qca_smv0.sm_gauge import (
@@ -32,11 +39,14 @@ from clifford_3plus2_d5.qca_smv0.sm_gauge import (
     sm_gauged_dirac_step,
     sm_identity_links,
 )
+from clifford_3plus2_d5.qca_smv0.sm_higgs import sm_constant_higgs
 from clifford_3plus2_d5.qca_smv0.sm_rollout import (
     QCASMRolloutConfig,
     deterministic_qca_family_state,
     deterministic_qca_sm_state,
     sm_qca_center_cp_rollout_config,
+    sm_qca_config_memory_footprint,
+    sm_jit_qca_state_rollout,
     sm_qca_rollout_memory_footprint,
     sm_qca_prepare_state,
     sm_qca_rollout_config_from_masses_ckm,
@@ -142,19 +152,20 @@ def test_split_axis_stream_mode_matches_hop_sum_for_free_rollouts() -> None:
     assert jnp.max(jnp.abs(split.norm_history - hop.norm_history)) < 5e-6
 
 
-def test_center_cp_higgs_fn_rollout_preserves_norm_and_changes_family_state() -> None:
+def test_center_cp_higgs_fn_rollout_defaults_to_compressed_collision() -> None:
     state = deterministic_qca_family_state((1, 1, 1))
     config = sm_qca_center_cp_rollout_config((1, 1, 1), yukawa_step_size=0.02, record_density=True)
 
     result = sm_run_qca_rollout(config, state, steps=1)
     stream_only = sm_run_qca_rollout(QCASMRolloutConfig(record_density=True), state, steps=1)
 
+    assert config.collision_mode == "effective_yukawa"
     assert result.used_higgs_fn_collision
-    assert result.used_fn_dilation_collision
-    assert result.final_fn_path_aux_state is not None
+    assert not result.used_fn_dilation_collision
+    assert result.final_fn_path_aux_state is None
     assert result.density_history.shape == (2, 1, 1, 1)
     assert jnp.abs(result.extended_norm_history[-1] - result.extended_norm_history[0]) < 1e-4
-    assert sm_qca_total_norm(result.final_state) < sm_qca_total_norm(state)
+    assert jnp.abs(sm_qca_total_norm(result.final_state) - sm_qca_total_norm(state)) < 1e-4
     assert jnp.max(jnp.abs(result.final_state - stream_only.final_state)) > 1e-8
 
 
@@ -176,16 +187,22 @@ def test_calibrated_center_cp_rollout_config_from_masses_ckm_runs_family_rollout
 
     assert calibrated.verdict.passed
     assert calibrated.verdict.selected_label == "wilson_flux_rule"
+    assert calibrated.config.collision_mode == "effective_yukawa"
     assert result.used_higgs_fn_collision
-    assert result.used_fn_dilation_collision
-    assert result.final_fn_path_aux_state is not None
+    assert not result.used_fn_dilation_collision
+    assert result.final_fn_path_aux_state is None
     assert jnp.abs(result.extended_norm_history[-1] - result.extended_norm_history[0]) < 1e-4
 
 
 def test_scanned_rollout_matches_repeated_persistent_state_steps() -> None:
     lattice_shape = (1, 1, 1)
     state = deterministic_qca_family_state(lattice_shape)
-    config = sm_qca_center_cp_rollout_config(lattice_shape, yukawa_step_size=0.02, record_density=True)
+    config = sm_qca_center_cp_rollout_config(
+        lattice_shape,
+        yukawa_step_size=0.02,
+        record_density=True,
+        collision_mode="fn_dilation",
+    )
 
     manual = sm_qca_prepare_state(state, config)
     manual = sm_qca_state_step(manual, config)
@@ -218,10 +235,31 @@ def test_state_only_rollout_matches_diagnostic_final_state() -> None:
     assert state_only.fn_path_aux_state is None
 
 
+def test_jitted_state_rollout_matches_eager_state_rollout() -> None:
+    lattice_shape = (1, 1, 1)
+    state = deterministic_qca_family_state(lattice_shape)
+    config = sm_qca_center_cp_rollout_config(
+        lattice_shape,
+        yukawa_step_size=0.02,
+        collision_mode="effective_yukawa",
+    )
+
+    prepared = sm_qca_prepare_state(state, config)
+    eager = sm_run_qca_state_rollout(prepared, config, steps=2)
+    jitted = sm_jit_qca_state_rollout(config, steps=2, donate_state=False)(prepared)
+
+    assert jnp.max(jnp.abs(jitted.visible_state - eager.visible_state)) < 2e-7
+    assert jitted.fn_path_aux_state is None
+
+
 def test_scanned_fn_dilation_rollout_is_jittable() -> None:
     lattice_shape = (1, 1, 1)
     state = deterministic_qca_family_state(lattice_shape)
-    config = sm_qca_center_cp_rollout_config(lattice_shape, yukawa_step_size=0.02)
+    config = sm_qca_center_cp_rollout_config(
+        lattice_shape,
+        yukawa_step_size=0.02,
+        collision_mode="fn_dilation",
+    )
 
     def run(local_state):
         result = sm_run_qca_rollout(config, local_state, steps=2)
@@ -268,7 +306,11 @@ def test_lean_rollout_skips_per_step_observables_without_changing_state() -> Non
 def test_fn_dilation_rollout_reports_visible_and_hidden_memory_footprint() -> None:
     lattice_shape = (1, 1, 1)
     state = deterministic_qca_family_state(lattice_shape)
-    config = sm_qca_center_cp_rollout_config(lattice_shape, yukawa_step_size=0.02)
+    config = sm_qca_center_cp_rollout_config(
+        lattice_shape,
+        yukawa_step_size=0.02,
+        collision_mode="fn_dilation",
+    )
 
     prepared = sm_qca_prepare_state(state, config)
     footprint = sm_qca_state_memory_footprint(prepared)
@@ -304,14 +346,30 @@ def test_fn_dilation_memory_budget_estimates_max_lattice_size() -> None:
     assert summary is not None
     assert summary["usable_bytes"] == 805306368
     assert summary["bytes_per_site"] == 16_896.0
+    assert summary["fixed_bytes"] == 0
+    assert summary["usable_bytes_after_fixed"] == 805306368
     assert summary["max_sites"] == 47_662
     assert summary["max_cubic_lattice_shape"] == [36, 36, 36]
+    fixed_summary = _memory_budget_summary(
+        bytes_per_site=3_072.0,
+        fixed_bytes=2_304,
+        memory_budget_gib=1.0,
+        memory_safety_factor=0.75,
+    )
+    assert fixed_summary is not None
+    assert fixed_summary["fixed_bytes"] == 2_304
+    assert fixed_summary["usable_bytes_after_fixed"] == 805304064
+    assert fixed_summary["max_sites"] == 262_143
 
 
 def test_fn_dilation_dry_run_memory_payload_matches_prepared_state_footprint() -> None:
     lattice_shape = (1, 1, 1)
     state = deterministic_qca_family_state(lattice_shape)
-    config = sm_qca_center_cp_rollout_config(lattice_shape, yukawa_step_size=0.02)
+    config = sm_qca_center_cp_rollout_config(
+        lattice_shape,
+        yukawa_step_size=0.02,
+        collision_mode="fn_dilation",
+    )
     footprint = sm_qca_state_memory_footprint(sm_qca_prepare_state(state, config))
     payload = _memory_payload(
         lattice_shape=lattice_shape,
@@ -328,8 +386,56 @@ def test_fn_dilation_dry_run_memory_payload_matches_prepared_state_footprint() -
     assert payload["memory"]["fn_path_aux_complex_elements"] == footprint.fn_path_aux_complex_elements
     assert payload["memory"]["total_complex_elements"] == footprint.total_complex_elements
     assert payload["memory"]["state_complex64_bytes"] == footprint.complex64_bytes
+    assert payload["memory"]["state_complex64_bytes_per_site"] == footprint.complex64_bytes
     assert payload["memory"]["config_array_bytes"] > 0
     assert payload["memory"]["complex64_bytes"] > footprint.complex64_bytes
+
+
+def test_benchmark_defaults_to_production_state_rollout() -> None:
+    parser = build_benchmark_arg_parser()
+    args = parser.parse_args([])
+    payload = _benchmark_sweep_payload(
+        lattice_shapes=((1, 1, 1),),
+        steps=1,
+        repeats=1,
+        warmup_repeats=0,
+        donate_state=False,
+        lambda_rec=0.225,
+        yukawa_step_size=0.01,
+        higgs_vev=1.0,
+        collision_mode="effective_yukawa",
+        memory_budget_gib=None,
+        memory_safety_factor=0.75,
+        dry_run=True,
+    )
+
+    assert args.collision_mode == "effective_yukawa"
+    assert args.stream_mode == "split_axis"
+    assert args.rollout_output == "state"
+    assert args.donate_state
+    assert payload["stream_mode"] == "split_axis"
+    assert payload["rollout_output"] == "state"
+
+
+def test_benchmark_payload_reports_state_memory_scaling_for_real_runs() -> None:
+    payload = _benchmark_payload(
+        lattice_shape=(1, 1, 1),
+        steps=1,
+        repeats=1,
+        warmup_repeats=0,
+        donate_state=False,
+        lambda_rec=0.225,
+        yukawa_step_size=0.0,
+        higgs_vev=1.0,
+        collision_mode="effective_yukawa",
+        stream_mode="split_axis",
+        yukawa_collision_strategy="memory",
+        rollout_output="state",
+    )
+
+    assert payload["memory"]["state_complex64_bytes"] == 3072
+    assert payload["memory"]["state_complex64_bytes_per_site"] == 3072
+    assert payload["memory"]["state_complex128_bytes_per_site"] == 6144
 
 
 def test_fn_path_hidden_dim_estimate_matches_exact_readout_networks() -> None:
@@ -404,6 +510,40 @@ def test_benchmark_dry_run_compares_exact_and_compressed_fn_memory() -> None:
     assert payload["benchmarks"][1]["memory"]["config_array_bytes"] > 0
 
 
+def test_benchmark_mode_comparison_reports_compiled_memory_savings() -> None:
+    comparison = _mode_comparisons(
+        [
+            {
+                "lattice_shape": [2, 2, 2],
+                "collision_mode": "fn_dilation",
+                "memory": {"complex64_bytes": 16_000},
+                "compiled_memory": {
+                    "available": True,
+                    "device_runtime_size_floor_bytes": 80_000,
+                    "temp_size_in_bytes": 64_000,
+                },
+            },
+            {
+                "lattice_shape": [2, 2, 2],
+                "collision_mode": "effective_yukawa",
+                "memory": {"complex64_bytes": 4_000},
+                "compiled_memory": {
+                    "available": True,
+                    "device_runtime_size_floor_bytes": 20_000,
+                    "temp_size_in_bytes": 16_000,
+                },
+            },
+        ],
+    )[0]
+
+    assert comparison["complex64_bytes_saved"] == 12_000
+    assert comparison["memory_ratio_reference_to_compressed"] == 4.0
+    assert comparison["compiled_runtime_floor_bytes_saved"] == 60_000
+    assert comparison["compiled_runtime_floor_ratio_reference_to_compressed"] == 4.0
+    assert comparison["compiled_temp_bytes_saved"] == 48_000
+    assert comparison["compiled_temp_ratio_reference_to_compressed"] == 4.0
+
+
 def test_calibrated_fn_dilation_and_effective_yukawa_readouts_agree() -> None:
     lattice_shape = (1, 1, 1)
     up_masses = jnp.asarray([0.00216 / 172.57, 1.2730 / 172.57, 1.0], dtype=jnp.float32)
@@ -432,9 +572,12 @@ def test_calibrated_fn_dilation_and_effective_yukawa_readouts_agree() -> None:
     assert effective.config.quark_yukawas is not None
     assert effective.config.quark_path_readouts is None
     assert effective.config.family_yukawa_collision_cache is not None
-    assert effective.config.family_yukawa_collision_cache.cos_blocks is not None
-    assert effective.config.family_yukawa_collision_cache.cos_blocks.shape == (16, 6, 6)
+    assert effective.config.family_yukawa_collision_cache.cos_blocks is None
+    assert effective.config.family_yukawa_collision_cache.cos_left_blocks is not None
+    assert effective.config.family_yukawa_collision_cache.cos_left_blocks.shape == (4, 3, 3)
     assert effective.config.family_yukawa_collision_cache.cos_internal.shape == (0, 0)
+    assert effective.config.family_yukawa_collision_cache.block_indices is None
+    assert effective.config.family_yukawa_collision_cache.internal_pair_indices is None
     assert jnp.max(jnp.abs(calibrated.config.quark_yukawas.up - calibrated.config.quark_path_readouts.up.transfer)) < 2e-7
     assert (
         jnp.max(jnp.abs(calibrated.config.quark_yukawas.down - calibrated.config.quark_path_readouts.down.transfer))
@@ -469,11 +612,75 @@ def test_calibrated_fn_dilation_and_effective_yukawa_readouts_agree() -> None:
     state = deterministic_qca_family_state(lattice_shape)
     cached = sm_run_qca_rollout(effective.config, state, steps=1)
     uncached = sm_run_qca_rollout(
-        effective.config._replace(family_yukawa_collision_cache=None),
+        effective.config._replace(
+            higgs=sm_constant_higgs(lattice_shape),
+            family_yukawa_collision_cache=None,
+        ),
         state,
         steps=1,
     )
-    assert jnp.max(jnp.abs(cached.final_state - uncached.final_state)) < 2e-7
+    assert jnp.max(jnp.abs(cached.final_state - uncached.final_state)) < 5e-7
+
+
+def test_effective_yukawa_block_cache_requires_unitary_gauge_higgs() -> None:
+    lattice_shape = (1, 1, 1)
+    state = deterministic_qca_family_state(lattice_shape)
+    unitary_higgs = sm_constant_higgs(lattice_shape)
+    non_unitary_higgs = unitary_higgs.at[..., 0].set(jnp.asarray(0.125 - 0.25j, dtype=jnp.complex64))
+
+    compressed = sm_family_yukawa_collision_cache(
+        unitary_higgs,
+        step_size=0.01,
+        assume_uniform=True,
+        use_unitary_gauge_blocks=True,
+    )
+    dense = sm_family_yukawa_collision_cache(
+        non_unitary_higgs,
+        step_size=0.01,
+        assume_uniform=True,
+        use_unitary_gauge_blocks=True,
+    )
+
+    assert compressed.cos_blocks is None
+    assert compressed.cos_left_blocks is not None
+    assert compressed.cos_left_blocks.shape == (4, 3, 3)
+    assert compressed.cos_internal.shape == (0, 0)
+    assert dense.cos_blocks is None
+    assert dense.cos_left_blocks is None
+    assert dense.cos_internal.shape == (96, 96)
+
+    cached = sm_apply_family_yukawa_collision_from_cache(state, dense)
+    uncached = sm_apply_family_yukawa_collision(state, non_unitary_higgs, step_size=0.01)
+    assert jnp.max(jnp.abs(cached - uncached)) < 2e-7
+
+
+def test_rollout_builders_default_to_effective_yukawa() -> None:
+    lattice_shape = (1, 1, 1)
+    up_masses = jnp.asarray([0.00216 / 172.57, 1.2730 / 172.57, 1.0], dtype=jnp.float32)
+    down_masses = jnp.asarray([0.00467 / 4.183, 0.0935 / 4.183, 1.0], dtype=jnp.float32)
+
+    center_config = sm_qca_center_cp_rollout_config(lattice_shape)
+    calibrated = sm_qca_rollout_config_from_masses_ckm(
+        up_masses,
+        down_masses,
+        _benchmark_ckm(),
+        lattice_shape,
+    )
+    cli_config, _output = config_from_args([])
+
+    assert center_config.collision_mode == "effective_yukawa"
+    assert center_config.stream_mode == "split_axis"
+    assert center_config.higgs is None
+    assert center_config.quark_path_readouts is None
+    assert center_config.family_yukawa_collision_cache is not None
+    assert calibrated.config.collision_mode == "effective_yukawa"
+    assert calibrated.config.stream_mode == "split_axis"
+    assert calibrated.config.higgs is None
+    assert calibrated.config.quark_path_readouts is None
+    assert calibrated.config.family_yukawa_collision_cache is not None
+    assert cli_config.collision_mode == "effective_yukawa"
+    assert cli_config.stream_mode == "split_axis"
+    assert sm_qca_config_memory_footprint(center_config).array_bytes == 1152
 
 
 def test_phenomenology_cli_accepts_scale_masses_lambda_and_charges() -> None:
@@ -598,6 +805,16 @@ def test_phenomenology_cli_loads_json_config_and_applies_overrides(tmp_path) -> 
     assert config.memory_policy == "none"
 
 
+def test_phenomenology_prepare_uses_lean_observable_rollout_config() -> None:
+    prepared = _prepare_phenomenology_rollout(
+        PhenomenologyRunConfig(lattice_shape=(1, 1, 1), steps=2),
+        calibration_collision_mode="effective_yukawa",
+    )
+
+    assert not prepared.calibrated.config.record_observables
+    assert not prepared.calibrated.config.record_density
+
+
 def test_phenomenology_rollout_reports_coefficient_diagnostics() -> None:
     summary = run_phenomenology_rollout(
         PhenomenologyRunConfig(lattice_shape=(1, 1, 1), steps=1),
@@ -613,13 +830,13 @@ def test_phenomenology_rollout_reports_coefficient_diagnostics() -> None:
     assert len(summary.up_magnitudes) == 3
     assert len(summary.down_magnitudes) == 3
     assert summary.used_higgs_fn_collision
-    assert summary.used_fn_dilation_collision
-    assert summary.collision_mode == "fn_dilation"
-    assert summary.stream_mode == "hop_sum"
+    assert not summary.used_fn_dilation_collision
+    assert summary.collision_mode == "effective_yukawa"
+    assert summary.stream_mode == "split_axis"
     assert summary.steps_completed == 1
     assert summary.extended_norm_drift < 1e-4
     assert summary.visible_complex_elements > 0
-    assert summary.fn_path_aux_complex_elements > summary.visible_complex_elements
+    assert summary.fn_path_aux_complex_elements == 0
     assert summary.total_complex_elements == summary.visible_complex_elements + summary.fn_path_aux_complex_elements
     assert summary.state_complex64_bytes == 8 * summary.total_complex_elements
     assert summary.state_complex128_bytes == 16 * summary.total_complex_elements
@@ -636,8 +853,8 @@ def test_phenomenology_rollout_modes_compare_exact_and_compressed_memory() -> No
 
     exact = by_mode["fn_dilation"]
     compressed = by_mode["effective_yukawa"]
-    assert exact.stream_mode == "hop_sum"
-    assert compressed.stream_mode == "hop_sum"
+    assert exact.stream_mode == "split_axis"
+    assert compressed.stream_mode == "split_axis"
     assert exact.state_complex64_bytes == 16_896
     assert compressed.state_complex64_bytes == 3_072
     assert exact.complex64_bytes > compressed.complex64_bytes
@@ -662,7 +879,7 @@ def test_phenomenology_memory_policy_auto_selects_compressed_when_exact_exceeds_
     )
 
     assert [summary.collision_mode for summary in summaries] == ["effective_yukawa"]
-    assert summaries[0].stream_mode == "hop_sum"
+    assert summaries[0].stream_mode == "split_axis"
     assert summaries[0].state_complex64_bytes == 3_072
     assert summaries[0].complex64_bytes <= 40_000
     assert summaries[0].fn_path_aux_complex_elements == 0

@@ -79,6 +79,10 @@ class FamilyYukawaCollisionCache(NamedTuple):
     sin_blocks: jnp.ndarray | None = None
     internal_pair_indices: jnp.ndarray | None = None
     internal_inverse_indices: jnp.ndarray | None = None
+    cos_left_blocks: jnp.ndarray | None = None
+    cos_right_blocks: jnp.ndarray | None = None
+    sin_left_right_blocks: jnp.ndarray | None = None
+    sin_right_left_blocks: jnp.ndarray | None = None
 
 
 class FamilyHiggsYukawaDiagnostics(NamedTuple):
@@ -1108,11 +1112,74 @@ def _unitary_gauge_yukawa_internal_pair_indices() -> jnp.ndarray:
     return jnp.asarray(_unitary_gauge_yukawa_internal_pairs(), dtype=jnp.int32)
 
 
-def _unitary_gauge_yukawa_block_indices() -> jnp.ndarray:
-    blocks = []
-    for left, right in _unitary_gauge_yukawa_internal_pairs():
-        blocks.append(_family_pair_block_indices(left, right))
-    return jnp.asarray(blocks, dtype=jnp.int32)
+def _unitary_gauge_yukawa_internal_order() -> jnp.ndarray:
+    return _unitary_gauge_yukawa_internal_pair_indices().reshape(-1)
+
+
+def _unitary_gauge_yukawa_internal_inverse_indices() -> jnp.ndarray:
+    order = tuple(int(value) for pair in _unitary_gauge_yukawa_internal_pairs() for value in pair)
+    inverse = tuple(sorted(range(len(order)), key=order.__getitem__))
+    return jnp.asarray(inverse, dtype=jnp.int32)
+
+
+def _unitary_gauge_yukawa_block_kind_indices() -> jnp.ndarray:
+    # Per copy: up/down repeated over three colors, then neutrino/electron.
+    return jnp.asarray((0, 1, 0, 1, 0, 1, 2, 3, 0, 1, 0, 1, 0, 1, 2, 3), dtype=jnp.int32)
+
+
+def _unitary_gauge_yukawa_grouped_block_positions() -> tuple[tuple[int, ...], ...]:
+    return (
+        (0, 2, 4, 8, 10, 12),
+        (1, 3, 5, 9, 11, 13),
+        (6, 14),
+        (7, 15),
+    )
+
+
+def _unitary_gauge_yukawa_grouped_block_lookup() -> tuple[tuple[int, int], ...]:
+    positions = _unitary_gauge_yukawa_grouped_block_positions()
+    lookup = []
+    for block_index in range(16):
+        for kind_index, grouped_positions in enumerate(positions):
+            if block_index in grouped_positions:
+                lookup.append((kind_index, grouped_positions.index(block_index)))
+                break
+    return tuple(lookup)
+
+
+def _higgs_is_unitary_gauge(higgs: jnp.ndarray) -> bool:
+    return bool(jnp.max(jnp.abs(higgs[..., 0])) < 1e-12)
+
+
+def _unitary_gauge_family_yukawa_blocks(
+    higgs: jnp.ndarray,
+    *,
+    quark_yukawas: FNQuarkYukawas | None,
+    lepton_yukawas: FamilyLeptonYukawas | None,
+) -> jnp.ndarray:
+    """Return the four unique unitary-gauge ``Q_f <-> f_R`` family blocks."""
+
+    if quark_yukawas is None:
+        quark_yukawas = sm_family_recirculated_quark_yukawas()
+    if lepton_yukawas is None:
+        lepton_yukawas = sm_default_family_lepton_yukawas()
+
+    up = _validate_family_matrix(quark_yukawas.up, "quark_yukawas.up")
+    down = _validate_family_matrix(quark_yukawas.down, "quark_yukawas.down")
+    neutrino = _validate_family_matrix(lepton_yukawas.neutrino, "lepton_yukawas.neutrino")
+    electron = _validate_family_matrix(lepton_yukawas.electron, "lepton_yukawas.electron")
+    h_tilde = sm_higgs_tilde(higgs)
+    up_scale = h_tilde[0, 0, 0, 0]
+    down_scale = higgs[0, 0, 0, 1]
+    return jnp.stack(
+        (
+            sm_family_quark_sector_internal_yukawa(up, up_scale),
+            sm_family_quark_sector_internal_yukawa(down, down_scale),
+            sm_family_quark_sector_internal_yukawa(neutrino, up_scale),
+            sm_family_quark_sector_internal_yukawa(electron, down_scale),
+        ),
+        axis=0,
+    )
 
 
 def _hermitian_function(matrix: jnp.ndarray, fn) -> jnp.ndarray:
@@ -1202,6 +1269,22 @@ def sm_family_yukawa_collision_cache(
 
     _validate_higgs_field(higgs)
     local_higgs = higgs[:1, :1, :1] if assume_uniform else higgs
+    if assume_uniform and use_unitary_gauge_blocks and _higgs_is_unitary_gauge(local_higgs):
+        yukawa_blocks = _unitary_gauge_family_yukawa_blocks(
+            local_higgs,
+            quark_yukawas=quark_yukawas,
+            lepton_yukawas=lepton_yukawas,
+        ).astype(jnp.complex64)
+        cos_blocks, sin_blocks = _family_yukawa_cos_sin(yukawa_blocks, step_size)
+        return FamilyYukawaCollisionCache(
+            cos_internal=jnp.zeros((0, 0), dtype=cos_blocks.dtype),
+            sin_internal=jnp.zeros((0, 0), dtype=sin_blocks.dtype),
+            cos_left_blocks=cos_blocks[:, :SM_FAMILY_DIM, :SM_FAMILY_DIM],
+            cos_right_blocks=cos_blocks[:, SM_FAMILY_DIM:, SM_FAMILY_DIM:],
+            sin_left_right_blocks=sin_blocks[:, :SM_FAMILY_DIM, SM_FAMILY_DIM:],
+            sin_right_left_blocks=sin_blocks[:, SM_FAMILY_DIM:, :SM_FAMILY_DIM],
+        )
+
     yukawa = sm_family_yukawa_internal_matrix(
         local_higgs,
         quark_yukawas=quark_yukawas,
@@ -1211,54 +1294,146 @@ def sm_family_yukawa_collision_cache(
     if assume_uniform:
         cos_internal = cos_internal[0, 0, 0]
         sin_internal = sin_internal[0, 0, 0]
-    if assume_uniform and use_unitary_gauge_blocks:
-        block_indices = _unitary_gauge_yukawa_block_indices()
-        flat_block_indices = block_indices.reshape(-1)
-        internal_pair_indices = _unitary_gauge_yukawa_internal_pair_indices()
-        flat_internal_indices = internal_pair_indices.reshape(-1)
-        cos_blocks = cos_internal[block_indices[:, :, None], block_indices[:, None, :]]
-        sin_blocks = sin_internal[block_indices[:, :, None], block_indices[:, None, :]]
-        return FamilyYukawaCollisionCache(
-            cos_internal=jnp.zeros((0, 0), dtype=cos_internal.dtype),
-            sin_internal=jnp.zeros((0, 0), dtype=sin_internal.dtype),
-            block_indices=block_indices,
-            block_inverse_indices=jnp.argsort(flat_block_indices),
-            cos_blocks=cos_blocks,
-            sin_blocks=sin_blocks,
-            internal_pair_indices=internal_pair_indices,
-            internal_inverse_indices=jnp.argsort(flat_internal_indices),
-        )
     return FamilyYukawaCollisionCache(cos_internal=cos_internal, sin_internal=sin_internal)
 
 
 def sm_apply_family_yukawa_collision_from_cache(
     state: jnp.ndarray,
     cache: FamilyYukawaCollisionCache,
+    *,
+    strategy: str = "memory",
 ) -> jnp.ndarray:
     """Apply a precomputed exact family Yukawa collision."""
 
     lattice_shape = _validate_family_state(state)
-    flat_state = state.reshape((*lattice_shape, 4, SM_FAMILY_INTERNAL_DIM))
+    if strategy not in ("memory", "fast"):
+        raise ValueError("strategy must be 'memory' or 'fast'")
     if (
-        cache.internal_pair_indices is not None
-        and cache.internal_inverse_indices is not None
-        and cache.cos_blocks is not None
-        and cache.sin_blocks is not None
+        cache.cos_internal.shape == (0, 0)
+        and cache.sin_internal.shape == (0, 0)
+        and cache.block_indices is None
+        and cache.block_inverse_indices is None
+        and cache.cos_left_blocks is not None
+        and cache.cos_right_blocks is not None
+        and cache.sin_left_right_blocks is not None
+        and cache.sin_right_left_blocks is not None
     ):
-        internal_order = cache.internal_pair_indices.reshape(-1)
+        internal_order = _unitary_gauge_yukawa_internal_order()
+        internal_inverse_indices = _unitary_gauge_yukawa_internal_inverse_indices()
+        block_kind_indices = _unitary_gauge_yukawa_block_kind_indices()
         ordered_state = jnp.take(state, internal_order, axis=-2)
-        block_count = int(cache.cos_blocks.shape[0])
-        block_state = ordered_state.reshape((*lattice_shape, 4, block_count, 2, SM_FAMILY_DIM)).reshape(
-            (*lattice_shape, 4, block_count, 2 * SM_FAMILY_DIM),
+        block_count = int(block_kind_indices.shape[0])
+        block_state = ordered_state.reshape((*lattice_shape, 4, block_count, 2, SM_FAMILY_DIM))
+        cos_left_blocks = jnp.take(
+            jnp.asarray(cache.cos_left_blocks, dtype=state.dtype),
+            block_kind_indices,
+            axis=0,
         )
-        cos_blocks = jnp.asarray(cache.cos_blocks, dtype=state.dtype)
-        sin_blocks = jnp.asarray(cache.sin_blocks, dtype=state.dtype)
-        cos_action = jnp.einsum("bij,...sbj->...sbi", cos_blocks, block_state)
-        sin_action = jnp.einsum("bij,...sbj->...sbi", sin_blocks, block_state)
-        beta_action = _dirac_beta_swap_block(sin_action)
-        block_output = cos_action - 1j * beta_action
+        cos_right_blocks = jnp.take(
+            jnp.asarray(cache.cos_right_blocks, dtype=state.dtype),
+            block_kind_indices,
+            axis=0,
+        )
+        sin_left_right_blocks = jnp.take(
+            jnp.asarray(cache.sin_left_right_blocks, dtype=state.dtype),
+            block_kind_indices,
+            axis=0,
+        )
+        sin_right_left_blocks = jnp.take(
+            jnp.asarray(cache.sin_right_left_blocks, dtype=state.dtype),
+            block_kind_indices,
+            axis=0,
+        )
+        if strategy == "fast":
+            grouped_positions = _unitary_gauge_yukawa_grouped_block_positions()
+            grouped_lookup = _unitary_gauge_yukawa_grouped_block_lookup()
+
+            def apply_grouped_block(kind_index: int, grouped_block_state: jnp.ndarray) -> jnp.ndarray:
+                cos_left = jnp.asarray(cache.cos_left_blocks[kind_index], dtype=state.dtype)
+                cos_right = jnp.asarray(cache.cos_right_blocks[kind_index], dtype=state.dtype)
+                sin_left_right = jnp.asarray(cache.sin_left_right_blocks[kind_index], dtype=state.dtype)
+                sin_right_left = jnp.asarray(cache.sin_right_left_blocks[kind_index], dtype=state.dtype)
+                left_state = grouped_block_state[..., 0, :]
+                right_state = grouped_block_state[..., 1, :]
+                cos_left_action = jnp.einsum("ij,...j->...i", cos_left, left_state)
+                cos_right_action = jnp.einsum("ij,...j->...i", cos_right, right_state)
+                sin_left_action = jnp.einsum("ij,...j->...i", sin_left_right, right_state)
+                sin_right_action = jnp.einsum("ij,...j->...i", sin_right_left, left_state)
+                left_output = jnp.concatenate(
+                    (
+                        cos_left_action[..., :2, :] - 1j * sin_left_action[..., 2:, :],
+                        cos_left_action[..., 2:, :] - 1j * sin_left_action[..., :2, :],
+                    ),
+                    axis=-2,
+                )
+                right_output = jnp.concatenate(
+                    (
+                        cos_right_action[..., :2, :] - 1j * sin_right_action[..., 2:, :],
+                        cos_right_action[..., 2:, :] - 1j * sin_right_action[..., :2, :],
+                    ),
+                    axis=-2,
+                )
+                return jnp.stack((left_output, right_output), axis=-2)
+
+            grouped_outputs = tuple(
+                apply_grouped_block(
+                    kind_index,
+                    jnp.take(block_state, jnp.asarray(positions, dtype=jnp.int32), axis=-3),
+                )
+                for kind_index, positions in enumerate(grouped_positions)
+            )
+            block_output = jnp.stack(
+                [grouped_outputs[kind_index][..., group_index, :, :] for kind_index, group_index in grouped_lookup],
+                axis=-3,
+            )
+            ordered_internal = block_output.reshape((*lattice_shape, 4, 2 * block_count, SM_FAMILY_DIM))
+            return jnp.take(ordered_internal, internal_inverse_indices, axis=-2)
+
+        block_state_by_kind = jnp.moveaxis(block_state, -3, 0)
+
+        def apply_structured_block(
+            inputs: tuple[jnp.ndarray, jnp.ndarray, jnp.ndarray, jnp.ndarray, jnp.ndarray],
+        ) -> jnp.ndarray:
+            cos_left, cos_right, sin_left_right, sin_right_left, local_block_state = inputs
+            left_state = local_block_state[..., 0, :]
+            right_state = local_block_state[..., 1, :]
+            cos_left_action = jnp.einsum("ij,...j->...i", cos_left, left_state)
+            cos_right_action = jnp.einsum("ij,...j->...i", cos_right, right_state)
+            sin_left_action = jnp.einsum("ij,...j->...i", sin_left_right, right_state)
+            sin_right_action = jnp.einsum("ij,...j->...i", sin_right_left, left_state)
+            left_output = jnp.concatenate(
+                (
+                    cos_left_action[..., :2, :] - 1j * sin_left_action[..., 2:, :],
+                    cos_left_action[..., 2:, :] - 1j * sin_left_action[..., :2, :],
+                ),
+                axis=-2,
+            )
+            right_output = jnp.concatenate(
+                (
+                    cos_right_action[..., :2, :] - 1j * sin_right_action[..., 2:, :],
+                    cos_right_action[..., 2:, :] - 1j * sin_right_action[..., :2, :],
+                ),
+                axis=-2,
+            )
+            return jnp.stack((left_output, right_output), axis=-2)
+
+        block_output = jnp.moveaxis(
+            jax.lax.map(
+                apply_structured_block,
+                (
+                    cos_left_blocks,
+                    cos_right_blocks,
+                    sin_left_right_blocks,
+                    sin_right_left_blocks,
+                    block_state_by_kind,
+                ),
+            ),
+            0,
+            -3,
+        )
         ordered_internal = block_output.reshape((*lattice_shape, 4, 2 * block_count, SM_FAMILY_DIM))
-        return jnp.take(ordered_internal, cache.internal_inverse_indices, axis=-2)
+        return jnp.take(ordered_internal, internal_inverse_indices, axis=-2)
+    flat_state = state.reshape((*lattice_shape, 4, SM_FAMILY_INTERNAL_DIM))
     if (
         cache.block_indices is not None
         and cache.block_inverse_indices is not None

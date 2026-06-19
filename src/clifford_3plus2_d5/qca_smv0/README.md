@@ -59,9 +59,9 @@ Simulator front door:
   Standard-Model fibre.
 - `scripts/phenomenology_rollout.py` is the single compact benchmark command:
   it calibrates from quark masses/CKM, builds the center-CP FN Higgs collision,
-  and runs a short QCA field rollout.  Use
-  `--collision-mode effective_yukawa` for production-scale runs; it uses the
-  compressed local Yukawa collision.  The exact reference path is
+  and runs a short QCA field rollout.  The default production mode is
+  `effective_yukawa`, the compressed local Yukawa collision.  The exact
+  reference path is
   `--collision-mode fn_dilation`, which evolves explicit hidden FN path slots;
   `--collision-mode both` reports the two side by side from the same calibrated
   input.
@@ -79,7 +79,6 @@ uv run python src/clifford_3plus2_d5/qca_smv0/scripts/phenomenology_rollout.py \
   --q-charges 3,2,0 \
   --u-charges 5,2,0 \
   --d-charges 1,0,0 \
-  --collision-mode effective_yukawa \
   --memory-budget-gib 24 \
   --memory-policy auto \
   --output json
@@ -88,7 +87,9 @@ uv run python src/clifford_3plus2_d5/qca_smv0/scripts/phenomenology_rollout.py \
 The same command accepts `--config path/to/config.json`, with CLI flags
 overriding matching JSON fields.  The output includes center-CP residuals,
 order-one coefficient magnitudes, center-power tables, and QCA norm/density
-rollout diagnostics.  In `fn_dilation` mode, visible norm can flow into hidden
+rollout diagnostics.  The phenomenology command uses the lean initial/final
+observable rollout path; it does not allocate full per-step density histories.
+In `fn_dilation` mode, visible norm can flow into hidden
 FN path memory; the conserved check is therefore `extended_norm_drift`, not
 visible `norm_drift`.  The rollout reports both carried-state memory and the
 selected config/cache arrays resident on the hot path.  The total runtime byte
@@ -97,9 +98,10 @@ output contains one rollout for exact hidden-path FN, one rollout for compressed
 FN, and a memory comparison; this is the recommended validation/comparison path.
 Add `--memory-budget-gib` with `--memory-policy fail` to reject oversized exact
 recirculation before allocation, or `--memory-policy auto` to select compressed
-FN when exact `fn_dilation` exceeds the declared runtime memory budget.  Add
-`--stream-mode split_axis` when XLA temporary buffers, rather than carried state
-arrays, are the limiting GPU-memory pressure.
+FN when exact `fn_dilation` exceeds the declared runtime memory budget.  The
+production rollout builders default to `split_axis`, the primitive BCC
+split-step product, because it reduces XLA temporary-buffer pressure relative
+to the expanded eight-hop stream on the current effective-Yukawa benchmark.
 
 For hot-path scaling, use the focused benchmark:
 
@@ -124,28 +126,38 @@ executable memory analysis when the backend exposes it, including argument,
 output, alias, and temporary buffer bytes.
 Use `--collision-mode both` to compare exact hidden-path `fn_dilation` against
 the compressed `effective_yukawa` production path on the same lattice/config;
-the output reports memory saved and the exact/compressed memory ratio per shape.
-`--memory-budget-gib` reports a conservative max-site and cubic-lattice estimate
-from the runtime byte estimate; XLA temporaries and compile-time buffers may
-require additional headroom.  Each requested lattice shape also gets a
-`memory_budget_fit` verdict with the budget fraction and byte margin, so
-oversized runs are visible before allocation/JIT.  Density history is disabled
-in the benchmark path by default, and benchmark configs use the lean rollout
-mode that measures only initial/final observables so per-step reductions do not
-dominate hot-path timing.  Add `--dry-run` to compute the same memory estimates
-without allocating the lattice state or JIT-compiling the rollout.
+the output reports carried/config memory saved and the exact/compressed memory
+ratio per shape.  On non-dry runs where XLA exposes compiled memory analysis,
+the comparison also reports saved device runtime floor bytes and temporary
+buffer bytes.
+`--memory-budget-gib` reports a max-site and cubic-lattice estimate using
+lattice-scaling state bytes plus fixed config/cache bytes, so constant
+effective-Yukawa cache arrays are subtracted once instead of charged per site.
+XLA temporaries and compile-time buffers may require additional headroom.  Each
+requested lattice shape also gets a `memory_budget_fit` verdict with the budget
+fraction and byte margin, so oversized runs are visible before allocation/JIT.
+Density history is disabled in the benchmark path by default, and benchmark
+configs use the lean rollout mode that measures only initial/final observables
+so per-step reductions do not dominate hot-path timing.  Add `--dry-run` to
+compute the same memory estimates without allocating the lattice state or
+JIT-compiling the rollout.
 When compiled memory analysis is available, non-dry benchmark runs also include
 `compiled_memory_budget_fit`, which checks XLA's device runtime size floor
 against the same budget and is the stricter signal for temporary-buffer pressure.
-Add `--donate-state` to test whether XLA can alias the input state buffer to the
-final-state output; the benchmark then chains repeated runs through the previous
-final state so donated buffers are not reused.  The free-streaming kernel is
-selectable with `--stream-mode hop_sum|split_axis`: `hop_sum` is the fast
-eight-hop default, while `split_axis` applies the same BCC product as three
-axis substeps and is intended as a lower-temporary-memory fallback.  Add
-`--rollout-output state` to benchmark the pure state-evolution kernel without
-observable-history outputs; use the default `diagnostic` mode when norm drift is
-part of the measurement.
+State-buffer donation is enabled by default so XLA may alias the carried input
+state into the final-state output; use `--no-donate-state` to disable that
+benchmark mode.  The benchmark chains repeated runs through the previous final
+state so donated buffers are not reused.  The free-streaming kernel is selectable
+with `--stream-mode split_axis|hop_sum`: `split_axis` applies the BCC product as
+three axis substeps and is the lower-temporary-memory production default, while
+`hop_sum` uses the expanded eight-hop stream for comparison.  Add
+`--rollout-output diagnostic` when norm drift and observable-history reductions
+are part of the measurement; the default `state` mode benchmarks the pure
+state-evolution kernel.  The compressed effective-Yukawa cache stores the four
+unique unitary-gauge block kinds (up, down, neutrino, electron) as structured
+`3 x 3` cosine/sine pieces and reconstructs the repeated color/copy doors
+inside the JIT, rather than carrying full `6 x 6` or all sixteen door blocks as
+runtime config arrays.
 
 Stage 49 implements the free BCC Weyl/Dirac bulk walk, static
 Standard-Model gauge-background transport, pure dynamic SM gauge fields, and a

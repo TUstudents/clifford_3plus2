@@ -68,6 +68,7 @@ class QCASMRolloutConfig(NamedTuple):
     quark_path_readouts: FamilyFNQuarkPathReadouts | None = None
     lepton_yukawas: FamilyLeptonYukawas | None = None
     family_yukawa_collision_cache: FamilyYukawaCollisionCache | None = None
+    yukawa_collision_strategy: str = "memory"
     stream_mode: str = "hop_sum"
     record_observables: bool = True
     record_density: bool = False
@@ -233,11 +234,13 @@ def _qca_config_runtime_arrays(config: QCASMRolloutConfig) -> tuple[object, ...]
     arrays: list[object] = []
     if config.links is not None:
         arrays.append(config.links)
-    if config.higgs is None or config.yukawa_step_size == 0.0:
+    if config.yukawa_step_size == 0.0:
         return tuple(arrays)
 
     _validate_collision_mode(config.collision_mode)
     if config.collision_mode == "fn_dilation":
+        if config.higgs is None:
+            return tuple(arrays)
         arrays.append(config.higgs)
         if config.quark_path_readouts is not None:
             arrays.append(config.quark_path_readouts)
@@ -247,6 +250,8 @@ def _qca_config_runtime_arrays(config: QCASMRolloutConfig) -> tuple[object, ...]
         arrays.append(config.family_yukawa_collision_cache)
         return tuple(arrays)
 
+    if config.higgs is None:
+        return tuple(arrays)
     arrays.append(config.higgs)
     if config.quark_yukawas is not None:
         arrays.append(config.quark_yukawas)
@@ -302,6 +307,21 @@ def _validate_collision_mode(collision_mode: str) -> None:
         raise ValueError("collision_mode must be 'fn_dilation' or 'effective_yukawa'")
 
 
+def _validate_yukawa_collision_strategy(strategy: str) -> None:
+    if strategy not in ("memory", "fast"):
+        raise ValueError("yukawa_collision_strategy must be 'memory' or 'fast'")
+
+
+def _has_effective_yukawa_cache(config: QCASMRolloutConfig) -> bool:
+    return config.collision_mode == "effective_yukawa" and config.family_yukawa_collision_cache is not None
+
+
+def _uses_higgs_fn_collision(config: QCASMRolloutConfig) -> bool:
+    if config.yukawa_step_size == 0.0:
+        return False
+    return config.higgs is not None or _has_effective_yukawa_cache(config)
+
+
 def sm_qca_prepare_state(
     visible_state: jnp.ndarray,
     config: QCASMRolloutConfig = QCASMRolloutConfig(),
@@ -313,6 +333,7 @@ def sm_qca_prepare_state(
     spatial_shape = _qca_spatial_shape(visible_state)
     _validate_collision_mode(config.collision_mode)
     _validate_stream_mode(config.stream_mode)
+    _validate_yukawa_collision_strategy(config.yukawa_collision_strategy)
     aux_state = initial_fn_path_aux_state
     if (
         config.collision_mode == "fn_dilation"
@@ -357,12 +378,16 @@ def _sm_qca_rollout_step_with_aux(
     else:
         streamed = _family_stream_step(state, config.links, config.stream_mode)
 
-    if config.higgs is None or config.yukawa_step_size == 0.0:
+    has_cached_effective_yukawa = _has_effective_yukawa_cache(config)
+    if config.yukawa_step_size == 0.0 or (config.higgs is None and not has_cached_effective_yukawa):
         return streamed, fn_path_aux_state
     if streamed.ndim != 6:
         raise ValueError("Higgs/FN collision requires a family SM state")
     _validate_collision_mode(config.collision_mode)
+    _validate_yukawa_collision_strategy(config.yukawa_collision_strategy)
     if config.collision_mode == "fn_dilation":
+        if config.higgs is None:
+            raise ValueError("FN dilation collision requires a Higgs field")
         lattice_shape = _qca_spatial_shape(streamed)
         if fn_path_aux_state is None:
             fn_path_aux_state = sm_zero_family_fn_quark_path_state_aux(lattice_shape)
@@ -378,6 +403,7 @@ def _sm_qca_rollout_step_with_aux(
         return sm_apply_family_yukawa_collision_from_cache(
             streamed,
             config.family_yukawa_collision_cache,
+            strategy=config.yukawa_collision_strategy,
         ), fn_path_aux_state
     return (
         sm_apply_family_yukawa_collision(
@@ -422,19 +448,40 @@ def sm_run_qca_state_rollout(
     if steps < 0:
         raise ValueError(f"steps must be nonnegative, got {steps}")
 
-    def scan_step(
+    def loop_step(
+        _index: jnp.ndarray,
         carry: QCASMState,
-        _unused: None,
-    ) -> tuple[QCASMState, None]:
-        return sm_qca_state_step(carry, config), None
+    ) -> QCASMState:
+        return sm_qca_state_step(carry, config)
 
-    final_qca_state, _unused = jax.lax.scan(
-        scan_step,
+    return jax.lax.fori_loop(
+        0,
+        steps,
+        loop_step,
         qca_state,
-        None,
-        length=steps,
     )
-    return final_qca_state
+
+
+def sm_jit_qca_state_rollout(
+    config: QCASMRolloutConfig,
+    steps: int,
+    *,
+    donate_state: bool = True,
+):
+    """Return the JIT-compiled production state rollout kernel.
+
+    This is the GPU hot-path entry point: it runs state evolution without
+    per-step observable reductions and can donate the carried state buffer so
+    XLA may alias input storage into the final state.
+    """
+
+    if steps < 0:
+        raise ValueError(f"steps must be nonnegative, got {steps}")
+
+    def state_rollout_kernel(local_qca_state: QCASMState) -> QCASMState:
+        return sm_run_qca_state_rollout(local_qca_state, config, steps=steps)
+
+    return jax.jit(state_rollout_kernel, donate_argnums=(0,) if donate_state else ())
 
 
 def _sm_qca_observables(
@@ -468,19 +515,7 @@ def sm_run_qca_rollout(
     initial_norm, initial_extended_norm, initial_max_density, initial_density = _sm_qca_observables(qca_state)
 
     if not config.record_observables:
-
-        def scan_step(
-            carry: QCASMState,
-            _unused: None,
-        ) -> tuple[QCASMState, None]:
-            return sm_qca_state_step(carry, config), None
-
-        final_qca_state, _unused = jax.lax.scan(
-            scan_step,
-            qca_state,
-            None,
-            length=steps,
-        )
+        final_qca_state = sm_run_qca_state_rollout(qca_state, config, steps)
         final_norm, final_extended_norm, final_max_density, _final_density = _sm_qca_observables(final_qca_state)
         norm_history = jnp.stack((initial_norm, final_norm))
         extended_norm_history = jnp.stack((initial_extended_norm, final_extended_norm))
@@ -543,7 +578,7 @@ def sm_run_qca_rollout(
         density_history=density_history,
         final_fn_path_aux_state=final_qca_state.fn_path_aux_state,
         used_gauge_links=config.links is not None,
-        used_higgs_fn_collision=config.higgs is not None and config.yukawa_step_size != 0.0,
+        used_higgs_fn_collision=_uses_higgs_fn_collision(config),
         used_fn_dilation_collision=(
             config.higgs is not None
             and config.yukawa_step_size != 0.0
@@ -563,19 +598,27 @@ def sm_qca_center_cp_rollout_config(
     charges: FNQuarkCharges = DEFAULT_FN_QUARK_CHARGES,
     yukawa_step_size: float = 0.01,
     higgs_vev: float = 1.0,
-    stream_mode: str = "hop_sum",
+    stream_mode: str = "split_axis",
     record_observables: bool = True,
     record_density: bool = False,
-    collision_mode: str = "fn_dilation",
+    collision_mode: str = "effective_yukawa",
+    yukawa_collision_strategy: str = "memory",
 ) -> QCASMRolloutConfig:
     """Return a local Higgs/FN config using the generated center-CP powers."""
 
     _validate_collision_mode(collision_mode)
     _validate_stream_mode(stream_mode)
+    _validate_yukawa_collision_strategy(yukawa_collision_strategy)
     powers = sm_center_powers_from_wilson_flux_rule()
     coefficients = sm_center_cp_order_one_coefficients(sm_center_cp_verdict_magnitudes(), powers=powers)
     quark_yukawas = _quark_yukawas_from_coefficients(coefficients, lambda_rec=lambda_rec, charges=charges)
-    higgs = sm_constant_higgs(lattice_shape, vev=higgs_vev)
+    needs_effective_cache = collision_mode == "effective_yukawa" and yukawa_step_size != 0.0
+    runtime_higgs = (
+        sm_constant_higgs(lattice_shape, vev=higgs_vev)
+        if collision_mode == "fn_dilation" and yukawa_step_size != 0.0
+        else None
+    )
+    cache_higgs = sm_constant_higgs((1, 1, 1), vev=higgs_vev) if needs_effective_cache else None
     quark_path_readouts = (
         sm_family_recirculated_quark_path_readouts(
             lambda_rec=lambda_rec,
@@ -587,22 +630,23 @@ def sm_qca_center_cp_rollout_config(
     )
     collision_cache = (
         sm_family_yukawa_collision_cache(
-            higgs,
+            cache_higgs,
             step_size=yukawa_step_size,
             quark_yukawas=quark_yukawas,
             assume_uniform=True,
             use_unitary_gauge_blocks=True,
         )
-        if collision_mode == "effective_yukawa" and yukawa_step_size != 0.0
+        if cache_higgs is not None
         else None
     )
     return QCASMRolloutConfig(
-        higgs=higgs,
+        higgs=runtime_higgs,
         yukawa_step_size=yukawa_step_size,
         collision_mode=collision_mode,
         quark_yukawas=quark_yukawas,
         quark_path_readouts=quark_path_readouts,
         family_yukawa_collision_cache=collision_cache,
+        yukawa_collision_strategy=yukawa_collision_strategy,
         stream_mode=stream_mode,
         record_observables=record_observables,
         record_density=record_density,
@@ -620,15 +664,17 @@ def sm_qca_rollout_config_from_masses_ckm(
     center_fit_steps: int = 0,
     yukawa_step_size: float = 0.01,
     higgs_vev: float = 1.0,
-    stream_mode: str = "hop_sum",
+    stream_mode: str = "split_axis",
     record_observables: bool = True,
     record_density: bool = False,
-    collision_mode: str = "fn_dilation",
+    collision_mode: str = "effective_yukawa",
+    yukawa_collision_strategy: str = "memory",
 ) -> QCASMCalibratedRolloutConfig:
     """Configure a rollout from masses/CKM through the center-CP FN layer."""
 
     _validate_collision_mode(collision_mode)
     _validate_stream_mode(stream_mode)
+    _validate_yukawa_collision_strategy(yukawa_collision_strategy)
     generated_seed = CenterCPTextureSeed(
         powers=sm_center_powers_from_wilson_flux_rule(),
         initial_magnitudes=sm_center_cp_verdict_magnitudes(),
@@ -645,7 +691,13 @@ def sm_qca_rollout_config_from_masses_ckm(
     )
     coefficients = verdict.fit.factorization.reconstructed_coefficients
     quark_yukawas = _quark_yukawas_from_coefficients(coefficients, lambda_rec=lambda_rec, charges=charges)
-    higgs = sm_constant_higgs(lattice_shape, vev=higgs_vev)
+    needs_effective_cache = collision_mode == "effective_yukawa" and yukawa_step_size != 0.0
+    runtime_higgs = (
+        sm_constant_higgs(lattice_shape, vev=higgs_vev)
+        if collision_mode == "fn_dilation" and yukawa_step_size != 0.0
+        else None
+    )
+    cache_higgs = sm_constant_higgs((1, 1, 1), vev=higgs_vev) if needs_effective_cache else None
     quark_path_readouts = (
         sm_family_recirculated_quark_path_readouts(
             lambda_rec=lambda_rec,
@@ -657,23 +709,24 @@ def sm_qca_rollout_config_from_masses_ckm(
     )
     collision_cache = (
         sm_family_yukawa_collision_cache(
-            higgs,
+            cache_higgs,
             step_size=yukawa_step_size,
             quark_yukawas=quark_yukawas,
             assume_uniform=True,
             use_unitary_gauge_blocks=True,
         )
-        if collision_mode == "effective_yukawa" and yukawa_step_size != 0.0
+        if cache_higgs is not None
         else None
     )
     return QCASMCalibratedRolloutConfig(
         config=QCASMRolloutConfig(
-            higgs=higgs,
+            higgs=runtime_higgs,
             yukawa_step_size=yukawa_step_size,
             collision_mode=collision_mode,
             quark_yukawas=quark_yukawas,
             quark_path_readouts=quark_path_readouts,
             family_yukawa_collision_cache=collision_cache,
+            yukawa_collision_strategy=yukawa_collision_strategy,
             stream_mode=stream_mode,
             record_observables=record_observables,
             record_density=record_density,

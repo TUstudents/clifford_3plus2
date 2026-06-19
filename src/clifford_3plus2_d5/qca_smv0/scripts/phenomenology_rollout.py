@@ -58,8 +58,8 @@ class PhenomenologyRunConfig(NamedTuple):
     center_fit_steps: int = 0
     yukawa_step_size: float = 0.01
     higgs_vev: float = 1.0
-    collision_mode: str = "fn_dilation"
-    stream_mode: str = "hop_sum"
+    collision_mode: str = "effective_yukawa"
+    stream_mode: str = "split_axis"
     memory_budget_gib: float | None = None
     memory_safety_factor: float = 0.8
     memory_policy: str = "none"
@@ -278,8 +278,8 @@ def load_phenomenology_config(path: str | Path) -> PhenomenologyRunConfig:
         center_fit_steps=int(data.get("center_fit_steps", 0)),
         yukawa_step_size=float(data.get("yukawa_step_size", 0.01)),
         higgs_vev=float(data.get("higgs_vev", 1.0)),
-        collision_mode=str(data.get("collision_mode", "fn_dilation")),
-        stream_mode=str(data.get("stream_mode", "hop_sum")),
+        collision_mode=str(data.get("collision_mode", "effective_yukawa")),
+        stream_mode=str(data.get("stream_mode", "split_axis")),
         memory_budget_gib=float(data["memory_budget_gib"]) if "memory_budget_gib" in data else None,
         memory_safety_factor=float(data.get("memory_safety_factor", 0.8)),
         memory_policy=str(data.get("memory_policy", "none")),
@@ -386,7 +386,8 @@ def _prepare_phenomenology_rollout(
         higgs_vev=config.higgs_vev,
         collision_mode=calibration_collision_mode,
         stream_mode=config.stream_mode,
-        record_density=True,
+        record_observables=False,
+        record_density=False,
     )
     return _PreparedPhenomenologyRollout(
         up_fn_masses=up_fn_masses,
@@ -406,27 +407,32 @@ def _run_prepared_phenomenology_rollout(
 ) -> PhenomenologyRolloutSummary:
     """Run one collision mode from an already-calibrated phenomenology texture."""
 
-    collision_cache = (
-        sm_family_yukawa_collision_cache(
-            prepared.calibrated.config.higgs,
-            step_size=config.yukawa_step_size,
-            quark_yukawas=prepared.calibrated.config.quark_yukawas,
-            lepton_yukawas=prepared.calibrated.config.lepton_yukawas,
-            assume_uniform=True,
-            use_unitary_gauge_blocks=True,
-        )
-        if collision_mode == "effective_yukawa"
-        and prepared.calibrated.config.higgs is not None
-        and config.yukawa_step_size != 0.0
-        else None
-    )
+    collision_cache = None
+    runtime_higgs = prepared.calibrated.config.higgs
+    if collision_mode == "effective_yukawa" and config.yukawa_step_size != 0.0:
+        if prepared.calibrated.config.family_yukawa_collision_cache is not None:
+            collision_cache = prepared.calibrated.config.family_yukawa_collision_cache
+            runtime_higgs = None
+        elif prepared.calibrated.config.higgs is not None:
+            collision_cache = sm_family_yukawa_collision_cache(
+                prepared.calibrated.config.higgs,
+                step_size=config.yukawa_step_size,
+                quark_yukawas=prepared.calibrated.config.quark_yukawas,
+                lepton_yukawas=prepared.calibrated.config.lepton_yukawas,
+                assume_uniform=True,
+                use_unitary_gauge_blocks=True,
+            )
+            runtime_higgs = None
     rollout_config = prepared.calibrated.config._replace(
+        higgs=runtime_higgs,
         collision_mode=collision_mode,
         stream_mode=config.stream_mode,
         quark_path_readouts=prepared.calibrated.config.quark_path_readouts
         if collision_mode == "fn_dilation"
         else None,
         family_yukawa_collision_cache=collision_cache,
+        record_observables=False,
+        record_density=False,
     )
     result = sm_run_qca_rollout(rollout_config, prepared.state, steps=config.steps)
     calibrated = prepared.calibrated

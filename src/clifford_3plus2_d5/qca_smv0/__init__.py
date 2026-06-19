@@ -174,6 +174,7 @@ from clifford_3plus2_d5.qca_smv0.sm_rollout import (
     sm_qca_state_memory_footprint,
     sm_qca_state_step,
     sm_qca_total_norm,
+    sm_jit_qca_state_rollout,
     sm_run_qca_state_rollout,
     sm_run_qca_rollout,
 )
@@ -1190,6 +1191,7 @@ __all__ = [
     "sm_qca_state_memory_footprint",
     "sm_qca_state_step",
     "sm_qca_total_norm",
+    "sm_jit_qca_state_rollout",
     "sm_run_qca_state_rollout",
     "sm_pure_gauge_links_from_site_algebra",
     "sm_pure_gauge_higgs_links_from_site_algebra",

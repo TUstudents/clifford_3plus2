@@ -382,26 +382,61 @@ def _axis_displacement(axis: int, sign: int) -> tuple[int, int, int]:
     return tuple(sign if index == axis else 0 for index in range(3))  # type: ignore[return-value]
 
 
-def _bcc_dirac_split_axis_step(state: jnp.ndarray, axis: int, projectors: jnp.ndarray) -> jnp.ndarray:
-    lattice_shape = _validate_dirac_spin_axis_state(state)
-    tail_size = int(np.prod(state.shape[4:], dtype=np.int64))
-    out = jnp.zeros((*lattice_shape, BCC_DIRAC_SPIN_DIM, tail_size), dtype=state.dtype)
-    for sign_index, sign in enumerate((-1, 1)):
-        source = source_roll(state, _axis_displacement(axis, sign)).reshape(
-            (*lattice_shape, BCC_DIRAC_SPIN_DIM, tail_size),
+def _bcc_dirac_split_axis_step(state: jnp.ndarray, axis: int) -> jnp.ndarray:
+    _validate_dirac_spin_axis_state(state)
+    minus = source_roll(state, _axis_displacement(axis, -1))
+    plus = source_roll(state, _axis_displacement(axis, 1))
+    real_dtype = jnp.real(jnp.asarray(0, dtype=state.dtype)).dtype
+    half = jnp.asarray(0.5, dtype=real_dtype)
+    one_j = jnp.asarray(1j, dtype=state.dtype)
+
+    def spin_component(local_state: jnp.ndarray, spin: int) -> jnp.ndarray:
+        return jnp.take(local_state, spin, axis=3)
+
+    if axis == 2:
+        return jnp.stack(
+            (
+                spin_component(plus, 0),
+                spin_component(minus, 1),
+                spin_component(minus, 2),
+                spin_component(plus, 3),
+            ),
+            axis=3,
         )
-        out = out + jnp.einsum("rs,...sf->...rf", projectors[axis, sign_index], source)
-    return out.reshape(state.shape)
+    if axis == 1:
+        m0, m1, m2, m3 = (spin_component(minus, spin) for spin in range(BCC_DIRAC_SPIN_DIM))
+        p0, p1, p2, p3 = (spin_component(plus, spin) for spin in range(BCC_DIRAC_SPIN_DIM))
+        return half * jnp.stack(
+            (
+                m0 + one_j * m1 + p0 - one_j * p1,
+                -one_j * m0 + m1 + one_j * p0 + p1,
+                m2 - one_j * m3 + p2 + one_j * p3,
+                one_j * m2 + m3 - one_j * p2 + p3,
+            ),
+            axis=3,
+        )
+    if axis == 0:
+        m0, m1, m2, m3 = (spin_component(minus, spin) for spin in range(BCC_DIRAC_SPIN_DIM))
+        p0, p1, p2, p3 = (spin_component(plus, spin) for spin in range(BCC_DIRAC_SPIN_DIM))
+        return half * jnp.stack(
+            (
+                m0 - m1 + p0 + p1,
+                -m0 + m1 + p0 + p1,
+                m2 + m3 + p2 - p3,
+                m2 + m3 - p2 + p3,
+            ),
+            axis=3,
+        )
+    raise ValueError("axis must be 0, 1, or 2")
 
 
 def bcc_dirac_split_axis_step(state: jnp.ndarray) -> jnp.ndarray:
     """Apply the free Dirac BCC split-step product with spectator axes."""
 
     _validate_dirac_spin_axis_state(state)
-    projectors = bcc_dirac_axis_projectors(dtype=state.dtype)
     stepped = state
     for axis in (2, 1, 0):
-        stepped = _bcc_dirac_split_axis_step(stepped, axis, projectors)
+        stepped = _bcc_dirac_split_axis_step(stepped, axis)
     return stepped
 
 
