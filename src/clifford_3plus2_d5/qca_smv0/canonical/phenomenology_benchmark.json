@@ -1,0 +1,342 @@
+{
+  "center_cp_passed": true,
+  "charges": {
+    "d": [
+      1,
+      0,
+      0
+    ],
+    "q": [
+      3,
+      2,
+      0
+    ],
+    "u": [
+      5,
+      2,
+      0
+    ]
+  },
+  "coefficient_diagnostics": {
+    "coefficient_residual": 3.961016893386841,
+    "down_center_powers": [
+      [
+        1,
+        1,
+        1
+      ],
+      [
+        2,
+        0,
+        0
+      ],
+      [
+        1,
+        2,
+        0
+      ]
+    ],
+    "down_magnitudes": [
+      [
+        0.3519900441169739,
+        0.31682097911834717,
+        0.6015071868896484
+      ],
+      [
+        0.5740911364555359,
+        0.5653770565986633,
+        0.2952919900417328
+      ],
+      [
+        1.4041240215301514,
+        0.8834922313690186,
+        0.34424495697021484
+      ]
+    ],
+    "magnitude_max": 3.961016893386841,
+    "magnitude_mean": 1.1184262037277222,
+    "magnitude_min": 0.2952919900417328,
+    "phase_residual": 2.1765122413635254,
+    "up_center_powers": [
+      [
+        2,
+        1,
+        1
+      ],
+      [
+        1,
+        0,
+        0
+      ],
+      [
+        0,
+        2,
+        0
+      ]
+    ],
+    "up_magnitudes": [
+      [
+        1.272654414176941,
+        0.7857600450515747,
+        1.8521918058395386
+      ],
+      [
+        0.7857600450515747,
+        1.272654414176941,
+        0.45869314670562744
+      ],
+      [
+        3.961016893386841,
+        3.4183006286621094,
+        0.9877060651779175
+      ]
+    ]
+  },
+  "failure_reasons": [],
+  "fn_masses": {
+    "down": [
+      0.0011164236348122358,
+      0.02235237881541252,
+      0.9999999403953552
+    ],
+    "up": [
+      1.2516658898675814e-05,
+      0.0073767164722085,
+      1.0
+    ]
+  },
+  "gauge_background": "none",
+  "input_masses": {
+    "down": [
+      0.00467,
+      0.0935,
+      4.183
+    ],
+    "down_normalization": 4.183000087738037,
+    "up": [
+      0.00216,
+      1.273,
+      172.57
+    ],
+    "up_normalization": 172.57000732421875
+  },
+  "lambda": 0.22501,
+  "lepton_inputs": {
+    "charged_lepton_yukawas": null,
+    "mode": "zero",
+    "neutrino_yukawas": null
+  },
+  "lepton_mode": "zero",
+  "memory_preflight": {
+    "estimates": [
+      {
+        "collision_mode": "effective_yukawa",
+        "memory": {
+          "collision_mode": "effective_yukawa",
+          "complex128_bytes": 13440,
+          "complex128_bytes_per_site": 6720.0,
+          "complex64_bytes": 7296,
+          "complex64_bytes_per_site": 3648.0,
+          "config_array_bytes": 1152,
+          "config_array_elements": 144,
+          "fn_path_aux_complex_elements": 0,
+          "gauge_background": "none",
+          "lattice_shape": [
+            2,
+            1,
+            1
+          ],
+          "lepton_mode": "zero",
+          "rollout_entrypoint": "production_api",
+          "runtime_array_bytes": 7296,
+          "runtime_array_bytes_per_site": 3648.0,
+          "sites": 2,
+          "state_array_bytes": 6144,
+          "state_array_bytes_per_site": 3072.0,
+          "state_complex128_bytes": 12288,
+          "state_complex64_bytes": 6144,
+          "state_complex_elements": 768,
+          "stream_mode": "split_axis",
+          "total_array_bytes": 7296,
+          "total_complex_elements": 768,
+          "visible_complex_elements": 768,
+          "yukawa_collision_strategy": "fast"
+        },
+        "memory_budget_fit": null
+      }
+    ],
+    "gauge_background": "none",
+    "lepton_mode": "zero",
+    "memory_budget_gib": null,
+    "memory_policy": "none",
+    "memory_safety_factor": 0.8,
+    "requested_collision_mode": "effective_yukawa",
+    "stream_mode": "split_axis",
+    "yukawa_collision_strategy": "fast"
+  },
+  "physics_tests": {
+    "checks": {
+      "center_cp_quark_fit": true,
+      "memory_accounting": true,
+      "no_hidden_fn_path_memory": true,
+      "norm_conservation": true,
+      "order_one_coefficients": true,
+      "production_contract": true,
+      "quark_carrier_transfer": true
+    },
+    "passed": true,
+    "thresholds": {
+      "ckm_abs_max": 0.01,
+      "jarlskog_relative_max": 0.01,
+      "magnitude_max": 10.0,
+      "magnitude_min": 0.1,
+      "mass_log_rms_max": 0.01,
+      "norm_drift_max": 0.0001,
+      "objective_max": 0.01,
+      "transfer_balance_max": 5e-06
+    }
+  },
+  "requested_collision_mode": "effective_yukawa",
+  "residuals": {
+    "ckm_abs": 0.0019528716802597046,
+    "down_mass_log_rms": 0.002226616023108363,
+    "jarlskog_candidate": 3.118306631222367e-05,
+    "jarlskog_relative": 0.00041830301051959395,
+    "jarlskog_target": 3.1170027796179056e-05,
+    "objective": 0.0013781765010207891,
+    "up_mass_log_rms": 0.0019497597822919488
+  },
+  "rollout": {
+    "carrier_populations": {
+      "dirac_chirality_drift": [
+        -0.0002676248550415039,
+        0.00026863813400268555
+      ],
+      "dirac_chirality_final": [
+        1.327857494354248,
+        0.46901869773864746
+      ],
+      "dirac_chirality_initial": [
+        1.3281251192092896,
+        0.4687500596046448
+      ],
+      "dirac_chirality_labels": [
+        "left",
+        "right"
+      ],
+      "family_drift": [
+        5.066394805908203e-06,
+        1.6450881958007812e-05,
+        -2.0623207092285156e-05
+      ],
+      "family_final": [
+        0.9274244904518127,
+        0.28983500599861145,
+        0.5796165466308594
+      ],
+      "family_initial": [
+        0.9274194240570068,
+        0.28981855511665344,
+        0.5796371698379517
+      ],
+      "internal_copy_drift": [
+        8.344650268554688e-07,
+        5.960464477539063e-08
+      ],
+      "internal_copy_final": [
+        1.3281259536743164,
+        0.46875011920928955
+      ],
+      "internal_copy_initial": [
+        1.3281251192092896,
+        0.4687500596046448
+      ],
+      "internal_copy_labels": [
+        "copy0",
+        "copy1"
+      ],
+      "sector_drift": [
+        -0.0002651214599609375,
+        0.00026619434356689453,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "sector_final": [
+        1.2653599977493286,
+        0.2658911943435669,
+        0.0,
+        0.0,
+        0.0,
+        0.2656250298023224
+      ],
+      "sector_initial": [
+        1.2656251192092896,
+        0.265625,
+        0.0,
+        0.0,
+        0.0,
+        0.2656250298023224
+      ],
+      "sector_labels": [
+        "Q",
+        "u_c",
+        "d_c",
+        "L",
+        "e_c",
+        "nu_c"
+      ]
+    },
+    "collision_mode": "effective_yukawa",
+    "extended_norm_drift": 1.0728836059570312e-06,
+    "extended_norm_final": 1.7968761920928955,
+    "extended_norm_initial": 1.7968751192092896,
+    "gauge_background": "none",
+    "max_density_final": 1.3281259536743164,
+    "max_density_initial": 1.3281251192092896,
+    "memory": {
+      "complex128_bytes": 13440,
+      "complex64_bytes": 7296,
+      "config_array_bytes": 1152,
+      "config_array_elements": 144,
+      "fn_path_aux_complex_elements": 0,
+      "runtime_array_bytes": 7296,
+      "runtime_array_bytes_per_site": 3648.0,
+      "state_array_bytes": 6144,
+      "state_array_bytes_per_site": 3072.0,
+      "state_complex128_bytes": 12288,
+      "state_complex64_bytes": 6144,
+      "total_array_bytes": 7296,
+      "total_complex_elements": 768,
+      "visible_complex_elements": 768
+    },
+    "norm_drift": 1.0728836059570312e-06,
+    "norm_final": 1.7968761920928955,
+    "norm_initial": 1.7968751192092896,
+    "production_contract": {
+      "gauge_links_present": false,
+      "higgs_field_present": false,
+      "lean_effective_yukawa": true,
+      "raw_readout_arrays_present": false,
+      "raw_yukawa_arrays_present": false,
+      "state_only": true,
+      "structured_collision_cache_present": true,
+      "uses_production_api": true
+    },
+    "rollout_entrypoint": "calibrated_production_api",
+    "steps_completed": 4,
+    "stream_mode": "split_axis",
+    "used_fn_dilation_collision": false,
+    "used_higgs_fn_collision": true,
+    "yukawa_collision_strategy": "fast"
+  },
+  "scale_label": "benchmark",
+  "selected_center_cp_texture": "wilson_flux_rule",
+  "selected_collision_modes": [
+    "effective_yukawa"
+  ],
+  "status": "pass",
+  "stream_mode": "split_axis",
+  "yukawa_collision_strategy": "fast"
+}

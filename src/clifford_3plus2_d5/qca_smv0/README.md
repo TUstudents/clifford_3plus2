@@ -149,6 +149,17 @@ order-one coefficient magnitudes, center-power tables, QCA norm/density rollout
 diagnostics, and initial/final carrier-population diagnostics.  The
 phenomenology command uses the lean initial/final observable rollout path; it
 does not allocate full per-step density histories.
+Use `--json-output-path` and `--report-output-path` to save reproducible
+artifacts from the same front door.  The canonical reference run is checked in
+as [`canonical/phenomenology_benchmark.json`](canonical/phenomenology_benchmark.json)
+and [`canonical/phenomenology_benchmark.md`](canonical/phenomenology_benchmark.md):
+it uses the benchmark quark masses/CKM inputs, `lambda=0.22501`, charges
+`Q=(3,2,0)`, `U=(5,2,0)`, `D=(1,0,0)`, a `2x1x1` lattice, four production
+ticks, and the compressed `effective_yukawa` hot path.
+The JSON includes a `physics_tests` block for the canonical run: quark fit
+quality, order-one coefficient range, norm conservation, quark carrier
+transfer, absence of hidden FN path memory, memory accounting, and production
+contract checks.
 For the default compressed `effective_yukawa` mode, the command now runs the
 calibrated production state API and reports
 `rollout_entrypoint=calibrated_production_api`; exact `fn_dilation` remains a

@@ -1,6 +1,7 @@
 """Tests for the compact QCA_SMv0 rollout runner."""
 
 import json
+from pathlib import Path
 
 import jax
 import jax.numpy as jnp
@@ -24,6 +25,7 @@ from clifford_3plus2_d5.qca_smv0.scripts.phenomenology_rollout import (
     _prepare_phenomenology_rollout,
     _mode_memory_estimate,
     config_from_args,
+    main as phenomenology_main,
     run_phenomenology_rollout_modes,
     run_phenomenology_rollout,
 )
@@ -1858,6 +1860,79 @@ def test_phenomenology_rollout_reports_coefficient_diagnostics() -> None:
     assert summary.runtime_array_bytes_per_site == summary.runtime_array_bytes
     assert summary.total_array_bytes == summary.state_complex64_bytes + summary.config_array_bytes
     assert summary.complex64_bytes == summary.total_array_bytes
+
+
+def test_phenomenology_cli_writes_front_door_json_and_report(tmp_path, capsys) -> None:
+    json_path = tmp_path / "canonical.json"
+    report_path = tmp_path / "canonical.md"
+
+    phenomenology_main(
+        [
+            "--lattice-shape",
+            "1,1,1",
+            "--steps",
+            "1",
+            "--output",
+            "json",
+            "--json-output-path",
+            str(json_path),
+            "--report-output-path",
+            str(report_path),
+        ],
+    )
+    stdout_payload = json.loads(capsys.readouterr().out)
+    saved_payload = json.loads(json_path.read_text(encoding="utf-8"))
+    report = report_path.read_text(encoding="utf-8")
+
+    assert stdout_payload == saved_payload
+    assert saved_payload["rollout"]["rollout_entrypoint"] == "calibrated_production_api"
+    assert saved_payload["rollout"]["production_contract"]["uses_production_api"]
+    assert saved_payload["rollout"]["production_contract"]["lean_effective_yukawa"]
+    assert saved_payload["rollout"]["memory"]["fn_path_aux_complex_elements"] == 0
+    assert saved_payload["physics_tests"]["passed"]
+    assert all(saved_payload["physics_tests"]["checks"].values())
+    assert "coefficient_diagnostics" in saved_payload
+    assert "up_magnitudes" in saved_payload["coefficient_diagnostics"]
+    assert "down_center_powers" in saved_payload["coefficient_diagnostics"]
+    assert "carrier_populations" in saved_payload["rollout"]
+    assert "QCA_SMv0 Canonical Phenomenology Benchmark" in report
+    assert "Physics Tests" in report
+    assert "overall passed: `True`" in report
+    assert "Coefficient Diagnostics" in report
+    assert "Field Rollout" in report
+    assert "hidden FN aux complex elements: `0`" in report
+
+
+def test_canonical_phenomenology_benchmark_artifact_passes_physics_tests() -> None:
+    payload = json.loads(
+        Path("src/clifford_3plus2_d5/qca_smv0/canonical/phenomenology_benchmark.json").read_text(
+            encoding="utf-8",
+        ),
+    )
+
+    assert payload["physics_tests"]["passed"]
+    assert all(payload["physics_tests"]["checks"].values())
+    assert payload["center_cp_passed"]
+    assert payload["residuals"]["objective"] < payload["physics_tests"]["thresholds"]["objective_max"]
+    assert payload["residuals"]["up_mass_log_rms"] < payload["physics_tests"]["thresholds"]["mass_log_rms_max"]
+    assert payload["residuals"]["down_mass_log_rms"] < payload["physics_tests"]["thresholds"]["mass_log_rms_max"]
+    assert payload["residuals"]["ckm_abs"] < payload["physics_tests"]["thresholds"]["ckm_abs_max"]
+    assert payload["residuals"]["jarlskog_relative"] < payload["physics_tests"]["thresholds"]["jarlskog_relative_max"]
+    assert (
+        payload["coefficient_diagnostics"]["magnitude_min"]
+        >= payload["physics_tests"]["thresholds"]["magnitude_min"]
+    )
+    assert (
+        payload["coefficient_diagnostics"]["magnitude_max"]
+        <= payload["physics_tests"]["thresholds"]["magnitude_max"]
+    )
+    assert payload["rollout"]["norm_drift"] < payload["physics_tests"]["thresholds"]["norm_drift_max"]
+    assert payload["rollout"]["extended_norm_drift"] < payload["physics_tests"]["thresholds"]["norm_drift_max"]
+    assert payload["rollout"]["carrier_populations"]["sector_drift"][0] < 0.0
+    assert payload["rollout"]["carrier_populations"]["sector_drift"][1] > 0.0
+    assert payload["rollout"]["memory"]["fn_path_aux_complex_elements"] == 0
+    assert payload["rollout"]["production_contract"]["uses_production_api"]
+    assert payload["rollout"]["production_contract"]["lean_effective_yukawa"]
 
 
 def test_phenomenology_effective_memory_preflight_matches_production_setup() -> None:

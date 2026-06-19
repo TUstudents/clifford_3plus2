@@ -37,6 +37,13 @@ Production-core baseline:
   compact center-CP coefficient diagnostics, and the production contract.  This
   keeps the public path production-facing without manual target/readout wiring
   or exact hidden FN path memory.
+- The phenomenology CLI is the current front door for the simulator.  It can
+  emit text, JSON, and a Markdown interpretation report from the same calibrated
+  production run.  The checked-in canonical run lives at
+  `canonical/phenomenology_benchmark.json` and
+  `canonical/phenomenology_benchmark.md`, including explicit pass/fail physics
+  tests for fit quality, coefficient range, norm conservation, carrier transfer,
+  hidden-memory absence, memory accounting, and production-contract discipline.
 - The current `production_scaling` preset measured compressed fast-strategy
   state-only rollouts at `~197k`, `~346k`, and `~143k` median site-steps/s for
   `4x4x4`, `8x4x4`, and `8x8x8`, respectively.  XLA temporary buffers were

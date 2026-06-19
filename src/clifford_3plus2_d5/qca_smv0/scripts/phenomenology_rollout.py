@@ -29,16 +29,14 @@ from clifford_3plus2_d5.qca_smv0.sm_fn import (
 )
 from clifford_3plus2_d5.qca_smv0.sm_gauge import SM_INTERNAL_DIM, sm_identity_links
 from clifford_3plus2_d5.qca_smv0.sm_rollout import (
-    QCASMCalibratedProductionRolloutSetup,
     deterministic_qca_family_state,
     sm_qca_center_cp_rollout_config,
     sm_qca_config_memory_footprint,
     sm_qca_family_carrier_populations,
-    sm_qca_prepare_production_rollout_from_config,
     sm_qca_production_contract,
     sm_qca_production_rollout_config,
     sm_qca_rollout_config_from_masses_ckm,
-    sm_run_jitted_qca_calibrated_production_rollout_with_observables,
+    sm_run_jitted_qca_calibrated_production_rollout_from_masses_ckm,
     sm_run_qca_rollout,
 )
 
@@ -48,6 +46,14 @@ DEFAULT_UP_MASSES_GEV = (0.00216, 1.2730, 172.57)
 DEFAULT_DOWN_MASSES_GEV = (0.00467, 0.0935, 4.183)
 DEFAULT_CKM_ANGLES = (0.22501, 0.04183, 0.003732, 1.147)
 BYTES_PER_GIB = 1024**3
+PHYSICS_TEST_OBJECTIVE_MAX = 1.0e-2
+PHYSICS_TEST_MASS_LOG_RMS_MAX = 1.0e-2
+PHYSICS_TEST_CKM_ABS_MAX = 1.0e-2
+PHYSICS_TEST_JARLSKOG_RELATIVE_MAX = 1.0e-2
+PHYSICS_TEST_MAGNITUDE_MIN = 1.0e-1
+PHYSICS_TEST_MAGNITUDE_MAX = 10.0
+PHYSICS_TEST_NORM_DRIFT_MAX = 1.0e-4
+PHYSICS_TEST_TRANSFER_BALANCE_MAX = 5.0e-6
 
 
 class PhenomenologyRunConfig(NamedTuple):
@@ -159,6 +165,15 @@ class PhenomenologyRolloutSummary(NamedTuple):
     complex128_bytes: int
 
 
+class PhenomenologyCLICommand(NamedTuple):
+    """Parsed command-line request for one phenomenology rollout."""
+
+    config: PhenomenologyRunConfig
+    output: str
+    json_output_path: Path | None
+    report_output_path: Path | None
+
+
 class _PreparedPhenomenologyRollout(NamedTuple):
     """Shared calibrated inputs for one or more rollout collision modes."""
 
@@ -167,6 +182,9 @@ class _PreparedPhenomenologyRollout(NamedTuple):
     up_normalization: float
     down_normalization: float
     state: jnp.ndarray
+    ckm: jnp.ndarray
+    links: jnp.ndarray | None
+    lepton_yukawas: FamilyLeptonYukawas | None
     calibrated: Any
 
 
@@ -384,6 +402,7 @@ def load_phenomenology_config(path: str | Path) -> PhenomenologyRunConfig:
 
 
 def _summary_to_dict(summary: PhenomenologyRolloutSummary) -> dict[str, Any]:
+    physics_tests = _summary_physics_tests(summary)
     return {
         "scale_label": summary.scale_label,
         "selected_center_cp_texture": summary.selected_label,
@@ -433,6 +452,7 @@ def _summary_to_dict(summary: PhenomenologyRolloutSummary) -> dict[str, Any]:
             "up_center_powers": [list(row) for row in summary.up_center_powers],
             "down_center_powers": [list(row) for row in summary.down_center_powers],
         },
+        "physics_tests": physics_tests,
         "rollout": {
             "collision_mode": summary.collision_mode,
             "rollout_entrypoint": summary.rollout_entrypoint,
@@ -488,6 +508,78 @@ def _summary_to_dict(summary: PhenomenologyRolloutSummary) -> dict[str, Any]:
     }
 
 
+def _summary_physics_tests(summary: PhenomenologyRolloutSummary) -> dict[str, Any]:
+    """Return explicit pass/fail checks for the canonical calibrated run."""
+
+    production_contract_passed = (
+        bool(summary.production_contract.get("uses_production_api"))
+        and bool(summary.production_contract.get("state_only"))
+        and bool(summary.production_contract.get("structured_collision_cache_present"))
+        and bool(summary.production_contract.get("lean_effective_yukawa"))
+        and not bool(summary.production_contract.get("raw_yukawa_arrays_present"))
+        and not bool(summary.production_contract.get("raw_readout_arrays_present"))
+        and not bool(summary.production_contract.get("higgs_field_present"))
+    )
+    quark_fit_passed = (
+        summary.passed_center_cp
+        and summary.objective < PHYSICS_TEST_OBJECTIVE_MAX
+        and summary.up_mass_log_rms < PHYSICS_TEST_MASS_LOG_RMS_MAX
+        and summary.down_mass_log_rms < PHYSICS_TEST_MASS_LOG_RMS_MAX
+        and summary.ckm_abs_residual < PHYSICS_TEST_CKM_ABS_MAX
+        and summary.jarlskog_relative_residual < PHYSICS_TEST_JARLSKOG_RELATIVE_MAX
+    )
+    coefficient_order_one_passed = (
+        summary.magnitude_min >= PHYSICS_TEST_MAGNITUDE_MIN
+        and summary.magnitude_max <= PHYSICS_TEST_MAGNITUDE_MAX
+    )
+    norm_conservation_passed = (
+        summary.norm_drift < PHYSICS_TEST_NORM_DRIFT_MAX
+        and summary.extended_norm_drift < PHYSICS_TEST_NORM_DRIFT_MAX
+    )
+    carrier_transfer_passed = (
+        summary.carrier_sector_drift[0] < 0.0
+        and summary.carrier_sector_drift[1] > 0.0
+        and abs(summary.carrier_sector_drift[0] + summary.carrier_sector_drift[1]) < PHYSICS_TEST_TRANSFER_BALANCE_MAX
+        and abs(summary.carrier_sector_drift[2]) < PHYSICS_TEST_TRANSFER_BALANCE_MAX
+        and abs(summary.carrier_sector_drift[3]) < PHYSICS_TEST_TRANSFER_BALANCE_MAX
+        and abs(summary.carrier_sector_drift[4]) < PHYSICS_TEST_TRANSFER_BALANCE_MAX
+    )
+    no_hidden_fn_memory_passed = (
+        summary.fn_path_aux_complex_elements == 0
+        and not summary.used_fn_dilation_collision
+        and summary.used_higgs_fn_collision
+    )
+    memory_accounting_passed = (
+        summary.total_complex_elements == summary.visible_complex_elements + summary.fn_path_aux_complex_elements
+        and summary.state_complex64_bytes == 8 * summary.total_complex_elements
+        and summary.runtime_array_bytes == summary.state_array_bytes + summary.config_array_bytes
+        and summary.total_array_bytes == summary.runtime_array_bytes
+    )
+    checks = {
+        "center_cp_quark_fit": quark_fit_passed,
+        "order_one_coefficients": coefficient_order_one_passed,
+        "norm_conservation": norm_conservation_passed,
+        "quark_carrier_transfer": carrier_transfer_passed,
+        "no_hidden_fn_path_memory": no_hidden_fn_memory_passed,
+        "memory_accounting": memory_accounting_passed,
+        "production_contract": production_contract_passed,
+    }
+    return {
+        "passed": all(checks.values()),
+        "checks": checks,
+        "thresholds": {
+            "objective_max": PHYSICS_TEST_OBJECTIVE_MAX,
+            "mass_log_rms_max": PHYSICS_TEST_MASS_LOG_RMS_MAX,
+            "ckm_abs_max": PHYSICS_TEST_CKM_ABS_MAX,
+            "jarlskog_relative_max": PHYSICS_TEST_JARLSKOG_RELATIVE_MAX,
+            "magnitude_min": PHYSICS_TEST_MAGNITUDE_MIN,
+            "magnitude_max": PHYSICS_TEST_MAGNITUDE_MAX,
+            "norm_drift_max": PHYSICS_TEST_NORM_DRIFT_MAX,
+            "transfer_balance_max": PHYSICS_TEST_TRANSFER_BALANCE_MAX,
+        },
+    }
+
+
 def _prepare_phenomenology_rollout(
     config: PhenomenologyRunConfig,
     *,
@@ -529,6 +621,9 @@ def _prepare_phenomenology_rollout(
         up_normalization=up_normalization,
         down_normalization=down_normalization,
         state=state,
+        ckm=ckm,
+        links=links,
+        lepton_yukawas=lepton_yukawas,
         calibrated=calibrated,
     )
 
@@ -570,17 +665,25 @@ def _run_prepared_phenomenology_rollout(
         record_density=False,
     )
     if collision_mode == "effective_yukawa":
-        setup = sm_qca_prepare_production_rollout_from_config(prepared.state, rollout_config)
-        production_contract = sm_qca_production_contract(setup.config, uses_production_api=True)._asdict()
-        calibrated_setup = QCASMCalibratedProductionRolloutSetup(
-            setup=setup,
-            verdict=prepared.calibrated.verdict,
-        )
-        calibrated_observed = sm_run_jitted_qca_calibrated_production_rollout_with_observables(
-            calibrated_setup,
+        calibrated_observed = sm_run_jitted_qca_calibrated_production_rollout_from_masses_ckm(
+            prepared.up_fn_masses,
+            prepared.down_fn_masses,
+            prepared.ckm,
+            config.lattice_shape,
             steps=config.steps,
+            initial_state=prepared.state,
+            links=prepared.links,
+            lambda_rec=config.lambda_rec,
+            charges=config.charges,
+            lepton_yukawas=prepared.lepton_yukawas,
+            center_fit_steps=config.center_fit_steps,
+            yukawa_step_size=config.yukawa_step_size,
+            higgs_vev=config.higgs_vev,
+            stream_mode=config.stream_mode,
+            yukawa_collision_strategy=config.yukawa_collision_strategy,
         )
         observed = calibrated_observed.production_observables
+        production_contract = calibrated_observed.production_contract._asdict()
         footprint = observed.production.final_rollout_memory_footprint.state
         rollout_footprint = observed.production.final_rollout_memory_footprint
         norm_initial = float(observed.norm_initial)
@@ -1030,12 +1133,18 @@ def build_arg_parser() -> argparse.ArgumentParser:
         choices=("none", "fail", "auto"),
         help="Memory-budget policy: report only, fail before allocation, or auto-select compressed FN.",
     )
+    parser.add_argument("--json-output-path", type=Path, help="Optional path where the JSON payload is written.")
+    parser.add_argument(
+        "--report-output-path",
+        type=Path,
+        help="Optional path where a Markdown interpretation report is written.",
+    )
     parser.add_argument("--output", choices=("text", "json"), default="text")
     return parser
 
 
-def config_from_args(argv: list[str] | None = None) -> tuple[PhenomenologyRunConfig, str]:
-    """Build a run config from CLI arguments and an optional JSON config."""
+def cli_command_from_args(argv: list[str] | None = None) -> PhenomenologyCLICommand:
+    """Build a complete CLI command from arguments and an optional JSON config."""
 
     parser = build_arg_parser()
     args = parser.parse_args(argv)
@@ -1050,8 +1159,8 @@ def config_from_args(argv: list[str] | None = None) -> tuple[PhenomenologyRunCon
         u=args.u_charges if args.u_charges is not None else config.charges.u,
         d=args.d_charges if args.d_charges is not None else config.charges.d,
     )
-    return (
-        PhenomenologyRunConfig(
+    return PhenomenologyCLICommand(
+        config=PhenomenologyRunConfig(
             scale_label=args.scale_label if args.scale_label is not None else config.scale_label,
             lattice_shape=args.lattice_shape if args.lattice_shape is not None else config.lattice_shape,
             steps=args.steps if args.steps is not None else config.steps,
@@ -1087,8 +1196,17 @@ def config_from_args(argv: list[str] | None = None) -> tuple[PhenomenologyRunCon
             ),
             memory_policy=args.memory_policy if args.memory_policy is not None else config.memory_policy,
         ),
-        args.output,
+        output=args.output,
+        json_output_path=args.json_output_path,
+        report_output_path=args.report_output_path,
     )
+
+
+def config_from_args(argv: list[str] | None = None) -> tuple[PhenomenologyRunConfig, str]:
+    """Build a run config from CLI arguments and an optional JSON config."""
+
+    command = cli_command_from_args(argv)
+    return command.config, command.output
 
 
 def _print_text_summary(summary: PhenomenologyRolloutSummary) -> None:
@@ -1113,6 +1231,11 @@ def _print_text_summary(summary: PhenomenologyRolloutSummary) -> None:
     print(f"    jarlskog_relative: {summary.jarlskog_relative_residual:.6g}")
     print(f"    jarlskog_candidate: {summary.jarlskog_candidate:.6g}")
     print(f"    jarlskog_target: {summary.jarlskog_target:.6g}")
+    physics_tests = _summary_physics_tests(summary)
+    print("  physics_tests:")
+    print(f"    passed: {physics_tests['passed']}")
+    for key, value in physics_tests["checks"].items():
+        print(f"    {key}: {value}")
     print("  coefficient_diagnostics:")
     print(f"    magnitude_min/max/mean: {summary.magnitude_min:.6g} / {summary.magnitude_max:.6g} / {summary.magnitude_mean:.6g}")
     print(f"    coefficient_residual: {summary.coefficient_residual:.6g}")
@@ -1155,13 +1278,149 @@ def _print_text_summary(summary: PhenomenologyRolloutSummary) -> None:
     print(f"      complex128_bytes: {summary.complex128_bytes}")
 
 
+def _markdown_table(matrix: tuple[tuple[Any, Any, Any], tuple[Any, Any, Any], tuple[Any, Any, Any]]) -> str:
+    rows = ["| row | 1 | 2 | 3 |", "|---:|---:|---:|---:|"]
+    for index, row in enumerate(matrix, start=1):
+        rows.append("| " + str(index) + " | " + " | ".join(str(value) for value in row) + " |")
+    return "\n".join(rows)
+
+
+def _markdown_float_table(
+    matrix: tuple[tuple[float, float, float], tuple[float, float, float], tuple[float, float, float]],
+) -> str:
+    rows = ["| row | 1 | 2 | 3 |", "|---:|---:|---:|---:|"]
+    for index, row in enumerate(matrix, start=1):
+        rows.append("| " + str(index) + " | " + " | ".join(f"{value:.6g}" for value in row) + " |")
+    return "\n".join(rows)
+
+
+def _summary_to_markdown(summary: PhenomenologyRolloutSummary) -> str:
+    """Return a concise Markdown interpretation of one canonical rollout."""
+
+    contract = ", ".join(f"{key}={value}" for key, value in sorted(summary.production_contract.items()))
+    sector_labels = ("Q", "u_c", "d_c", "L", "e_c", "nu_c")
+    sector_rows = "\n".join(
+        f"| {label} | {initial:.9g} | {final:.9g} | {drift:.6g} |"
+        for label, initial, final, drift in zip(
+            sector_labels,
+            summary.carrier_sector_initial,
+            summary.carrier_sector_final,
+            summary.carrier_sector_drift,
+        )
+    )
+    physics_tests = _summary_physics_tests(summary)
+    physics_rows = "\n".join(
+        f"| {label} | {passed} |" for label, passed in physics_tests["checks"].items()
+    )
+    return f"""# QCA_SMv0 Canonical Phenomenology Benchmark
+
+This is the standard constructive benchmark for the QCA_SMv0 front door. It is
+a calibrated simulator run, not a derivation of the FN charges, lambda, or
+order-one coefficients.
+
+## Inputs
+
+- scale label: `{summary.scale_label}`
+- rollout steps: `{summary.steps_completed}`
+- lambda: `{summary.lambda_rec:.9g}`
+- charges Q/U/D: `{summary.charges_q}` / `{summary.charges_u}` / `{summary.charges_d}`
+- collision mode: `{summary.collision_mode}`
+- stream mode: `{summary.stream_mode}`
+- Yukawa strategy: `{summary.yukawa_collision_strategy}`
+- lepton mode: `{summary.lepton_mode}`
+
+## Calibration Verdict
+
+- selected center-CP texture: `{summary.selected_label}`
+- status: `{summary.status}`
+- passed: `{summary.passed_center_cp}`
+- objective: `{summary.objective:.6g}`
+- up/down mass log RMS: `{summary.up_mass_log_rms:.6g}` / `{summary.down_mass_log_rms:.6g}`
+- CKM absolute residual: `{summary.ckm_abs_residual:.6g}`
+- Jarlskog candidate/target: `{summary.jarlskog_candidate:.6g}` / `{summary.jarlskog_target:.6g}`
+- Jarlskog relative residual: `{summary.jarlskog_relative_residual:.6g}`
+
+## Physics Tests
+
+- overall passed: `{physics_tests["passed"]}`
+
+| check | passed |
+|---|---:|
+{physics_rows}
+
+## Coefficient Diagnostics
+
+- magnitude min/max/mean: `{summary.magnitude_min:.6g}` / `{summary.magnitude_max:.6g}` / `{summary.magnitude_mean:.6g}`
+- coefficient residual: `{summary.coefficient_residual:.6g}`
+- phase residual: `{summary.phase_residual:.6g}`
+
+### Up Magnitudes
+
+{_markdown_float_table(summary.up_magnitudes)}
+
+### Down Magnitudes
+
+{_markdown_float_table(summary.down_magnitudes)}
+
+### Up Center Powers
+
+{_markdown_table(summary.up_center_powers)}
+
+### Down Center Powers
+
+{_markdown_table(summary.down_center_powers)}
+
+## Field Rollout
+
+- entrypoint: `{summary.rollout_entrypoint}`
+- norm drift: `{summary.norm_drift:.6g}`
+- extended norm drift: `{summary.extended_norm_drift:.6g}`
+- max density initial/final: `{summary.max_density_initial:.9g}` / `{summary.max_density_final:.9g}`
+- used Higgs/FN collision: `{summary.used_higgs_fn_collision}`
+- used exact FN dilation: `{summary.used_fn_dilation_collision}`
+
+| sector | initial | final | drift |
+|---|---:|---:|---:|
+{sector_rows}
+
+## Memory And Contract
+
+- visible complex elements: `{summary.visible_complex_elements}`
+- hidden FN aux complex elements: `{summary.fn_path_aux_complex_elements}`
+- runtime array bytes: `{summary.runtime_array_bytes}`
+- runtime array bytes per site: `{summary.runtime_array_bytes_per_site:.6g}`
+- production contract: `{contract}`
+
+## Interpretation
+
+The benchmark demonstrates the current constructive simulator path: physical
+quark inputs calibrate a center-CP FN texture, the compressed effective-Yukawa
+collision runs on the `4 x 32 x 3` field fibre, and the output exposes both
+coefficient diagnostics and field observables without carrying exact hidden FN
+path memory in production.
+"""
+
+
+def _write_text(path: Path, text: str) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(text, encoding="utf-8")
+
+
 def main(argv: list[str] | None = None) -> None:
     """Run the CLI."""
 
-    config, output = config_from_args(argv)
-    summaries = run_phenomenology_rollout_modes(config)
-    if output == "json":
-        print(json.dumps(_summaries_to_payload(config, summaries), indent=2, sort_keys=True))
+    command = cli_command_from_args(argv)
+    summaries = run_phenomenology_rollout_modes(command.config)
+    payload = _summaries_to_payload(command.config, summaries)
+    json_payload = json.dumps(payload, indent=2, sort_keys=True)
+    if command.json_output_path is not None:
+        _write_text(command.json_output_path, json_payload + "\n")
+    if command.report_output_path is not None:
+        if len(summaries) != 1:
+            raise ValueError("Markdown report output currently expects one selected rollout mode")
+        _write_text(command.report_output_path, _summary_to_markdown(summaries[0]))
+    if command.output == "json":
+        print(json_payload)
     else:
         for index, summary in enumerate(summaries):
             if index:
