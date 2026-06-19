@@ -161,15 +161,21 @@ def sm_physical_right_production_gauss_diagnostics() -> PhysicalRightProductionG
     )
     zero_quarks = sm_zero_quark_yukawas()
     zero_leptons = sm_zero_family_lepton_yukawas()
+    default_compare_final, _ = sm_physical_right_production_gauss_history(
+        deterministic_initial,
+        steps=3,
+        step_size=step_size,
+    )
     zero_yukawa_final, _ = sm_physical_right_production_gauss_history(
         deterministic_initial,
-        steps=steps,
+        steps=3,
         step_size=step_size,
         quark_yukawas=zero_quarks,
         lepton_yukawas=zero_leptons,
     )
     initial_gauss = sm_physical_right_production_gauss(deterministic_initial)
     final_gauss = sm_physical_right_production_gauss(deterministic_final)
+    default_compare_final_gauss = sm_physical_right_production_gauss(default_compare_final)
     zero_yukawa_final_gauss = sm_physical_right_production_gauss(zero_yukawa_final)
     family_norms = deterministic_history["family_norm"]
 
@@ -181,7 +187,9 @@ def sm_physical_right_production_gauss_diagnostics() -> PhysicalRightProductionG
         deterministic_final_gauss_norm=deterministic_history["gauss_norm"][-1],
         deterministic_max_gauss_norm=jnp.max(deterministic_history["gauss_norm"]),
         deterministic_gauss_delta_norm=jnp.linalg.norm(final_gauss - initial_gauss),
-        zero_yukawa_final_gauss_difference_norm=jnp.linalg.norm(final_gauss - zero_yukawa_final_gauss),
+        zero_yukawa_final_gauss_difference_norm=jnp.linalg.norm(
+            default_compare_final_gauss - zero_yukawa_final_gauss,
+        ),
         rollout_family_norm_drift=jnp.abs(family_norms[-1] - family_norms[0]),
         max_sm_link_unitarity_residual=jnp.max(deterministic_history["sm_link_unitarity_residual"]),
         max_higgs_link_unitarity_residual=jnp.max(deterministic_history["higgs_link_unitarity_residual"]),

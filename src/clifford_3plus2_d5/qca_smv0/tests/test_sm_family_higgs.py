@@ -19,6 +19,7 @@ from clifford_3plus2_d5.qca_smv0.sm_family_higgs import (
     sm_apply_family_fn_quark_source_kick,
     sm_apply_family_recirculated_quark_door,
     sm_apply_family_yukawa_collision,
+    sm_apply_family_yukawa_collision_from_cache,
     sm_default_family_lepton_yukawas,
     sm_family_calibrated_quark_path_readouts,
     sm_family_fn_quark_path_state_source,
@@ -36,6 +37,7 @@ from clifford_3plus2_d5.qca_smv0.sm_family_higgs import (
     sm_family_recirculated_quark_path_readouts,
     sm_family_recirculated_quark_dilations,
     sm_family_recirculated_quark_yukawas,
+    sm_family_yukawa_collision_cache,
     sm_family_yukawa_internal_matrix,
     sm_zero_family_fn_quark_aux_state,
     sm_zero_family_fn_quark_path_state_aux,
@@ -811,3 +813,38 @@ def test_family_yukawa_collision_is_jittable() -> None:
     )
 
     assert jnp.max(jnp.abs(actual - expected)) < 2e-7
+
+
+def test_family_yukawa_cached_fast_strategy_matches_memory_strategy() -> None:
+    lattice_shape = (2, 1, 1)
+    state = deterministic_sm_family_state(lattice_shape)
+    higgs = sm_constant_higgs(lattice_shape)
+    quark_yukawas = sm_center_cp_quark_yukawas()
+    lepton_yukawas = sm_default_family_lepton_yukawas()
+    cache = sm_family_yukawa_collision_cache(
+        higgs,
+        step_size=0.04,
+        quark_yukawas=quark_yukawas,
+        lepton_yukawas=lepton_yukawas,
+        assume_uniform=True,
+        use_unitary_gauge_blocks=True,
+    )
+
+    memory = sm_apply_family_yukawa_collision_from_cache(state, cache, strategy="memory")
+    fast = sm_apply_family_yukawa_collision_from_cache(state, cache, strategy="fast")
+    direct = sm_apply_family_yukawa_collision(
+        state,
+        higgs,
+        step_size=0.04,
+        quark_yukawas=quark_yukawas,
+        lepton_yukawas=lepton_yukawas,
+    )
+
+    def apply_fast(local_state):
+        return sm_apply_family_yukawa_collision_from_cache(local_state, cache, strategy="fast")
+
+    jitted_fast = jax.jit(apply_fast)(state)
+
+    assert jnp.max(jnp.abs(fast - memory)) < 2e-7
+    assert jnp.max(jnp.abs(fast - direct)) < 5e-7
+    assert jnp.max(jnp.abs(jitted_fast - fast)) < 2e-7

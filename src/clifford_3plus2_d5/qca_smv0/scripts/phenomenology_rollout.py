@@ -17,6 +17,8 @@ from typing import Any, NamedTuple
 import jax.numpy as jnp
 
 from clifford_3plus2_d5.qca_smv0.sm_family_higgs import (
+    FamilyLeptonYukawas,
+    sm_default_family_lepton_yukawas,
     sm_family_quark_path_hidden_dims,
     sm_family_yukawa_collision_cache,
 )
@@ -25,12 +27,18 @@ from clifford_3plus2_d5.qca_smv0.sm_fn import (
     FNQuarkCharges,
     SM_FAMILY_DIM,
 )
-from clifford_3plus2_d5.qca_smv0.sm_gauge import SM_INTERNAL_DIM
+from clifford_3plus2_d5.qca_smv0.sm_gauge import SM_INTERNAL_DIM, sm_identity_links
 from clifford_3plus2_d5.qca_smv0.sm_rollout import (
+    QCASMCalibratedProductionRolloutSetup,
     deterministic_qca_family_state,
     sm_qca_center_cp_rollout_config,
     sm_qca_config_memory_footprint,
+    sm_qca_family_carrier_populations,
+    sm_qca_prepare_production_rollout_from_config,
+    sm_qca_production_contract,
+    sm_qca_production_rollout_config,
     sm_qca_rollout_config_from_masses_ckm,
+    sm_run_jitted_qca_calibrated_production_rollout_with_observables,
     sm_run_qca_rollout,
 )
 
@@ -52,6 +60,8 @@ class PhenomenologyRunConfig(NamedTuple):
     charges: FNQuarkCharges = DEFAULT_FN_QUARK_CHARGES
     up_masses: tuple[float, float, float] = DEFAULT_UP_MASSES_GEV
     down_masses: tuple[float, float, float] = DEFAULT_DOWN_MASSES_GEV
+    neutrino_yukawas: tuple[float, float, float] | None = None
+    charged_lepton_yukawas: tuple[float, float, float] | None = None
     mass_mode: str = "absolute"
     ckm_angles: tuple[float, float, float, float] = DEFAULT_CKM_ANGLES
     ckm_matrix: tuple[tuple[complex, complex, complex], tuple[complex, complex, complex], tuple[complex, complex, complex]] | None = None
@@ -60,6 +70,8 @@ class PhenomenologyRunConfig(NamedTuple):
     higgs_vev: float = 1.0
     collision_mode: str = "effective_yukawa"
     stream_mode: str = "split_axis"
+    gauge_background: str = "none"
+    yukawa_collision_strategy: str = "fast"
     memory_budget_gib: float | None = None
     memory_safety_factor: float = 0.8
     memory_policy: str = "none"
@@ -79,6 +91,9 @@ class PhenomenologyRolloutSummary(NamedTuple):
     charges_d: tuple[int, int, int]
     up_input_masses: tuple[float, float, float]
     down_input_masses: tuple[float, float, float]
+    lepton_mode: str
+    neutrino_yukawas: tuple[float, float, float] | None
+    charged_lepton_yukawas: tuple[float, float, float] | None
     up_fn_masses: tuple[float, float, float]
     down_fn_masses: tuple[float, float, float]
     up_mass_normalization: float
@@ -107,18 +122,38 @@ class PhenomenologyRolloutSummary(NamedTuple):
     extended_norm_drift: float
     max_density_initial: float
     max_density_final: float
+    carrier_sector_initial: tuple[float, float, float, float, float, float]
+    carrier_sector_final: tuple[float, float, float, float, float, float]
+    carrier_sector_drift: tuple[float, float, float, float, float, float]
+    carrier_chirality_initial: tuple[float, float]
+    carrier_chirality_final: tuple[float, float]
+    carrier_chirality_drift: tuple[float, float]
+    carrier_family_initial: tuple[float, float, float]
+    carrier_family_final: tuple[float, float, float]
+    carrier_family_drift: tuple[float, float, float]
+    carrier_copy_initial: tuple[float, float]
+    carrier_copy_final: tuple[float, float]
+    carrier_copy_drift: tuple[float, float]
     used_higgs_fn_collision: bool
     used_fn_dilation_collision: bool
     collision_mode: str
+    rollout_entrypoint: str
     stream_mode: str
+    gauge_background: str
+    yukawa_collision_strategy: str
+    production_contract: dict[str, bool]
     steps_completed: int
     visible_complex_elements: int
     fn_path_aux_complex_elements: int
     total_complex_elements: int
     state_complex64_bytes: int
     state_complex128_bytes: int
+    state_array_bytes: int
+    state_array_bytes_per_site: float
     config_array_elements: int
     config_array_bytes: int
+    runtime_array_bytes: int
+    runtime_array_bytes_per_site: float
     total_array_bytes: int
     complex64_bytes: int
     complex128_bytes: int
@@ -248,8 +283,55 @@ def _matrix3_to_float_tuples(matrix: jnp.ndarray) -> tuple[tuple[float, float, f
     return tuple(tuple(float(arr[i, j]) for j in range(3)) for i in range(3))  # type: ignore[return-value]
 
 
+def _float_tuple(values: jnp.ndarray) -> tuple[float, ...]:
+    arr = jnp.asarray(values)
+    return tuple(float(value) for value in arr.reshape((-1,)))
+
+
 def _powers_to_tuples(powers: tuple[tuple[int, int, int], tuple[int, int, int], tuple[int, int, int]]) -> tuple[tuple[int, int, int], tuple[int, int, int], tuple[int, int, int]]:
     return tuple(tuple(int(value) for value in row) for row in powers)  # type: ignore[return-value]
+
+
+def _diagonal_lepton_yukawas(config: PhenomenologyRunConfig) -> FamilyLeptonYukawas | None:
+    if config.neutrino_yukawas is None and config.charged_lepton_yukawas is None:
+        return None
+    defaults = sm_default_family_lepton_yukawas()
+    neutrino = (
+        jnp.diag(jnp.asarray(config.neutrino_yukawas, dtype=jnp.complex64))
+        if config.neutrino_yukawas is not None
+        else defaults.neutrino
+    )
+    electron = (
+        jnp.diag(jnp.asarray(config.charged_lepton_yukawas, dtype=jnp.complex64))
+        if config.charged_lepton_yukawas is not None
+        else defaults.electron
+    )
+    return FamilyLeptonYukawas(neutrino=neutrino, electron=electron)
+
+
+def _lepton_mode(config: PhenomenologyRunConfig) -> str:
+    if config.neutrino_yukawas is None and config.charged_lepton_yukawas is None:
+        return "zero"
+    return "diagonal_input"
+
+
+def _validate_gauge_background(gauge_background: str) -> None:
+    if gauge_background not in ("none", "identity"):
+        raise ValueError("gauge_background must be 'none' or 'identity'")
+
+
+def _phenomenology_static_links(
+    lattice_shape: tuple[int, int, int],
+    gauge_background: str,
+    *,
+    dtype: Any = jnp.complex64,
+) -> jnp.ndarray | None:
+    """Return optional static SM links for phenomenology rollouts."""
+
+    _validate_gauge_background(gauge_background)
+    if gauge_background == "none":
+        return None
+    return sm_identity_links(lattice_shape, dtype=dtype)
 
 
 def load_phenomenology_config(path: str | Path) -> PhenomenologyRunConfig:
@@ -264,6 +346,9 @@ def load_phenomenology_config(path: str | Path) -> PhenomenologyRunConfig:
     )
     ckm_matrix = _ckm_matrix_from_json(data["ckm_matrix"]) if "ckm_matrix" in data else None
     ckm_angles = _as_python_tuple4(data["ckm_angles"], label="ckm_angles", cast=float) if "ckm_angles" in data else DEFAULT_CKM_ANGLES
+    gauge_background = str(data.get("gauge_background", "none"))
+    _validate_gauge_background(gauge_background)
+    stream_mode = str(data.get("stream_mode", "hop_sum" if gauge_background != "none" else "split_axis"))
     return PhenomenologyRunConfig(
         scale_label=str(data.get("scale_label", DEFAULT_SCALE_LABEL)),
         lattice_shape=_as_python_tuple3(data.get("lattice_shape", (2, 1, 1)), label="lattice_shape", cast=int),
@@ -272,6 +357,16 @@ def load_phenomenology_config(path: str | Path) -> PhenomenologyRunConfig:
         charges=charges,
         up_masses=_as_python_tuple3(data.get("up_masses", DEFAULT_UP_MASSES_GEV), label="up_masses", cast=float),
         down_masses=_as_python_tuple3(data.get("down_masses", DEFAULT_DOWN_MASSES_GEV), label="down_masses", cast=float),
+        neutrino_yukawas=(
+            _as_python_tuple3(data["neutrino_yukawas"], label="neutrino_yukawas", cast=float)
+            if "neutrino_yukawas" in data
+            else None
+        ),
+        charged_lepton_yukawas=(
+            _as_python_tuple3(data["charged_lepton_yukawas"], label="charged_lepton_yukawas", cast=float)
+            if "charged_lepton_yukawas" in data
+            else None
+        ),
         mass_mode=str(data.get("mass_mode", "absolute")),
         ckm_angles=ckm_angles,  # type: ignore[arg-type]
         ckm_matrix=ckm_matrix,
@@ -279,7 +374,9 @@ def load_phenomenology_config(path: str | Path) -> PhenomenologyRunConfig:
         yukawa_step_size=float(data.get("yukawa_step_size", 0.01)),
         higgs_vev=float(data.get("higgs_vev", 1.0)),
         collision_mode=str(data.get("collision_mode", "effective_yukawa")),
-        stream_mode=str(data.get("stream_mode", "split_axis")),
+        stream_mode=stream_mode,
+        gauge_background=gauge_background,
+        yukawa_collision_strategy=str(data.get("yukawa_collision_strategy", "fast")),
         memory_budget_gib=float(data["memory_budget_gib"]) if "memory_budget_gib" in data else None,
         memory_safety_factor=float(data.get("memory_safety_factor", 0.8)),
         memory_policy=str(data.get("memory_policy", "none")),
@@ -304,6 +401,13 @@ def _summary_to_dict(summary: PhenomenologyRolloutSummary) -> dict[str, Any]:
             "down": list(summary.down_input_masses),
             "up_normalization": summary.up_mass_normalization,
             "down_normalization": summary.down_mass_normalization,
+        },
+        "lepton_inputs": {
+            "mode": summary.lepton_mode,
+            "neutrino_yukawas": list(summary.neutrino_yukawas) if summary.neutrino_yukawas is not None else None,
+            "charged_lepton_yukawas": (
+                list(summary.charged_lepton_yukawas) if summary.charged_lepton_yukawas is not None else None
+            ),
         },
         "fn_masses": {
             "up": list(summary.up_fn_masses),
@@ -331,7 +435,11 @@ def _summary_to_dict(summary: PhenomenologyRolloutSummary) -> dict[str, Any]:
         },
         "rollout": {
             "collision_mode": summary.collision_mode,
+            "rollout_entrypoint": summary.rollout_entrypoint,
             "stream_mode": summary.stream_mode,
+            "gauge_background": summary.gauge_background,
+            "yukawa_collision_strategy": summary.yukawa_collision_strategy,
+            "production_contract": summary.production_contract,
             "norm_initial": summary.norm_initial,
             "norm_final": summary.norm_final,
             "norm_drift": summary.norm_drift,
@@ -340,6 +448,23 @@ def _summary_to_dict(summary: PhenomenologyRolloutSummary) -> dict[str, Any]:
             "extended_norm_drift": summary.extended_norm_drift,
             "max_density_initial": summary.max_density_initial,
             "max_density_final": summary.max_density_final,
+            "carrier_populations": {
+                "sector_labels": ["Q", "u_c", "d_c", "L", "e_c", "nu_c"],
+                "sector_initial": list(summary.carrier_sector_initial),
+                "sector_final": list(summary.carrier_sector_final),
+                "sector_drift": list(summary.carrier_sector_drift),
+                "dirac_chirality_labels": ["left", "right"],
+                "dirac_chirality_initial": list(summary.carrier_chirality_initial),
+                "dirac_chirality_final": list(summary.carrier_chirality_final),
+                "dirac_chirality_drift": list(summary.carrier_chirality_drift),
+                "family_initial": list(summary.carrier_family_initial),
+                "family_final": list(summary.carrier_family_final),
+                "family_drift": list(summary.carrier_family_drift),
+                "internal_copy_labels": ["copy0", "copy1"],
+                "internal_copy_initial": list(summary.carrier_copy_initial),
+                "internal_copy_final": list(summary.carrier_copy_final),
+                "internal_copy_drift": list(summary.carrier_copy_drift),
+            },
             "used_higgs_fn_collision": summary.used_higgs_fn_collision,
             "used_fn_dilation_collision": summary.used_fn_dilation_collision,
             "steps_completed": summary.steps_completed,
@@ -349,8 +474,12 @@ def _summary_to_dict(summary: PhenomenologyRolloutSummary) -> dict[str, Any]:
                 "total_complex_elements": summary.total_complex_elements,
                 "state_complex64_bytes": summary.state_complex64_bytes,
                 "state_complex128_bytes": summary.state_complex128_bytes,
+                "state_array_bytes": summary.state_array_bytes,
+                "state_array_bytes_per_site": summary.state_array_bytes_per_site,
                 "config_array_elements": summary.config_array_elements,
                 "config_array_bytes": summary.config_array_bytes,
+                "runtime_array_bytes": summary.runtime_array_bytes,
+                "runtime_array_bytes_per_site": summary.runtime_array_bytes_per_site,
                 "total_array_bytes": summary.total_array_bytes,
                 "complex64_bytes": summary.complex64_bytes,
                 "complex128_bytes": summary.complex128_bytes,
@@ -374,18 +503,23 @@ def _prepare_phenomenology_rollout(
         else ckm_from_angles(config.ckm_angles)
     )
     state = deterministic_qca_family_state(config.lattice_shape)
+    links = _phenomenology_static_links(config.lattice_shape, config.gauge_background, dtype=state.dtype)
+    lepton_yukawas = _diagonal_lepton_yukawas(config)
     calibrated = sm_qca_rollout_config_from_masses_ckm(
         up_fn_masses,
         down_fn_masses,
         ckm,
         config.lattice_shape,
+        links=links,
         lambda_rec=config.lambda_rec,
         charges=config.charges,
+        lepton_yukawas=lepton_yukawas,
         center_fit_steps=config.center_fit_steps,
         yukawa_step_size=config.yukawa_step_size,
         higgs_vev=config.higgs_vev,
         collision_mode=calibration_collision_mode,
         stream_mode=config.stream_mode,
+        yukawa_collision_strategy=config.yukawa_collision_strategy,
         record_observables=False,
         record_density=False,
     )
@@ -427,6 +561,7 @@ def _run_prepared_phenomenology_rollout(
         higgs=runtime_higgs,
         collision_mode=collision_mode,
         stream_mode=config.stream_mode,
+        yukawa_collision_strategy=config.yukawa_collision_strategy,
         quark_path_readouts=prepared.calibrated.config.quark_path_readouts
         if collision_mode == "fn_dilation"
         else None,
@@ -434,28 +569,83 @@ def _run_prepared_phenomenology_rollout(
         record_observables=False,
         record_density=False,
     )
-    result = sm_run_qca_rollout(rollout_config, prepared.state, steps=config.steps)
-    calibrated = prepared.calibrated
-    residuals = calibrated.verdict.fit.residuals
-    factorization = calibrated.verdict.fit.factorization
-    norm_initial = float(result.norm_history[0])
-    norm_final = float(result.norm_history[-1])
-    extended_norm_initial = float(result.extended_norm_history[0])
-    extended_norm_final = float(result.extended_norm_history[-1])
-    footprint = result.memory_footprint
-    rollout_footprint = result.rollout_memory_footprint
+    if collision_mode == "effective_yukawa":
+        setup = sm_qca_prepare_production_rollout_from_config(prepared.state, rollout_config)
+        production_contract = sm_qca_production_contract(setup.config, uses_production_api=True)._asdict()
+        calibrated_setup = QCASMCalibratedProductionRolloutSetup(
+            setup=setup,
+            verdict=prepared.calibrated.verdict,
+        )
+        calibrated_observed = sm_run_jitted_qca_calibrated_production_rollout_with_observables(
+            calibrated_setup,
+            steps=config.steps,
+        )
+        observed = calibrated_observed.production_observables
+        footprint = observed.production.final_rollout_memory_footprint.state
+        rollout_footprint = observed.production.final_rollout_memory_footprint
+        norm_initial = float(observed.norm_initial)
+        norm_final = float(observed.norm_final)
+        extended_norm_initial = float(observed.extended_norm_initial)
+        extended_norm_final = float(observed.extended_norm_final)
+        max_density_initial = float(observed.max_density_initial)
+        max_density_final = float(observed.max_density_final)
+        carrier_initial = observed.carrier_populations_initial
+        carrier_final = observed.carrier_populations_final
+        used_higgs_fn_collision = bool(observed.used_higgs_fn_collision)
+        used_fn_dilation_collision = bool(observed.used_fn_dilation_collision)
+        rollout_entrypoint = "calibrated_production_api"
+        calibrated_verdict = calibrated_observed.verdict
+    else:
+        production_contract = sm_qca_production_contract(rollout_config, uses_production_api=False)._asdict()
+        result = sm_run_qca_rollout(rollout_config, prepared.state, steps=config.steps)
+        norm_initial = float(result.norm_history[0])
+        norm_final = float(result.norm_history[-1])
+        extended_norm_initial = float(result.extended_norm_history[0])
+        extended_norm_final = float(result.extended_norm_history[-1])
+        max_density_initial = float(result.max_density_history[0])
+        max_density_final = float(result.max_density_history[-1])
+        carrier_initial = sm_qca_family_carrier_populations(prepared.state)
+        carrier_final = sm_qca_family_carrier_populations(result.final_qca_state.visible_state)
+        footprint = result.memory_footprint
+        rollout_footprint = result.rollout_memory_footprint
+        used_higgs_fn_collision = bool(result.used_higgs_fn_collision)
+        used_fn_dilation_collision = bool(result.used_fn_dilation_collision)
+        rollout_entrypoint = "rollout_config"
+        calibrated_verdict = prepared.calibrated.verdict
+    residuals = calibrated_verdict.fit.residuals
+    factorization = calibrated_verdict.fit.factorization
+    sites = int(config.lattice_shape[0] * config.lattice_shape[1] * config.lattice_shape[2])
+    carrier_sector_initial = _float_tuple(carrier_initial.sector)
+    carrier_sector_final = _float_tuple(carrier_final.sector)
+    carrier_chirality_initial = _float_tuple(carrier_initial.dirac_chirality)
+    carrier_chirality_final = _float_tuple(carrier_final.dirac_chirality)
+    carrier_family_initial = _float_tuple(carrier_initial.family)
+    carrier_family_final = _float_tuple(carrier_final.family)
+    carrier_copy_initial = _float_tuple(carrier_initial.internal_copy)
+    carrier_copy_final = _float_tuple(carrier_final.internal_copy)
     return PhenomenologyRolloutSummary(
         scale_label=config.scale_label,
-        selected_label=calibrated.verdict.selected_label,
-        passed_center_cp=bool(calibrated.verdict.passed),
-        status=calibrated.verdict.status,
-        failure_reasons=tuple(calibrated.verdict.failure_reasons),
+        selected_label=calibrated_verdict.selected_label,
+        passed_center_cp=bool(calibrated_verdict.passed),
+        status=calibrated_verdict.status,
+        failure_reasons=tuple(calibrated_verdict.failure_reasons),
         lambda_rec=float(config.lambda_rec),
         charges_q=tuple(int(value) for value in config.charges.q),
         charges_u=tuple(int(value) for value in config.charges.u),
         charges_d=tuple(int(value) for value in config.charges.d),
         up_input_masses=tuple(float(value) for value in config.up_masses),
         down_input_masses=tuple(float(value) for value in config.down_masses),
+        lepton_mode=_lepton_mode(config),
+        neutrino_yukawas=(
+            tuple(float(value) for value in config.neutrino_yukawas)
+            if config.neutrino_yukawas is not None
+            else None
+        ),
+        charged_lepton_yukawas=(
+            tuple(float(value) for value in config.charged_lepton_yukawas)
+            if config.charged_lepton_yukawas is not None
+            else None
+        ),
         up_fn_masses=tuple(float(value) for value in prepared.up_fn_masses),
         down_fn_masses=tuple(float(value) for value in prepared.down_fn_masses),
         up_mass_normalization=float(prepared.up_normalization),
@@ -482,20 +672,40 @@ def _run_prepared_phenomenology_rollout(
         extended_norm_initial=extended_norm_initial,
         extended_norm_final=extended_norm_final,
         extended_norm_drift=abs(extended_norm_final - extended_norm_initial),
-        max_density_initial=float(result.max_density_history[0]),
-        max_density_final=float(result.max_density_history[-1]),
-        used_higgs_fn_collision=bool(result.used_higgs_fn_collision),
-        used_fn_dilation_collision=bool(result.used_fn_dilation_collision),
-        collision_mode=result.collision_mode,
+        max_density_initial=max_density_initial,
+        max_density_final=max_density_final,
+        carrier_sector_initial=carrier_sector_initial,  # type: ignore[arg-type]
+        carrier_sector_final=carrier_sector_final,  # type: ignore[arg-type]
+        carrier_sector_drift=tuple(final - initial for initial, final in zip(carrier_sector_initial, carrier_sector_final)),  # type: ignore[arg-type]
+        carrier_chirality_initial=carrier_chirality_initial,  # type: ignore[arg-type]
+        carrier_chirality_final=carrier_chirality_final,  # type: ignore[arg-type]
+        carrier_chirality_drift=tuple(final - initial for initial, final in zip(carrier_chirality_initial, carrier_chirality_final)),  # type: ignore[arg-type]
+        carrier_family_initial=carrier_family_initial,  # type: ignore[arg-type]
+        carrier_family_final=carrier_family_final,  # type: ignore[arg-type]
+        carrier_family_drift=tuple(final - initial for initial, final in zip(carrier_family_initial, carrier_family_final)),  # type: ignore[arg-type]
+        carrier_copy_initial=carrier_copy_initial,  # type: ignore[arg-type]
+        carrier_copy_final=carrier_copy_final,  # type: ignore[arg-type]
+        carrier_copy_drift=tuple(final - initial for initial, final in zip(carrier_copy_initial, carrier_copy_final)),  # type: ignore[arg-type]
+        used_higgs_fn_collision=used_higgs_fn_collision,
+        used_fn_dilation_collision=used_fn_dilation_collision,
+        collision_mode=collision_mode,
+        rollout_entrypoint=rollout_entrypoint,
         stream_mode=config.stream_mode,
-        steps_completed=int(result.steps_completed),
+        gauge_background=config.gauge_background,
+        yukawa_collision_strategy=config.yukawa_collision_strategy,
+        production_contract={key: bool(value) for key, value in production_contract.items()},
+        steps_completed=int(config.steps),
         visible_complex_elements=int(footprint.visible_complex_elements),
         fn_path_aux_complex_elements=int(footprint.fn_path_aux_complex_elements),
         total_complex_elements=int(footprint.total_complex_elements),
         state_complex64_bytes=int(footprint.complex64_bytes),
         state_complex128_bytes=int(footprint.complex128_bytes),
+        state_array_bytes=int(rollout_footprint.state_array_bytes),
+        state_array_bytes_per_site=float(rollout_footprint.state_array_bytes / sites),
         config_array_elements=int(rollout_footprint.config_array_elements),
         config_array_bytes=int(rollout_footprint.config_array_bytes),
+        runtime_array_bytes=int(rollout_footprint.total_array_bytes),
+        runtime_array_bytes_per_site=float(rollout_footprint.total_array_bytes / sites),
         total_array_bytes=int(rollout_footprint.total_array_bytes),
         complex64_bytes=int(rollout_footprint.total_array_bytes),
         complex128_bytes=int(footprint.complex128_bytes + rollout_footprint.config_array_bytes),
@@ -527,6 +737,8 @@ def _mode_memory_estimate(config: PhenomenologyRunConfig, collision_mode: str) -
     if collision_mode not in ("fn_dilation", "effective_yukawa"):
         raise ValueError("collision_mode must be 'fn_dilation' or 'effective_yukawa'")
     sites = int(config.lattice_shape[0] * config.lattice_shape[1] * config.lattice_shape[2])
+    links = _phenomenology_static_links(config.lattice_shape, config.gauge_background)
+    lepton_yukawas = _diagonal_lepton_yukawas(config)
     visible_complex_elements = sites * 4 * SM_INTERNAL_DIM * SM_FAMILY_DIM
     fn_path_aux_complex_elements = 0
     if collision_mode == "fn_dilation":
@@ -534,24 +746,48 @@ def _mode_memory_estimate(config: PhenomenologyRunConfig, collision_mode: str) -
         hidden_dim = int(dims.up + dims.down)
         fn_path_aux_complex_elements = sites * 4 * 3 * 2 * hidden_dim
     state_complex_elements = visible_complex_elements + fn_path_aux_complex_elements
-    mode_config = sm_qca_center_cp_rollout_config(
-        config.lattice_shape,
-        lambda_rec=config.lambda_rec,
-        charges=config.charges,
-        yukawa_step_size=config.yukawa_step_size,
-        higgs_vev=config.higgs_vev,
-        collision_mode=collision_mode,
-        stream_mode=config.stream_mode,
-        record_density=False,
+    use_production_api = collision_mode == "effective_yukawa"
+    mode_config = (
+        sm_qca_production_rollout_config(
+            config.lattice_shape,
+            links=links,
+            lambda_rec=config.lambda_rec,
+            charges=config.charges,
+            lepton_yukawas=lepton_yukawas,
+            yukawa_step_size=config.yukawa_step_size,
+            higgs_vev=config.higgs_vev,
+            stream_mode=config.stream_mode,
+            yukawa_collision_strategy=config.yukawa_collision_strategy,
+        )
+        if use_production_api
+        else sm_qca_center_cp_rollout_config(
+            config.lattice_shape,
+            links=links,
+            lambda_rec=config.lambda_rec,
+            charges=config.charges,
+            lepton_yukawas=lepton_yukawas,
+            yukawa_step_size=config.yukawa_step_size,
+            higgs_vev=config.higgs_vev,
+            collision_mode=collision_mode,
+            stream_mode=config.stream_mode,
+            yukawa_collision_strategy=config.yukawa_collision_strategy,
+            record_density=False,
+        )
     )
     config_footprint = sm_qca_config_memory_footprint(mode_config)
     state_complex64_bytes = 8 * state_complex_elements
     state_complex128_bytes = 16 * state_complex_elements
+    state_array_bytes = state_complex64_bytes
     complex64_bytes = state_complex64_bytes + config_footprint.array_bytes
     complex128_bytes = state_complex128_bytes + config_footprint.array_bytes
+    runtime_array_bytes = state_array_bytes + config_footprint.array_bytes
     return {
         "collision_mode": collision_mode,
+        "rollout_entrypoint": "production_api" if use_production_api else "rollout_config",
         "stream_mode": config.stream_mode,
+        "gauge_background": config.gauge_background,
+        "yukawa_collision_strategy": config.yukawa_collision_strategy,
+        "lepton_mode": _lepton_mode(config),
         "lattice_shape": list(config.lattice_shape),
         "sites": sites,
         "visible_complex_elements": visible_complex_elements,
@@ -562,7 +798,11 @@ def _mode_memory_estimate(config: PhenomenologyRunConfig, collision_mode: str) -
         "total_complex_elements": state_complex_elements,
         "state_complex64_bytes": state_complex64_bytes,
         "state_complex128_bytes": state_complex128_bytes,
-        "total_array_bytes": complex64_bytes,
+        "state_array_bytes": state_array_bytes,
+        "state_array_bytes_per_site": state_array_bytes / sites,
+        "runtime_array_bytes": runtime_array_bytes,
+        "runtime_array_bytes_per_site": runtime_array_bytes / sites,
+        "total_array_bytes": runtime_array_bytes,
         "complex64_bytes": complex64_bytes,
         "complex128_bytes": complex128_bytes,
         "complex64_bytes_per_site": complex64_bytes / sites,
@@ -578,16 +818,18 @@ def _memory_fit(config: PhenomenologyRunConfig, memory: dict[str, Any]) -> dict[
     if not 0.0 < config.memory_safety_factor <= 1.0:
         raise ValueError("memory_safety_factor must be in (0, 1]")
     usable_bytes = int(config.memory_budget_gib * BYTES_PER_GIB * config.memory_safety_factor)
-    complex64_bytes = int(memory["complex64_bytes"])
+    runtime_bytes = int(memory["runtime_array_bytes"])
     return {
-        "estimate_scope": "runtime_complex64_state_plus_selected_config_arrays",
+        "estimate_scope": "runtime_state_plus_selected_config_arrays",
         "memory_budget_gib": float(config.memory_budget_gib),
         "memory_safety_factor": float(config.memory_safety_factor),
         "usable_bytes": usable_bytes,
-        "complex64_bytes": complex64_bytes,
-        "fits_memory_budget": complex64_bytes <= usable_bytes,
-        "budget_fraction": float(complex64_bytes / usable_bytes),
-        "complex64_bytes_margin": usable_bytes - complex64_bytes,
+        "runtime_bytes": runtime_bytes,
+        "complex64_bytes": runtime_bytes,
+        "fits_memory_budget": runtime_bytes <= usable_bytes,
+        "budget_fraction": float(runtime_bytes / usable_bytes),
+        "runtime_bytes_margin": usable_bytes - runtime_bytes,
+        "complex64_bytes_margin": usable_bytes - runtime_bytes,
     }
 
 
@@ -609,6 +851,9 @@ def _memory_preflight_payload(config: PhenomenologyRunConfig) -> dict[str, Any]:
     return {
         "requested_collision_mode": config.collision_mode,
         "stream_mode": config.stream_mode,
+        "gauge_background": config.gauge_background,
+        "yukawa_collision_strategy": config.yukawa_collision_strategy,
+        "lepton_mode": _lepton_mode(config),
         "memory_policy": config.memory_policy,
         "memory_budget_gib": config.memory_budget_gib,
         "memory_safety_factor": config.memory_safety_factor,
@@ -686,6 +931,9 @@ def _rollout_mode_comparison(summaries: tuple[PhenomenologyRolloutSummary, ...])
         "complex64_bytes_reference": exact.complex64_bytes,
         "complex64_bytes_compressed": compressed.complex64_bytes,
         "complex64_bytes_saved": exact.complex64_bytes - compressed.complex64_bytes,
+        "runtime_bytes_reference": exact.runtime_array_bytes,
+        "runtime_bytes_compressed": compressed.runtime_array_bytes,
+        "runtime_bytes_saved": exact.runtime_array_bytes - compressed.runtime_array_bytes,
         "memory_ratio_reference_to_compressed": float(exact.complex64_bytes / compressed.complex64_bytes),
         "extended_norm_drift_reference": exact.extended_norm_drift,
         "extended_norm_drift_compressed": compressed.extended_norm_drift,
@@ -700,6 +948,9 @@ def _summaries_to_payload(
         payload = _summary_to_dict(summaries[0])
         payload["requested_collision_mode"] = config.collision_mode
         payload["stream_mode"] = config.stream_mode
+        payload["gauge_background"] = config.gauge_background
+        payload["yukawa_collision_strategy"] = config.yukawa_collision_strategy
+        payload["lepton_mode"] = _lepton_mode(config)
         payload["selected_collision_modes"] = [summary.collision_mode for summary in summaries]
         payload["memory_preflight"] = _memory_preflight_payload(config)
         return payload
@@ -714,6 +965,9 @@ def _summaries_to_payload(
         },
         "requested_collision_mode": config.collision_mode,
         "stream_mode": config.stream_mode,
+        "gauge_background": config.gauge_background,
+        "yukawa_collision_strategy": config.yukawa_collision_strategy,
+        "lepton_mode": _lepton_mode(config),
         "collision_modes": [summary.collision_mode for summary in summaries],
         "memory_preflight": _memory_preflight_payload(config),
         "rollouts": {summary.collision_mode: _summary_to_dict(summary) for summary in summaries},
@@ -729,6 +983,12 @@ def build_arg_parser() -> argparse.ArgumentParser:
     parser.add_argument("--scale-label", help="Label for the input mass/CKM scale, e.g. MZ or mt.")
     parser.add_argument("--up-masses", type=_parse_float_triplet, help="Comma triple for up,c,t masses or ratios.")
     parser.add_argument("--down-masses", type=_parse_float_triplet, help="Comma triple for d,s,b masses or ratios.")
+    parser.add_argument("--neutrino-yukawas", type=_parse_float_triplet, help="Optional diagonal effective neutrino Yukawa triple.")
+    parser.add_argument(
+        "--charged-lepton-yukawas",
+        type=_parse_float_triplet,
+        help="Optional diagonal effective charged-lepton Yukawa triple.",
+    )
     parser.add_argument("--mass-mode", choices=("absolute", "ratios"), help="Interpret masses as absolute values or already-normalized ratios.")
     parser.add_argument("--ckm-angles", type=_parse_ckm_angles, help="Comma tuple s12,s23,s13,delta.")
     parser.add_argument("--lambda", dest="lambda_rec", type=float, help="FN recirculation attenuation lambda.")
@@ -753,6 +1013,16 @@ def build_arg_parser() -> argparse.ArgumentParser:
         choices=("hop_sum", "split_axis"),
         help="Use the fast free-stream kernel or the lower-temporary-memory split-axis kernel.",
     )
+    parser.add_argument(
+        "--gauge-background",
+        choices=("none", "identity"),
+        help="Optional static gauge background; identity uses hop_sum unless --stream-mode is explicit.",
+    )
+    parser.add_argument(
+        "--yukawa-collision-strategy",
+        choices=("memory", "fast"),
+        help="Use the lower-temp cached Yukawa collision or the batched fast production variant.",
+    )
     parser.add_argument("--memory-budget-gib", type=float, help="Optional GPU memory budget in GiB.")
     parser.add_argument("--memory-safety-factor", type=float, help="Fraction of GPU budget treated as usable.")
     parser.add_argument(
@@ -770,6 +1040,11 @@ def config_from_args(argv: list[str] | None = None) -> tuple[PhenomenologyRunCon
     parser = build_arg_parser()
     args = parser.parse_args(argv)
     config = load_phenomenology_config(args.config) if args.config is not None else PhenomenologyRunConfig()
+    gauge_background = args.gauge_background if args.gauge_background is not None else config.gauge_background
+    _validate_gauge_background(gauge_background)
+    stream_mode = args.stream_mode if args.stream_mode is not None else config.stream_mode
+    if args.stream_mode is None and args.gauge_background is not None and gauge_background != "none":
+        stream_mode = "hop_sum"
     charges = FNQuarkCharges(
         q=args.q_charges if args.q_charges is not None else config.charges.q,
         u=args.u_charges if args.u_charges is not None else config.charges.u,
@@ -784,6 +1059,14 @@ def config_from_args(argv: list[str] | None = None) -> tuple[PhenomenologyRunCon
             charges=charges,
             up_masses=args.up_masses if args.up_masses is not None else config.up_masses,
             down_masses=args.down_masses if args.down_masses is not None else config.down_masses,
+            neutrino_yukawas=(
+                args.neutrino_yukawas if args.neutrino_yukawas is not None else config.neutrino_yukawas
+            ),
+            charged_lepton_yukawas=(
+                args.charged_lepton_yukawas
+                if args.charged_lepton_yukawas is not None
+                else config.charged_lepton_yukawas
+            ),
             mass_mode=args.mass_mode if args.mass_mode is not None else config.mass_mode,
             ckm_angles=args.ckm_angles if args.ckm_angles is not None else config.ckm_angles,
             ckm_matrix=None if args.ckm_angles is not None else config.ckm_matrix,
@@ -791,7 +1074,13 @@ def config_from_args(argv: list[str] | None = None) -> tuple[PhenomenologyRunCon
             yukawa_step_size=args.yukawa_step_size if args.yukawa_step_size is not None else config.yukawa_step_size,
             higgs_vev=args.higgs_vev if args.higgs_vev is not None else config.higgs_vev,
             collision_mode=args.collision_mode if args.collision_mode is not None else config.collision_mode,
-            stream_mode=args.stream_mode if args.stream_mode is not None else config.stream_mode,
+            stream_mode=stream_mode,
+            gauge_background=gauge_background,
+            yukawa_collision_strategy=(
+                args.yukawa_collision_strategy
+                if args.yukawa_collision_strategy is not None
+                else config.yukawa_collision_strategy
+            ),
             memory_budget_gib=args.memory_budget_gib if args.memory_budget_gib is not None else config.memory_budget_gib,
             memory_safety_factor=(
                 args.memory_safety_factor if args.memory_safety_factor is not None else config.memory_safety_factor
@@ -807,6 +1096,10 @@ def _print_text_summary(summary: PhenomenologyRolloutSummary) -> None:
     print(f"  scale_label: {summary.scale_label}")
     print(f"  lambda: {summary.lambda_rec:.9g}")
     print(f"  charges_q/u/d: {summary.charges_q} / {summary.charges_u} / {summary.charges_d}")
+    print(f"  lepton_mode: {summary.lepton_mode}")
+    if summary.neutrino_yukawas is not None or summary.charged_lepton_yukawas is not None:
+        print(f"  neutrino_yukawas: {summary.neutrino_yukawas}")
+        print(f"  charged_lepton_yukawas: {summary.charged_lepton_yukawas}")
     print(f"  selected_center_cp_texture: {summary.selected_label}")
     print(f"  center_cp_status: {summary.status}")
     print(f"  center_cp_passed: {summary.passed_center_cp}")
@@ -830,7 +1123,11 @@ def _print_text_summary(summary: PhenomenologyRolloutSummary) -> None:
     print(f"    down_magnitudes: {summary.down_magnitudes}")
     print("  rollout:")
     print(f"    collision_mode: {summary.collision_mode}")
+    print(f"    rollout_entrypoint: {summary.rollout_entrypoint}")
     print(f"    stream_mode: {summary.stream_mode}")
+    print(f"    gauge_background: {summary.gauge_background}")
+    print(f"    yukawa_collision_strategy: {summary.yukawa_collision_strategy}")
+    print(f"    production_contract: {summary.production_contract}")
     print(f"    norm_initial: {summary.norm_initial:.9g}")
     print(f"    norm_final: {summary.norm_final:.9g}")
     print(f"    norm_drift: {summary.norm_drift:.6g}")
@@ -839,6 +1136,9 @@ def _print_text_summary(summary: PhenomenologyRolloutSummary) -> None:
     print(f"    extended_norm_drift: {summary.extended_norm_drift:.6g}")
     print(f"    max_density_initial: {summary.max_density_initial:.9g}")
     print(f"    max_density_final: {summary.max_density_final:.9g}")
+    print(f"    carrier_sector_drift Q/u_c/d_c/L/e_c/nu_c: {summary.carrier_sector_drift}")
+    print(f"    carrier_family_drift: {summary.carrier_family_drift}")
+    print(f"    carrier_chirality_drift L/R: {summary.carrier_chirality_drift}")
     print(f"    used_higgs_fn_collision: {summary.used_higgs_fn_collision}")
     print(f"    used_fn_dilation_collision: {summary.used_fn_dilation_collision}")
     print(f"    steps_completed: {summary.steps_completed}")
@@ -847,7 +1147,9 @@ def _print_text_summary(summary: PhenomenologyRolloutSummary) -> None:
     print(f"      fn_path_aux_complex_elements: {summary.fn_path_aux_complex_elements}")
     print(f"      total_complex_elements: {summary.total_complex_elements}")
     print(f"      state_complex64_bytes: {summary.state_complex64_bytes}")
+    print(f"      state_array_bytes: {summary.state_array_bytes}")
     print(f"      config_array_bytes: {summary.config_array_bytes}")
+    print(f"      runtime_array_bytes: {summary.runtime_array_bytes}")
     print(f"      total_array_bytes: {summary.total_array_bytes}")
     print(f"      complex64_bytes: {summary.complex64_bytes}")
     print(f"      complex128_bytes: {summary.complex128_bytes}")

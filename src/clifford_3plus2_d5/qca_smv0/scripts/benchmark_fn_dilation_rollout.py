@@ -11,14 +11,18 @@ import jax
 import jax.numpy as jnp
 
 from clifford_3plus2_d5.qca_smv0.sm_family_higgs import sm_family_quark_path_hidden_dims
-from clifford_3plus2_d5.qca_smv0.sm_gauge import SM_INTERNAL_DIM
+from clifford_3plus2_d5.qca_smv0.sm_gauge import SM_INTERNAL_DIM, sm_identity_links
 from clifford_3plus2_d5.qca_smv0.sm_fn import FN_LAMBDA_WOLFENSTEIN, SM_FAMILY_DIM
 from clifford_3plus2_d5.qca_smv0.sm_rollout import (
     deterministic_qca_family_state,
+    sm_jit_qca_production_rollout,
     sm_jit_qca_state_rollout,
     sm_qca_center_cp_rollout_config,
     sm_qca_config_memory_footprint,
+    sm_qca_prepare_production_rollout,
     sm_qca_prepare_state,
+    sm_qca_production_contract,
+    sm_qca_production_rollout_config,
     sm_qca_rollout_memory_footprint,
     sm_qca_state_memory_footprint,
     sm_run_qca_rollout,
@@ -26,6 +30,14 @@ from clifford_3plus2_d5.qca_smv0.sm_rollout import (
 
 
 BYTES_PER_GIB = 1024**3
+PRODUCTION_SCALING_PRESET_SHAPES: tuple[tuple[int, int, int], ...] = (
+    (4, 4, 4),
+    (8, 4, 4),
+    (8, 8, 8),
+)
+PRODUCTION_SCALING_PRESET_STEPS = 4
+PRODUCTION_SCALING_PRESET_REPEATS = 3
+PRODUCTION_SCALING_PRESET_WARMUP_REPEATS = 1
 
 
 def _parse_int_triplet(text: str) -> tuple[int, int, int]:
@@ -65,7 +77,7 @@ def _memory_budget_summary(
     usable_bytes_after_fixed = max(0, usable_bytes - int(fixed_bytes))
     max_sites = int(usable_bytes_after_fixed // bytes_per_site)
     return {
-        "estimate_scope": "runtime_complex64_state_scaling_plus_fixed_config_arrays",
+        "estimate_scope": "runtime_state_scaling_plus_fixed_config_arrays",
         "memory_budget_gib": float(memory_budget_gib),
         "memory_safety_factor": float(memory_safety_factor),
         "usable_bytes": usable_bytes,
@@ -79,10 +91,10 @@ def _memory_budget_summary(
 
 def _memory_budget_fit(
     *,
-    complex64_bytes: int,
+    runtime_bytes: int,
     memory_budget_gib: float | None,
     memory_safety_factor: float,
-    estimate_scope: str = "runtime_complex64_state_plus_selected_config_arrays",
+    estimate_scope: str = "runtime_state_plus_selected_config_arrays",
 ) -> dict[str, Any] | None:
     if memory_budget_gib is None:
         return None
@@ -91,14 +103,101 @@ def _memory_budget_fit(
     if not 0.0 < memory_safety_factor <= 1.0:
         raise ValueError("memory_safety_factor must be in (0, 1]")
     usable_bytes = int(memory_budget_gib * BYTES_PER_GIB * memory_safety_factor)
+    runtime_bytes = int(runtime_bytes)
     return {
         "estimate_scope": estimate_scope,
         "usable_bytes": usable_bytes,
-        "complex64_bytes": int(complex64_bytes),
-        "fits_memory_budget": int(complex64_bytes) <= usable_bytes,
-        "budget_fraction": float(complex64_bytes / usable_bytes),
-        "complex64_bytes_margin": int(usable_bytes - complex64_bytes),
+        "runtime_bytes": runtime_bytes,
+        # Backward-compatible alias kept for existing consumers.  The value is
+        # the selected runtime estimate, not a fresh dtype conversion.
+        "complex64_bytes": runtime_bytes,
+        "fits_memory_budget": runtime_bytes <= usable_bytes,
+        "budget_fraction": float(runtime_bytes / usable_bytes),
+        "runtime_bytes_margin": int(usable_bytes - runtime_bytes),
+        "complex64_bytes_margin": int(usable_bytes - runtime_bytes),
     }
+
+
+def _estimated_benchmark_memory_payload(
+    *,
+    lattice_shape: tuple[int, int, int],
+    lambda_rec: float,
+    yukawa_step_size: float,
+    higgs_vev: float,
+    collision_mode: str,
+    stream_mode: str,
+    yukawa_collision_strategy: str,
+    rollout_output: str,
+    gauge_background: str,
+    memory_budget_gib: float | None,
+    memory_safety_factor: float,
+) -> dict[str, Any]:
+    payload = _memory_payload(
+        lattice_shape=lattice_shape,
+        lambda_rec=lambda_rec,
+        yukawa_step_size=yukawa_step_size,
+        higgs_vev=higgs_vev,
+        collision_mode=collision_mode,
+        stream_mode=stream_mode,
+        yukawa_collision_strategy=yukawa_collision_strategy,
+        rollout_output=rollout_output,
+        gauge_background=gauge_background,
+    )
+    budget_fit = _memory_budget_fit(
+        runtime_bytes=int(payload["memory"]["runtime_array_bytes"]),
+        memory_budget_gib=memory_budget_gib,
+        memory_safety_factor=memory_safety_factor,
+    )
+    if budget_fit is not None:
+        payload["memory_budget_fit"] = budget_fit
+    return payload
+
+
+def _validate_memory_policy(memory_policy: str) -> None:
+    if memory_policy not in ("none", "fail", "skip"):
+        raise ValueError("memory_policy must be 'none', 'fail', or 'skip'")
+
+
+def _apply_benchmark_preset(args: argparse.Namespace) -> tuple[tuple[int, int, int], ...]:
+    """Apply benchmark preset defaults, preserving explicit CLI overrides."""
+
+    if args.preset == "none":
+        return tuple(args.lattice_shapes) if args.lattice_shapes is not None else ((2, 1, 1),)
+    if args.preset != "production_scaling":
+        raise ValueError("unknown benchmark preset")
+
+    if args.collision_mode is None:
+        args.collision_mode = "effective_yukawa"
+    if args.stream_mode is None:
+        args.stream_mode = "split_axis"
+    if args.yukawa_collision_strategy is None:
+        args.yukawa_collision_strategy = "fast"
+    if args.rollout_output is None:
+        args.rollout_output = "state"
+    if args.memory_policy is None:
+        args.memory_policy = "skip"
+    if args.steps is None:
+        args.steps = PRODUCTION_SCALING_PRESET_STEPS
+    if args.repeats is None:
+        args.repeats = PRODUCTION_SCALING_PRESET_REPEATS
+    if args.warmup_repeats is None:
+        args.warmup_repeats = PRODUCTION_SCALING_PRESET_WARMUP_REPEATS
+    return tuple(args.lattice_shapes) if args.lattice_shapes is not None else PRODUCTION_SCALING_PRESET_SHAPES
+
+
+def _benchmark_static_links(
+    lattice_shape: tuple[int, int, int],
+    gauge_background: str,
+    *,
+    dtype: Any = jnp.complex64,
+) -> jnp.ndarray | None:
+    """Return static benchmark links for the requested background."""
+
+    if gauge_background == "none":
+        return None
+    if gauge_background == "identity":
+        return sm_identity_links(lattice_shape, dtype=dtype)
+    raise ValueError("gauge_background must be 'none' or 'identity'")
 
 
 def _memory_payload(
@@ -109,8 +208,9 @@ def _memory_payload(
     higgs_vev: float,
     collision_mode: str,
     stream_mode: str = "split_axis",
-    yukawa_collision_strategy: str = "memory",
+    yukawa_collision_strategy: str = "fast",
     rollout_output: str = "diagnostic",
+    gauge_background: str = "none",
 ) -> dict[str, Any]:
     sites = int(lattice_shape[0] * lattice_shape[1] * lattice_shape[2])
     visible_complex_elements = sites * 4 * SM_INTERNAL_DIM * SM_FAMILY_DIM
@@ -120,29 +220,50 @@ def _memory_payload(
         hidden_dim = int(dims.up + dims.down)
         fn_path_aux_complex_elements = sites * 4 * 3 * 2 * hidden_dim
     state_complex_elements = visible_complex_elements + fn_path_aux_complex_elements
-    config = sm_qca_center_cp_rollout_config(
-        lattice_shape,
-        lambda_rec=lambda_rec,
-        yukawa_step_size=yukawa_step_size,
-        higgs_vev=higgs_vev,
-        collision_mode=collision_mode,
-        stream_mode=stream_mode,
-        yukawa_collision_strategy=yukawa_collision_strategy,
-        record_observables=False,
-        record_density=False,
+    use_production_api = collision_mode == "effective_yukawa" and rollout_output == "state"
+    links = _benchmark_static_links(lattice_shape, gauge_background)
+    config = (
+        sm_qca_production_rollout_config(
+            lattice_shape,
+            links=links,
+            lambda_rec=lambda_rec,
+            yukawa_step_size=yukawa_step_size,
+            higgs_vev=higgs_vev,
+            stream_mode=stream_mode,
+            yukawa_collision_strategy=yukawa_collision_strategy,
+        )
+        if use_production_api
+        else sm_qca_center_cp_rollout_config(
+            lattice_shape,
+            links=links,
+            lambda_rec=lambda_rec,
+            yukawa_step_size=yukawa_step_size,
+            higgs_vev=higgs_vev,
+            collision_mode=collision_mode,
+            stream_mode=stream_mode,
+            yukawa_collision_strategy=yukawa_collision_strategy,
+            record_observables=False,
+            record_density=False,
+        )
     )
     config_footprint = sm_qca_config_memory_footprint(config)
+    production_contract = sm_qca_production_contract(config, uses_production_api=use_production_api)
     state_complex64_bytes = 8 * state_complex_elements
     state_complex128_bytes = 16 * state_complex_elements
+    state_array_bytes = state_complex64_bytes
     complex64_bytes = state_complex64_bytes + config_footprint.array_bytes
     complex128_bytes = state_complex128_bytes + config_footprint.array_bytes
+    runtime_array_bytes = state_array_bytes + config_footprint.array_bytes
     return {
         "lattice_shape": list(lattice_shape),
         "sites": sites,
         "collision_mode": collision_mode,
         "stream_mode": stream_mode,
+        "gauge_background": gauge_background,
         "yukawa_collision_strategy": yukawa_collision_strategy,
         "rollout_output": rollout_output,
+        "benchmark_entrypoint": "production_api" if use_production_api else "rollout_config",
+        "production_contract": production_contract._asdict(),
         "memory": {
             "visible_complex_elements": visible_complex_elements,
             "fn_path_aux_complex_elements": fn_path_aux_complex_elements,
@@ -154,7 +275,11 @@ def _memory_payload(
             "state_complex128_bytes": state_complex128_bytes,
             "state_complex64_bytes_per_site": state_complex64_bytes / sites,
             "state_complex128_bytes_per_site": state_complex128_bytes / sites,
-            "total_array_bytes": complex64_bytes,
+            "state_array_bytes": state_array_bytes,
+            "state_array_bytes_per_site": state_array_bytes / sites,
+            "runtime_array_bytes": runtime_array_bytes,
+            "runtime_array_bytes_per_site": runtime_array_bytes / sites,
+            "total_array_bytes": runtime_array_bytes,
             "complex64_bytes": complex64_bytes,
             "complex128_bytes": complex128_bytes,
             "complex64_bytes_per_site": complex64_bytes / sites,
@@ -171,24 +296,41 @@ def _collision_modes(collision_mode: str) -> tuple[str, ...]:
     raise ValueError("collision_mode must be 'fn_dilation', 'effective_yukawa', or 'both'")
 
 
+def _yukawa_collision_strategies(yukawa_collision_strategy: str) -> tuple[str, ...]:
+    if yukawa_collision_strategy == "both":
+        return ("memory", "fast")
+    if yukawa_collision_strategy in ("memory", "fast"):
+        return (yukawa_collision_strategy,)
+    raise ValueError("yukawa_collision_strategy must be 'memory', 'fast', or 'both'")
+
+
 def _mode_comparisons(benchmarks: list[dict[str, Any]]) -> list[dict[str, Any]]:
-    by_shape: dict[tuple[int, int, int], dict[str, dict[str, Any]]] = {}
+    by_shape_strategy: dict[tuple[tuple[int, int, int], str], dict[str, dict[str, Any]]] = {}
     for benchmark in benchmarks:
+        if benchmark.get("skipped"):
+            continue
         shape = tuple(int(value) for value in benchmark["lattice_shape"])
-        by_shape.setdefault(shape, {})[benchmark["collision_mode"]] = benchmark
+        strategy = str(benchmark.get("yukawa_collision_strategy", "memory"))
+        by_shape_strategy.setdefault((shape, strategy), {})[benchmark["collision_mode"]] = benchmark
 
     comparisons = []
-    for shape, modes in by_shape.items():
+    for (shape, strategy), modes in by_shape_strategy.items():
         exact = modes.get("fn_dilation")
         compressed = modes.get("effective_yukawa")
         if exact is None or compressed is None:
             continue
-        exact_memory = int(exact["memory"]["complex64_bytes"])
-        compressed_memory = int(compressed["memory"]["complex64_bytes"])
+        exact_memory = int(exact["memory"].get("runtime_array_bytes", exact["memory"]["complex64_bytes"]))
+        compressed_memory = int(
+            compressed["memory"].get("runtime_array_bytes", compressed["memory"]["complex64_bytes"]),
+        )
         comparison: dict[str, Any] = {
             "lattice_shape": list(shape),
+            "yukawa_collision_strategy": strategy,
             "reference_collision_mode": "fn_dilation",
             "compressed_collision_mode": "effective_yukawa",
+            "runtime_bytes_reference": exact_memory,
+            "runtime_bytes_compressed": compressed_memory,
+            "runtime_bytes_saved": exact_memory - compressed_memory,
             "complex64_bytes_reference": exact_memory,
             "complex64_bytes_compressed": compressed_memory,
             "complex64_bytes_saved": exact_memory - compressed_memory,
@@ -237,6 +379,74 @@ def _mode_comparisons(benchmarks: list[dict[str, Any]]) -> list[dict[str, Any]]:
                 compressed["memory_budget_fit"]["fits_memory_budget"]
                 and not exact["memory_budget_fit"]["fits_memory_budget"],
             )
+        comparisons.append(comparison)
+    return comparisons
+
+
+def _strategy_comparisons(benchmarks: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    by_shape_mode: dict[tuple[tuple[int, int, int], str], dict[str, dict[str, Any]]] = {}
+    for benchmark in benchmarks:
+        if benchmark.get("skipped"):
+            continue
+        shape = tuple(int(value) for value in benchmark["lattice_shape"])
+        mode = str(benchmark["collision_mode"])
+        strategy = str(benchmark.get("yukawa_collision_strategy", "memory"))
+        by_shape_mode.setdefault((shape, mode), {})[strategy] = benchmark
+
+    comparisons = []
+    for (shape, mode), strategies in by_shape_mode.items():
+        memory = strategies.get("memory")
+        fast = strategies.get("fast")
+        if memory is None or fast is None:
+            continue
+        memory_bytes = int(memory["memory"].get("runtime_array_bytes", memory["memory"]["complex64_bytes"]))
+        fast_bytes = int(fast["memory"].get("runtime_array_bytes", fast["memory"]["complex64_bytes"]))
+        comparison: dict[str, Any] = {
+            "lattice_shape": list(shape),
+            "collision_mode": mode,
+            "memory_strategy": "memory",
+            "fast_strategy": "fast",
+            "runtime_bytes_memory": memory_bytes,
+            "runtime_bytes_fast": fast_bytes,
+            "runtime_bytes_delta_fast_minus_memory": fast_bytes - memory_bytes,
+            "complex64_bytes_memory": memory_bytes,
+            "complex64_bytes_fast": fast_bytes,
+            "complex64_bytes_delta_fast_minus_memory": fast_bytes - memory_bytes,
+        }
+        if "mean_run_seconds" in memory and "mean_run_seconds" in fast:
+            comparison["runtime_ratio_memory_to_fast"] = float(
+                memory["mean_run_seconds"] / fast["mean_run_seconds"],
+            )
+        memory_compiled = memory.get("compiled_memory")
+        fast_compiled = fast.get("compiled_memory")
+        if (
+            isinstance(memory_compiled, dict)
+            and isinstance(fast_compiled, dict)
+            and memory_compiled.get("available")
+            and fast_compiled.get("available")
+            and "device_runtime_size_floor_bytes" in memory_compiled
+            and "device_runtime_size_floor_bytes" in fast_compiled
+        ):
+            memory_floor = int(memory_compiled["device_runtime_size_floor_bytes"])
+            fast_floor = int(fast_compiled["device_runtime_size_floor_bytes"])
+            comparison["compiled_runtime_floor_bytes_memory"] = memory_floor
+            comparison["compiled_runtime_floor_bytes_fast"] = fast_floor
+            comparison["compiled_runtime_floor_bytes_delta_fast_minus_memory"] = fast_floor - memory_floor
+        if (
+            isinstance(memory_compiled, dict)
+            and isinstance(fast_compiled, dict)
+            and memory_compiled.get("available")
+            and fast_compiled.get("available")
+            and "temp_size_in_bytes" in memory_compiled
+            and "temp_size_in_bytes" in fast_compiled
+        ):
+            memory_temp = int(memory_compiled["temp_size_in_bytes"])
+            fast_temp = int(fast_compiled["temp_size_in_bytes"])
+            comparison["compiled_temp_bytes_memory"] = memory_temp
+            comparison["compiled_temp_bytes_fast"] = fast_temp
+            comparison["compiled_temp_bytes_delta_fast_minus_memory"] = fast_temp - memory_temp
+            if fast_temp:
+                comparison["compiled_temp_ratio_memory_to_fast"] = float(memory_temp / fast_temp)
         comparisons.append(comparison)
     return comparisons
 
@@ -295,6 +505,7 @@ def _benchmark_payload(
     stream_mode: str,
     yukawa_collision_strategy: str,
     rollout_output: str,
+    gauge_background: str = "none",
 ) -> dict[str, Any]:
     if steps <= 0:
         raise ValueError("steps must be positive")
@@ -306,20 +517,40 @@ def _benchmark_payload(
         raise ValueError("rollout_output must be 'diagnostic' or 'state'")
 
     state = deterministic_qca_family_state(lattice_shape)
-    config = sm_qca_center_cp_rollout_config(
-        lattice_shape,
-        lambda_rec=lambda_rec,
-        yukawa_step_size=yukawa_step_size,
-        higgs_vev=higgs_vev,
-        collision_mode=collision_mode,
-        stream_mode=stream_mode,
-        yukawa_collision_strategy=yukawa_collision_strategy,
-        record_observables=False,
-        record_density=False,
-    )
-    prepared = sm_qca_prepare_state(state, config)
-    footprint = sm_qca_state_memory_footprint(prepared)
-    rollout_footprint = sm_qca_rollout_memory_footprint(prepared, config)
+    links = _benchmark_static_links(lattice_shape, gauge_background, dtype=state.dtype)
+    use_production_api = collision_mode == "effective_yukawa" and rollout_output == "state"
+    if use_production_api:
+        setup = sm_qca_prepare_production_rollout(
+            lattice_shape,
+            initial_state=state,
+            links=links,
+            lambda_rec=lambda_rec,
+            yukawa_step_size=yukawa_step_size,
+            higgs_vev=higgs_vev,
+            stream_mode=stream_mode,
+            yukawa_collision_strategy=yukawa_collision_strategy,
+        )
+        config = setup.config
+        prepared = setup.initial_qca_state
+        rollout_footprint = setup.rollout_memory_footprint
+        footprint = rollout_footprint.state
+    else:
+        config = sm_qca_center_cp_rollout_config(
+            lattice_shape,
+            links=links,
+            lambda_rec=lambda_rec,
+            yukawa_step_size=yukawa_step_size,
+            higgs_vev=higgs_vev,
+            collision_mode=collision_mode,
+            stream_mode=stream_mode,
+            yukawa_collision_strategy=yukawa_collision_strategy,
+            record_observables=False,
+            record_density=False,
+        )
+        prepared = sm_qca_prepare_state(state, config)
+        footprint = sm_qca_state_memory_footprint(prepared)
+        rollout_footprint = sm_qca_rollout_memory_footprint(prepared, config)
+    production_contract = sm_qca_production_contract(config, uses_production_api=use_production_api)
 
     def diagnostic_rollout_kernel(
         local_state: jnp.ndarray,
@@ -333,7 +564,11 @@ def _benchmark_payload(
 
     if rollout_output == "state":
         initial_arg = prepared
-        jitted_rollout = sm_jit_qca_state_rollout(config, steps, donate_state=donate_state)
+        jitted_rollout = (
+            sm_jit_qca_production_rollout(config, steps, donate_state=donate_state)
+            if use_production_api
+            else sm_jit_qca_state_rollout(config, steps, donate_state=donate_state)
+        )
     else:
         initial_arg = state
         jitted_rollout = jax.jit(diagnostic_rollout_kernel, donate_argnums=(0,) if donate_state else ())
@@ -402,8 +637,11 @@ def _benchmark_payload(
         "donate_state": bool(donate_state),
         "collision_mode": collision_mode,
         "stream_mode": stream_mode,
+        "gauge_background": gauge_background,
         "yukawa_collision_strategy": yukawa_collision_strategy,
         "rollout_output": rollout_output,
+        "benchmark_entrypoint": "production_api" if use_production_api else "rollout_config",
+        "production_contract": production_contract._asdict(),
         "lambda": float(lambda_rec),
         "yukawa_step_size": float(yukawa_step_size),
         "higgs_vev": float(higgs_vev),
@@ -433,6 +671,10 @@ def _benchmark_payload(
             "state_complex128_bytes": footprint.complex128_bytes,
             "state_complex64_bytes_per_site": footprint.complex64_bytes / sites,
             "state_complex128_bytes_per_site": footprint.complex128_bytes / sites,
+            "state_array_bytes": rollout_footprint.state_array_bytes,
+            "state_array_bytes_per_site": rollout_footprint.state_array_bytes / sites,
+            "runtime_array_bytes": rollout_footprint.total_array_bytes,
+            "runtime_array_bytes_per_site": rollout_footprint.total_array_bytes / sites,
             "total_array_bytes": rollout_footprint.total_array_bytes,
             "complex64_bytes": rollout_footprint.total_array_bytes,
             "complex128_bytes": footprint.complex128_bytes + rollout_footprint.config_array_bytes,
@@ -456,47 +698,72 @@ def _benchmark_sweep_payload(
     memory_budget_gib: float | None,
     memory_safety_factor: float,
     dry_run: bool,
+    memory_policy: str = "none",
+    preset: str = "none",
     stream_mode: str = "split_axis",
-    yukawa_collision_strategy: str = "memory",
+    yukawa_collision_strategy: str = "fast",
     rollout_output: str = "state",
+    gauge_background: str = "none",
 ) -> dict[str, Any]:
+    _validate_memory_policy(memory_policy)
     benchmarks = []
     collision_modes = _collision_modes(collision_mode)
+    collision_strategies = _yukawa_collision_strategies(yukawa_collision_strategy)
     for lattice_shape in lattice_shapes:
         for mode in collision_modes:
-            if dry_run:
-                benchmarks.append(
-                    _memory_payload(
-                        lattice_shape=lattice_shape,
-                        lambda_rec=lambda_rec,
-                        yukawa_step_size=yukawa_step_size,
-                        higgs_vev=higgs_vev,
-                        collision_mode=mode,
-                        stream_mode=stream_mode,
-                        yukawa_collision_strategy=yukawa_collision_strategy,
-                        rollout_output=rollout_output,
-                    ),
+            for strategy in collision_strategies:
+                estimate = _estimated_benchmark_memory_payload(
+                    lattice_shape=lattice_shape,
+                    lambda_rec=lambda_rec,
+                    yukawa_step_size=yukawa_step_size,
+                    higgs_vev=higgs_vev,
+                    collision_mode=mode,
+                    stream_mode=stream_mode,
+                    yukawa_collision_strategy=strategy,
+                    rollout_output=rollout_output,
+                    gauge_background=gauge_background,
+                    memory_budget_gib=memory_budget_gib,
+                    memory_safety_factor=memory_safety_factor,
                 )
-            else:
-                benchmarks.append(
-                    _benchmark_payload(
-                        lattice_shape=lattice_shape,
-                        steps=steps,
-                        repeats=repeats,
-                        warmup_repeats=warmup_repeats,
-                        donate_state=donate_state,
-                        lambda_rec=lambda_rec,
-                        yukawa_step_size=yukawa_step_size,
-                        higgs_vev=higgs_vev,
-                        collision_mode=mode,
-                        stream_mode=stream_mode,
-                        yukawa_collision_strategy=yukawa_collision_strategy,
-                        rollout_output=rollout_output,
-                    ),
+                fit = estimate.get("memory_budget_fit")
+                exceeds_budget = fit is not None and not fit["fits_memory_budget"]
+                if dry_run:
+                    benchmarks.append(estimate)
+                    continue
+                if exceeds_budget and memory_policy == "fail":
+                    raise ValueError(
+                        f"benchmark {lattice_shape} {mode}/{strategy} exceeds memory budget: "
+                        f"{fit['runtime_bytes']} > {fit['usable_bytes']} runtime bytes",
+                    )
+                if exceeds_budget and memory_policy == "skip":
+                    skipped = dict(estimate)
+                    skipped["skipped"] = True
+                    skipped["skip_reason"] = "exceeds_memory_budget"
+                    benchmarks.append(skipped)
+                    continue
+                benchmark = _benchmark_payload(
+                    lattice_shape=lattice_shape,
+                    steps=steps,
+                    repeats=repeats,
+                    warmup_repeats=warmup_repeats,
+                    donate_state=donate_state,
+                    lambda_rec=lambda_rec,
+                    yukawa_step_size=yukawa_step_size,
+                    higgs_vev=higgs_vev,
+                    collision_mode=mode,
+                    stream_mode=stream_mode,
+                    yukawa_collision_strategy=strategy,
+                    rollout_output=rollout_output,
+                    gauge_background=gauge_background,
                 )
+                if "memory_budget_fit" in estimate:
+                    benchmark["memory_budget_fit"] = estimate["memory_budget_fit"]
+                benchmarks.append(benchmark)
     for benchmark in benchmarks:
+        if benchmark.get("skipped"):
+            continue
         budget_fit = _memory_budget_fit(
-            complex64_bytes=int(benchmark["memory"]["complex64_bytes"]),
+            runtime_bytes=int(benchmark["memory"]["runtime_array_bytes"]),
             memory_budget_gib=memory_budget_gib,
             memory_safety_factor=memory_safety_factor,
         )
@@ -509,7 +776,7 @@ def _benchmark_sweep_payload(
             and "device_runtime_size_floor_bytes" in compiled_memory
         ):
             compiled_fit = _memory_budget_fit(
-                complex64_bytes=int(compiled_memory["device_runtime_size_floor_bytes"]),
+                runtime_bytes=int(compiled_memory["device_runtime_size_floor_bytes"]),
                 memory_budget_gib=memory_budget_gib,
                 memory_safety_factor=memory_safety_factor,
                 estimate_scope="xla_device_runtime_size_floor_bytes",
@@ -517,16 +784,21 @@ def _benchmark_sweep_payload(
             if compiled_fit is not None:
                 benchmark["compiled_memory_budget_fit"] = compiled_fit
     first_memory = benchmarks[0]["memory"]
-    bytes_per_site = float(first_memory["state_complex64_bytes_per_site"])
+    bytes_per_site = float(first_memory["state_array_bytes_per_site"])
     fixed_bytes = int(first_memory["config_array_bytes"])
     return {
         "dry_run": bool(dry_run),
+        "preset": preset,
+        "memory_policy": memory_policy,
         "collision_modes": list(collision_modes),
         "stream_mode": stream_mode,
+        "gauge_background": gauge_background,
         "yukawa_collision_strategy": yukawa_collision_strategy,
+        "yukawa_collision_strategies": list(collision_strategies),
         "rollout_output": rollout_output,
         "benchmarks": benchmarks,
         "mode_comparisons": _mode_comparisons(benchmarks),
+        "strategy_comparisons": _strategy_comparisons(benchmarks),
         "memory_budget": _memory_budget_summary(
             bytes_per_site=bytes_per_site,
             fixed_bytes=fixed_bytes,
@@ -539,15 +811,24 @@ def _benchmark_sweep_payload(
 def build_arg_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
+        "--preset",
+        choices=("none", "production_scaling"),
+        default="none",
+        help=(
+            "Use a focused production hot-path sweep preset. Explicit flags "
+            "and repeated --lattice-shape values override preset defaults."
+        ),
+    )
+    parser.add_argument(
         "--lattice-shape",
         type=_parse_int_triplet,
         action="append",
         dest="lattice_shapes",
         help="Comma triple nx,ny,nz. Repeat to sweep multiple shapes.",
     )
-    parser.add_argument("--steps", type=int, default=4)
-    parser.add_argument("--repeats", type=int, default=3)
-    parser.add_argument("--warmup-repeats", type=int, default=2, help="Post-JIT runs excluded from timing statistics.")
+    parser.add_argument("--steps", type=int)
+    parser.add_argument("--repeats", type=int)
+    parser.add_argument("--warmup-repeats", type=int, help="Post-JIT runs excluded from timing statistics.")
     parser.add_argument(
         "--donate-state",
         action=argparse.BooleanOptionalAction,
@@ -560,7 +841,7 @@ def build_arg_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--collision-mode",
         choices=("fn_dilation", "effective_yukawa", "both"),
-        default="effective_yukawa",
+        default=None,
         help=(
             "Benchmark exact FN dilation as a reference, compressed effective "
             "Yukawa for production-scale runs, or both side by side."
@@ -569,23 +850,35 @@ def build_arg_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--stream-mode",
         choices=("hop_sum", "split_axis"),
-        default="split_axis",
+        default=None,
         help="Use the lower-temp-memory split-axis stream or the expanded eight-hop stream.",
     )
     parser.add_argument(
+        "--gauge-background",
+        choices=("none", "identity"),
+        default="none",
+        help="Optional static gauge background. Identity links require hop_sum streaming.",
+    )
+    parser.add_argument(
         "--yukawa-collision-strategy",
-        choices=("memory", "fast"),
-        default="memory",
-        help="Use the lower-temp cached Yukawa collision or the faster grouped variant.",
+        choices=("memory", "fast", "both"),
+        default=None,
+        help="Use the lower-temp cached collision, the batched fast variant, or benchmark both.",
     )
     parser.add_argument(
         "--rollout-output",
         choices=("diagnostic", "state"),
-        default="state",
+        default=None,
         help="Compile the pure final-state rollout by default, or the diagnostic rollout with observable reductions.",
     )
     parser.add_argument("--memory-budget-gib", type=float, help="Optional GPU memory budget in GiB.")
     parser.add_argument("--memory-safety-factor", type=float, default=0.8, help="Fraction of budget treated as usable.")
+    parser.add_argument(
+        "--memory-policy",
+        choices=("none", "fail", "skip"),
+        default=None,
+        help="With a memory budget, either annotate fits, fail oversized runs before JIT, or skip oversized runs.",
+    )
     parser.add_argument("--dry-run", action="store_true", help="Report memory estimates without allocating/JIT-running a rollout.")
     parser.add_argument("--output", choices=("text", "json"), default="text")
     return parser
@@ -593,7 +886,15 @@ def build_arg_parser() -> argparse.ArgumentParser:
 
 def main(argv: list[str] | None = None) -> None:
     args = build_arg_parser().parse_args(argv)
-    lattice_shapes = tuple(args.lattice_shapes) if args.lattice_shapes is not None else ((2, 1, 1),)
+    lattice_shapes = _apply_benchmark_preset(args)
+    args.collision_mode = args.collision_mode or "effective_yukawa"
+    args.stream_mode = args.stream_mode or ("hop_sum" if args.gauge_background != "none" else "split_axis")
+    args.yukawa_collision_strategy = args.yukawa_collision_strategy or "fast"
+    args.rollout_output = args.rollout_output or "state"
+    args.memory_policy = args.memory_policy or "none"
+    args.steps = 4 if args.steps is None else args.steps
+    args.repeats = 3 if args.repeats is None else args.repeats
+    args.warmup_repeats = 2 if args.warmup_repeats is None else args.warmup_repeats
     payload = _benchmark_sweep_payload(
         lattice_shapes=lattice_shapes,
         steps=args.steps,
@@ -605,10 +906,13 @@ def main(argv: list[str] | None = None) -> None:
         higgs_vev=args.higgs_vev,
         collision_mode=args.collision_mode,
         stream_mode=args.stream_mode,
+        gauge_background=args.gauge_background,
         yukawa_collision_strategy=args.yukawa_collision_strategy,
         rollout_output=args.rollout_output,
         memory_budget_gib=args.memory_budget_gib,
         memory_safety_factor=args.memory_safety_factor,
+        memory_policy=args.memory_policy,
+        preset=args.preset,
         dry_run=args.dry_run,
     )
     if args.output == "json":
@@ -619,26 +923,32 @@ def main(argv: list[str] | None = None) -> None:
         print(f"  lattice_shape: {tuple(benchmark['lattice_shape'])}")
         print(f"    collision_mode: {benchmark['collision_mode']}")
         print(f"    stream_mode: {benchmark['stream_mode']}")
+        print(f"    gauge_background: {benchmark['gauge_background']}")
         print(f"    yukawa_collision_strategy: {benchmark['yukawa_collision_strategy']}")
         print(f"    rollout_output: {benchmark['rollout_output']}")
+        print(f"    benchmark_entrypoint: {benchmark['benchmark_entrypoint']}")
+        if benchmark.get("skipped"):
+            print(f"    skipped: {benchmark['skipped']}")
+            print(f"    skip_reason: {benchmark['skip_reason']}")
         if not payload["dry_run"]:
-            print(f"    steps/repeats: {benchmark['steps']} / {benchmark['repeats']}")
-            print(f"    warmup_repeats: {benchmark['warmup_repeats']}")
-            print(f"    donate_state: {benchmark['donate_state']}")
-            print(f"    compile_seconds: {benchmark['compile_seconds']:.6g}")
-            print(f"    first_call_seconds: {benchmark['first_call_seconds']:.6g}")
-            print(f"    warmup_seconds: {benchmark['warmup_seconds']}")
-            print(f"    mean_run_seconds: {benchmark['mean_run_seconds']:.6g}")
-            print(f"    median_run_seconds: {benchmark['median_run_seconds']:.6g}")
-            print(f"    mean_seconds_per_step: {benchmark['mean_seconds_per_step']:.6g}")
-            print(f"    median_seconds_per_step: {benchmark['median_seconds_per_step']:.6g}")
-            print(f"    mean_site_steps_per_second: {benchmark['mean_site_steps_per_second']:.6g}")
-            print(f"    median_site_steps_per_second: {benchmark['median_site_steps_per_second']:.6g}")
-            if benchmark["extended_norm_drift"] is not None:
-                print(f"    extended_norm_drift: {benchmark['extended_norm_drift']:.6g}")
-            print("    compiled_memory:")
-            for key, value in benchmark["compiled_memory"].items():
-                print(f"      {key}: {value}")
+            if not benchmark.get("skipped"):
+                print(f"    steps/repeats: {benchmark['steps']} / {benchmark['repeats']}")
+                print(f"    warmup_repeats: {benchmark['warmup_repeats']}")
+                print(f"    donate_state: {benchmark['donate_state']}")
+                print(f"    compile_seconds: {benchmark['compile_seconds']:.6g}")
+                print(f"    first_call_seconds: {benchmark['first_call_seconds']:.6g}")
+                print(f"    warmup_seconds: {benchmark['warmup_seconds']}")
+                print(f"    mean_run_seconds: {benchmark['mean_run_seconds']:.6g}")
+                print(f"    median_run_seconds: {benchmark['median_run_seconds']:.6g}")
+                print(f"    mean_seconds_per_step: {benchmark['mean_seconds_per_step']:.6g}")
+                print(f"    median_seconds_per_step: {benchmark['median_seconds_per_step']:.6g}")
+                print(f"    mean_site_steps_per_second: {benchmark['mean_site_steps_per_second']:.6g}")
+                print(f"    median_site_steps_per_second: {benchmark['median_site_steps_per_second']:.6g}")
+                if benchmark["extended_norm_drift"] is not None:
+                    print(f"    extended_norm_drift: {benchmark['extended_norm_drift']:.6g}")
+                print("    compiled_memory:")
+                for key, value in benchmark["compiled_memory"].items():
+                    print(f"      {key}: {value}")
         print("    memory:")
         for key, value in benchmark["memory"].items():
             print(f"      {key}: {value}")
@@ -656,6 +966,11 @@ def main(argv: list[str] | None = None) -> None:
             print(f"    {key}: {value}")
     for comparison in payload["mode_comparisons"]:
         print(f"  mode_comparison: lattice_shape={tuple(comparison['lattice_shape'])}")
+        for key, value in comparison.items():
+            if key != "lattice_shape":
+                print(f"    {key}: {value}")
+    for comparison in payload["strategy_comparisons"]:
+        print(f"  strategy_comparison: lattice_shape={tuple(comparison['lattice_shape'])}")
         for key, value in comparison.items():
             if key != "lattice_shape":
                 print(f"    {key}: {value}")

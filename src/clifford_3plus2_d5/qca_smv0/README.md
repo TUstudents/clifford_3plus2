@@ -51,11 +51,70 @@ Simulator front door:
   masses, CKM, FN charges, and the generated center-CP Wilson powers.  This is
   the constructive simulator path; dynamic gauge/Higgs field evolution remains
   in the heavier production-tick modules.
+- `sm_qca_prepare_calibrated_production_rollout(...)` is the measurement-to-hot
+  path bridge: it calibrates from masses/CKM, forces compressed
+  `effective_yukawa` mode, prepares the persistent state, and returns the
+  center-CP verdict plus memory footprint for the JIT-ready production rollout.
+  Use `sm_run_qca_calibrated_production_rollout_with_observables(...)` or the
+  JIT-backed `sm_run_jitted_qca_calibrated_production_rollout_with_observables(...)`
+  for the lean production summary path that carries the same calibration
+  verdict and records only initial/final scalar observables.  When callers do
+  not need to inspect the prepared setup, use
+  `sm_run_jitted_qca_calibrated_production_rollout_from_masses_ckm(...)` as the
+  one-call production path from masses, CKM, lambda, charges, and lattice shape
+  to a calibrated JIT rollout.  Its return value carries the lean field
+  observables, compact order-one coefficient diagnostics, and the production
+  contract (`effective_yukawa`, state-only, no raw Yukawa/readout arrays), so
+  callers do not need manual target/readout wiring to audit the run.  The
+  production builders also accept optional
+  `lepton_yukawas=FamilyLeptonYukawas(...)`; absent explicit input, production
+  rollouts use zero lepton Yukawas rather than placeholder lepton masses.  When
+  supplied, lepton matrices are folded into the same structured collision cache
+  and then stripped from the hot path, so later lepton/neutrino phenomenology
+  can enter without changing the production field fibre.
+  `sm_run_jitted_qca_calibrated_carrier_basis_probe(...)` is the corresponding
+  one-call field-response probe: it calibrates from masses/CKM, initializes one
+  labeled carrier component, runs the compressed production update, and returns
+  the same carrier-population observables.
+  `sm_qca_prepared_quark_family_response(...)` is the reusable quark response
+  primitive: it takes an already prepared calibrated production setup, evolves
+  pure weak-up and weak-down `Q` family basis states, and returns measured
+  `3 x 3` complex field-response amplitudes plus target-sector populations into
+  `u_c` and `d_c`.  It also returns the normalized one-tick amplitudes implied
+  by the structured effective-Yukawa cache and residuals against the measured
+  response, so the production field update can be checked directly against the
+  calibrated local door.  `sm_qca_calibrated_quark_family_response(...)` remains
+  the one-call convenience wrapper that prepares this setup from masses/CKM.
+- `sm_qca_prepare_production_rollout(...)` is the core hot-path setup API.  It
+  prepares the compressed `effective_yukawa` + `split_axis` + state-only
+  rollout, initializes the persistent `QCASMState`, and returns the selected
+  runtime memory footprint before the JIT run.  The production validators reject
+  diagnostic recording flags, so this path stays state-only by construction.
+  Static gauge-background links are supported by passing `links=...`; the
+  production builder selects `stream_mode="hop_sum"` for linked runs and
+  `stream_mode="split_axis"` for free runs.  An explicit incompatible
+  `split_axis`+links request is rejected.
+  Once the structured effective-Yukawa collision cache exists, production
+  configs drop the raw fitted Yukawa matrices and explicit path readouts; the
+  calibration verdict remains the place to inspect the fitted texture.  Use
+  `sm_jit_qca_production_rollout(...)` or `sm_run_qca_production_rollout(...)`
+  when the goal is production state evolution rather than diagnostic scans.
+  `sm_run_qca_production_rollout_with_observables(...)` adds only initial/final
+  scalar observables on top of the same state-only path; it is the helper used
+  by the phenomenology CLI for compressed production summaries through the
+  JIT-backed `sm_run_jitted_qca_production_rollout_with_observables(...)`.
+  Those lean observables now include carrier-aware population reductions on
+  the actual `4 x 32 x 3` field: SM sector populations
+  `(Q, u^c, d^c, L, e^c, nu^c)`, Dirac-chirality populations, family
+  populations, and the two duplicated internal-copy populations.
 - [`QCA_SMv0_CARRIER.md`](QCA_SMv0_CARRIER.md) records the actual simulator
   carrier and fibre dimensions.  The compact theory carrier is the Spin(10)
   chiral `C^16`; the current field simulator uses a pragmatic state layout
   `Dirac 4 * simulator-internal 32 * family 3 = 384` complex amplitudes per
-  site.  Exact FN path memory is a reference dilation, not part of the physical
+  site.  `sm_qca_family_carrier_basis_state(...)` creates one-component
+  initial states on that fibre using physical labels
+  `Q, u_c, d_c, L, e_c, nu_c`, Dirac component, family, and internal copy.
+  Exact FN path memory is a reference dilation, not part of the physical
   Standard-Model fibre.
 - `scripts/phenomenology_rollout.py` is the single compact benchmark command:
   it calibrates from quark masses/CKM, builds the center-CP FN Higgs collision,
@@ -86,16 +145,40 @@ uv run python src/clifford_3plus2_d5/qca_smv0/scripts/phenomenology_rollout.py \
 
 The same command accepts `--config path/to/config.json`, with CLI flags
 overriding matching JSON fields.  The output includes center-CP residuals,
-order-one coefficient magnitudes, center-power tables, and QCA norm/density
-rollout diagnostics.  The phenomenology command uses the lean initial/final
-observable rollout path; it does not allocate full per-step density histories.
+order-one coefficient magnitudes, center-power tables, QCA norm/density rollout
+diagnostics, and initial/final carrier-population diagnostics.  The
+phenomenology command uses the lean initial/final observable rollout path; it
+does not allocate full per-step density histories.
+For the default compressed `effective_yukawa` mode, the command now runs the
+calibrated production state API and reports
+`rollout_entrypoint=calibrated_production_api`; exact `fn_dilation` remains a
+reference path with explicit hidden recirculation memory.  Its memory preflight
+uses the same production setup/config for compressed runs, so budget decisions
+and runtime summaries are made against the same hot-path arrays.  The
+phenomenology CLI also accepts `--yukawa-collision-strategy fast|memory`,
+matching the benchmark hot path: `fast` is the default batched production
+collision, while `memory` keeps the lower-temporary scan path available.  It
+also accepts `--gauge-background identity`; when no stream mode is specified
+this selects `hop_sum`, because static gauge links are carried by the expanded
+eight-hop transport rather than the free-field `split_axis` stream.  Effective
+diagonal lepton inputs can be supplied with `--neutrino-yukawas` and
+`--charged-lepton-yukawas`; by default those lepton entries are zero/off, and
+when supplied they are simulator inputs folded into the same compressed
+collision cache, not a lepton-sector derivation.
 In `fn_dilation` mode, visible norm can flow into hidden
 FN path memory; the conserved check is therefore `extended_norm_drift`, not
 visible `norm_drift`.  The rollout reports both carried-state memory and the
 selected config/cache arrays resident on the hot path.  The total runtime byte
-estimate is the number used for GPU budget decisions.  In `both` mode the JSON
-output contains one rollout for exact hidden-path FN, one rollout for compressed
-FN, and a memory comparison; this is the recommended validation/comparison path.
+estimate is the number used for GPU budget decisions.  Memory payloads now
+report actual selected-array bytes as `state_array_bytes` and
+`runtime_array_bytes`, while preserving `complex64_bytes` and
+`complex128_bytes` as compatibility/what-if fields.  The rollout JSON also
+includes a `production_contract` block, so compressed phenomenology runs expose
+whether they used the production API, carried only the structured
+effective-Yukawa cache, and dropped raw Yukawa/readout arrays.  In `both` mode
+the JSON output contains one rollout for exact hidden-path FN, one rollout for
+compressed FN, and a memory comparison; this is the recommended
+validation/comparison path.
 Add `--memory-budget-gib` with `--memory-policy fail` to reject oversized exact
 recirculation before allocation, or `--memory-policy auto` to select compressed
 FN when exact `fn_dilation` exceeds the declared runtime memory budget.  The
@@ -116,10 +199,25 @@ uv run python src/clifford_3plus2_d5/qca_smv0/scripts/benchmark_fn_dilation_roll
   --output json
 ```
 
-This JITs the same production rollout, separates first-call compile/run latency
-from repeated execution latency, and reports the carried visible/hidden memory
-plus selected config/cache arrays.  Repeating `--lattice-shape` sweeps multiple
-sizes in one command.  Benchmark runs perform post-JIT warmup repeats and report
+For the standard production-core compiled-size sweep, use the preset:
+
+```bash
+uv run python src/clifford_3plus2_d5/qca_smv0/scripts/benchmark_fn_dilation_rollout.py \
+  --preset production_scaling \
+  --memory-budget-gib 24 \
+  --memory-policy skip \
+  --output json
+```
+
+This JITs the same production rollout, using
+`sm_qca_prepare_production_rollout(...)` and
+`sm_jit_qca_production_rollout(...)` for the default compressed state-only
+path, separates first-call compile/run latency from repeated execution latency,
+and reports the carried visible/hidden memory plus selected config/cache arrays.
+Repeating `--lattice-shape` sweeps multiple sizes in one command.  Add
+`--gauge-background identity` to benchmark the static-gauge production branch;
+when no stream mode is specified this selects `hop_sum`, because static gauge
+links are not implemented by the free-field `split_axis` stream.  Benchmark runs perform post-JIT warmup repeats and report
 both mean and median runtime; use the median when the accelerator runtime emits
 occasional delayed-kernel outliers.  Non-dry runs also include XLA compiled
 executable memory analysis when the backend exposes it, including argument,
@@ -136,6 +234,15 @@ effective-Yukawa cache arrays are subtracted once instead of charged per site.
 XLA temporaries and compile-time buffers may require additional headroom.  Each
 requested lattice shape also gets a `memory_budget_fit` verdict with the budget
 fraction and byte margin, so oversized runs are visible before allocation/JIT.
+For benchmark sweeps, `--memory-policy fail` rejects oversized runs before JIT
+compilation, while `--memory-policy skip` keeps the oversized run in the JSON
+payload as `skipped=true` with the same runtime-byte fit diagnostic.  This is
+the preferred guardrail for compiled-size validation sweeps on fixed GPU
+budgets.
+Each benchmark record also includes a `production_contract` block, so compressed
+state-output runs explicitly report that they use the production API, carry only
+the structured effective-Yukawa cache, and do not carry raw fitted Yukawa or
+path-readout arrays.
 Density history is disabled in the benchmark path by default, and benchmark
 configs use the lean rollout mode that measures only initial/final observables
 so per-step reductions do not dominate hot-path timing.  Add `--dry-run` to
@@ -157,7 +264,46 @@ state-evolution kernel.  The compressed effective-Yukawa cache stores the four
 unique unitary-gauge block kinds (up, down, neutrino, electron) as structured
 `3 x 3` cosine/sine pieces and reconstructs the repeated color/copy doors
 inside the JIT, rather than carrying full `6 x 6` or all sixteen door blocks as
-runtime config arrays.
+runtime config arrays.  The default `fast` collision strategy applies all
+unitary-gauge door blocks in one batched `einsum` path for throughput-oriented
+runs; the selectable `memory` strategy scans those blocks to minimize temporary
+pressure.  Use `--yukawa-collision-strategy both` to emit side-by-side
+`strategy_comparisons` for memory-vs-fast runtime and compiled-memory tradeoffs
+on the same lattice/config.
+
+Current measured compressed production baseline:
+
+```text
+state layout: Dirac 4 * internal 32 * family 3 = 384 complex/site
+state memory: 3072 bytes/site (complex64)
+fixed effective-Yukawa config/cache: 1152 bytes
+
+production_scaling preset, 4 steps, fast:
+  4x4x4:  4.49 MB XLA temp, 4.69 MB runtime floor, ~197k median site-steps/s
+  8x4x4:  4.79 MB XLA temp, 5.18 MB runtime floor, ~346k median site-steps/s
+  8x8x8:  6.56 MB XLA temp, 8.13 MB runtime floor, ~143k median site-steps/s
+
+production_scaling preset, fast vs memory strategy:
+  4x4x4:  fast is 4.27x faster, with +0.07 MB XLA temp
+  8x4x4:  fast is 3.62x faster, with +0.13 MB XLA temp
+  8x8x8:  fast is 1.41x faster, with +0.54 MB XLA temp
+
+The measured preset keeps `fast` as the production default: the throughput win
+is consistent across the baseline sweep, and the extra temporary memory remains
+small under the 24 GiB guarded budget.  Use `--yukawa-collision-strategy memory`
+only when temporary-buffer pressure becomes the limiting constraint.
+
+24 GiB budget, 0.75 safety dry-run:
+  128^3 uses 6.44 GB state+config estimate and fits.
+  max cubic state+config estimate is 184^3.
+```
+
+This baseline uses `benchmark_entrypoint=production_api`,
+`collision_mode=effective_yukawa`, `stream_mode=split_axis`,
+`yukawa_collision_strategy=fast` by default, `rollout_output=state`, and no
+hidden FN auxiliary state.  The next core bottleneck is larger compiled runs and
+the decision whether dynamic gauge/Higgs fields join this hot path or remain in
+the heavier integrator.
 
 Stage 49 implements the free BCC Weyl/Dirac bulk walk, static
 Standard-Model gauge-background transport, pure dynamic SM gauge fields, and a

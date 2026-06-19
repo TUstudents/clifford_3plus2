@@ -1345,47 +1345,27 @@ def sm_apply_family_yukawa_collision_from_cache(
             axis=0,
         )
         if strategy == "fast":
-            grouped_positions = _unitary_gauge_yukawa_grouped_block_positions()
-            grouped_lookup = _unitary_gauge_yukawa_grouped_block_lookup()
-
-            def apply_grouped_block(kind_index: int, grouped_block_state: jnp.ndarray) -> jnp.ndarray:
-                cos_left = jnp.asarray(cache.cos_left_blocks[kind_index], dtype=state.dtype)
-                cos_right = jnp.asarray(cache.cos_right_blocks[kind_index], dtype=state.dtype)
-                sin_left_right = jnp.asarray(cache.sin_left_right_blocks[kind_index], dtype=state.dtype)
-                sin_right_left = jnp.asarray(cache.sin_right_left_blocks[kind_index], dtype=state.dtype)
-                left_state = grouped_block_state[..., 0, :]
-                right_state = grouped_block_state[..., 1, :]
-                cos_left_action = jnp.einsum("ij,...j->...i", cos_left, left_state)
-                cos_right_action = jnp.einsum("ij,...j->...i", cos_right, right_state)
-                sin_left_action = jnp.einsum("ij,...j->...i", sin_left_right, right_state)
-                sin_right_action = jnp.einsum("ij,...j->...i", sin_right_left, left_state)
-                left_output = jnp.concatenate(
-                    (
-                        cos_left_action[..., :2, :] - 1j * sin_left_action[..., 2:, :],
-                        cos_left_action[..., 2:, :] - 1j * sin_left_action[..., :2, :],
-                    ),
-                    axis=-2,
-                )
-                right_output = jnp.concatenate(
-                    (
-                        cos_right_action[..., :2, :] - 1j * sin_right_action[..., 2:, :],
-                        cos_right_action[..., 2:, :] - 1j * sin_right_action[..., :2, :],
-                    ),
-                    axis=-2,
-                )
-                return jnp.stack((left_output, right_output), axis=-2)
-
-            grouped_outputs = tuple(
-                apply_grouped_block(
-                    kind_index,
-                    jnp.take(block_state, jnp.asarray(positions, dtype=jnp.int32), axis=-3),
-                )
-                for kind_index, positions in enumerate(grouped_positions)
-            )
-            block_output = jnp.stack(
-                [grouped_outputs[kind_index][..., group_index, :, :] for kind_index, group_index in grouped_lookup],
+            left_state = block_state[..., 0, :]
+            right_state = block_state[..., 1, :]
+            cos_left_action = jnp.einsum("bij,...sbj->...sbi", cos_left_blocks, left_state)
+            cos_right_action = jnp.einsum("bij,...sbj->...sbi", cos_right_blocks, right_state)
+            sin_left_action = jnp.einsum("bij,...sbj->...sbi", sin_left_right_blocks, right_state)
+            sin_right_action = jnp.einsum("bij,...sbj->...sbi", sin_right_left_blocks, left_state)
+            left_output = jnp.concatenate(
+                (
+                    cos_left_action[..., :2, :, :] - 1j * sin_left_action[..., 2:, :, :],
+                    cos_left_action[..., 2:, :, :] - 1j * sin_left_action[..., :2, :, :],
+                ),
                 axis=-3,
             )
+            right_output = jnp.concatenate(
+                (
+                    cos_right_action[..., :2, :, :] - 1j * sin_right_action[..., 2:, :, :],
+                    cos_right_action[..., 2:, :, :] - 1j * sin_right_action[..., :2, :, :],
+                ),
+                axis=-3,
+            )
+            block_output = jnp.stack((left_output, right_output), axis=-2)
             ordered_internal = block_output.reshape((*lattice_shape, 4, 2 * block_count, SM_FAMILY_DIM))
             return jnp.take(ordered_internal, internal_inverse_indices, axis=-2)
 

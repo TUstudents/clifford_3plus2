@@ -8,6 +8,63 @@ QCA_SMV0_STAGE49_PHYSICAL_RIGHT_PRODUCTION_PROJECTED_ROLLOUT_PASS
 
 ## Current State
 
+Production-core baseline:
+
+- Default compressed rollouts now use `production_api`,
+  `collision_mode=effective_yukawa`, `stream_mode=split_axis`, state-only output,
+  `yukawa_collision_strategy=fast`, and no hidden FN auxiliary state.
+- The structured effective-Yukawa cache has both a low-temporary-memory block
+  scan strategy and a batched fast strategy that applies all unitary-gauge door
+  blocks with vectorized `einsum` operations.
+- The hot-path benchmark can now compare those strategies directly with
+  `--yukawa-collision-strategy both`, reporting side-by-side runtime and
+  compiled-memory deltas.
+- Focused compiled comparisons promoted `fast` to the default: on `4x4x4` and
+  `8x4x4`, `fast` was about `2.9x` and `1.9x` faster than `memory`,
+  respectively, with identical carried/config array memory and only small XLA
+  temporary-buffer increases.
+- The measured production fibre is
+  `Dirac 4 * internal 32 * family 3 = 384` complex amplitudes/site, i.e.
+  `3072` complex64 bytes/site.
+- Lean production observables now include initial/final carrier population
+  reductions on that same field fibre: SM sector populations
+  `(Q, u^c, d^c, L, e^c, nu^c)`, Dirac-chirality populations, family
+  populations, and duplicated internal-copy populations.  The phenomenology CLI
+  reports these as field-rollout diagnostics, separate from the fitted
+  masses/CKM calibration verdict.
+- The one-call calibrated production path from masses/CKM/lambda/charges and
+  lattice shape now returns a self-contained result: lean field observables,
+  compact center-CP coefficient diagnostics, and the production contract.  This
+  keeps the public path production-facing without manual target/readout wiring
+  or exact hidden FN path memory.
+- The current `production_scaling` preset measured compressed fast-strategy
+  state-only rollouts at `~197k`, `~346k`, and `~143k` median site-steps/s for
+  `4x4x4`, `8x4x4`, and `8x8x8`, respectively.  XLA temporary buffers were
+  `4.49 MB`, `4.79 MB`, and `6.56 MB`; device runtime floors were `4.69 MB`,
+  `5.18 MB`, and `8.13 MB`.
+- A matched `fast` versus `memory` preset comparison keeps `fast` as the
+  production default.  `fast` was `4.27x`, `3.62x`, and `1.41x` faster on
+  `4x4x4`, `8x4x4`, and `8x8x8`; it used the same carried/config memory and
+  added only `0.07 MB`, `0.13 MB`, and `0.54 MB` of XLA temporary buffer,
+  respectively.  The `memory` strategy remains available when temp-buffer
+  pressure dominates at larger sizes.
+- A `24 GiB` dry-run budget with `0.75` safety estimates `184^3` as the maximum
+  cubic state+config lattice for the compressed path.  Larger compiled runs are
+  the next core validation target.
+- Benchmark and phenomenology memory reports now distinguish the actual
+  selected runtime arrays (`state_array_bytes`, `runtime_array_bytes`) from
+  compatibility/what-if complex64 and complex128 estimates.  Budget-fit verdicts
+  use the runtime byte estimate while retaining the old `complex64_bytes` alias
+  for downstream JSON consumers.
+- The benchmark CLI now has `--memory-policy none|fail|skip`.  `fail` rejects
+  oversized hot-path runs before JIT compilation; `skip` records the memory
+  estimate and skip reason without allocating or compiling the run.  This makes
+  larger compiled-size sweeps safer to schedule against a fixed GPU budget.
+- The same benchmark CLI now exposes `--preset production_scaling`, a compact
+  production-core sweep over `4x4x4`, `8x4x4`, and `8x8x8` with compressed
+  `effective_yukawa`, `split_axis`, `fast`, state-only output, and skip-on-budget
+  guardrails by default.
+
 Stage 49 physical-right production Gauss-projected rollout implemented on top of the Stage 1
 free BCC Weyl/Dirac walk, Stage 2 static gauge transport, Stage 3 pure dynamic
 gauge fields, Stage 4 local Higgs/Yukawa collision, Stage 5 FN recirculation,

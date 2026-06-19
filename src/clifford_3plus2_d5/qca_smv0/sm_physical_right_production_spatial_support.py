@@ -34,6 +34,7 @@ class PhysicalRightProductionSpatialSupportDiagnostics(NamedTuple):
     site_count: jnp.ndarray
     perturbation_size: jnp.ndarray
     support_threshold: jnp.ndarray
+    outside_support_threshold: jnp.ndarray
     predicted_tick_radius: jnp.ndarray
     family_support_radius: jnp.ndarray
     higgs_support_radius: jnp.ndarray
@@ -100,17 +101,20 @@ def _support_summary(
     distances: jnp.ndarray,
     *,
     threshold: float,
+    outside_threshold: float,
     predicted_radius: int,
 ) -> tuple[jnp.ndarray, jnp.ndarray, jnp.ndarray, jnp.ndarray, jnp.ndarray]:
     support = response_norm > jnp.asarray(threshold, dtype=response_norm.dtype)
     outside = distances > predicted_radius
-    support_distances = jnp.where(support, distances, 0)
-    support_values = jnp.where(support, response_norm, jnp.inf)
+    outside_support = response_norm > jnp.asarray(outside_threshold, dtype=response_norm.dtype)
+    measured_support = support & (~outside | outside_support)
+    support_distances = jnp.where(measured_support, distances, 0)
+    support_values = jnp.where(measured_support, response_norm, jnp.inf)
     return (
         jnp.max(support_distances),
-        jnp.sum(support).astype(jnp.int32),
-        jnp.sum(support & outside).astype(jnp.int32),
-        jnp.max(jnp.where(support & outside, response_norm, 0.0)),
+        jnp.sum(measured_support).astype(jnp.int32),
+        jnp.sum(outside & outside_support).astype(jnp.int32),
+        jnp.max(jnp.where(outside & outside_support, response_norm, 0.0)),
         jnp.min(support_values),
     )
 
@@ -170,6 +174,7 @@ def sm_physical_right_production_spatial_support_diagnostics(
     *,
     perturbation_size: float = 1e-2,
     support_threshold: float = 1e-8,
+    outside_support_threshold: float = 1e-7,
     step_size: float = 1e-3,
 ) -> PhysicalRightProductionSpatialSupportDiagnostics:
     """Return Stage 43 one-tick production spatial-support diagnostics."""
@@ -181,6 +186,10 @@ def sm_physical_right_production_spatial_support_diagnostics(
         raise ValueError(f"perturbation_size must be positive, got {perturbation_size}")
     if support_threshold <= 0:
         raise ValueError(f"support_threshold must be positive, got {support_threshold}")
+    if outside_support_threshold <= 0:
+        raise ValueError(f"outside_support_threshold must be positive, got {outside_support_threshold}")
+    if outside_support_threshold < support_threshold:
+        raise ValueError("outside_support_threshold must be >= support_threshold")
     if step_size <= 0:
         raise ValueError(f"step_size must be positive, got {step_size}")
 
@@ -210,6 +219,7 @@ def sm_physical_right_production_spatial_support_diagnostics(
             response_norm,
             distances,
             threshold=support_threshold,
+            outside_threshold=outside_support_threshold,
             predicted_radius=predicted_radius,
         )
         radii.append(radius)
@@ -229,6 +239,7 @@ def sm_physical_right_production_spatial_support_diagnostics(
         site_count=jnp.asarray(lattice_shape[0] * lattice_shape[1] * lattice_shape[2], dtype=jnp.int32),
         perturbation_size=jnp.asarray(perturbation_size, dtype=jnp.float32),
         support_threshold=jnp.asarray(support_threshold, dtype=jnp.float32),
+        outside_support_threshold=jnp.asarray(outside_support_threshold, dtype=jnp.float32),
         predicted_tick_radius=jnp.asarray(predicted_radius, dtype=jnp.int32),
         family_support_radius=radius_values[0],
         higgs_support_radius=radius_values[1],

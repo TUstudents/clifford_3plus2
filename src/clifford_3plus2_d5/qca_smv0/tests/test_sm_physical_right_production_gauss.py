@@ -44,10 +44,10 @@ def test_physical_right_production_gauss_history_records_finite_nonzero_determin
 
 def test_physical_right_production_gauss_resolves_default_vs_zero_yukawa_rollout() -> None:
     initial = sm_physical_right_production_initial_state()
-    default_final, _ = sm_physical_right_production_gauss_history(initial, steps=2, step_size=0.001)
+    default_final, _ = sm_physical_right_production_gauss_history(initial, steps=3, step_size=0.001)
     zero_final, _ = sm_physical_right_production_gauss_history(
         initial,
-        steps=2,
+        steps=3,
         step_size=0.001,
         quark_yukawas=sm_zero_quark_yukawas(),
         lepton_yukawas=sm_zero_family_lepton_yukawas(),

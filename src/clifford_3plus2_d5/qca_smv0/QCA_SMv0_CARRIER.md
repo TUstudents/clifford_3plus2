@@ -69,6 +69,32 @@ family axis:
   Froggatt-Nielsen / recirculation matrices
 ```
 
+For physically labeled initial conditions, use
+`sm_qca_family_carrier_basis_state(...)`.  It writes one amplitude into the
+visible field using the sector labels
+
+```text
+Q, u_c, d_c, L, e_c, nu_c
+```
+
+together with the Dirac component, family index, internal-copy index, and
+color/weak labels where those labels apply.  This is the preferred entry point
+for sector-specific QCA experiments; `deterministic_qca_family_state(...)` is
+only a mixed audit/smoke-test pattern.
+
+For a calibrated quark/FN field-response experiment, use
+`sm_run_jitted_qca_calibrated_carrier_basis_probe(...)`.  It creates such a
+labeled basis state, calibrates the compressed production update from
+masses/CKM, runs the rollout, and returns initial/final carrier populations.
+For a batched quark-family response matrix, use
+`sm_qca_prepared_quark_family_response(...)` on an already prepared calibrated
+production setup; it evolves pure weak-up and weak-down `Q` family basis states
+and returns complex target amplitudes plus target-sector populations into
+`u_c` and `d_c`.  For one-tick single-site probes it also reports the
+structured-cache one-tick amplitudes and residuals against the measured field
+response.  `sm_qca_calibrated_quark_family_response(...)` is the one-call
+wrapper that prepares the setup first.
+
 Gauge links act on the 32-dimensional internal simulator register.  The BCC
 streaming acts on the Dirac axis and spatial sites.  The local Higgs/FN
 collision acts site-locally on the Dirac, internal, and family axes.

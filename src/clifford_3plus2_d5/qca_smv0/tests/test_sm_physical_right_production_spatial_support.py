@@ -28,7 +28,7 @@ def test_physical_right_production_spatial_support_passes_stage_thresholds() -> 
     assert diagnostics.outside_predicted_radius_site_count == 0
     assert diagnostics.outside_predicted_radius_max_norm < 1e-12
     assert diagnostics.max_response_norm > 1e-3
-    assert diagnostics.min_detected_response_norm > 1e-8
+    assert diagnostics.min_detected_response_norm > diagnostics.support_threshold
 
 
 def test_physical_right_production_spatial_support_validates_inputs() -> None:
