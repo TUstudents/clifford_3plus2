@@ -44,6 +44,26 @@ Production-core baseline:
   `canonical/phenomenology_benchmark.md`, including explicit pass/fail physics
   tests for fit quality, coefficient range, norm conservation, carrier transfer,
   hidden-memory absence, memory accounting, and production-contract discipline.
+- The first charged-lepton baseline probe is checked in as
+  `canonical/charged_lepton_probe.json` and
+  `canonical/charged_lepton_probe.md`.  It uses diagonal charged-lepton inputs,
+  zero neutrino Yukawas, clean `L(weak=1)` carrier states, and physics tests for
+  `L -> e_c` direction, no `nu_c` leakage, monotonic family response, norm
+  conservation, and the lean production contract.
+- The neutrino baseline probe is checked in as
+  `canonical/neutrino_probe.json` and `canonical/neutrino_probe.md`.  It uses
+  direct diagonal effective neutrino inputs `(0, eta, 1)`, zero charged-lepton
+  Yukawas, clean `L(weak=0)` carrier states, and physics tests for normal
+  ordering, one massless lightest input, the `epsilon^4` mass-squared ratio,
+  `L -> nu_c` direction, no `e_c` leakage, norm conservation, and the lean
+  production contract.  The seesaw/Schur mode remains a recorded future
+  backend, not part of this direct effective-Yukawa probe.
+- The lepton PMNS probe is checked in as `canonical/lepton_pmns_probe.json` and
+  `canonical/lepton_pmns_probe.md`.  It uses a direct PMNS neutrino matrix
+  `Y_nu = U_PMNS diag(0, eta, 1)`, verifies mixed `nu_c` family response
+  against PMNS transfer weights, and includes a concrete type-I heavy-sterile
+  Schur/seesaw backend whose recovered low-energy spectrum matches
+  `(0, eta, 1)`.
 - The current `production_scaling` preset measured compressed fast-strategy
   state-only rollouts at `~197k`, `~346k`, and `~143k` median site-steps/s for
   `4x4x4`, `8x4x4`, and `8x8x8`, respectively.  XLA temporary buffers were

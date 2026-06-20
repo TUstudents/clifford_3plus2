@@ -1,0 +1,214 @@
+{
+  "benchmark": "neutrino_probe",
+  "charges": {
+    "d": [
+      1,
+      0,
+      0
+    ],
+    "q": [
+      3,
+      2,
+      0
+    ],
+    "u": [
+      5,
+      2,
+      0
+    ]
+  },
+  "input_masses": {
+    "down": [
+      0.00467,
+      0.0935,
+      4.183
+    ],
+    "down_normalization": 4.183000087738037,
+    "up": [
+      0.00216,
+      1.273,
+      172.57
+    ],
+    "up_normalization": 172.57000732421875
+  },
+  "lambda": 0.22501,
+  "lattice_shape": [
+    1,
+    1,
+    1
+  ],
+  "lepton_inputs": {
+    "charged_lepton_yukawas": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "later_mode": "seesaw_schur_input_mode",
+    "mode": "direct_diagonal_effective_neutrino_yukawa_probe",
+    "neutrino_yukawas": [
+      0.0,
+      0.17157287525381,
+      1.0
+    ]
+  },
+  "neutrino_metadata": {
+    "delta_m2_21_over_delta_m2_31": 0.029437251522859444,
+    "epsilon": 0.41421356237309515,
+    "eta": 0.17157287525381,
+    "expected_epsilon_fourth": 0.02943725152285944,
+    "hierarchy": "normal",
+    "lightest_mass_index": 1,
+    "lightest_massless": true,
+    "m1": 0.0,
+    "m2": 0.17157287525381,
+    "m3": 1.0,
+    "ratio_error": 3.469446951953614e-18
+  },
+  "physics_tests": {
+    "checks": {
+      "carrier_transfer": true,
+      "massless_lightest": true,
+      "no_e_c_leakage": true,
+      "norm_conservation": true,
+      "normal_ordering": true,
+      "production_contract": true,
+      "ratio_check": true
+    },
+    "passed": true,
+    "thresholds": {
+      "massless_tolerance": 1e-12,
+      "norm_drift_max": 1e-06,
+      "ratio_tolerance": 1e-06,
+      "transfer_min": 1e-05,
+      "wrong_sector_max": 1e-09
+    }
+  },
+  "probe_source": {
+    "sector": "L",
+    "target": "nu_c",
+    "weak": 0,
+    "wrong_target": "e_c"
+  },
+  "probes": [
+    {
+      "e_c_population": 0.0,
+      "extended_norm_drift": 0.0,
+      "family": 0,
+      "final_sector": [
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        0.0
+      ],
+      "initial_sector": [
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        0.0
+      ],
+      "l_population_final": 1.0,
+      "label": "nu1",
+      "neutrino_yukawa": 0.0,
+      "norm_drift": 0.0,
+      "norm_final": 1.0,
+      "norm_initial": 1.0,
+      "nu_c_population": 0.0,
+      "sector_drift": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "e_c_population": 0.0,
+      "extended_norm_drift": 5.960464477539063e-08,
+      "family": 1,
+      "final_sector": [
+        0.0,
+        0.0,
+        0.0,
+        0.9998527765274048,
+        0.0,
+        0.00014717901649419218
+      ],
+      "initial_sector": [
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        0.0
+      ],
+      "l_population_final": 0.9998527765274048,
+      "label": "nu2",
+      "neutrino_yukawa": 0.17157287525381,
+      "norm_drift": 5.960464477539063e-08,
+      "norm_final": 0.9999999403953552,
+      "norm_initial": 1.0,
+      "nu_c_population": 0.00014717901649419218,
+      "sector_drift": [
+        0.0,
+        0.0,
+        0.0,
+        -0.00014722347259521484,
+        0.0,
+        0.00014717901649419218
+      ]
+    },
+    {
+      "e_c_population": 0.0,
+      "extended_norm_drift": 5.960464477539063e-08,
+      "family": 2,
+      "final_sector": [
+        0.0,
+        0.0,
+        0.0,
+        0.9950082898139954,
+        0.0,
+        0.004991671536117792
+      ],
+      "initial_sector": [
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        0.0
+      ],
+      "l_population_final": 0.9950082898139954,
+      "label": "nu3",
+      "neutrino_yukawa": 1.0,
+      "norm_drift": 5.960464477539063e-08,
+      "norm_final": 0.9999999403953552,
+      "norm_initial": 1.0,
+      "nu_c_population": 0.004991671536117792,
+      "sector_drift": [
+        0.0,
+        0.0,
+        0.0,
+        -0.004991710186004639,
+        0.0,
+        0.004991671536117792
+      ]
+    }
+  ],
+  "production_contract": {
+    "gauge_links_present": false,
+    "higgs_field_present": false,
+    "lean_effective_yukawa": true,
+    "raw_readout_arrays_present": false,
+    "raw_yukawa_arrays_present": false,
+    "state_only": true,
+    "structured_collision_cache_present": true,
+    "uses_production_api": true
+  },
+  "scale_label": "benchmark",
+  "steps": 1
+}

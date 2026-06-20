@@ -1,0 +1,396 @@
+{
+  "benchmark": "lepton_pmns_probe",
+  "charges": {
+    "d": [
+      1,
+      0,
+      0
+    ],
+    "q": [
+      3,
+      2,
+      0
+    ],
+    "u": [
+      5,
+      2,
+      0
+    ]
+  },
+  "input_masses": {
+    "down": [
+      0.00467,
+      0.0935,
+      4.183
+    ],
+    "down_normalization": 4.183000087738037,
+    "up": [
+      0.00216,
+      1.273,
+      172.57
+    ],
+    "up_normalization": 172.57000732421875
+  },
+  "lambda": 0.22501,
+  "lattice_shape": [
+    1,
+    1,
+    1
+  ],
+  "lepton_inputs": {
+    "charged_lepton_yukawas": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "mode": "direct_pmns_effective_neutrino_yukawa_probe",
+    "neutrino_yukawa_matrix": [
+      [
+        {
+          "im": 0.0,
+          "re": 0.0
+        },
+        {
+          "im": 0.0,
+          "re": 0.09349188953638077
+        },
+        {
+          "im": 0.038568466901779175,
+          "re": -0.14393945038318634
+        }
+      ],
+      [
+        {
+          "im": 0.0,
+          "re": 0.0
+        },
+        {
+          "im": 0.0027604252099990845,
+          "re": 0.10385309904813766
+        },
+        {
+          "im": 0.0,
+          "re": 0.7485429644584656
+        }
+      ],
+      [
+        {
+          "im": 0.0,
+          "re": 0.0
+        },
+        {
+          "im": 0.002382732927799225,
+          "re": -0.09948747605085373
+        },
+        {
+          "im": 0.0,
+          "re": 0.6461249589920044
+        }
+      ]
+    ],
+    "neutrino_yukawas": [
+      0.0,
+      0.17157287525381,
+      1.0
+    ],
+    "pmns_angles": [
+      0.5836381018669037,
+      0.8587019919812102,
+      0.14957417646704585,
+      3.4033920413889422
+    ],
+    "pmns_matrix": [
+      [
+        {
+          "im": 0.0,
+          "re": 0.8251462578773499
+        },
+        {
+          "im": 0.0,
+          "re": 0.5449106693267822
+        },
+        {
+          "im": 0.038568463176488876,
+          "re": -0.14393945038318634
+        }
+      ],
+      [
+        {
+          "im": 0.02436310611665249,
+          "re": -0.2691519260406494
+        },
+        {
+          "im": 0.016088925302028656,
+          "re": 0.6053001880645752
+        },
+        {
+          "im": 0.0,
+          "re": 0.7485429644584656
+        }
+      ],
+      [
+        {
+          "im": 0.021029667928814888,
+          "re": 0.49563613533973694
+        },
+        {
+          "im": 0.013887587934732437,
+          "re": -0.5798555016517639
+        },
+        {
+          "im": 0.0,
+          "re": 0.6461249589920044
+        }
+      ]
+    ],
+    "schur_backend": "type_i_seesaw_schur"
+  },
+  "neutrino_metadata": {
+    "delta_m2_21_over_delta_m2_31": 0.029437251522859444,
+    "epsilon": 0.41421356237309515,
+    "eta": 0.17157287525381,
+    "expected_epsilon_fourth": 0.02943725152285944,
+    "hierarchy": "normal",
+    "lightest_mass_index": 1,
+    "lightest_massless": true,
+    "m1": 0.0,
+    "m2": 0.17157287525381,
+    "m3": 1.0,
+    "ratio_error": 3.469446951953614e-18
+  },
+  "physics_tests": {
+    "checks": {
+      "carrier_transfer": true,
+      "massless_lightest": true,
+      "no_e_c_leakage": true,
+      "norm_conservation": true,
+      "normal_ordering": true,
+      "pmns_mixing": true,
+      "pmns_unitarity": true,
+      "production_contract": true,
+      "ratio_check": true,
+      "schur_spectrum": true
+    },
+    "passed": true,
+    "thresholds": {
+      "massless_tolerance": 1e-12,
+      "norm_drift_max": 2e-06,
+      "pmns_weight_tolerance": 0.0075,
+      "ratio_tolerance": 1e-06,
+      "schur_spectrum_tolerance": 1e-06,
+      "transfer_min": 1e-06,
+      "wrong_sector_max": 1e-09
+    }
+  },
+  "probe_source": {
+    "sector": "L",
+    "target": "nu_c",
+    "weak": 0,
+    "wrong_target": "e_c"
+  },
+  "probes": [
+    {
+      "e_c_population": 0.0,
+      "expected_pmns_weights": [
+        0.0,
+        0.2824436128139496,
+        0.7175562977790833
+      ],
+      "extended_norm_drift": 3.5762786865234375e-07,
+      "final_sector": [
+        0.0,
+        0.0,
+        0.0,
+        0.999994158744812,
+        0.0,
+        6.189061423356179e-06
+      ],
+      "initial_sector": [
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        0.0
+      ],
+      "l_population_final": 0.999994158744812,
+      "label": "e-flavor",
+      "norm_drift": 3.5762786865234375e-07,
+      "norm_final": 1.0000003576278687,
+      "norm_initial": 1.0,
+      "normalized_nu_c_family_populations": [
+        0.0,
+        0.2824566546827344,
+        0.7175433453172656
+      ],
+      "nu_c_family_populations": [
+        0.0,
+        1.748141585267149e-06,
+        4.44091983808903e-06
+      ],
+      "nu_c_population": 6.189061423356179e-06,
+      "pmns_weight_max_error": 1.3041868784813282e-05,
+      "source_family": 0
+    },
+    {
+      "e_c_population": 0.0,
+      "expected_pmns_weights": [
+        0.0,
+        0.01889844797551632,
+        0.9811015725135803
+      ],
+      "extended_norm_drift": 1.1920928955078125e-07,
+      "final_sector": [
+        0.0,
+        0.0,
+        0.0,
+        0.9998859167098999,
+        0.0,
+        0.00011421441740822047
+      ],
+      "initial_sector": [
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        0.0
+      ],
+      "l_population_final": 0.9998859167098999,
+      "label": "mu-flavor",
+      "norm_drift": 1.1920928955078125e-07,
+      "norm_final": 1.0000001192092896,
+      "norm_initial": 1.0,
+      "normalized_nu_c_family_populations": [
+        0.0,
+        0.01889962947228868,
+        0.9811003705277113
+      ],
+      "nu_c_family_populations": [
+        0.0,
+        2.158610186597798e-06,
+        0.00011205580813111737
+      ],
+      "nu_c_population": 0.00011421441740822047,
+      "pmns_weight_max_error": 1.2019858690592855e-06,
+      "source_family": 1
+    },
+    {
+      "e_c_population": 0.0,
+      "expected_pmns_weights": [
+        0.0,
+        0.02317238412797451,
+        0.9768276214599609
+      ],
+      "extended_norm_drift": 7.152557373046875e-07,
+      "final_sector": [
+        0.0,
+        0.0,
+        0.0,
+        0.9999152421951294,
+        0.0,
+        8.54706231621094e-05
+      ],
+      "initial_sector": [
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        0.0
+      ],
+      "l_population_final": 0.9999152421951294,
+      "label": "tau-flavor",
+      "norm_drift": 7.152557373046875e-07,
+      "norm_final": 1.0000007152557373,
+      "norm_initial": 1.0,
+      "normalized_nu_c_family_populations": [
+        0.0,
+        0.023173850623017682,
+        0.9768261493769823
+      ],
+      "nu_c_family_populations": [
+        0.0,
+        1.9806834643532056e-06,
+        8.348994015250355e-05
+      ],
+      "nu_c_population": 8.54706231621094e-05,
+      "pmns_weight_max_error": 1.4720829786263323e-06,
+      "source_family": 2
+    }
+  ],
+  "production_contract": {
+    "gauge_links_present": false,
+    "higgs_field_present": false,
+    "lean_effective_yukawa": true,
+    "raw_readout_arrays_present": false,
+    "raw_yukawa_arrays_present": false,
+    "state_only": true,
+    "structured_collision_cache_present": true,
+    "uses_production_api": true
+  },
+  "scale_label": "benchmark",
+  "schur_seesaw": {
+    "effective_majorana": [
+      [
+        {
+          "im": -0.011103048920631409,
+          "re": -0.07017577439546585
+        },
+        {
+          "im": 0.03037433512508869,
+          "re": 0.051154203712940216
+        },
+        {
+          "im": 0.026218421757221222,
+          "re": 0.14721466600894928
+        }
+      ],
+      [
+        {
+          "im": 0.03037434071302414,
+          "re": 0.051154207438230515
+        },
+        {
+          "im": 0.0033417344093322754,
+          "re": -0.6231344938278198
+        },
+        {
+          "im": -0.0001583695411682129,
+          "re": -0.42339417338371277
+        }
+      ],
+      [
+        {
+          "im": 0.02621842920780182,
+          "re": 0.14721466600894928
+        },
+        {
+          "im": -0.0001583695411682129,
+          "re": -0.42339417338371277
+        },
+        {
+          "im": -0.0027632713317871094,
+          "re": -0.4751327335834503
+        }
+      ]
+    ],
+    "recovered_masses": [
+      6.207423020043734e-09,
+      0.17157292366027832,
+      1.0
+    ],
+    "spectrum_residual": 4.470348358154297e-08,
+    "sterile_majorana_masses": [
+      1.0,
+      1.0,
+      1.0
+    ],
+    "target_masses": [
+      0.0,
+      0.17157287895679474,
+      1.0
+    ]
+  },
+  "steps": 1
+}

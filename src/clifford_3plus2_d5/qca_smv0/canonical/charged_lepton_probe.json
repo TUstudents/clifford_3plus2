@@ -1,0 +1,196 @@
+{
+  "benchmark": "charged_lepton_probe",
+  "charges": {
+    "d": [
+      1,
+      0,
+      0
+    ],
+    "q": [
+      3,
+      2,
+      0
+    ],
+    "u": [
+      5,
+      2,
+      0
+    ]
+  },
+  "input_masses": {
+    "down": [
+      0.00467,
+      0.0935,
+      4.183
+    ],
+    "down_normalization": 4.183000087738037,
+    "up": [
+      0.00216,
+      1.273,
+      172.57
+    ],
+    "up_normalization": 172.57000732421875
+  },
+  "lambda": 0.22501,
+  "lattice_shape": [
+    1,
+    1,
+    1
+  ],
+  "lepton_inputs": {
+    "charged_lepton_yukawas": [
+      0.1,
+      0.2,
+      0.5
+    ],
+    "mode": "diagonal_charged_lepton_probe",
+    "neutrino_yukawas": [
+      0.0,
+      0.0,
+      0.0
+    ]
+  },
+  "physics_tests": {
+    "checks": {
+      "correct_carrier_direction": true,
+      "monotonic_family_response": true,
+      "no_nu_c_leakage": true,
+      "norm_conservation": true,
+      "production_contract": true
+    },
+    "passed": true,
+    "thresholds": {
+      "norm_drift_max": 1e-06,
+      "transfer_min": 1e-05,
+      "wrong_sector_max": 1e-09
+    }
+  },
+  "probe_source": {
+    "sector": "L",
+    "target": "e_c",
+    "weak": 1,
+    "wrong_target": "nu_c"
+  },
+  "probes": [
+    {
+      "charged_lepton_yukawa": 0.1,
+      "e_c_population": 4.9999165639746934e-05,
+      "extended_norm_drift": 0.0,
+      "family": 0,
+      "final_sector": [
+        0.0,
+        0.0,
+        0.0,
+        0.9999500513076782,
+        4.9999165639746934e-05,
+        0.0
+      ],
+      "initial_sector": [
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        0.0
+      ],
+      "l_population_final": 0.9999500513076782,
+      "label": "e",
+      "norm_drift": 0.0,
+      "norm_final": 1.0,
+      "norm_initial": 1.0,
+      "nu_c_population": 0.0,
+      "sector_drift": [
+        0.0,
+        0.0,
+        0.0,
+        -4.9948692321777344e-05,
+        4.9999165639746934e-05,
+        0.0
+      ]
+    },
+    {
+      "charged_lepton_yukawa": 0.2,
+      "e_c_population": 0.00019998667994514108,
+      "extended_norm_drift": 1.7881393432617188e-07,
+      "family": 1,
+      "final_sector": [
+        0.0,
+        0.0,
+        0.0,
+        0.9997998476028442,
+        0.00019998667994514108,
+        0.0
+      ],
+      "initial_sector": [
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        0.0
+      ],
+      "l_population_final": 0.9997998476028442,
+      "label": "mu",
+      "norm_drift": 1.7881393432617188e-07,
+      "norm_final": 0.9999998211860657,
+      "norm_initial": 1.0,
+      "nu_c_population": 0.0,
+      "sector_drift": [
+        0.0,
+        0.0,
+        0.0,
+        -0.00020015239715576172,
+        0.00019998667994514108,
+        0.0
+      ]
+    },
+    {
+      "charged_lepton_yukawa": 0.5,
+      "e_c_population": 0.001249479129910469,
+      "extended_norm_drift": 1.1920928955078125e-07,
+      "family": 2,
+      "final_sector": [
+        0.0,
+        0.0,
+        0.0,
+        0.9987503886222839,
+        0.001249479129910469,
+        0.0
+      ],
+      "initial_sector": [
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        0.0
+      ],
+      "l_population_final": 0.9987503886222839,
+      "label": "tau",
+      "norm_drift": 1.1920928955078125e-07,
+      "norm_final": 0.9999998807907104,
+      "norm_initial": 1.0,
+      "nu_c_population": 0.0,
+      "sector_drift": [
+        0.0,
+        0.0,
+        0.0,
+        -0.0012496113777160645,
+        0.001249479129910469,
+        0.0
+      ]
+    }
+  ],
+  "production_contract": {
+    "gauge_links_present": false,
+    "higgs_field_present": false,
+    "lean_effective_yukawa": true,
+    "raw_readout_arrays_present": false,
+    "raw_yukawa_arrays_present": false,
+    "state_only": true,
+    "structured_collision_cache_present": true,
+    "uses_production_api": true
+  },
+  "scale_label": "benchmark",
+  "steps": 1
+}

@@ -160,6 +160,30 @@ The JSON includes a `physics_tests` block for the canonical run: quark fit
 quality, order-one coefficient range, norm conservation, quark carrier
 transfer, absence of hidden FN path memory, memory accounting, and production
 contract checks.
+The first lepton-sector reference is
+[`canonical/charged_lepton_probe.json`](canonical/charged_lepton_probe.json)
+and [`canonical/charged_lepton_probe.md`](canonical/charged_lepton_probe.md).
+It runs clean `L(weak=1)` carrier probes with diagonal charged-lepton Yukawa
+inputs, zero neutrino Yukawas, and physics tests for `L -> e_c`, no `nu_c`
+leakage, monotonic family response, norm conservation, and lean production
+contract.
+The matching neutrino baseline is
+[`canonical/neutrino_probe.json`](canonical/neutrino_probe.json) and
+[`canonical/neutrino_probe.md`](canonical/neutrino_probe.md).  It uses direct
+diagonal effective neutrino Yukawas `(0, eta, 1)` with
+`eta=(sqrt(2)-1)^2`, zero charged-lepton Yukawas, and physics tests for normal
+ordering, one massless lightest input, the
+`Delta m^2_21 / Delta m^2_31 = epsilon^4` ratio, `L -> nu_c` transfer, no
+`e_c` leakage, norm conservation, and the lean production contract.  The
+Schur/seesaw input mode is recorded as the next neutrino backend, not used in
+this direct probe.
+The lepton mixing reference is
+[`canonical/lepton_pmns_probe.json`](canonical/lepton_pmns_probe.json) and
+[`canonical/lepton_pmns_probe.md`](canonical/lepton_pmns_probe.md).  It consumes
+a direct PMNS neutrino input `Y_nu = U_PMNS diag(0, eta, 1)`, verifies mixed
+`nu_c` target-family populations against the PMNS transfer weights, and builds
+a type-I heavy-sterile Schur/seesaw backend whose low-energy singular spectrum
+recovers `(0, eta, 1)`.
 For the default compressed `effective_yukawa` mode, the command now runs the
 calibrated production state API and reports
 `rollout_entrypoint=calibrated_production_api`; exact `fn_dilation` remains a

@@ -95,6 +95,41 @@ structured-cache one-tick amplitudes and residuals against the measured field
 response.  `sm_qca_calibrated_quark_family_response(...)` is the one-call
 wrapper that prepares the setup first.
 
+## Lepton Carrier Map
+
+The lepton sector uses the same production field fibre as the quark sector:
+
+```text
+psi[x,y,z, dirac, internal, family]
+shape = (nx, ny, nz, 4, 32, 3)
+```
+
+The lepton carrier labels are:
+
+```text
+L    : weak-doublet lepton carrier, weak index 0 or 1
+e_c  : charged-lepton singlet carrier
+nu_c : right-handed / sterile-neutrino singlet carrier
+```
+
+The family axis is the same three-family register used by the quark FN
+collision.  The lepton inputs in QCA_SMv0 are explicit simulator Yukawa
+matrices, currently supplied as diagonal triples through the phenomenology CLI
+or as `FamilyLeptonYukawas` in Python.
+
+With the current unitary-gauge Higgs convention, the two clean lepton carrier
+probes are:
+
+```text
+L(weak=0) -> nu_c   via the neutrino / H_tilde door
+L(weak=1) -> e_c    via the charged-lepton / H door
+```
+
+These probes are production-field tests.  They check that the existing
+`Dirac 4 * internal 32 * family 3` simulator fibre routes lepton Yukawa inputs
+to the correct carrier sectors while preserving the lean production contract.
+They do not yet derive charged-lepton masses, neutrino masses, or PMNS mixing.
+
 Gauge links act on the 32-dimensional internal simulator register.  The BCC
 streaming acts on the Dirac axis and spatial sites.  The local Higgs/FN
 collision acts site-locally on the Dirac, internal, and family axes.

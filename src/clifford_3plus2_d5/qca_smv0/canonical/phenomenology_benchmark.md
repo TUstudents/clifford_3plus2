@@ -83,13 +83,13 @@ order-one coefficients.
 - entrypoint: `calibrated_production_api`
 - norm drift: `1.07288e-06`
 - extended norm drift: `1.07288e-06`
-- max density initial/final: `1.32812512` / `1.32812595`
+- max density initial/final: `1.32812512` / `1.32812619`
 - used Higgs/FN collision: `True`
 - used exact FN dilation: `False`
 
 | sector | initial | final | drift |
 |---|---:|---:|---:|
-| Q | 1.26562512 | 1.26536 | -0.000265121 |
+| Q | 1.26562512 | 1.26536012 | -0.000265002 |
 | u_c | 0.265625 | 0.265891194 | 0.000266194 |
 | d_c | 0 | 0 | 0 |
 | L | 0 | 0 | 0 |

@@ -20,6 +20,18 @@ from clifford_3plus2_d5.qca_smv0.scripts.benchmark_fn_dilation_rollout import (
     _memory_payload,
     _strategy_comparisons,
 )
+from clifford_3plus2_d5.qca_smv0.scripts.charged_lepton_probe import (
+    main as charged_lepton_probe_main,
+    run_charged_lepton_probe,
+)
+from clifford_3plus2_d5.qca_smv0.scripts.lepton_pmns_probe import (
+    main as lepton_pmns_probe_main,
+    run_lepton_pmns_probe,
+)
+from clifford_3plus2_d5.qca_smv0.scripts.neutrino_probe import (
+    main as neutrino_probe_main,
+    run_neutrino_probe,
+)
 from clifford_3plus2_d5.qca_smv0.scripts.phenomenology_rollout import (
     PhenomenologyRunConfig,
     _prepare_phenomenology_rollout,
@@ -48,6 +60,13 @@ from clifford_3plus2_d5.qca_smv0.sm_gauge import (
     sm_identity_links,
 )
 from clifford_3plus2_d5.qca_smv0.sm_higgs import sm_constant_higgs
+from clifford_3plus2_d5.qca_smv0.sm_lepton import (
+    sm_default_pmns_matrix,
+    sm_lepton_direct_pmns_neutrino_yukawa,
+    sm_lepton_pmns_expected_transfer_weights,
+    sm_lepton_seesaw_schur_from_pmns,
+    sm_pmns_unitarity_residual,
+)
 from clifford_3plus2_d5.qca_smv0.sm_rollout import (
     QCASMRolloutConfig,
     deterministic_qca_family_state,
@@ -817,6 +836,327 @@ def test_calibrated_carrier_basis_probe_matches_manual_hot_path_and_shows_up_res
     )
     assert probe_observed.carrier_populations_final.sector[1] > 1e-8
     assert jnp.abs(jnp.sum(probe_observed.carrier_populations_final.sector) - probe_observed.norm_final) < 2e-7
+
+
+def test_lepton_carrier_probe_routes_charged_lepton_door_to_e_c() -> None:
+    lattice_shape = (1, 1, 1)
+    up_masses = jnp.asarray([0.00216 / 172.57, 1.2730 / 172.57, 1.0], dtype=jnp.float32)
+    down_masses = jnp.asarray([0.00467 / 4.183, 0.0935 / 4.183, 1.0], dtype=jnp.float32)
+    zeros = jnp.zeros((3, 3), dtype=jnp.complex64)
+    electron = jnp.diag(jnp.asarray([0.10, 0.20, 0.50], dtype=jnp.complex64))
+
+    probe = sm_run_jitted_qca_calibrated_carrier_basis_probe(
+        up_masses,
+        down_masses,
+        _benchmark_ckm(),
+        lattice_shape,
+        steps=1,
+        dirac=0,
+        sector="L",
+        weak=1,
+        family=2,
+        lepton_yukawas=FamilyLeptonYukawas(neutrino=zeros, electron=electron),
+        center_fit_steps=0,
+        yukawa_step_size=0.10,
+        donate_state=False,
+    )
+    observed = probe.production_observables
+
+    assert probe.verdict.passed
+    assert observed.production.final_qca_state.fn_path_aux_state is None
+    assert probe.production_contract.uses_production_api
+    assert probe.production_contract.lean_effective_yukawa
+    assert probe.production_contract.structured_collision_cache_present
+    assert not probe.production_contract.raw_yukawa_arrays_present
+    assert jnp.allclose(
+        observed.carrier_populations_initial.sector,
+        jnp.asarray([0.0, 0.0, 0.0, 1.0, 0.0, 0.0]),
+    )
+    assert observed.carrier_populations_final.sector[4] > 1e-4
+    assert observed.carrier_populations_final.sector[5] < 1e-9
+    assert observed.carrier_populations_final.sector[0] < 1e-9
+    assert jnp.abs(jnp.sum(observed.carrier_populations_final.sector) - observed.norm_final) < 3e-7
+    assert jnp.abs(observed.extended_norm_final - observed.extended_norm_initial) < 3e-7
+
+
+def test_lepton_carrier_probe_routes_neutrino_door_to_nu_c() -> None:
+    lattice_shape = (1, 1, 1)
+    up_masses = jnp.asarray([0.00216 / 172.57, 1.2730 / 172.57, 1.0], dtype=jnp.float32)
+    down_masses = jnp.asarray([0.00467 / 4.183, 0.0935 / 4.183, 1.0], dtype=jnp.float32)
+    zeros = jnp.zeros((3, 3), dtype=jnp.complex64)
+    neutrino = jnp.diag(jnp.asarray([0.10, 0.20, 0.50], dtype=jnp.complex64))
+
+    probe = sm_run_jitted_qca_calibrated_carrier_basis_probe(
+        up_masses,
+        down_masses,
+        _benchmark_ckm(),
+        lattice_shape,
+        steps=1,
+        dirac=0,
+        sector="L",
+        weak=0,
+        family=2,
+        lepton_yukawas=FamilyLeptonYukawas(neutrino=neutrino, electron=zeros),
+        center_fit_steps=0,
+        yukawa_step_size=0.10,
+        donate_state=False,
+    )
+    observed = probe.production_observables
+
+    assert probe.verdict.passed
+    assert observed.production.final_qca_state.fn_path_aux_state is None
+    assert probe.production_contract.uses_production_api
+    assert probe.production_contract.lean_effective_yukawa
+    assert probe.production_contract.structured_collision_cache_present
+    assert not probe.production_contract.raw_yukawa_arrays_present
+    assert jnp.allclose(
+        observed.carrier_populations_initial.sector,
+        jnp.asarray([0.0, 0.0, 0.0, 1.0, 0.0, 0.0]),
+    )
+    assert observed.carrier_populations_final.sector[5] > 1e-4
+    assert observed.carrier_populations_final.sector[4] < 1e-9
+    assert observed.carrier_populations_final.sector[0] < 1e-9
+    assert jnp.abs(jnp.sum(observed.carrier_populations_final.sector) - observed.norm_final) < 3e-7
+    assert jnp.abs(observed.extended_norm_final - observed.extended_norm_initial) < 3e-7
+
+
+def test_charged_lepton_probe_payload_passes_physics_tests() -> None:
+    payload = run_charged_lepton_probe()
+    e_populations = [probe["e_c_population"] for probe in payload["probes"]]
+
+    assert payload["physics_tests"]["passed"]
+    assert all(payload["physics_tests"]["checks"].values())
+    assert payload["probe_source"]["sector"] == "L"
+    assert payload["probe_source"]["weak"] == 1
+    assert payload["probe_source"]["target"] == "e_c"
+    assert payload["probe_source"]["wrong_target"] == "nu_c"
+    assert e_populations[2] > e_populations[1] > e_populations[0]
+    assert all(probe["nu_c_population"] < payload["physics_tests"]["thresholds"]["wrong_sector_max"] for probe in payload["probes"])
+    assert payload["production_contract"]["uses_production_api"]
+    assert payload["production_contract"]["lean_effective_yukawa"]
+    assert payload["production_contract"]["structured_collision_cache_present"]
+    assert not payload["production_contract"]["raw_yukawa_arrays_present"]
+
+
+def test_charged_lepton_probe_cli_writes_json_and_report(tmp_path, capsys) -> None:
+    json_path = tmp_path / "charged_lepton_probe.json"
+    report_path = tmp_path / "charged_lepton_probe.md"
+
+    charged_lepton_probe_main(
+        [
+            "--output",
+            "json",
+            "--json-output-path",
+            str(json_path),
+            "--report-output-path",
+            str(report_path),
+        ],
+    )
+    stdout_payload = json.loads(capsys.readouterr().out)
+    saved_payload = json.loads(json_path.read_text(encoding="utf-8"))
+    report = report_path.read_text(encoding="utf-8")
+
+    assert stdout_payload == saved_payload
+    assert saved_payload["physics_tests"]["passed"]
+    assert all(saved_payload["physics_tests"]["checks"].values())
+    assert saved_payload["lepton_inputs"]["mode"] == "diagonal_charged_lepton_probe"
+    assert saved_payload["probes"][2]["e_c_population"] > saved_payload["probes"][1]["e_c_population"]
+    assert saved_payload["probes"][1]["e_c_population"] > saved_payload["probes"][0]["e_c_population"]
+    assert "QCA_SMv0 Charged-Lepton Carrier Probe" in report
+    assert "overall passed: `True`" in report
+    assert "L(weak=1)" in report
+
+
+def test_canonical_charged_lepton_probe_artifact_passes_physics_tests() -> None:
+    payload = json.loads(
+        Path("src/clifford_3plus2_d5/qca_smv0/canonical/charged_lepton_probe.json").read_text(
+            encoding="utf-8",
+        ),
+    )
+
+    assert payload["physics_tests"]["passed"]
+    assert all(payload["physics_tests"]["checks"].values())
+    assert payload["production_contract"]["uses_production_api"]
+    assert payload["production_contract"]["lean_effective_yukawa"]
+    assert payload["production_contract"]["structured_collision_cache_present"]
+    assert not payload["production_contract"]["raw_yukawa_arrays_present"]
+    assert payload["lepton_inputs"]["neutrino_yukawas"] == [0.0, 0.0, 0.0]
+    assert payload["probes"][2]["e_c_population"] > payload["probes"][1]["e_c_population"]
+    assert payload["probes"][1]["e_c_population"] > payload["probes"][0]["e_c_population"]
+    assert max(probe["nu_c_population"] for probe in payload["probes"]) < payload["physics_tests"]["thresholds"]["wrong_sector_max"]
+
+
+def test_neutrino_probe_payload_passes_physics_tests() -> None:
+    payload = run_neutrino_probe()
+    nu_populations = [probe["nu_c_population"] for probe in payload["probes"]]
+
+    assert payload["physics_tests"]["passed"]
+    assert all(payload["physics_tests"]["checks"].values())
+    assert payload["probe_source"]["sector"] == "L"
+    assert payload["probe_source"]["weak"] == 0
+    assert payload["probe_source"]["target"] == "nu_c"
+    assert payload["probe_source"]["wrong_target"] == "e_c"
+    assert payload["lepton_inputs"]["mode"] == "direct_diagonal_effective_neutrino_yukawa_probe"
+    assert payload["lepton_inputs"]["later_mode"] == "seesaw_schur_input_mode"
+    assert payload["lepton_inputs"]["charged_lepton_yukawas"] == [0.0, 0.0, 0.0]
+    assert payload["neutrino_metadata"]["hierarchy"] == "normal"
+    assert payload["neutrino_metadata"]["lightest_massless"]
+    assert payload["neutrino_metadata"]["m1"] == 0.0
+    assert payload["neutrino_metadata"]["ratio_error"] < payload["physics_tests"]["thresholds"]["ratio_tolerance"]
+    assert nu_populations[0] < payload["physics_tests"]["thresholds"]["wrong_sector_max"]
+    assert nu_populations[1] > payload["physics_tests"]["thresholds"]["transfer_min"]
+    assert nu_populations[2] > nu_populations[1]
+    assert all(probe["e_c_population"] < payload["physics_tests"]["thresholds"]["wrong_sector_max"] for probe in payload["probes"])
+    assert payload["production_contract"]["uses_production_api"]
+    assert payload["production_contract"]["lean_effective_yukawa"]
+    assert payload["production_contract"]["structured_collision_cache_present"]
+    assert not payload["production_contract"]["raw_yukawa_arrays_present"]
+
+
+def test_neutrino_probe_cli_writes_json_and_report(tmp_path, capsys) -> None:
+    json_path = tmp_path / "neutrino_probe.json"
+    report_path = tmp_path / "neutrino_probe.md"
+
+    neutrino_probe_main(
+        [
+            "--output",
+            "json",
+            "--json-output-path",
+            str(json_path),
+            "--report-output-path",
+            str(report_path),
+        ],
+    )
+    stdout_payload = json.loads(capsys.readouterr().out)
+    saved_payload = json.loads(json_path.read_text(encoding="utf-8"))
+    report = report_path.read_text(encoding="utf-8")
+
+    assert stdout_payload == saved_payload
+    assert saved_payload["physics_tests"]["passed"]
+    assert all(saved_payload["physics_tests"]["checks"].values())
+    assert saved_payload["lepton_inputs"]["mode"] == "direct_diagonal_effective_neutrino_yukawa_probe"
+    assert saved_payload["neutrino_metadata"]["hierarchy"] == "normal"
+    assert saved_payload["neutrino_metadata"]["lightest_massless"]
+    assert saved_payload["probes"][2]["nu_c_population"] > saved_payload["probes"][1]["nu_c_population"]
+    assert saved_payload["probes"][1]["nu_c_population"] > saved_payload["physics_tests"]["thresholds"]["transfer_min"]
+    assert "QCA_SMv0 Neutrino Carrier Probe" in report
+    assert "overall passed: `True`" in report
+    assert "L(weak=0)" in report
+    assert "epsilon^4" in report
+
+
+def test_canonical_neutrino_probe_artifact_passes_physics_tests() -> None:
+    payload = json.loads(
+        Path("src/clifford_3plus2_d5/qca_smv0/canonical/neutrino_probe.json").read_text(
+            encoding="utf-8",
+        ),
+    )
+
+    assert payload["physics_tests"]["passed"]
+    assert all(payload["physics_tests"]["checks"].values())
+    assert payload["production_contract"]["uses_production_api"]
+    assert payload["production_contract"]["lean_effective_yukawa"]
+    assert payload["production_contract"]["structured_collision_cache_present"]
+    assert not payload["production_contract"]["raw_yukawa_arrays_present"]
+    assert payload["lepton_inputs"]["charged_lepton_yukawas"] == [0.0, 0.0, 0.0]
+    assert payload["neutrino_metadata"]["hierarchy"] == "normal"
+    assert payload["neutrino_metadata"]["lightest_massless"]
+    assert payload["neutrino_metadata"]["ratio_error"] < payload["physics_tests"]["thresholds"]["ratio_tolerance"]
+    assert payload["probes"][2]["nu_c_population"] > payload["probes"][1]["nu_c_population"]
+    assert payload["probes"][1]["nu_c_population"] > payload["physics_tests"]["thresholds"]["transfer_min"]
+    assert max(probe["e_c_population"] for probe in payload["probes"]) < payload["physics_tests"]["thresholds"]["wrong_sector_max"]
+
+
+def test_pmns_direct_yukawa_and_schur_backend_recover_neutrino_spectrum() -> None:
+    masses = jnp.asarray([0.0, 0.17157287525381, 1.0], dtype=jnp.float32)
+    pmns = sm_default_pmns_matrix()
+    direct = sm_lepton_direct_pmns_neutrino_yukawa(masses, pmns)
+    weights = sm_lepton_pmns_expected_transfer_weights(masses, pmns)
+    schur = sm_lepton_seesaw_schur_from_pmns(masses, pmns)
+
+    assert float(sm_pmns_unitarity_residual(pmns)) < 1.0e-6
+    assert direct.shape == (3, 3)
+    assert weights.shape == (3, 3)
+    assert jnp.allclose(jnp.sum(weights, axis=1), jnp.ones((3,), dtype=jnp.float32), atol=1.0e-6)
+    assert float(jnp.max(jnp.abs(jnp.linalg.svd(direct, compute_uv=False) - jnp.asarray([1.0, 0.17157287525381, 0.0])))) < 1.0e-6
+    assert float(schur.spectrum_residual) < 1.0e-6
+    assert jnp.allclose(schur.recovered_masses, jnp.sort(masses), atol=1.0e-6)
+    assert jnp.allclose(schur.effective_majorana, schur.effective_majorana.T, atol=1.0e-6)
+
+
+def test_lepton_pmns_probe_payload_passes_physics_tests() -> None:
+    payload = run_lepton_pmns_probe()
+
+    assert payload["physics_tests"]["passed"]
+    assert all(payload["physics_tests"]["checks"].values())
+    assert payload["lepton_inputs"]["mode"] == "direct_pmns_effective_neutrino_yukawa_probe"
+    assert payload["lepton_inputs"]["schur_backend"] == "type_i_seesaw_schur"
+    assert payload["probe_source"]["sector"] == "L"
+    assert payload["probe_source"]["weak"] == 0
+    assert payload["probe_source"]["target"] == "nu_c"
+    assert payload["probe_source"]["wrong_target"] == "e_c"
+    assert payload["neutrino_metadata"]["m1"] == 0.0
+    assert payload["neutrino_metadata"]["ratio_error"] < payload["physics_tests"]["thresholds"]["ratio_tolerance"]
+    assert payload["schur_seesaw"]["spectrum_residual"] < payload["physics_tests"]["thresholds"]["schur_spectrum_tolerance"]
+    assert jnp.allclose(jnp.asarray(payload["schur_seesaw"]["target_masses"]), jnp.asarray([0.0, 0.17157287525381, 1.0]))
+    assert max(probe["pmns_weight_max_error"] for probe in payload["probes"]) < payload["physics_tests"]["thresholds"]["pmns_weight_tolerance"]
+    assert all(probe["nu_c_population"] > payload["physics_tests"]["thresholds"]["transfer_min"] for probe in payload["probes"])
+    assert all(probe["e_c_population"] < payload["physics_tests"]["thresholds"]["wrong_sector_max"] for probe in payload["probes"])
+    assert any(len([value for value in probe["normalized_nu_c_family_populations"] if value > 1.0e-2]) > 1 for probe in payload["probes"])
+    assert payload["production_contract"]["uses_production_api"]
+    assert payload["production_contract"]["lean_effective_yukawa"]
+    assert payload["production_contract"]["structured_collision_cache_present"]
+    assert not payload["production_contract"]["raw_yukawa_arrays_present"]
+
+
+def test_lepton_pmns_probe_cli_writes_json_and_report(tmp_path, capsys) -> None:
+    json_path = tmp_path / "lepton_pmns_probe.json"
+    report_path = tmp_path / "lepton_pmns_probe.md"
+
+    lepton_pmns_probe_main(
+        [
+            "--output",
+            "json",
+            "--json-output-path",
+            str(json_path),
+            "--report-output-path",
+            str(report_path),
+        ],
+    )
+    stdout_payload = json.loads(capsys.readouterr().out)
+    saved_payload = json.loads(json_path.read_text(encoding="utf-8"))
+    report = report_path.read_text(encoding="utf-8")
+
+    assert stdout_payload == saved_payload
+    assert saved_payload["physics_tests"]["passed"]
+    assert all(saved_payload["physics_tests"]["checks"].values())
+    assert saved_payload["lepton_inputs"]["mode"] == "direct_pmns_effective_neutrino_yukawa_probe"
+    assert saved_payload["lepton_inputs"]["schur_backend"] == "type_i_seesaw_schur"
+    assert saved_payload["schur_seesaw"]["spectrum_residual"] < saved_payload["physics_tests"]["thresholds"]["schur_spectrum_tolerance"]
+    assert "QCA_SMv0 Lepton PMNS Probe" in report
+    assert "overall passed: `True`" in report
+    assert "Schur recovered masses" in report
+
+
+def test_canonical_lepton_pmns_probe_artifact_passes_physics_tests() -> None:
+    payload = json.loads(
+        Path("src/clifford_3plus2_d5/qca_smv0/canonical/lepton_pmns_probe.json").read_text(
+            encoding="utf-8",
+        ),
+    )
+
+    assert payload["physics_tests"]["passed"]
+    assert all(payload["physics_tests"]["checks"].values())
+    assert payload["lepton_inputs"]["mode"] == "direct_pmns_effective_neutrino_yukawa_probe"
+    assert payload["lepton_inputs"]["schur_backend"] == "type_i_seesaw_schur"
+    assert payload["schur_seesaw"]["spectrum_residual"] < payload["physics_tests"]["thresholds"]["schur_spectrum_tolerance"]
+    assert payload["neutrino_metadata"]["m1"] == 0.0
+    assert payload["neutrino_metadata"]["ratio_error"] < payload["physics_tests"]["thresholds"]["ratio_tolerance"]
+    assert max(probe["pmns_weight_max_error"] for probe in payload["probes"]) < payload["physics_tests"]["thresholds"]["pmns_weight_tolerance"]
+    assert all(probe["nu_c_population"] > payload["physics_tests"]["thresholds"]["transfer_min"] for probe in payload["probes"])
+    assert max(probe["e_c_population"] for probe in payload["probes"]) < payload["physics_tests"]["thresholds"]["wrong_sector_max"]
+    assert payload["production_contract"]["uses_production_api"]
+    assert payload["production_contract"]["lean_effective_yukawa"]
 
 
 def test_calibrated_quark_family_response_measures_field_level_up_and_down_doors() -> None:
@@ -1815,6 +2155,39 @@ def test_phenomenology_lepton_yukawa_inputs_reach_compressed_cache_and_stay_lean
     assert summary.neutrino_yukawas == (0.0, 0.0, 0.0)
     assert summary.charged_lepton_yukawas == (0.0, 0.0, 0.0)
     assert summary.production_contract["lean_effective_yukawa"]
+
+
+def test_phenomenology_cli_json_reports_lepton_inputs_and_lean_contract(tmp_path, capsys) -> None:
+    json_path = tmp_path / "leptons.json"
+
+    phenomenology_main(
+        [
+            "--lattice-shape",
+            "1,1,1",
+            "--steps",
+            "1",
+            "--neutrino-yukawas",
+            "0.0,0.001,0.01",
+            "--charged-lepton-yukawas",
+            "0.000003,0.0006,0.01",
+            "--output",
+            "json",
+            "--json-output-path",
+            str(json_path),
+        ],
+    )
+    payload = json.loads(capsys.readouterr().out)
+    saved_payload = json.loads(json_path.read_text(encoding="utf-8"))
+
+    assert payload == saved_payload
+    assert payload["lepton_inputs"]["mode"] == "diagonal_input"
+    assert payload["lepton_inputs"]["neutrino_yukawas"] == [0.0, 0.001, 0.01]
+    assert payload["lepton_inputs"]["charged_lepton_yukawas"] == [0.000003, 0.0006, 0.01]
+    assert payload["rollout"]["production_contract"]["uses_production_api"]
+    assert payload["rollout"]["production_contract"]["structured_collision_cache_present"]
+    assert payload["rollout"]["production_contract"]["lean_effective_yukawa"]
+    assert not payload["rollout"]["production_contract"]["raw_yukawa_arrays_present"]
+    assert payload["rollout"]["memory"]["fn_path_aux_complex_elements"] == 0
 
 
 def test_phenomenology_rollout_reports_coefficient_diagnostics() -> None:
