@@ -64,6 +64,21 @@ Production-core baseline:
   against PMNS transfer weights, and includes a concrete type-I heavy-sterile
   Schur/seesaw backend whose recovered low-energy spectrum matches
   `(0, eta, 1)`.
+- The lepton phenomenology CLI is available at `scripts/lepton_phenomenology.py`
+  with `--mode direct|schur`.  It accepts charged-lepton masses, neutrino
+  masses or normal-ordering splittings, PMNS angles/phase, and scale labels,
+  then emits JSON/Markdown diagnostics.  Canonical direct and Schur artifacts
+  live at `canonical/lepton_phenomenology_direct.*` and
+  `canonical/lepton_phenomenology_schur.*`, including carrier transfer,
+  leakage, PMNS response, mass-squared ratio, norm, production-contract, and
+  Schur spectrum checks.
+- The full SM benchmark is available at `scripts/full_sm_benchmark.py` and
+  checked in as `canonical/full_sm_benchmark.json` and
+  `canonical/full_sm_benchmark.md`.  It runs one compressed production rollout
+  with quark FN, charged-lepton, and PMNS neutrino Yukawas active, then reports
+  quark carrier transfer, lepton carrier transfer, PMNS response, Schur
+  spectrum, norm conservation, memory footprint, CP-phase sensitivity,
+  PMNS/CKM frame mismatch, and production-contract checks.
 - The current `production_scaling` preset measured compressed fast-strategy
   state-only rollouts at `~197k`, `~346k`, and `~143k` median site-steps/s for
   `4x4x4`, `8x4x4`, and `8x8x8`, respectively.  XLA temporary buffers were

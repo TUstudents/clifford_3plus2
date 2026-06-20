@@ -1,0 +1,394 @@
+{
+  "benchmark": "lepton_phenomenology",
+  "charged_probes": [
+    {
+      "charged_yukawa": 0.00028758537532501155,
+      "e_c_family_populations": [
+        1.6541063657671273e-11,
+        0.0,
+        0.0
+      ],
+      "e_c_population": 1.6541063657671273e-11,
+      "extended_norm_drift": 1.1920928955078125e-07,
+      "family": 0,
+      "label": "e",
+      "norm_drift": 1.1920928955078125e-07,
+      "nu_c_population": 0.0
+    },
+    {
+      "charged_yukawa": 0.059463534268316014,
+      "e_c_family_populations": [
+        0.0,
+        7.071820391502115e-07,
+        0.0
+      ],
+      "e_c_population": 7.071820391502115e-07,
+      "extended_norm_drift": 0.0,
+      "family": 1,
+      "label": "mu",
+      "norm_drift": 0.0,
+      "nu_c_population": 0.0
+    },
+    {
+      "charged_yukawa": 1.0,
+      "e_c_family_populations": [
+        0.0,
+        0.0,
+        0.00019998660718556494
+      ],
+      "e_c_population": 0.00019998660718556494,
+      "extended_norm_drift": 1.7881393432617188e-07,
+      "family": 2,
+      "label": "tau",
+      "norm_drift": 1.7881393432617188e-07,
+      "nu_c_population": 0.0
+    }
+  ],
+  "charges": {
+    "d": [
+      1,
+      0,
+      0
+    ],
+    "q": [
+      3,
+      2,
+      0
+    ],
+    "u": [
+      5,
+      2,
+      0
+    ]
+  },
+  "diagnostics": {
+    "charged_lepton_yukawa_range": [
+      0.00028758537532501155,
+      1.0
+    ],
+    "delta_m2_21_over_delta_m2_31": 0.029437251522859444,
+    "expected_epsilon_fourth": 0.02943725152285944,
+    "massless_lightest": true,
+    "normal_ordering": true,
+    "pmns_unitarity_residual": 1.1920928955078125e-07,
+    "ratio_error": 3.469446951953614e-18,
+    "schur_spectrum_residual": 4.470348358154297e-08
+  },
+  "input_masses": {
+    "down": [
+      0.00467,
+      0.0935,
+      4.183
+    ],
+    "down_normalization": 4.183000087738037,
+    "up": [
+      0.00216,
+      1.273,
+      172.57
+    ],
+    "up_normalization": 172.57000732421875
+  },
+  "lambda": 0.22501,
+  "lattice_shape": [
+    1,
+    1,
+    1
+  ],
+  "lepton_inputs": {
+    "charged_lepton_masses": [
+      0.00051099895,
+      0.1056583755,
+      1.77686
+    ],
+    "charged_lepton_yukawas": [
+      0.00028758537532501155,
+      0.059463534268316014,
+      1.0
+    ],
+    "mode": "direct",
+    "neutrino_input": "splittings",
+    "neutrino_masses": [
+      0.0,
+      0.17157287525381,
+      1.0
+    ],
+    "neutrino_splittings": [
+      0.02943725152285944,
+      1.0
+    ],
+    "neutrino_yukawa_matrix": [
+      [
+        {
+          "im": 0.0,
+          "re": 0.0
+        },
+        {
+          "im": 0.0,
+          "re": 0.09349188953638077
+        },
+        {
+          "im": 0.038568466901779175,
+          "re": -0.14393945038318634
+        }
+      ],
+      [
+        {
+          "im": 0.0,
+          "re": 0.0
+        },
+        {
+          "im": 0.0027604252099990845,
+          "re": 0.10385309904813766
+        },
+        {
+          "im": 0.0,
+          "re": 0.7485429644584656
+        }
+      ],
+      [
+        {
+          "im": 0.0,
+          "re": 0.0
+        },
+        {
+          "im": 0.002382732927799225,
+          "re": -0.09948747605085373
+        },
+        {
+          "im": 0.0,
+          "re": 0.6461249589920044
+        }
+      ]
+    ],
+    "pmns_angles": [
+      0.5836381018669037,
+      0.8587019919812102,
+      0.14957417646704585,
+      3.4033920413889422
+    ],
+    "pmns_matrix": [
+      [
+        {
+          "im": 0.0,
+          "re": 0.8251462578773499
+        },
+        {
+          "im": 0.0,
+          "re": 0.5449106693267822
+        },
+        {
+          "im": 0.038568463176488876,
+          "re": -0.14393945038318634
+        }
+      ],
+      [
+        {
+          "im": 0.02436310611665249,
+          "re": -0.2691519260406494
+        },
+        {
+          "im": 0.016088925302028656,
+          "re": 0.6053001880645752
+        },
+        {
+          "im": 0.0,
+          "re": 0.7485429644584656
+        }
+      ],
+      [
+        {
+          "im": 0.021029667928814888,
+          "re": 0.49563613533973694
+        },
+        {
+          "im": 0.013887587934732437,
+          "re": -0.5798555016517639
+        },
+        {
+          "im": 0.0,
+          "re": 0.6461249589920044
+        }
+      ]
+    ],
+    "pmns_unitarity_residual": 1.1920928955078125e-07,
+    "production_input": "direct_pmns_effective_yukawa",
+    "schur_backend": {
+      "effective_majorana": [
+        [
+          {
+            "im": -0.011103048920631409,
+            "re": -0.07017577439546585
+          },
+          {
+            "im": 0.03037433512508869,
+            "re": 0.051154203712940216
+          },
+          {
+            "im": 0.026218421757221222,
+            "re": 0.14721466600894928
+          }
+        ],
+        [
+          {
+            "im": 0.03037434071302414,
+            "re": 0.051154207438230515
+          },
+          {
+            "im": 0.0033417344093322754,
+            "re": -0.6231344938278198
+          },
+          {
+            "im": -0.0001583695411682129,
+            "re": -0.42339417338371277
+          }
+        ],
+        [
+          {
+            "im": 0.02621842920780182,
+            "re": 0.14721466600894928
+          },
+          {
+            "im": -0.0001583695411682129,
+            "re": -0.42339417338371277
+          },
+          {
+            "im": -0.0027632713317871094,
+            "re": -0.4751327335834503
+          }
+        ]
+      ],
+      "enabled": false,
+      "kind": "type_i_seesaw_schur",
+      "recovered_masses": [
+        6.207423020043734e-09,
+        0.17157292366027832,
+        1.0
+      ],
+      "spectrum_residual": 4.470348358154297e-08,
+      "sterile_majorana_masses": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "target_masses": [
+        0.0,
+        0.17157287895679474,
+        1.0
+      ]
+    }
+  },
+  "mode": "direct",
+  "neutrino_probes": [
+    {
+      "e_c_population": 0.0,
+      "expected_pmns_weights": [
+        0.0,
+        0.2824436128139496,
+        0.7175562977790833
+      ],
+      "extended_norm_drift": 2.384185791015625e-07,
+      "label": "e-flavor",
+      "norm_drift": 2.384185791015625e-07,
+      "normalized_nu_c_family_populations": [
+        0.0,
+        0.28245669422438235,
+        0.7175433057756176
+      ],
+      "nu_c_family_populations": [
+        0.0,
+        1.748141926327662e-06,
+        4.44091983808903e-06
+      ],
+      "nu_c_population": 6.18906187810353e-06,
+      "pmns_weight_max_error": 1.3081410432769225e-05,
+      "source_family": 0
+    },
+    {
+      "e_c_population": 0.0,
+      "expected_pmns_weights": [
+        0.0,
+        0.01889844797551632,
+        0.9811015725135803
+      ],
+      "extended_norm_drift": 0.0,
+      "label": "mu-flavor",
+      "norm_drift": 0.0,
+      "normalized_nu_c_family_populations": [
+        0.0,
+        0.01889962947228868,
+        0.9811003705277113
+      ],
+      "nu_c_family_populations": [
+        0.0,
+        2.158610186597798e-06,
+        0.00011205580813111737
+      ],
+      "nu_c_population": 0.00011421441740822047,
+      "pmns_weight_max_error": 1.2019858690592855e-06,
+      "source_family": 1
+    },
+    {
+      "e_c_population": 0.0,
+      "expected_pmns_weights": [
+        0.0,
+        0.02317238412797451,
+        0.9768276214599609
+      ],
+      "extended_norm_drift": 9.5367431640625e-07,
+      "label": "tau-flavor",
+      "norm_drift": 9.5367431640625e-07,
+      "normalized_nu_c_family_populations": [
+        0.0,
+        0.023173845425803863,
+        0.9768261545741961
+      ],
+      "nu_c_family_populations": [
+        0.0,
+        1.9806830096058547e-06,
+        8.348994015250355e-05
+      ],
+      "nu_c_population": 8.54706231621094e-05,
+      "pmns_weight_max_error": 1.4668857648558742e-06,
+      "source_family": 2
+    }
+  ],
+  "physics_tests": {
+    "checks": {
+      "charged_carrier_transfer": true,
+      "charged_hierarchy": true,
+      "charged_no_nu_c_leakage": true,
+      "massless_lightest": true,
+      "neutrino_carrier_transfer": true,
+      "neutrino_no_e_c_leakage": true,
+      "norm_conservation": true,
+      "normal_ordering": true,
+      "pmns_mixing": true,
+      "pmns_unitarity": true,
+      "production_contract": true,
+      "ratio_check": true,
+      "schur_spectrum": true
+    },
+    "passed": true,
+    "thresholds": {
+      "charged_transfer_min": 1e-12,
+      "norm_drift_max": 2e-06,
+      "pmns_weight_tolerance": 0.0075,
+      "ratio_tolerance": 1e-06,
+      "schur_spectrum_tolerance": 1e-06,
+      "transfer_min": 1e-06,
+      "wrong_sector_max": 1e-09
+    }
+  },
+  "production_contract": {
+    "gauge_links_present": false,
+    "higgs_field_present": false,
+    "lean_effective_yukawa": true,
+    "raw_readout_arrays_present": false,
+    "raw_yukawa_arrays_present": false,
+    "state_only": true,
+    "structured_collision_cache_present": true,
+    "uses_production_api": true
+  },
+  "scale_label": "benchmark",
+  "steps": 1
+}

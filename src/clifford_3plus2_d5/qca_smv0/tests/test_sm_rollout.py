@@ -24,9 +24,17 @@ from clifford_3plus2_d5.qca_smv0.scripts.charged_lepton_probe import (
     main as charged_lepton_probe_main,
     run_charged_lepton_probe,
 )
+from clifford_3plus2_d5.qca_smv0.scripts.full_sm_benchmark import (
+    main as full_sm_benchmark_main,
+    run_full_sm_benchmark,
+)
 from clifford_3plus2_d5.qca_smv0.scripts.lepton_pmns_probe import (
     main as lepton_pmns_probe_main,
     run_lepton_pmns_probe,
+)
+from clifford_3plus2_d5.qca_smv0.scripts.lepton_phenomenology import (
+    main as lepton_phenomenology_main,
+    run_lepton_phenomenology,
 )
 from clifford_3plus2_d5.qca_smv0.scripts.neutrino_probe import (
     main as neutrino_probe_main,
@@ -1155,6 +1163,157 @@ def test_canonical_lepton_pmns_probe_artifact_passes_physics_tests() -> None:
     assert max(probe["pmns_weight_max_error"] for probe in payload["probes"]) < payload["physics_tests"]["thresholds"]["pmns_weight_tolerance"]
     assert all(probe["nu_c_population"] > payload["physics_tests"]["thresholds"]["transfer_min"] for probe in payload["probes"])
     assert max(probe["e_c_population"] for probe in payload["probes"]) < payload["physics_tests"]["thresholds"]["wrong_sector_max"]
+    assert payload["production_contract"]["uses_production_api"]
+    assert payload["production_contract"]["lean_effective_yukawa"]
+
+
+def test_lepton_phenomenology_direct_and_schur_modes_pass_and_match_low_energy_inputs() -> None:
+    direct = run_lepton_phenomenology(mode="direct")
+    schur = run_lepton_phenomenology(mode="schur")
+
+    assert direct["physics_tests"]["passed"]
+    assert schur["physics_tests"]["passed"]
+    assert all(direct["physics_tests"]["checks"].values())
+    assert all(schur["physics_tests"]["checks"].values())
+    assert direct["lepton_inputs"]["mode"] == "direct"
+    assert schur["lepton_inputs"]["mode"] == "schur"
+    assert direct["lepton_inputs"]["production_input"] == "direct_pmns_effective_yukawa"
+    assert schur["lepton_inputs"]["production_input"] == "schur_reduced_pmns_effective_yukawa"
+    assert direct["lepton_inputs"]["charged_lepton_yukawas"] == schur["lepton_inputs"]["charged_lepton_yukawas"]
+    assert direct["lepton_inputs"]["neutrino_masses"] == schur["lepton_inputs"]["neutrino_masses"]
+    assert direct["diagnostics"]["ratio_error"] < direct["physics_tests"]["thresholds"]["ratio_tolerance"]
+    assert schur["diagnostics"]["schur_spectrum_residual"] < schur["physics_tests"]["thresholds"]["schur_spectrum_tolerance"]
+    assert direct["charged_probes"][2]["e_c_population"] > direct["charged_probes"][1]["e_c_population"]
+    assert direct["charged_probes"][1]["e_c_population"] > direct["charged_probes"][0]["e_c_population"]
+    assert max(probe["pmns_weight_max_error"] for probe in schur["neutrino_probes"]) < schur["physics_tests"]["thresholds"]["pmns_weight_tolerance"]
+
+
+def test_lepton_phenomenology_cli_writes_json_and_report_for_schur_mode(tmp_path, capsys) -> None:
+    json_path = tmp_path / "lepton_phenomenology_schur.json"
+    report_path = tmp_path / "lepton_phenomenology_schur.md"
+
+    lepton_phenomenology_main(
+        [
+            "--mode",
+            "schur",
+            "--output",
+            "json",
+            "--json-output-path",
+            str(json_path),
+            "--report-output-path",
+            str(report_path),
+        ],
+    )
+    stdout_payload = json.loads(capsys.readouterr().out)
+    saved_payload = json.loads(json_path.read_text(encoding="utf-8"))
+    report = report_path.read_text(encoding="utf-8")
+
+    assert stdout_payload == saved_payload
+    assert saved_payload["physics_tests"]["passed"]
+    assert all(saved_payload["physics_tests"]["checks"].values())
+    assert saved_payload["mode"] == "schur"
+    assert saved_payload["lepton_inputs"]["mode"] == "schur"
+    assert saved_payload["lepton_inputs"]["production_input"] == "schur_reduced_pmns_effective_yukawa"
+    assert saved_payload["diagnostics"]["schur_spectrum_residual"] < saved_payload["physics_tests"]["thresholds"]["schur_spectrum_tolerance"]
+    assert "QCA_SMv0 Lepton Phenomenology" in report
+    assert "overall passed: `True`" in report
+    assert "production input: `schur_reduced_pmns_effective_yukawa`" in report
+
+
+def test_canonical_lepton_phenomenology_artifacts_pass_physics_tests() -> None:
+    direct = json.loads(
+        Path("src/clifford_3plus2_d5/qca_smv0/canonical/lepton_phenomenology_direct.json").read_text(
+            encoding="utf-8",
+        ),
+    )
+    schur = json.loads(
+        Path("src/clifford_3plus2_d5/qca_smv0/canonical/lepton_phenomenology_schur.json").read_text(
+            encoding="utf-8",
+        ),
+    )
+
+    for payload in (direct, schur):
+        assert payload["physics_tests"]["passed"]
+        assert all(payload["physics_tests"]["checks"].values())
+        assert payload["diagnostics"]["ratio_error"] < payload["physics_tests"]["thresholds"]["ratio_tolerance"]
+        assert payload["diagnostics"]["schur_spectrum_residual"] < payload["physics_tests"]["thresholds"]["schur_spectrum_tolerance"]
+        assert payload["production_contract"]["uses_production_api"]
+        assert payload["production_contract"]["lean_effective_yukawa"]
+        assert payload["charged_probes"][2]["e_c_population"] > payload["charged_probes"][1]["e_c_population"]
+        assert payload["charged_probes"][1]["e_c_population"] > payload["charged_probes"][0]["e_c_population"]
+        assert max(probe["pmns_weight_max_error"] for probe in payload["neutrino_probes"]) < payload["physics_tests"]["thresholds"]["pmns_weight_tolerance"]
+    assert direct["mode"] == "direct"
+    assert schur["mode"] == "schur"
+    assert direct["lepton_inputs"]["neutrino_masses"] == schur["lepton_inputs"]["neutrino_masses"]
+
+
+def test_full_sm_benchmark_payload_passes_physics_tests() -> None:
+    payload = run_full_sm_benchmark()
+
+    assert payload["physics_tests"]["passed"]
+    assert all(payload["physics_tests"]["checks"].values())
+    assert payload["mode"] == "schur"
+    assert payload["lepton_inputs"]["production_input"] == "schur_reduced_pmns_effective_yukawa"
+    assert payload["rollout"]["norm_drift"] < payload["physics_tests"]["thresholds"]["norm_drift_max"]
+    assert payload["memory"]["runtime_array_bytes"] > 0
+    assert payload["quark"]["up_population_max"] > payload["physics_tests"]["thresholds"]["quark_transfer_min"]
+    assert payload["quark"]["down_population_max"] > payload["physics_tests"]["thresholds"]["quark_transfer_min"]
+    assert payload["leptons"]["diagnostics"]["schur_spectrum_residual"] < 1.0e-6
+    assert payload["frame_diagnostics"]["pmns_jarlskog_abs"] > 1.0e-3
+    assert payload["frame_diagnostics"]["pmns_delta_zero_jarlskog_abs"] < 1.0e-6
+    assert payload["frame_diagnostics"]["pmns_ckm_abs_mismatch_norm"] > 1.0
+    assert payload["frame_diagnostics"]["pmns_offdiag_norm"] > payload["frame_diagnostics"]["ckm_offdiag_norm"]
+    assert payload["production_contract"]["uses_production_api"]
+    assert payload["production_contract"]["lean_effective_yukawa"]
+    assert not payload["production_contract"]["raw_yukawa_arrays_present"]
+
+
+def test_full_sm_benchmark_cli_writes_json_and_report(tmp_path, capsys) -> None:
+    json_path = tmp_path / "full_sm_benchmark.json"
+    report_path = tmp_path / "full_sm_benchmark.md"
+
+    full_sm_benchmark_main(
+        [
+            "--output",
+            "json",
+            "--json-output-path",
+            str(json_path),
+            "--report-output-path",
+            str(report_path),
+        ],
+    )
+    stdout_payload = json.loads(capsys.readouterr().out)
+    saved_payload = json.loads(json_path.read_text(encoding="utf-8"))
+    report = report_path.read_text(encoding="utf-8")
+
+    assert stdout_payload == saved_payload
+    assert saved_payload["physics_tests"]["passed"]
+    assert all(saved_payload["physics_tests"]["checks"].values())
+    assert saved_payload["benchmark"] == "full_sm_benchmark"
+    assert "QCA_SMv0 Full SM Benchmark" in report
+    assert "overall passed: `True`" in report
+    assert "runtime array bytes" in report
+
+
+def test_canonical_full_sm_benchmark_artifact_passes_physics_tests() -> None:
+    payload = json.loads(
+        Path("src/clifford_3plus2_d5/qca_smv0/canonical/full_sm_benchmark.json").read_text(
+            encoding="utf-8",
+        ),
+    )
+
+    assert payload["physics_tests"]["passed"]
+    assert all(payload["physics_tests"]["checks"].values())
+    assert payload["mode"] == "schur"
+    assert payload["rollout"]["steps_completed"] == 2
+    assert payload["memory"]["runtime_array_bytes"] > 0
+    assert payload["quark"]["up_population_max"] > payload["physics_tests"]["thresholds"]["quark_transfer_min"]
+    assert payload["quark"]["down_population_max"] > payload["physics_tests"]["thresholds"]["quark_transfer_min"]
+    assert payload["leptons"]["diagnostics"]["schur_spectrum_residual"] < 1.0e-6
+    assert payload["physics_tests"]["checks"]["cp_phase_sensitivity"]
+    assert payload["physics_tests"]["checks"]["pmns_ckm_frame_mismatch"]
+    assert payload["frame_diagnostics"]["pmns_jarlskog_abs"] > 1.0e-3
+    assert payload["frame_diagnostics"]["pmns_delta_zero_jarlskog_abs"] < 1.0e-6
     assert payload["production_contract"]["uses_production_api"]
     assert payload["production_contract"]["lean_effective_yukawa"]
 

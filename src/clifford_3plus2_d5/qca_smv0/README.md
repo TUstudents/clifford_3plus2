@@ -184,6 +184,27 @@ a direct PMNS neutrino input `Y_nu = U_PMNS diag(0, eta, 1)`, verifies mixed
 `nu_c` target-family populations against the PMNS transfer weights, and builds
 a type-I heavy-sterile Schur/seesaw backend whose low-energy singular spectrum
 recovers `(0, eta, 1)`.
+The production-facing lepton CLI is
+`scripts/lepton_phenomenology.py`.  It accepts charged-lepton masses, neutrino
+masses or normal-ordering splittings, PMNS angles/phase, scale labels, and a
+`--mode direct|schur` selector.  The checked-in direct and Schur reference
+artifacts live at
+[`canonical/lepton_phenomenology_direct.json`](canonical/lepton_phenomenology_direct.json),
+[`canonical/lepton_phenomenology_direct.md`](canonical/lepton_phenomenology_direct.md),
+[`canonical/lepton_phenomenology_schur.json`](canonical/lepton_phenomenology_schur.json),
+and [`canonical/lepton_phenomenology_schur.md`](canonical/lepton_phenomenology_schur.md).
+Both modes run charged-lepton carrier transfer, PMNS neutrino transfer,
+ordering/ratio diagnostics, Schur spectrum checks, leakage checks, norm checks,
+and production-contract checks.
+The full Standard-Model-like reference rollout is
+[`canonical/full_sm_benchmark.json`](canonical/full_sm_benchmark.json) and
+[`canonical/full_sm_benchmark.md`](canonical/full_sm_benchmark.md), produced by
+`scripts/full_sm_benchmark.py`.  It activates quark FN effective Yukawas,
+charged-lepton Yukawas, and PMNS neutrino Yukawas in one short compressed
+production rollout, then reports quark carrier transfer, lepton carrier
+transfer, PMNS response, Schur spectrum, norm conservation, production memory
+footprint, CP-phase sensitivity, PMNS/CKM frame mismatch, and
+production-contract checks.
 For the default compressed `effective_yukawa` mode, the command now runs the
 calibrated production state API and reports
 `rollout_entrypoint=calibrated_production_api`; exact `fn_dilation` remains a
